@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import './ui/styles.css'
 import { Viewport } from './core/Viewport'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
