@@ -19,8 +19,10 @@ Built as a desktop app (Electron + Three.js + TypeScript).
 ## What you can do right now
 
 - Orbit / zoom / pan around a dress-form mannequin in a neutral studio scene.
-- See a **fitted garment** (a sleeveless tube dress) wrap the body and **drape with real folds** — an
-  XPBD cloth solver with body-capsule collision + friction, anchored so it stays on.
+- Pick a **garment template** — **dress, skirt, top, or pants** — and tweak its **length, looseness,
+  and flare**; it rebuilds and re-drapes on the body (pants simulate as two legs).
+- Each garment **drapes with real folds** — an XPBD cloth solver with body-capsule collision +
+  friction, anchored so it stays on.
 - Choose from a **fabric library** (cotton poplin, denim, linen, wool flannel, silk charmeuse, satin,
   jersey knit, sheer chiffon, leather) — each with real properties that drive **both look and drape**.
 - **Live-inspect a fabric**: weight (GSM), stretch, drape, grip, colour, roughness, sheen, weave
