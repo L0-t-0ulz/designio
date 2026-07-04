@@ -96,6 +96,11 @@ export class GarmentController {
     this.redrape()
   }
 
+  /** Remove all pieces from the scene (e.g. when switching design mode). */
+  clear(): void {
+    this.dispose()
+  }
+
   private dispose(): void {
     for (const p of this.pieces) {
       this.scene.remove(p.mesh)

@@ -1,0 +1,234 @@
+import * as THREE from 'three'
+import { type Capsule, closestPointOnSegment } from '../avatar/colliders'
+import type { FabricParams } from './fabricPresets'
+
+interface Constraint {
+  i: number
+  j: number
+  rest: number
+  compliance: number
+  bend: boolean
+}
+
+/**
+ * A general XPBD cloth solver over an arbitrary particle set + explicit
+ * constraint list — used for sewn multi-panel garments (patterns), where seams
+ * are just extra distance constraints (rest ≈ 0) linking two panels' edges.
+ *
+ * Built incrementally: `addParticles` (one panel at a time) → `addConstraint` /
+ * `stitch` / `pin` → `build()`. The XPBD step math mirrors {@link XPBDSolver}.
+ */
+export class ClothWorld {
+  positions = new Float32Array(0)
+  prev = new Float32Array(0)
+  vel = new Float32Array(0)
+  invMass = new Float32Array(0)
+  count = 0
+
+  gravity = new THREE.Vector3(0, -9.81, 0)
+  wind = new THREE.Vector3(0, 0, 0)
+  substeps = 14
+  colliders: Capsule[] = []
+  groundY = 0.001
+  params: FabricParams
+
+  private readonly acc: number[] = []
+  private readonly constraints: Constraint[] = []
+  private readonly pinned = new Set<number>()
+  private lambda = new Float32Array(0)
+  private windScale = 0
+  private time = 0
+  private readonly _p = new THREE.Vector3()
+  private readonly _c = new THREE.Vector3()
+
+  constructor(params: FabricParams) {
+    this.params = params
+  }
+
+  /** Append a panel's particle positions; returns the base index. */
+  addParticles(pos: Float32Array): number {
+    const base = this.acc.length / 3
+    for (let i = 0; i < pos.length; i++) this.acc.push(pos[i])
+    return base
+  }
+
+  addConstraint(i: number, j: number, rest: number, bend = false): void {
+    const compliance = bend ? this.params.bendCompliance : this.params.stretchCompliance
+    this.constraints.push({ i, j, rest, compliance, bend })
+  }
+
+  /** A seam stitch: pull two particles together (rest ≈ 0, slightly compliant). */
+  stitch(i: number, j: number): void {
+    this.constraints.push({ i, j, rest: 0, compliance: 2e-4, bend: false })
+  }
+
+  pin(i: number): void {
+    this.pinned.add(i)
+  }
+
+  /** Finalise buffers once all particles/constraints are added. */
+  build(): void {
+    this.count = this.acc.length / 3
+    this.positions = new Float32Array(this.acc)
+    this.prev = new Float32Array(this.count * 3)
+    this.vel = new Float32Array(this.count * 3)
+    this.invMass = new Float32Array(this.count)
+    this.windScale = 0.3 / Math.max(1, this.count)
+    this.lambda = new Float32Array(this.constraints.length)
+    this.applyMass()
+    this.prev.set(this.positions)
+  }
+
+  applyMass(): void {
+    const per = this.params.mass / Math.max(1, this.count)
+    const inv = per > 0 ? 1 / per : 0
+    for (let k = 0; k < this.count; k++) this.invMass[k] = this.pinned.has(k) ? 0 : inv
+  }
+
+  setFabric(params: FabricParams): void {
+    this.params = params
+    this.applyMass()
+    for (const c of this.constraints) {
+      if (c.rest > 0) c.compliance = c.bend ? params.bendCompliance : params.stretchCompliance
+    }
+  }
+
+  reset(initial: Float32Array): void {
+    this.positions.set(initial)
+    this.prev.set(initial)
+    this.vel.fill(0)
+    this.time = 0
+  }
+
+  step(dt: number): void {
+    const sub = dt / this.substeps
+    for (let s = 0; s < this.substeps; s++) this.substep(sub)
+  }
+
+  private substep(dt: number): void {
+    const { positions: pos, prev, vel, invMass: im, count } = this
+    this.time += dt
+    const gx = this.gravity.x
+    const gy = this.gravity.y
+    const gz = this.gravity.z
+    const gust = 1 + 0.4 * Math.sin(this.time * 2.1) + 0.18 * Math.sin(this.time * 5.3)
+    const wx = this.wind.x * this.windScale * gust
+    const wy = this.wind.y * this.windScale * gust
+    const wz = this.wind.z * this.windScale * gust
+
+    for (let k = 0; k < count; k++) {
+      const i = k * 3
+      const w = im[k]
+      if (w === 0) {
+        prev[i] = pos[i]
+        prev[i + 1] = pos[i + 1]
+        prev[i + 2] = pos[i + 2]
+        continue
+      }
+      vel[i] += (gx + wx * w) * dt
+      vel[i + 1] += (gy + wy * w) * dt
+      vel[i + 2] += (gz + wz * w) * dt
+      prev[i] = pos[i]
+      prev[i + 1] = pos[i + 1]
+      prev[i + 2] = pos[i + 2]
+      pos[i] += vel[i] * dt
+      pos[i + 1] += vel[i + 1] * dt
+      pos[i + 2] += vel[i + 2] * dt
+    }
+
+    this.lambda.fill(0)
+    const invDt2 = 1 / (dt * dt)
+    const cs = this.constraints
+    for (let c = 0; c < cs.length; c++) {
+      const con = cs[c]
+      const wi = im[con.i]
+      const wj = im[con.j]
+      const wsum = wi + wj
+      if (wsum === 0) continue
+      const i = con.i * 3
+      const j = con.j * 3
+      let dx = pos[i] - pos[j]
+      let dy = pos[i + 1] - pos[j + 1]
+      let dz = pos[i + 2] - pos[j + 2]
+      const d = Math.sqrt(dx * dx + dy * dy + dz * dz)
+      if (d < 1e-9) continue
+      const alpha = con.compliance * invDt2
+      const dLambda = -(d - con.rest + alpha * this.lambda[c]) / (wsum + alpha)
+      this.lambda[c] += dLambda
+      const scale = dLambda / d
+      dx *= scale
+      dy *= scale
+      dz *= scale
+      pos[i] += wi * dx
+      pos[i + 1] += wi * dy
+      pos[i + 2] += wi * dz
+      pos[j] -= wj * dx
+      pos[j + 1] -= wj * dy
+      pos[j + 2] -= wj * dz
+    }
+
+    const invDt = 1 / dt
+    for (let k = 0; k < count; k++) {
+      if (im[k] === 0) continue
+      const i = k * 3
+      vel[i] = (pos[i] - prev[i]) * invDt
+      vel[i + 1] = (pos[i + 1] - prev[i + 1]) * invDt
+      vel[i + 2] = (pos[i + 2] - prev[i + 2]) * invDt
+    }
+
+    this.solveCollisions()
+
+    const damp = Math.max(0, 1 - this.params.damping * dt)
+    for (let k = 0; k < count; k++) {
+      const i = k * 3
+      vel[i] *= damp
+      vel[i + 1] *= damp
+      vel[i + 2] *= damp
+    }
+  }
+
+  private solveCollisions(): void {
+    const { positions: pos, vel, invMass: im, count } = this
+    const friction = this.params.friction
+    for (let k = 0; k < count; k++) {
+      if (im[k] === 0) continue
+      const i = k * 3
+      this._p.set(pos[i], pos[i + 1], pos[i + 2])
+      for (const cap of this.colliders) {
+        closestPointOnSegment(this._p, cap.a, cap.b, this._c)
+        let nx = this._p.x - this._c.x
+        let ny = this._p.y - this._c.y
+        let nz = this._p.z - this._c.z
+        let dist = Math.sqrt(nx * nx + ny * ny + nz * nz)
+        if (dist >= cap.radius) continue
+        if (dist < 1e-6) {
+          nx = 0
+          ny = 1
+          nz = 0
+          dist = 1
+        }
+        const inv = 1 / dist
+        nx *= inv
+        ny *= inv
+        nz *= inv
+        const pen = cap.radius - dist
+        pos[i] += nx * pen
+        pos[i + 1] += ny * pen
+        pos[i + 2] += nz * pen
+        this._p.set(pos[i], pos[i + 1], pos[i + 2])
+        const vn = vel[i] * nx + vel[i + 1] * ny + vel[i + 2] * nz
+        const vnOut = vn > 0 ? vn : 0
+        const keep = 1 - friction
+        vel[i] = (vel[i] - vn * nx) * keep + vnOut * nx
+        vel[i + 1] = (vel[i + 1] - vn * ny) * keep + vnOut * ny
+        vel[i + 2] = (vel[i + 2] - vn * nz) * keep + vnOut * nz
+      }
+      if (pos[i + 1] < this.groundY) {
+        pos[i + 1] = this.groundY
+        if (vel[i + 1] < 0) vel[i + 1] = 0
+        vel[i] *= 1 - friction
+        vel[i + 2] *= 1 - friction
+      }
+    }
+  }
+}
