@@ -1,10 +1,50 @@
 import * as THREE from 'three'
 import type { Capsule } from './colliders'
 
+/**
+ * Key body measurements (metres) garments are fitted to. Radii are the enclosing
+ * radius of the form at that level; templates add "ease" on top. Heights are Y.
+ */
+export interface Measurements {
+  chestR: number
+  waistR: number
+  hipR: number
+  thighR: number
+  neckY: number
+  shoulderY: number
+  chestY: number
+  waistY: number
+  hipY: number
+  kneeY: number
+  ankleY: number
+  /** Horizontal offset of each leg centre (for pants). */
+  hipHalfX: number
+  /** Horizontal offset of each shoulder (for sleeves). */
+  shoulderHalfX: number
+}
+
+/** Derived from the capsule skeleton below (kept in sync by hand). */
+export const MEASUREMENTS: Measurements = {
+  chestR: 0.16,
+  waistR: 0.145,
+  hipR: 0.19,
+  thighR: 0.1,
+  neckY: 1.5,
+  shoulderY: 1.44,
+  chestY: 1.34,
+  waistY: 1.06,
+  hipY: 0.96,
+  kneeY: 0.5,
+  ankleY: 0.1,
+  hipHalfX: 0.11,
+  shoulderHalfX: 0.2
+}
+
 export interface Mannequin {
   group: THREE.Group
   /** Collision proxies the cloth solver tests against (metres, Y-up, feet at y=0). */
   colliders: Capsule[]
+  measurements: Measurements
 }
 
 interface BoneDef {
@@ -92,5 +132,5 @@ export function buildMannequin(): Mannequin {
     group.add(mesh)
   }
 
-  return { group, colliders }
+  return { group, colliders, measurements: MEASUREMENTS }
 }

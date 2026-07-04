@@ -1,31 +1,43 @@
 import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
-import type { XPBDSolver } from '../cloth/XPBDSolver'
+import type { GarmentController } from '../garment/GarmentController'
+import type { GarmentType } from '../garment/templates'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
 
+export interface GarmentState {
+  type: GarmentType
+  length: number
+  ease: number
+  flare: number
+}
+
 export interface PanelOptions {
   loop: Loop
-  solver: XPBDSolver
+  controller: GarmentController
   viewport: Viewport
   material: THREE.MeshPhysicalMaterial
   mannequin: THREE.Object3D
   fabrics: Fabric[]
   /** Stable working copy of the selected fabric; the inspector edits it in place. */
   current: Fabric
+  /** Stable garment state; the garment controls edit it in place. */
+  garment: GarmentState
+  garmentTypes: GarmentType[]
   onSelectFabric: (id: string) => void
   onVisualEdit: () => void
   onPhysicsEdit: () => void
+  onGarmentEdit: () => void
   onDrop: () => void
 }
 
 /**
- * A friendly, custom control panel: a visual fabric gallery, clearly labelled
- * sliders with live values, big action buttons, and tidy collapsible sections.
+ * A friendly, custom control panel: garment templates, a visual fabric gallery,
+ * clearly labelled sliders with live values, and tidy collapsible sections.
  */
 export function createControlPanel(opts: PanelOptions): HTMLElement {
-  const { current, viewport } = opts
+  const { current, garment, viewport } = opts
   const refreshers: Refreshable[] = []
   const track = (r: Refreshable): HTMLElement => {
     refreshers.push(r)
@@ -37,7 +49,7 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   // ---- header ----
   const header = el('div', 'dio-header')
   const heading = el('div')
-  heading.append(el('div', 'dio-title', 'DesignIO'), el('div', 'dio-subtitle', 'Fabric Studio'))
+  heading.append(el('div', 'dio-title', 'DesignIO'), el('div', 'dio-subtitle', 'Garment Studio'))
   header.append(el('div', 'dio-logo'), heading)
   panel.append(header)
 
@@ -53,6 +65,29 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   })
   actions.append(simBtn, button('⤓  Re-drape', () => opts.onDrop()))
   panel.append(actions)
+
+  // ---- garment ----
+  const garmentSec = section('Garment')
+  const seg = el('div', 'dio-actions')
+  const segBtns = new Map<GarmentType, HTMLButtonElement>()
+  const label = (t: GarmentType): string => t[0].toUpperCase() + t.slice(1)
+  for (const t of opts.garmentTypes) {
+    const b = button(label(t), () => {
+      garment.type = t
+      for (const [gt, node] of segBtns) node.classList.toggle('primary', gt === t)
+      opts.onGarmentEdit()
+    }, t === garment.type)
+    segBtns.set(t, b)
+    seg.append(b)
+  }
+  seg.style.flexWrap = 'wrap'
+  garmentSec.body.append(seg)
+  garmentSec.body.append(
+    slider({ label: 'Length', min: 0, max: 1, step: 0.01, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } }).row,
+    slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } }).row,
+    slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } }).row
+  )
+  panel.append(garmentSec.root)
 
   // ---- fabric gallery ----
   const fabricSec = section('Fabric')
@@ -105,10 +140,12 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   // ---- environment ----
   const env = section('Environment', true)
   let gravity = 9.81
+  let windX = 0
+  let windZ = 0
   env.body.append(
-    slider({ label: 'Gravity', min: 0, max: 20, step: 0.1, get: () => gravity, set: (v) => { gravity = v; opts.solver.gravity.set(0, -v, 0) } }).row,
-    slider({ label: 'Wind ←→', min: -10, max: 10, step: 0.1, get: () => opts.solver.wind.x, set: (v) => (opts.solver.wind.x = v) }).row,
-    slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => opts.solver.wind.z, set: (v) => (opts.solver.wind.z = v) }).row,
+    slider({ label: 'Gravity', min: 0, max: 20, step: 0.1, get: () => gravity, set: (v) => { gravity = v; opts.controller.setGravity(v) } }).row,
+    slider({ label: 'Wind ←→', min: -10, max: 10, step: 0.1, get: () => windX, set: (v) => { windX = v; opts.controller.setWind(windX, windZ) } }).row,
+    slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => windZ, set: (v) => { windZ = v; opts.controller.setWind(windX, windZ) } }).row,
     slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) }).row
   )
   panel.append(env.root)
