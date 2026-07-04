@@ -14,6 +14,7 @@ export interface GarmentState {
 }
 
 export type DesignMode = 'templates' | 'pattern'
+export type ExportFormat = 'glb' | 'obj' | 'svg' | 'dxf' | 'techpack' | 'json'
 
 export interface PanelOptions {
   loop: Loop
@@ -36,6 +37,7 @@ export interface PanelOptions {
   onDrop: () => void
   onSetGravity: (y: number) => void
   onSetWind: (x: number, z: number) => void
+  onExport: (format: ExportFormat) => void
 }
 
 /** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
@@ -183,6 +185,26 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
     slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) }).row
   )
   panel.append(env.root)
+
+  // ---- export ----
+  const exportSec = section('Export', true)
+  const exportGrid = el('div', 'dio-actions')
+  exportGrid.style.flexWrap = 'wrap'
+  const exp: [string, ExportFormat][] = [
+    ['3D · glTF', 'glb'],
+    ['3D · OBJ', 'obj'],
+    ['Pattern · SVG', 'svg'],
+    ['Pattern · DXF', 'dxf'],
+    ['Tech-pack', 'techpack'],
+    ['Data · JSON', 'json']
+  ]
+  for (const [name, fmt] of exp) {
+    const b = button(name, () => opts.onExport(fmt))
+    b.style.flex = '1 1 42%'
+    exportGrid.append(b)
+  }
+  exportSec.body.append(exportGrid)
+  panel.append(exportSec.root)
 
   // ---- view ----
   const view = section('View', true)

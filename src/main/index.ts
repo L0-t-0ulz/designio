@@ -1,4 +1,5 @@
-import { app, BrowserWindow, Menu, shell, type Session } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell, type Session } from 'electron'
+import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 const REPO_URL = 'https://github.com/ZayanKhan-12/designio'
@@ -72,6 +73,19 @@ function createWindow(): void {
     win.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
+// Save-file bridge for the exporters (glTF/OBJ/SVG/DXF/tech-pack).
+ipcMain.handle(
+  'dialog:saveFile',
+  async (_event, { name, data, filters }: { name: string; data: string | Uint8Array; filters?: Electron.FileFilter[] }) => {
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+    const { canceled, filePath } = await dialog.showSaveDialog(win!, { defaultPath: name, filters })
+    if (canceled || !filePath) return null
+    const buffer = typeof data === 'string' ? Buffer.from(data, 'utf8') : Buffer.from(data)
+    await writeFile(filePath, buffer)
+    return filePath
+  }
+)
 
 app.whenReady().then(() => {
   buildMenu()
