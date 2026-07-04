@@ -55,23 +55,64 @@ export function computeHoleDeadSet(
 }
 
 /**
+ * Snaps the ring of live particles bordering the hole onto the exact hole circle,
+ * turning the staircase grid boundary into a clean round neckline. Call right
+ * after `fillFlatGrid` with the same origin (operates on the flat layout).
+ */
+export function snapHoleRim(
+  positions: Float32Array,
+  nx: number,
+  ny: number,
+  spacing: number,
+  origin: THREE.Vector3,
+  dead: Set<number>,
+  holeRadius: number
+): void {
+  if (holeRadius <= 0 || dead.size === 0) return
+  const cx = origin.x + ((nx - 1) / 2) * spacing
+  const cz = origin.z + ((ny - 1) / 2) * spacing
+  const isDead = (ix: number, iy: number): boolean =>
+    ix >= 0 && ix < nx && iy >= 0 && iy < ny && dead.has(iy * nx + ix)
+
+  for (let iy = 0; iy < ny; iy++) {
+    for (let ix = 0; ix < nx; ix++) {
+      const k = iy * nx + ix
+      if (dead.has(k)) continue
+      // rim = a live particle with at least one dead 4-neighbour
+      if (!(isDead(ix - 1, iy) || isDead(ix + 1, iy) || isDead(ix, iy - 1) || isDead(ix, iy + 1)))
+        continue
+      const i = k * 3
+      const dx = positions[i] - cx
+      const dz = positions[i + 2] - cz
+      const d = Math.hypot(dx, dz)
+      if (d < 1e-6) continue
+      const s = holeRadius / d
+      positions[i] = cx + dx * s
+      positions[i + 2] = cz + dz * s
+    }
+  }
+}
+
+/**
  * Builds a triangulated `nx * ny` cloth panel. The returned `positions` array is
  * the geometry's own position buffer, so the solver can mutate particles and the
  * mesh updates with zero copies. Triangles touching a `dead` particle are
- * omitted, which cuts the neck hole.
+ * omitted (cutting the neck hole), and the rim is snapped to a clean circle.
  */
 export function buildClothGeometry(
   nx: number,
   ny: number,
   spacing: number,
   origin: THREE.Vector3,
-  dead: Set<number> = new Set()
+  dead: Set<number> = new Set(),
+  holeRadius = 0
 ): ClothGeometry {
   const count = nx * ny
   const positions = new Float32Array(count * 3)
   const uvs = new Float32Array(count * 2)
 
   fillFlatGrid(positions, nx, ny, spacing, origin)
+  snapHoleRim(positions, nx, ny, spacing, origin, dead, holeRadius)
 
   for (let iy = 0; iy < ny; iy++) {
     for (let ix = 0; ix < nx; ix++) {

@@ -3,7 +3,7 @@ import { Viewport } from './core/Viewport'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin } from './avatar/Mannequin'
-import { buildClothGeometry, computeHoleDeadSet, fillFlatGrid } from './cloth/ClothMesh'
+import { buildTubeGarment, fillTube, type TubeSpec } from './cloth/Garment'
 import { XPBDSolver } from './cloth/XPBDSolver'
 import { createFabricMaterial } from './cloth/FabricMaterial'
 import { FABRICS, type FabricName } from './cloth/fabricPresets'
@@ -17,35 +17,37 @@ setupEnvironment(viewport.scene, viewport.renderer)
 const mannequin = buildMannequin()
 viewport.scene.add(mannequin.group)
 
-// ---- cloth panel ---------------------------------------------------------
-const NX = 48
-const NY = 48
-const SPACING = 0.028 // ~1.32 m square panel
-const HOLE_RADIUS = 0.16 // neck hole -> the head threads through, so it hangs
-// from the shoulders like a poncho/tunic. Spawn just above the head so the hole
-// drops straight over it.
-const spawn = new THREE.Vector3(
-  -((NX - 1) * SPACING) / 2,
-  1.88,
-  -((NY - 1) * SPACING) / 2
-)
+// ---- garment -------------------------------------------------------------
+// A sleeveless tube dress/tunic wrapped around the body. The top ring is pinned
+// (a snug bodice at chest height) so it reliably stays on; the rest drapes and
+// flares over the hips with real folds.
+const garmentSpec: TubeSpec = {
+  rings: 46,
+  radial: 60,
+  topY: 1.4,
+  bottomY: 0.7,
+  radiusTop: 0.17,
+  radiusBottom: 0.26
+}
 
 const initialFabric: FabricName = 'cotton'
-const dead = computeHoleDeadSet(NX, NY, SPACING, HOLE_RADIUS)
-const { geometry, positions } = buildClothGeometry(NX, NY, SPACING, spawn, dead)
+const { geometry, positions, nx, ny, pinnedTop } = buildTubeGarment(garmentSpec)
 const material = createFabricMaterial(FABRICS[initialFabric].color)
 
-const clothMesh = new THREE.Mesh(geometry, material)
-clothMesh.castShadow = true
-clothMesh.receiveShadow = true
-clothMesh.frustumCulled = false
-viewport.scene.add(clothMesh)
+const garmentMesh = new THREE.Mesh(geometry, material)
+garmentMesh.castShadow = true
+garmentMesh.receiveShadow = true
+garmentMesh.frustumCulled = false
+viewport.scene.add(garmentMesh)
 
-const solver = new XPBDSolver(NX, NY, SPACING, positions, FABRICS[initialFabric], { dead })
+const solver = new XPBDSolver(nx, ny, positions, FABRICS[initialFabric], {
+  pinned: pinnedTop,
+  wrapX: true
+})
 solver.colliders = mannequin.colliders
 
 function respawn(): void {
-  fillFlatGrid(positions, NX, NY, SPACING, spawn)
+  fillTube(positions, garmentSpec)
   solver.reset()
   geometry.attributes.position.needsUpdate = true
   geometry.computeVertexNormals()
@@ -77,5 +79,7 @@ createControlPanel({
   onDrop: respawn
 })
 
-// Expose handles for debugging from the devtools console.
-Object.assign(window, { __designio: { viewport, solver, respawn } })
+// Expose handles for debugging from the devtools console (dev builds only).
+if (import.meta.env.DEV) {
+  Object.assign(window, { __designio: { viewport, solver, respawn } })
+}
