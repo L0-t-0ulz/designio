@@ -49,6 +49,10 @@ export class PatternController {
     this.world?.step(dt)
   }
 
+  getMeshes(): THREE.Object3D[] {
+    return this.meshes
+  }
+
   updateMeshes(): void {
     for (const geo of this.geometries) {
       geo.attributes.position.needsUpdate = true

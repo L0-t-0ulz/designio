@@ -71,6 +71,10 @@ export class GarmentController {
     for (const p of this.pieces) p.solver.step(dt)
   }
 
+  getMeshes(): THREE.Object3D[] {
+    return this.pieces.map((p) => p.mesh)
+  }
+
   /** Push simulated positions to the render meshes (call each frame). */
   updateMeshes(): void {
     for (const p of this.pieces) {

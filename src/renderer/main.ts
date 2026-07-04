@@ -9,7 +9,11 @@ import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
 import { createFabricMaterial, applyFabric } from './cloth/FabricMaterial'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, type Fabric } from './fabric/FabricLibrary'
-import { createControlPanel, type DesignMode } from './ui/panel'
+import { exportGLB, exportOBJ } from './export/exporters3d'
+import { patternToSVG, patternToDXF } from './export/patternExport'
+import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
+import { saveFile } from './export/save'
+import { createControlPanel, type DesignMode, type ExportFormat } from './ui/panel'
 
 // ---- scene ---------------------------------------------------------------
 const container = document.getElementById('app') as HTMLElement
@@ -89,6 +93,50 @@ if (modeParam === 'pattern') mode = 'pattern'
 setMode(mode)
 applyFabricVisual()
 
+// ---- export --------------------------------------------------------------
+function techData(): TechpackData {
+  return {
+    design: mode === 'templates' ? `${garment.type} (template)` : 'Sewn top (pattern)',
+    mode,
+    garment:
+      mode === 'templates'
+        ? {
+            type: garment.type,
+            length: garment.length,
+            ease_cm: +(garment.ease * 100).toFixed(1),
+            flare_cm: +(garment.flare * 100).toFixed(1)
+          }
+        : { bust_cm: +(patternParams.bust * 100).toFixed(1), length_cm: +(patternParams.length * 100).toFixed(1) },
+    fabric: current,
+    measurements: mannequin.measurements
+  }
+}
+
+async function doExport(fmt: ExportFormat): Promise<void> {
+  const meshes = mode === 'templates' ? garmentCtl.getMeshes() : patternCtl.getMeshes()
+  const dims = { bust: patternParams.bust, length: patternParams.length }
+  switch (fmt) {
+    case 'glb':
+      await saveFile('garment.glb', await exportGLB(meshes), [{ name: 'glTF binary', extensions: ['glb'] }])
+      break
+    case 'obj':
+      await saveFile('garment.obj', exportOBJ(meshes), [{ name: 'Wavefront OBJ', extensions: ['obj'] }])
+      break
+    case 'svg':
+      await saveFile('pattern.svg', patternToSVG(dims), [{ name: 'SVG', extensions: ['svg'] }])
+      break
+    case 'dxf':
+      await saveFile('pattern.dxf', patternToDXF(dims), [{ name: 'DXF', extensions: ['dxf'] }])
+      break
+    case 'techpack':
+      await saveFile('techpack.html', techpackHTML(techData()), [{ name: 'HTML', extensions: ['html'] }])
+      break
+    case 'json':
+      await saveFile('design.json', techpackJSON(techData()), [{ name: 'JSON', extensions: ['json'] }])
+      break
+  }
+}
+
 // ---- UI ------------------------------------------------------------------
 createControlPanel({
   loop,
@@ -120,6 +168,9 @@ createControlPanel({
   onSetWind: (x, z) => {
     garmentCtl.setWind(x, z)
     patternCtl.setWind(x, z)
+  },
+  onExport: (fmt) => {
+    void doExport(fmt).catch((err) => console.error('Export failed', err))
   }
 })
 
