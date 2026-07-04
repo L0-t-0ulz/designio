@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
 import type { GarmentType } from '../garment/templates'
+import type { AnimationMode } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
@@ -38,6 +39,9 @@ export interface PanelOptions {
   onSetGravity: (y: number) => void
   onSetWind: (x: number, z: number) => void
   onExport: (format: ExportFormat) => void
+  anim: { mode: AnimationMode; speed: number }
+  onSetAnimMode: (m: AnimationMode) => void
+  onAnimSpeed: (v: number) => void
 }
 
 /** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
@@ -185,6 +189,33 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
     slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) }).row
   )
   panel.append(env.root)
+
+  // ---- animation ----
+  const animSec = section('Animation', true)
+  const animRow = el('div', 'dio-actions')
+  animRow.style.flexWrap = 'wrap'
+  const animModes: [string, AnimationMode][] = [
+    ['Static', 'static'],
+    ['Idle', 'idle'],
+    ['Walk', 'walk'],
+    ['Turn', 'turn']
+  ]
+  const animBtns = new Map<AnimationMode, HTMLButtonElement>()
+  for (const [name, m] of animModes) {
+    const b = button(name, () => {
+      opts.anim.mode = m
+      for (const [am, node] of animBtns) node.classList.toggle('primary', am === m)
+      opts.onSetAnimMode(m)
+    }, m === opts.anim.mode)
+    b.style.flex = '1 1 42%'
+    animBtns.set(m, b)
+    animRow.append(b)
+  }
+  animSec.body.append(
+    animRow,
+    slider({ label: 'Speed', min: 0.2, max: 3, step: 0.1, get: () => opts.anim.speed, set: (v) => { opts.anim.speed = v; opts.onAnimSpeed(v) } }).row
+  )
+  panel.append(animSec.root)
 
   // ---- export ----
   const exportSec = section('Export', true)

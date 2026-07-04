@@ -17,13 +17,10 @@ export interface Measurements {
   hipY: number
   kneeY: number
   ankleY: number
-  /** Horizontal offset of each leg centre (for pants). */
   hipHalfX: number
-  /** Horizontal offset of each shoulder (for sleeves). */
   shoulderHalfX: number
 }
 
-/** Derived from the capsule skeleton below (kept in sync by hand). */
 export const MEASUREMENTS: Measurements = {
   chestR: 0.16,
   waistR: 0.145,
@@ -40,97 +37,140 @@ export const MEASUREMENTS: Measurements = {
   shoulderHalfX: 0.2
 }
 
+export type AnimationMode = 'static' | 'idle' | 'walk' | 'turn'
+
 export interface Mannequin {
   group: THREE.Group
-  /** Collision proxies the cloth solver tests against (metres, Y-up, feet at y=0). */
+  /** Collision proxies the cloth solver tests against (mutated in place by update). */
   colliders: Capsule[]
   measurements: Measurements
+  /** Pose the limbs for the given time; garments react to the moved colliders. */
+  update: (t: number, mode: AnimationMode, speed: number) => void
 }
 
-interface BoneDef {
-  a: [number, number, number]
-  b: [number, number, number]
+type Part = 'root' | 'armL' | 'armR' | 'legL' | 'legR'
+
+interface Bone {
+  restA: THREE.Vector3
+  restB: THREE.Vector3
   radius: number
+  part: Part
+  sphere: boolean
+  mesh: THREE.Mesh
+  collider: Capsule
+}
+
+const UP = new THREE.Vector3(0, 1, 0)
+const X = new THREE.Vector3(1, 0, 0)
+
+function placeMesh(mesh: THREE.Mesh, a: THREE.Vector3, b: THREE.Vector3, sphere: boolean): void {
+  if (sphere) {
+    mesh.position.copy(a)
+    return
+  }
+  mesh.position.copy(a).lerp(b, 0.5)
+  mesh.quaternion.setFromUnitVectors(UP, b.clone().sub(a).normalize())
 }
 
 /**
- * A procedural, code-only humanoid built from capsules & spheres. This doubles
- * as BOTH the visible mannequin and the collision proxy for the cloth, so there
- * is nothing to download and it always runs. Roughly a 1.75 m adult in a relaxed
- * stance with arms angled slightly out from the body so fabric can drape over
- * the shoulders.
- *
- * A later PR can swap the visuals for an imported GLB avatar while keeping these
- * capsules (or fitted ones) as the collision proxy.
+ * A procedural, poseable capsule mannequin that doubles as the cloth collision
+ * proxy. Limbs (arms/legs) swing about their joints for idle/walk; the torso
+ * stays fixed so garment anchors remain valid. "turn" is handled by the camera.
  */
 export function buildMannequin(): Mannequin {
-  // Symmetric definition: right-side limbs are mirrored from the left (-x).
-  const half = 0.5
-
-  const bones: BoneDef[] = [
-    // head + neck
-    { a: [0, 1.62, 0], b: [0, 1.62, 0], radius: 0.105 },
-    { a: [0, 1.47, 0], b: [0, 1.55, 0], radius: 0.05 },
-    // torso (chest -> waist) and the shoulder bar / hips give it human width
-    { a: [0, 1.02, 0], b: [0, 1.42, 0], radius: 0.15 },
-    { a: [-0.2, 1.44, 0], b: [0.2, 1.44, 0], radius: 0.07 }, // shoulders
-    { a: [-0.13, 0.96, 0], b: [0.13, 0.96, 0], radius: 0.13 }, // hips
-    // left arm — relaxed A-pose (down & slightly out), like a fashion dress form
-    { a: [-0.2, 1.42, 0], b: [-0.32, 1.1, 0.02], radius: 0.052 }, // upper
-    { a: [-0.32, 1.1, 0.02], b: [-0.4, 0.8, 0.05], radius: 0.044 }, // fore
-    // left leg
-    { a: [-0.1, 0.94, 0], b: [-0.12, 0.5, 0.01], radius: 0.088 }, // thigh
-    { a: [-0.12, 0.5, 0.01], b: [-0.12, 0.06, 0.03], radius: 0.058 } // shin
+  const defs: { a: [number, number, number]; b: [number, number, number]; radius: number; part: Part }[] = [
+    { a: [0, 1.62, 0], b: [0, 1.62, 0], radius: 0.105, part: 'root' }, // head
+    { a: [0, 1.47, 0], b: [0, 1.55, 0], radius: 0.05, part: 'root' }, // neck
+    { a: [0, 1.02, 0], b: [0, 1.42, 0], radius: 0.15, part: 'root' }, // torso
+    { a: [-0.2, 1.44, 0], b: [0.2, 1.44, 0], radius: 0.07, part: 'root' }, // shoulders
+    { a: [-0.13, 0.96, 0], b: [0.13, 0.96, 0], radius: 0.13, part: 'root' }, // hips
+    { a: [-0.2, 1.42, 0], b: [-0.32, 1.1, 0.02], radius: 0.052, part: 'armL' },
+    { a: [-0.32, 1.1, 0.02], b: [-0.4, 0.8, 0.05], radius: 0.044, part: 'armL' },
+    { a: [-0.1, 0.94, 0], b: [-0.12, 0.5, 0.01], radius: 0.088, part: 'legL' },
+    { a: [-0.12, 0.5, 0.01], b: [-0.12, 0.06, 0.03], radius: 0.058, part: 'legL' }
   ]
-
-  // Mirror the four left limb bones onto the right side.
-  const mirrored: BoneDef[] = bones.slice(5).map((bone) => ({
-    a: [-bone.a[0], bone.a[1], bone.a[2]],
-    b: [-bone.b[0], bone.b[1], bone.b[2]],
-    radius: bone.radius
+  // Mirror the arm + leg bones to the right side.
+  const mirrored = defs.slice(5).map((d) => ({
+    a: [-d.a[0], d.a[1], d.a[2]] as [number, number, number],
+    b: [-d.b[0], d.b[1], d.b[2]] as [number, number, number],
+    radius: d.radius,
+    part: (d.part === 'armL' ? 'armR' : 'legR') as Part
   }))
-  const allBones = [...bones, ...mirrored]
+  const all = [...defs, ...mirrored]
 
   const group = new THREE.Group()
   group.name = 'mannequin'
+  const material = new THREE.MeshStandardMaterial({ color: 0xd8d1c4, roughness: 0.9, metalness: 0 })
 
-  // Warm matte off-white, like a tailor's dress form.
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xd8d1c4,
-    roughness: 0.9,
-    metalness: 0.0
-  })
-
+  const bones: Bone[] = []
   const colliders: Capsule[] = []
-  const up = new THREE.Vector3(0, 1, 0)
+
+  for (const d of all) {
+    const restA = new THREE.Vector3(...d.a)
+    const restB = new THREE.Vector3(...d.b)
+    const sphere = restA.distanceTo(restB) < 1e-4
+    const mesh = sphere
+      ? new THREE.Mesh(new THREE.SphereGeometry(d.radius, 32, 24), material)
+      : new THREE.Mesh(new THREE.CapsuleGeometry(d.radius, restA.distanceTo(restB), 12, 20), material)
+    mesh.castShadow = true
+    mesh.receiveShadow = true
+    placeMesh(mesh, restA, restB, sphere)
+    group.add(mesh)
+
+    const collider: Capsule = { a: restA.clone(), b: restB.clone(), radius: d.radius }
+    colliders.push(collider)
+    bones.push({ restA, restB, radius: d.radius, part: d.part, sphere, mesh, collider })
+  }
+
+  // Joint pivots (where each limb rotates from).
+  const pivot: Record<Part, THREE.Vector3> = {
+    root: new THREE.Vector3(),
+    armL: new THREE.Vector3(-MEASUREMENTS.shoulderHalfX, MEASUREMENTS.shoulderY, 0),
+    armR: new THREE.Vector3(MEASUREMENTS.shoulderHalfX, MEASUREMENTS.shoulderY, 0),
+    legL: new THREE.Vector3(-MEASUREMENTS.hipHalfX, MEASUREMENTS.hipY, 0),
+    legR: new THREE.Vector3(MEASUREMENTS.hipHalfX, MEASUREMENTS.hipY, 0)
+  }
+
   const a = new THREE.Vector3()
   const b = new THREE.Vector3()
 
-  for (const bone of allBones) {
-    a.set(...bone.a)
-    b.set(...bone.b)
-    colliders.push({ a: a.clone(), b: b.clone(), radius: bone.radius })
-
-    const length = a.distanceTo(b)
-    let mesh: THREE.Mesh
-    if (length < 1e-4) {
-      // sphere (head)
-      mesh = new THREE.Mesh(new THREE.SphereGeometry(bone.radius, 32, 24), material)
-      mesh.position.copy(a)
-    } else {
-      // Three's CapsuleGeometry runs along +Y; orient it along (b - a).
-      mesh = new THREE.Mesh(
-        new THREE.CapsuleGeometry(bone.radius, length, 12, 20),
-        material
-      )
-      mesh.position.copy(a).lerp(b, half)
-      const dir = b.clone().sub(a).normalize()
-      mesh.quaternion.setFromUnitVectors(up, dir)
+  const update = (t: number, mode: AnimationMode, speed: number): void => {
+    let legAmp = 0
+    let armAmp = 0
+    let freq = 0
+    if (mode === 'walk') {
+      legAmp = 0.5
+      armAmp = 0.35
+      freq = 3.0
+    } else if (mode === 'idle') {
+      legAmp = 0.05
+      armAmp = 0.06
+      freq = 0.9
     }
-    mesh.castShadow = true
-    mesh.receiveShadow = true
-    group.add(mesh)
+    const phase = t * speed * freq
+    const s = Math.sin(phase)
+    const angle: Record<Part, number> = {
+      root: 0,
+      legL: legAmp * s,
+      legR: -legAmp * s,
+      armL: -armAmp * s,
+      armR: armAmp * s
+    }
+
+    for (const bone of bones) {
+      a.copy(bone.restA)
+      b.copy(bone.restB)
+      const ang = angle[bone.part]
+      if (ang !== 0) {
+        const p = pivot[bone.part]
+        a.sub(p).applyAxisAngle(X, ang).add(p)
+        b.sub(p).applyAxisAngle(X, ang).add(p)
+      }
+      bone.collider.a.copy(a)
+      bone.collider.b.copy(b)
+      placeMesh(bone.mesh, a, b, bone.sphere)
+    }
   }
 
-  return { group, colliders, measurements: MEASUREMENTS }
+  return { group, colliders, measurements: MEASUREMENTS, update }
 }
