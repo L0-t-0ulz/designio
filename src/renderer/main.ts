@@ -2,7 +2,7 @@ import './ui/styles.css'
 import { Viewport } from './core/Viewport'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
-import { buildMannequin } from './avatar/Mannequin'
+import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { GarmentController } from './garment/GarmentController'
 import { DEFAULT_PARAMS, GARMENT_TYPES, type GarmentType } from './garment/templates'
 import { PatternController } from './pattern/PatternController'
@@ -43,7 +43,14 @@ const patternCtl = new PatternController(
 
 const garment = { type: 'dress' as GarmentType, ...DEFAULT_PARAMS }
 const patternParams = { ...DEFAULT_PATTERN }
+const anim = { mode: 'static' as AnimationMode, speed: 1 }
 let mode: DesignMode = 'templates'
+
+function setAnimMode(m: AnimationMode): void {
+  anim.mode = m
+  viewport.controls.autoRotate = m === 'turn'
+  viewport.controls.autoRotateSpeed = anim.speed * 2.2
+}
 
 interface Steppable {
   step(dt: number): void
@@ -73,8 +80,13 @@ function applyFabricPhysics(): void {
 }
 
 // ---- loop ----------------------------------------------------------------
+let simTime = 0
 const loop = new Loop(
-  (dt) => active.step(dt),
+  (dt) => {
+    simTime += dt
+    mannequin.update(simTime, anim.mode, anim.speed) // move colliders first
+    active.step(dt)
+  },
   () => {
     active.updateMeshes()
     viewport.render()
@@ -90,7 +102,10 @@ const garmentParam = params.get('garment') as GarmentType | null
 if (garmentParam && GARMENT_TYPES.includes(garmentParam)) garment.type = garmentParam
 const modeParam = params.get('mode')
 if (modeParam === 'pattern') mode = 'pattern'
+const animParam = params.get('anim') as AnimationMode | null
+if (animParam) anim.mode = animParam
 setMode(mode)
+setAnimMode(anim.mode)
 applyFabricVisual()
 
 // ---- export --------------------------------------------------------------
@@ -171,6 +186,12 @@ createControlPanel({
   },
   onExport: (fmt) => {
     void doExport(fmt).catch((err) => console.error('Export failed', err))
+  },
+  anim,
+  onSetAnimMode: setAnimMode,
+  onAnimSpeed: (v) => {
+    anim.speed = v
+    viewport.controls.autoRotateSpeed = v * 2.2
   }
 })
 
