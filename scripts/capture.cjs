@@ -6,6 +6,7 @@ const fs = require('node:fs')
 
 const OUT = path.resolve(process.argv[2] || path.join(__dirname, '..', 'designio-preview.png'))
 const WAIT = Number(process.argv[3] || 5000)
+const SEARCH = process.argv[4] || '' // e.g. "fabric=satin&closeup=1"
 const INDEX = path.resolve(__dirname, '..', 'out', 'renderer', 'index.html')
 const PRELOAD = path.resolve(__dirname, '..', 'out', 'preload', 'index.js')
 
@@ -16,7 +17,7 @@ app.whenReady().then(async () => {
     show: true,
     webPreferences: { preload: PRELOAD, sandbox: false }
   })
-  await win.loadFile(INDEX)
+  await win.loadFile(INDEX, SEARCH ? { search: SEARCH } : undefined)
   await new Promise((r) => setTimeout(r, WAIT)) // let the cloth fall & drape
   const image = await win.webContents.capturePage()
   fs.writeFileSync(OUT, image.toPNG())

@@ -10,17 +10,23 @@ Built as a desktop app (Electron + Three.js + TypeScript).
 
 ![DesignIO — a fitted cotton dress draped on the dress-form mannequin](docs/preview.png)
 
-*Live capture: a fitted sleeveless dress simulated on the mannequin in the studio (rendered via
-`npm run snapshot`).*
+*Live capture: a fitted sleeveless dress simulated on the mannequin in the studio.*
+
+![DesignIO — macro close-up of woven satin showing the weave and sheen](docs/closeup.png)
+
+*Macro close-up of satin — procedural weave normal map + sheen + anisotropic highlights.*
 
 ## What you can do right now
 
 - Orbit / zoom / pan around a dress-form mannequin in a neutral studio scene.
 - See a **fitted garment** (a sleeveless tube dress) wrap the body and **drape with real folds** — an
   XPBD cloth solver with body-capsule collision + friction, anchored so it stays on.
-- Switch **fabric presets** (denim / cotton / silk / knit) and watch the drape change.
-- Tweak **gravity, wind** (lighter fabrics flutter more), **colour**, toggle wireframe / the mannequin,
-  and **Drop/Reset** the garment.
+- Choose from a **fabric library** (cotton poplin, denim, linen, wool flannel, silk charmeuse, satin,
+  jersey knit, sheer chiffon, leather) — each with real properties that drive **both look and drape**.
+- **Live-inspect a fabric**: weight (GSM), stretch, drape, grip, colour, roughness, sheen, weave
+  density/depth, sheen streak (anisotropy), and sheerness — heavier/stiffer fabrics hang differently.
+- **Macro close-up** to inspect the woven micro-surface; tweak **gravity/wind** (lighter fabrics
+  flutter more), **exposure**, and **Drape/Reset**.
 
 ## Requirements
 
