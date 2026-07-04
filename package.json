@@ -1,0 +1,31 @@
+{
+  "name": "designio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DesignIO — a personal 3D clothing design tool (CLO3D / Browzwear-style). Foundation: 3D viewport, mannequin, and real-time cloth draping.",
+  "author": "ZayanKhan-12",
+  "license": "MIT",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "npm run build && electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "snapshot": "npm run build && electron scripts/capture.cjs docs/preview.png 8000"
+  },
+  "dependencies": {
+    "lil-gui": "^0.21.0",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/three": "^0.185.0",
+    "electron": "^43.0.0",
+    "electron-vite": "^5.0.0",
+    "typescript": "^6.0.3",
+    "vite": "^7.3.6",
+    "vitest": "^4.1.9"
+  }
+}
