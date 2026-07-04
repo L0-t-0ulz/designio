@@ -26,18 +26,21 @@ describe('closestPointOnSegment', () => {
 
 describe('XPBDSolver distance constraint', () => {
   it('pulls two stretched particles back to rest length', () => {
-    const spacing = 0.05
-    const positions = new Float32Array([0, 1, 0, 0.2, 1, 0]) // 0.2 apart, rest 0.05
-    const solver = new XPBDSolver(2, 1, spacing, positions, FABRICS.denim)
+    const rest = 0.05
+    const positions = new Float32Array([0, 1, 0, rest, 1, 0]) // rest measured here
+    const solver = new XPBDSolver(2, 1, positions, FABRICS.denim)
     solver.gravity.set(0, 0, 0)
 
+    // stretch them apart, then let the constraint pull them back
+    positions[3] = 0.2
+    solver.reset()
     for (let i = 0; i < 5; i++) solver.step(1 / 60)
 
     const dx = positions[0] - positions[3]
     const dy = positions[1] - positions[4]
     const dz = positions[2] - positions[5]
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
-    expect(dist).toBeCloseTo(spacing, 3)
+    expect(dist).toBeCloseTo(rest, 3)
   })
 })
 
@@ -46,7 +49,7 @@ describe('XPBDSolver collision', () => {
     const center = new THREE.Vector3(0, 0.95, 0)
     const sphere: Capsule = { a: center.clone(), b: center.clone(), radius: 0.1 }
     const positions = new Float32Array([0, 1.0, 0]) // 0.05 above center => inside
-    const solver = new XPBDSolver(1, 1, 0.05, positions, FABRICS.cotton)
+    const solver = new XPBDSolver(1, 1, positions, FABRICS.cotton)
     solver.gravity.set(0, 0, 0)
     solver.colliders = [sphere]
 
@@ -70,7 +73,7 @@ describe('XPBDSolver drape (integration)', () => {
     const spawn = new THREE.Vector3(-((nx - 1) * spacing) / 2, 1.45, -((ny - 1) * spacing) / 2)
     fillFlatGrid(positions, nx, ny, spacing, spawn)
 
-    const solver = new XPBDSolver(nx, ny, spacing, positions, FABRICS.cotton)
+    const solver = new XPBDSolver(nx, ny, positions, FABRICS.cotton)
     solver.colliders = [sphere]
 
     for (let i = 0; i < 200; i++) solver.step(1 / 60)

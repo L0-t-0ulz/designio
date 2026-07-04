@@ -35,9 +35,9 @@ export function buildMannequin(): Mannequin {
     { a: [0, 1.02, 0], b: [0, 1.42, 0], radius: 0.15 },
     { a: [-0.2, 1.44, 0], b: [0.2, 1.44, 0], radius: 0.07 }, // shoulders
     { a: [-0.13, 0.96, 0], b: [0.13, 0.96, 0], radius: 0.13 }, // hips
-    // left arm — T-pose (horizontal) so a dropped panel catches & drapes over it
-    { a: [-0.22, 1.44, 0], b: [-0.48, 1.45, 0], radius: 0.052 }, // upper
-    { a: [-0.48, 1.45, 0], b: [-0.74, 1.45, 0], radius: 0.044 }, // fore
+    // left arm — relaxed A-pose (down & slightly out), like a fashion dress form
+    { a: [-0.2, 1.42, 0], b: [-0.32, 1.1, 0.02], radius: 0.052 }, // upper
+    { a: [-0.32, 1.1, 0.02], b: [-0.4, 0.8, 0.05], radius: 0.044 }, // fore
     // left leg
     { a: [-0.1, 0.94, 0], b: [-0.12, 0.5, 0.01], radius: 0.088 }, // thigh
     { a: [-0.12, 0.5, 0.01], b: [-0.12, 0.06, 0.03], radius: 0.058 } // shin
@@ -54,9 +54,10 @@ export function buildMannequin(): Mannequin {
   const group = new THREE.Group()
   group.name = 'mannequin'
 
+  // Warm matte off-white, like a tailor's dress form.
   const material = new THREE.MeshStandardMaterial({
-    color: 0x8f93a8,
-    roughness: 0.72,
+    color: 0xd8d1c4,
+    roughness: 0.9,
     metalness: 0.0
   })
 

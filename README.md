@@ -4,23 +4,23 @@ A personal, fully-3D clothing design tool — in the spirit of [CLO3D](https://w
 [Browzwear](https://browzwear.com/) — for designing your own clothes realistically and virtually.
 Built as a desktop app (Electron + Three.js + TypeScript).
 
-> **Status: Foundation (PR #1).** This first slice proves the core *simulate-and-drape* loop that all
-> garment software is built on: a 3D viewport, a human mannequin, and a fabric panel that falls and
-> drapes over the body with real-time cloth physics. Pattern drafting, sewing 2D panels into 3D
-> garments, and photoreal rendering come in later PRs (see the roadmap).
+> **Status: Early build.** A real-time garment drapes on a dress-form mannequin in a studio scene with
+> live cloth physics. Pattern drafting, sewing 2D panels into 3D garments, and photoreal fabric detail
+> come next (see the roadmap).
 
-![DesignIO foundation — a cotton panel draped over the mannequin as a poncho](docs/preview.png)
+![DesignIO — a fitted cotton dress draped on the dress-form mannequin](docs/preview.png)
 
-*Live capture: a cotton panel dropped onto the T-pose mannequin, draping from the shoulders over both
-arms (rendered via `npm run snapshot`).*
+*Live capture: a fitted sleeveless dress simulated on the mannequin in the studio (rendered via
+`npm run snapshot`).*
 
 ## What you can do right now
 
-- Orbit / zoom / pan around a 3D mannequin in a lit studio scene.
-- Watch a cloth panel drop from above and **drape over the shoulders and body** (XPBD cloth physics
-  with body-capsule collision + friction).
-- Switch **fabric presets** (denim / cotton / silk / knit) and watch the drape stiffness change.
-- Tweak **gravity, wind, colour**, toggle **wireframe** and the mannequin, and **Drop/Reset** the panel.
+- Orbit / zoom / pan around a dress-form mannequin in a neutral studio scene.
+- See a **fitted garment** (a sleeveless tube dress) wrap the body and **drape with real folds** — an
+  XPBD cloth solver with body-capsule collision + friction, anchored so it stays on.
+- Switch **fabric presets** (denim / cotton / silk / knit) and watch the drape change.
+- Tweak **gravity, wind** (lighter fabrics flutter more), **colour**, toggle wireframe / the mannequin,
+  and **Drop/Reset** the garment.
 
 ## Requirements
 

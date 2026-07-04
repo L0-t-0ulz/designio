@@ -6,6 +6,9 @@
   "author": "ZayanKhan-12",
   "license": "MIT",
   "main": "./out/main/index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",

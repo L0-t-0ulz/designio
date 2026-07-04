@@ -38,9 +38,10 @@ export function createControlPanel(opts: PanelOptions): GUI {
     .add(state, 'fabric', Object.keys(FABRICS) as FabricName[])
     .name('Fabric')
     .onChange((f: FabricName) => {
+      // onFabricChange owns the material colour + drape; here we only sync the
+      // colour picker's displayed value to match the new preset.
       opts.onFabricChange(f)
       state.color = '#' + new THREE.Color(FABRICS[f].color).getHexString()
-      opts.material.color.set(FABRICS[f].color)
       gui.controllersRecursive().forEach((c) => c.updateDisplay())
     })
 

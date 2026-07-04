@@ -15,10 +15,12 @@ interface Constraint {
  * Extended Position-Based Dynamics (XPBD) cloth solver — the same family of
  * technique used by real garment simulators.
  *
- * Per fixed frame we run several substeps; each substep:
- *   1. integrate particles under gravity + wind (symplectic Euler),
- *   2. solve distance constraints (structural, shear, bending) with per-frame
- *      compliance so stiffness is (mostly) independent of substep count,
+ * The cloth is a topological `nx * ny` grid of particles (optionally closed in
+ * X to form a tube, e.g. a garment wrapped around the body). Rest lengths are
+ * measured from the initial geometry, so flat panels and shaped garments both
+ * work. Per fixed frame we run several substeps; each substep:
+ *   1. integrate under gravity + wind (wind = force, so lighter fabrics flutter),
+ *   2. solve distance constraints (structural / shear / bending),
  *   3. derive velocities from the position delta,
  *   4. resolve collisions against the body capsules + ground with friction,
  *   5. apply velocity damping.
@@ -33,6 +35,7 @@ export class XPBDSolver {
   readonly invMass: Float32Array
 
   gravity = new THREE.Vector3(0, -9.81, 0)
+  /** Wind as a force (not acceleration): lighter fabrics flutter more. */
   wind = new THREE.Vector3(0, 0, 0)
   substeps = 14
   colliders: Capsule[] = []
@@ -42,8 +45,13 @@ export class XPBDSolver {
   private readonly constraints: Constraint[] = []
   private readonly lambda: Float32Array
   private readonly pinned: Set<number>
-  /** Removed particles (e.g. the poncho neck hole): no mass, no constraints. */
+  /** Removed particles (e.g. a cut-out): no mass, no constraints. */
   private readonly dead: Set<number>
+  /** Closed in X (last column wraps to the first) — a tube/garment. */
+  private readonly wrapX: boolean
+  /** Normalises wind so the slider reads as "wind on a ~0.3 kg reference fabric". */
+  private readonly windScale: number
+  private time = 0
 
   // scratch vectors (no per-particle allocation)
   private readonly _p = new THREE.Vector3()
@@ -52,12 +60,12 @@ export class XPBDSolver {
   constructor(
     readonly nx: number,
     readonly ny: number,
-    spacing: number,
     positions: Float32Array,
     params: FabricParams,
-    opts: { pinned?: Iterable<number>; dead?: Iterable<number> } = {}
+    opts: { pinned?: Iterable<number>; dead?: Iterable<number>; wrapX?: boolean } = {}
   ) {
     this.count = nx * ny
+    this.windScale = 0.3 / this.count
     this.positions = positions
     this.prev = new Float32Array(this.count * 3)
     this.vel = new Float32Array(this.count * 3)
@@ -65,9 +73,10 @@ export class XPBDSolver {
     this.params = params
     this.pinned = new Set(opts.pinned)
     this.dead = new Set(opts.dead)
+    this.wrapX = opts.wrapX ?? false
 
     this.applyMass()
-    this.buildConstraints(nx, ny, spacing)
+    this.buildConstraints(nx, ny)
     this.lambda = new Float32Array(this.constraints.length)
     this.syncPrev()
   }
@@ -96,6 +105,7 @@ export class XPBDSolver {
   /** Copy positions -> prev and clear velocities (call after respawning). */
   reset(): void {
     this.vel.fill(0)
+    this.time = 0
     this.syncPrev()
   }
 
@@ -103,37 +113,47 @@ export class XPBDSolver {
     this.prev.set(this.positions)
   }
 
-  private buildConstraints(nx: number, ny: number, spacing: number): void {
+  private restLength(a: number, b: number): number {
+    const ia = a * 3
+    const ib = b * 3
+    return Math.hypot(
+      this.positions[ia] - this.positions[ib],
+      this.positions[ia + 1] - this.positions[ib + 1],
+      this.positions[ia + 2] - this.positions[ib + 2]
+    )
+  }
+
+  private buildConstraints(nx: number, ny: number): void {
     const stretch = this.params.stretchCompliance
     const bend = this.params.bendCompliance
     const idx = (ix: number, iy: number): number => iy * nx + ix
-    const diag = spacing * Math.SQRT2
+    const add = (a: number, b: number, isBend: boolean): void =>
+      this.addConstraint(a, b, this.restLength(a, b), isBend ? bend : stretch, isBend)
 
     for (let iy = 0; iy < ny; iy++) {
       for (let ix = 0; ix < nx; ix++) {
+        const r1 = this.wrapX ? (ix + 1) % nx : ix + 1
+        const r2 = this.wrapX ? (ix + 2) % nx : ix + 2
+        const hasR1 = this.wrapX || ix + 1 < nx
+        const hasR2 = this.wrapX || ix + 2 < nx
+
         // structural (right / down)
-        if (ix + 1 < nx) this.addConstraint(idx(ix, iy), idx(ix + 1, iy), spacing, stretch, false)
-        if (iy + 1 < ny) this.addConstraint(idx(ix, iy), idx(ix, iy + 1), spacing, stretch, false)
-        // shear (both diagonals of each cell)
-        if (ix + 1 < nx && iy + 1 < ny) {
-          this.addConstraint(idx(ix, iy), idx(ix + 1, iy + 1), diag, stretch, false)
-          this.addConstraint(idx(ix + 1, iy), idx(ix, iy + 1), diag, stretch, false)
+        if (hasR1) add(idx(ix, iy), idx(r1, iy), false)
+        if (iy + 1 < ny) add(idx(ix, iy), idx(ix, iy + 1), false)
+        // shear (both diagonals of the cell)
+        if (hasR1 && iy + 1 < ny) {
+          add(idx(ix, iy), idx(r1, iy + 1), false)
+          add(idx(r1, iy), idx(ix, iy + 1), false)
         }
         // bending (skip-one, softer)
-        if (ix + 2 < nx) this.addConstraint(idx(ix, iy), idx(ix + 2, iy), spacing * 2, bend, true)
-        if (iy + 2 < ny) this.addConstraint(idx(ix, iy), idx(ix, iy + 2), spacing * 2, bend, true)
+        if (hasR2) add(idx(ix, iy), idx(r2, iy), true)
+        if (iy + 2 < ny) add(idx(ix, iy), idx(ix, iy + 2), true)
       }
     }
   }
 
-  private addConstraint(
-    i: number,
-    j: number,
-    rest: number,
-    compliance: number,
-    bend: boolean
-  ): void {
-    // Skip constraints touching a removed particle (the neck hole).
+  private addConstraint(i: number, j: number, rest: number, compliance: number, bend: boolean): void {
+    // Skip constraints touching a removed particle.
     if (this.dead.has(i) || this.dead.has(j)) return
     this.constraints.push({ i, j, rest, compliance, bend })
   }
@@ -146,22 +166,32 @@ export class XPBDSolver {
 
   private substep(dt: number): void {
     const { positions: pos, prev, vel, invMass: im, count } = this
-    const gx = this.gravity.x + this.wind.x
-    const gy = this.gravity.y + this.wind.y
-    const gz = this.gravity.z + this.wind.z
+    this.time += dt
+
+    // Gravity is a pure (mass-independent) acceleration.
+    const gx = this.gravity.x
+    const gy = this.gravity.y
+    const gz = this.gravity.z
+    // Wind is a force with a gentle temporal gust; per particle it becomes an
+    // acceleration = force * invMass, so lighter fabrics blow around more.
+    const gust = 1 + 0.4 * Math.sin(this.time * 2.1) + 0.18 * Math.sin(this.time * 5.3)
+    const wx = this.wind.x * this.windScale * gust
+    const wy = this.wind.y * this.windScale * gust
+    const wz = this.wind.z * this.windScale * gust
 
     // 1. integrate
     for (let k = 0; k < count; k++) {
       const i = k * 3
-      if (im[k] === 0) {
+      const w = im[k]
+      if (w === 0) {
         prev[i] = pos[i]
         prev[i + 1] = pos[i + 1]
         prev[i + 2] = pos[i + 2]
         continue
       }
-      vel[i] += gx * dt
-      vel[i + 1] += gy * dt
-      vel[i + 2] += gz * dt
+      vel[i] += (gx + wx * w) * dt
+      vel[i + 1] += (gy + wy * w) * dt
+      vel[i + 2] += (gz + wz * w) * dt
       prev[i] = pos[i]
       prev[i + 1] = pos[i + 1]
       prev[i + 2] = pos[i + 2]
