@@ -267,6 +267,16 @@ canvas {
   cursor: pointer;
 }
 
+/* ---- pattern schematic ---- */
+.dio-schematic {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 4px;
+}
+.dio-hidden {
+  display: none;
+}
+
 /* ---- hint bar ---- */
 .dio-hint {
   position: fixed;

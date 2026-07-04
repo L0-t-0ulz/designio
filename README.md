@@ -23,6 +23,8 @@ Built as a desktop app (Electron + Three.js + TypeScript).
   and flare**; it rebuilds and re-drapes on the body (pants simulate as two legs).
 - Each garment **drapes with real folds** — an XPBD cloth solver with body-capsule collision +
   friction, anchored so it stays on.
+- **Pattern mode** (the CLO3D loop): adjust flat **FRONT/BACK panels** (bust, length) and
+  **Sew & simulate** — the two panels stitch at the side seams and wrap the body into a 3D garment.
 - Choose from a **fabric library** (cotton poplin, denim, linen, wool flannel, silk charmeuse, satin,
   jersey knit, sheer chiffon, leather) — each with real properties that drive **both look and drape**.
 - **Live-inspect a fabric**: weight (GSM), stretch, drape, grip, colour, roughness, sheen, weave

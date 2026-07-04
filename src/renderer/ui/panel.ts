@@ -1,10 +1,10 @@
 import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
-import type { GarmentController } from '../garment/GarmentController'
 import type { GarmentType } from '../garment/templates'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
+import { patternSchematic } from './patternSchematic'
 
 export interface GarmentState {
   type: GarmentType
@@ -13,29 +13,32 @@ export interface GarmentState {
   flare: number
 }
 
+export type DesignMode = 'templates' | 'pattern'
+
 export interface PanelOptions {
   loop: Loop
-  controller: GarmentController
   viewport: Viewport
   material: THREE.MeshPhysicalMaterial
   mannequin: THREE.Object3D
   fabrics: Fabric[]
-  /** Stable working copy of the selected fabric; the inspector edits it in place. */
   current: Fabric
-  /** Stable garment state; the garment controls edit it in place. */
   garment: GarmentState
   garmentTypes: GarmentType[]
+  patternParams: { bust: number; length: number }
+  mode: DesignMode
+  onSetMode: (m: DesignMode) => void
   onSelectFabric: (id: string) => void
   onVisualEdit: () => void
   onPhysicsEdit: () => void
   onGarmentEdit: () => void
+  onPatternEdit: () => void
+  onResew: () => void
   onDrop: () => void
+  onSetGravity: (y: number) => void
+  onSetWind: (x: number, z: number) => void
 }
 
-/**
- * A friendly, custom control panel: garment templates, a visual fabric gallery,
- * clearly labelled sliders with live values, and tidy collapsible sections.
- */
+/** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
 export function createControlPanel(opts: PanelOptions): HTMLElement {
   const { current, garment, viewport } = opts
   const refreshers: Refreshable[] = []
@@ -46,7 +49,6 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
 
   const panel = el('div', 'dio-panel')
 
-  // ---- header ----
   const header = el('div', 'dio-header')
   const heading = el('div')
   heading.append(el('div', 'dio-title', 'DesignIO'), el('div', 'dio-subtitle', 'Garment Studio'))
@@ -66,11 +68,20 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   actions.append(simBtn, button('⤓  Re-drape', () => opts.onDrop()))
   panel.append(actions)
 
-  // ---- garment ----
+  // ---- design mode ----
+  const modeRow = el('div', 'dio-actions')
+  const modeBtns: Record<DesignMode, HTMLButtonElement> = {
+    templates: button('Templates', () => switchMode('templates'), opts.mode === 'templates'),
+    pattern: button('Pattern (sew)', () => switchMode('pattern'), opts.mode === 'pattern')
+  }
+  modeRow.append(modeBtns.templates, modeBtns.pattern)
+  panel.append(modeRow)
+
+  // ---- garment templates ----
   const garmentSec = section('Garment')
   const seg = el('div', 'dio-actions')
   const segBtns = new Map<GarmentType, HTMLButtonElement>()
-  const label = (t: GarmentType): string => t[0].toUpperCase() + t.slice(1)
+  const label = (t: string): string => t[0].toUpperCase() + t.slice(1)
   for (const t of opts.garmentTypes) {
     const b = button(label(t), () => {
       garment.type = t
@@ -81,13 +92,36 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
     seg.append(b)
   }
   seg.style.flexWrap = 'wrap'
-  garmentSec.body.append(seg)
   garmentSec.body.append(
+    seg,
     slider({ label: 'Length', min: 0, max: 1, step: 0.01, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } }).row,
     slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } }).row,
     slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } }).row
   )
   panel.append(garmentSec.root)
+
+  // ---- pattern (sew) ----
+  const patternSec = section('Pattern')
+  const schema = patternSchematic()
+  const refreshSchema = (): void => schema.update(opts.patternParams.bust / 2, opts.patternParams.length)
+  patternSec.body.append(
+    schema.root,
+    slider({ label: 'Bust circ.', min: 0.7, max: 1.5, step: 0.01, format: (v) => `${(v * 100) | 0} cm`, get: () => opts.patternParams.bust, set: (v) => { opts.patternParams.bust = v; refreshSchema(); opts.onPatternEdit() } }).row,
+    slider({ label: 'Length', min: 0.3, max: 0.9, step: 0.01, format: (v) => `${(v * 100) | 0} cm`, get: () => opts.patternParams.length, set: (v) => { opts.patternParams.length = v; refreshSchema(); opts.onPatternEdit() } }).row,
+    button('✂  Sew & simulate', () => opts.onResew())
+  )
+  refreshSchema()
+  panel.append(patternSec.root)
+
+  function switchMode(m: DesignMode): void {
+    opts.mode = m
+    modeBtns.templates.classList.toggle('primary', m === 'templates')
+    modeBtns.pattern.classList.toggle('primary', m === 'pattern')
+    garmentSec.root.classList.toggle('dio-hidden', m !== 'templates')
+    patternSec.root.classList.toggle('dio-hidden', m !== 'pattern')
+    opts.onSetMode(m)
+  }
+  switchMode(opts.mode)
 
   // ---- fabric gallery ----
   const fabricSec = section('Fabric')
@@ -143,9 +177,9 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   let windX = 0
   let windZ = 0
   env.body.append(
-    slider({ label: 'Gravity', min: 0, max: 20, step: 0.1, get: () => gravity, set: (v) => { gravity = v; opts.controller.setGravity(v) } }).row,
-    slider({ label: 'Wind ←→', min: -10, max: 10, step: 0.1, get: () => windX, set: (v) => { windX = v; opts.controller.setWind(windX, windZ) } }).row,
-    slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => windZ, set: (v) => { windZ = v; opts.controller.setWind(windX, windZ) } }).row,
+    slider({ label: 'Gravity', min: 0, max: 20, step: 0.1, get: () => gravity, set: (v) => { gravity = v; opts.onSetGravity(v) } }).row,
+    slider({ label: 'Wind ←→', min: -10, max: 10, step: 0.1, get: () => windX, set: (v) => { windX = v; opts.onSetWind(windX, windZ) } }).row,
+    slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => windZ, set: (v) => { windZ = v; opts.onSetWind(windX, windZ) } }).row,
     slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) }).row
   )
   panel.append(env.root)
