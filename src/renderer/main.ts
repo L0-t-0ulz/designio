@@ -5,8 +5,8 @@ import { Loop } from './core/Loop'
 import { buildMannequin } from './avatar/Mannequin'
 import { buildTubeGarment, fillTube, type TubeSpec } from './cloth/Garment'
 import { XPBDSolver } from './cloth/XPBDSolver'
-import { createFabricMaterial } from './cloth/FabricMaterial'
-import { FABRICS, type FabricName } from './cloth/fabricPresets'
+import { createFabricMaterial, applyFabric } from './cloth/FabricMaterial'
+import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, type Fabric } from './fabric/FabricLibrary'
 import { createControlPanel } from './ui/panel'
 
 // ---- scene ---------------------------------------------------------------
@@ -30,9 +30,11 @@ const garmentSpec: TubeSpec = {
   radiusBottom: 0.26
 }
 
-const initialFabric: FabricName = 'cotton'
+// `current` is a mutable working copy so the inspector can tune it live.
+const current: Fabric = { ...getFabric('cotton-poplin') }
+
 const { geometry, positions, nx, ny, pinnedTop } = buildTubeGarment(garmentSpec)
-const material = createFabricMaterial(FABRICS[initialFabric].color)
+const material = createFabricMaterial(current)
 
 const garmentMesh = new THREE.Mesh(geometry, material)
 garmentMesh.castShadow = true
@@ -40,7 +42,7 @@ garmentMesh.receiveShadow = true
 garmentMesh.frustumCulled = false
 viewport.scene.add(garmentMesh)
 
-const solver = new XPBDSolver(nx, ny, positions, FABRICS[initialFabric], {
+const solver = new XPBDSolver(nx, ny, positions, fabricToSolverParams(current), {
   pinned: pinnedTop,
   wrapX: true
 })
@@ -54,6 +56,15 @@ function respawn(): void {
   geometry.computeBoundingSphere()
 }
 
+function applyFabricVisual(): void {
+  applyFabric(material, current)
+}
+
+function applyFabricPhysics(): void {
+  solver.setFabric(fabricToSolverParams(current))
+  respawn()
+}
+
 // ---- loop ----------------------------------------------------------------
 const loop = new Loop(
   (dt) => solver.step(dt),
@@ -65,21 +76,42 @@ const loop = new Loop(
 )
 loop.start()
 
+// Optional deep-link (used by the snapshot tool / for sharing a state):
+//   ?fabric=<id>&closeup=1
+const params = new URLSearchParams(location.search)
+const fabricParam = params.get('fabric')
+if (fabricParam) {
+  Object.assign(current, getFabric(fabricParam))
+  applyFabricVisual()
+  applyFabricPhysics()
+}
+
 // ---- UI ------------------------------------------------------------------
 createControlPanel({
   loop,
   solver,
+  viewport,
   material,
   mannequin: mannequin.group,
-  onFabricChange: (name) => {
-    solver.setFabric(FABRICS[name])
-    material.color.set(FABRICS[name].color)
-    respawn()
+  fabrics: FABRIC_LIBRARY,
+  current,
+  onSelectFabric: (id) => {
+    Object.assign(current, getFabric(id))
+    applyFabricVisual()
+    applyFabricPhysics()
   },
+  onVisualEdit: applyFabricVisual,
+  onPhysicsEdit: applyFabricPhysics,
   onDrop: respawn
 })
 
+if (params.get('closeup') === '1') {
+  viewport.camera.position.set(0.12, 1.16, 0.62)
+  viewport.controls.target.set(0, 1.08, 0.12)
+  viewport.controls.update()
+}
+
 // Expose handles for debugging from the devtools console (dev builds only).
 if (import.meta.env.DEV) {
-  Object.assign(window, { __designio: { viewport, solver, respawn } })
+  Object.assign(window, { __designio: { viewport, solver, current, respawn } })
 }
