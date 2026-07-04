@@ -19,7 +19,6 @@
     "snapshot": "npm run build && electron scripts/capture.cjs docs/preview.png 8000"
   },
   "dependencies": {
-    "lil-gui": "^0.21.0",
     "three": "^0.185.1"
   },
   "devDependencies": {

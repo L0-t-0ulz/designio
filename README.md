@@ -39,8 +39,8 @@ npm install
 npm run dev        # launches the DesignIO desktop app with hot reload
 ```
 
-The app window opens automatically. Use the **Fabric Lab** panel (top-right) to play with fabrics and
-physics, and drag in the viewport to orbit.
+The app window opens automatically. Use the **Fabric Studio** panel (top-right): click a fabric in the
+gallery, tweak its look and drape with the labelled sliders, and drag in the viewport to orbit.
 
 ### Other commands
 

@@ -1,9 +1,9 @@
-import GUI from 'lil-gui'
 import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
 import type { XPBDSolver } from '../cloth/XPBDSolver'
 import type { Fabric } from '../fabric/FabricLibrary'
+import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
 
 export interface PanelOptions {
   loop: Loop
@@ -21,79 +21,124 @@ export interface PanelOptions {
 }
 
 /**
- * Control panel: garment actions, a fabric library + live inspector (look and
- * physical drape properties), physics, and studio/view controls incl. a macro
- * close-up to inspect the weave.
+ * A friendly, custom control panel: a visual fabric gallery, clearly labelled
+ * sliders with live values, big action buttons, and tidy collapsible sections.
  */
-export function createControlPanel(opts: PanelOptions): GUI {
-  const gui = new GUI({ title: 'DesignIO — Fabric Studio' })
+export function createControlPanel(opts: PanelOptions): HTMLElement {
   const { current, viewport } = opts
+  const refreshers: Refreshable[] = []
+  const track = (r: Refreshable): HTMLElement => {
+    refreshers.push(r)
+    return r.row
+  }
 
-  // ---- garment actions ----
-  gui.add({ simulate: true }, 'simulate').name('Simulate').onChange((v: boolean) => opts.loop.setRunning(v))
-  gui.add({ drop: () => opts.onDrop() }, 'drop').name('⤓ Drape / Reset')
+  const panel = el('div', 'dio-panel')
 
-  // ---- fabric library ----
-  const fabricOptions: Record<string, string> = {}
-  for (const f of opts.fabrics) fabricOptions[f.name] = f.id
-  const pick = { fabric: current.id }
-  const colorState = { hex: '#' + new THREE.Color(current.color).getHexString() }
+  // ---- header ----
+  const header = el('div', 'dio-header')
+  const heading = el('div')
+  heading.append(el('div', 'dio-title', 'DesignIO'), el('div', 'dio-subtitle', 'Fabric Studio'))
+  header.append(el('div', 'dio-logo'), heading)
+  panel.append(header)
 
-  gui
-    .add(pick, 'fabric', fabricOptions)
-    .name('Fabric')
-    .onChange((id: string) => {
-      opts.onSelectFabric(id)
-      colorState.hex = '#' + new THREE.Color(current.color).getHexString()
-      gui.controllersRecursive().forEach((c) => c.updateDisplay())
-    })
-
-  // ---- look (updates the material live) ----
-  const look = gui.addFolder('Look')
-  look.addColor(colorState, 'hex').name('Colour').onChange((v: string) => {
-    current.color = new THREE.Color(v).getHex()
-    opts.onVisualEdit()
+  // ---- actions ----
+  const actions = el('div', 'dio-actions')
+  let running = true
+  const simBtn = button('❙❙  Pause', () => {}, true)
+  simBtn.addEventListener('click', () => {
+    running = !running
+    opts.loop.setRunning(running)
+    simBtn.textContent = running ? '❙❙  Pause' : '▶  Play'
+    simBtn.classList.toggle('off', !running)
   })
-  look.add(current, 'roughness', 0, 1, 0.01).name('Roughness').onChange(opts.onVisualEdit)
-  look.add(current, 'sheen', 0, 1, 0.01).name('Sheen').onChange(opts.onVisualEdit)
-  look.add(current, 'weaveScale', 40, 400, 1).name('Weave density').onChange(opts.onVisualEdit)
-  look.add(current, 'normalStrength', 0, 1.5, 0.01).name('Weave depth').onChange(opts.onVisualEdit)
-  look.add(current, 'anisotropy', 0, 1, 0.01).name('Sheen streak').onChange(opts.onVisualEdit)
-  look.add(current, 'transmission', 0, 1, 0.01).name('Sheerness').onChange(opts.onVisualEdit)
+  actions.append(simBtn, button('⤓  Re-drape', () => opts.onDrop()))
+  panel.append(actions)
 
-  // ---- physical properties (change the drape -> re-drape) ----
-  const cloth = gui.addFolder('Fabric physics')
-  cloth.add(current, 'gsm', 30, 500, 1).name('Weight (gsm)').onChange(opts.onPhysicsEdit)
-  cloth.add(current, 'stretch', 0, 1, 0.01).name('Stretch').onChange(opts.onPhysicsEdit)
-  cloth.add(current, 'bendiness', 0, 1, 0.01).name('Drape (soft)').onChange(opts.onPhysicsEdit)
-  cloth.add(current, 'friction', 0, 1, 0.01).name('Grip').onChange(opts.onPhysicsEdit)
+  // ---- fabric gallery ----
+  const fabricSec = section('Fabric')
+  const gallery = el('div', 'dio-swatches')
+  const swatchEls = new Map<string, HTMLElement>()
+  const selectSwatch = (id: string): void => {
+    for (const [fid, node] of swatchEls) node.classList.toggle('selected', fid === id)
+  }
+  for (const f of opts.fabrics) {
+    const card = el('div', 'dio-swatch')
+    const chip = el('div', 'dio-swatch-chip')
+    chip.style.background = '#' + f.color.toString(16).padStart(6, '0')
+    card.append(chip, el('div', 'dio-swatch-name', f.name))
+    card.title = `${f.name} · ${f.gsm} gsm`
+    card.addEventListener('click', () => {
+      opts.onSelectFabric(f.id)
+      selectSwatch(f.id)
+      refreshers.forEach((r) => r.refresh())
+    })
+    swatchEls.set(f.id, card)
+    gallery.append(card)
+  }
+  selectSwatch(current.id)
+  fabricSec.body.append(gallery)
+  panel.append(fabricSec.root)
 
-  // ---- environment forces ----
-  const physics = gui.addFolder('Forces')
-  physics.add({ g: 9.81 }, 'g', 0, 20, 0.1).name('Gravity').onChange((v: number) => opts.solver.gravity.set(0, -v, 0))
-  physics.add(opts.solver.wind, 'x', -10, 10, 0.1).name('Wind X')
-  physics.add(opts.solver.wind, 'z', -10, 10, 0.1).name('Wind Z')
+  // ---- appearance ----
+  const look = section('Appearance')
+  look.body.append(
+    track(colorField({ label: 'Colour', get: () => current.color, set: (v) => { current.color = v; opts.onVisualEdit() } })),
+    track(slider({ label: 'Roughness', min: 0, max: 1, step: 0.01, get: () => current.roughness, set: (v) => { current.roughness = v; opts.onVisualEdit() } })),
+    track(slider({ label: 'Sheen', min: 0, max: 1, step: 0.01, get: () => current.sheen, set: (v) => { current.sheen = v; opts.onVisualEdit() } })),
+    track(slider({ label: 'Weave density', min: 40, max: 400, step: 1, get: () => current.weaveScale, set: (v) => { current.weaveScale = v; opts.onVisualEdit() } })),
+    track(slider({ label: 'Weave depth', min: 0, max: 1.5, step: 0.01, get: () => current.normalStrength, set: (v) => { current.normalStrength = v; opts.onVisualEdit() } })),
+    track(slider({ label: 'Sheen streak', min: 0, max: 1, step: 0.01, get: () => current.anisotropy, set: (v) => { current.anisotropy = v; opts.onVisualEdit() } })),
+    track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
+  )
+  panel.append(look.root)
 
-  // ---- studio / view ----
-  const studio = gui.addFolder('Studio')
-  studio
-    .add(viewport.renderer, 'toneMappingExposure', 0.4, 2, 0.01)
-    .name('Exposure')
-  studio.add(opts.material, 'wireframe').name('Wireframe')
-  studio.add(opts.mannequin, 'visible').name('Show mannequin')
+  // ---- fabric physics ----
+  const cloth = section('Fabric physics', true)
+  cloth.body.append(
+    track(slider({ label: 'Weight', min: 30, max: 500, step: 1, format: (v) => `${v | 0} gsm`, get: () => current.gsm, set: (v) => { current.gsm = v; opts.onPhysicsEdit() } })),
+    track(slider({ label: 'Stretch', min: 0, max: 1, step: 0.01, get: () => current.stretch, set: (v) => { current.stretch = v; opts.onPhysicsEdit() } })),
+    track(slider({ label: 'Drape (soft)', min: 0, max: 1, step: 0.01, get: () => current.bendiness, set: (v) => { current.bendiness = v; opts.onPhysicsEdit() } })),
+    track(slider({ label: 'Grip', min: 0, max: 1, step: 0.01, get: () => current.friction, set: (v) => { current.friction = v; opts.onPhysicsEdit() } }))
+  )
+  panel.append(cloth.root)
 
+  // ---- environment ----
+  const env = section('Environment', true)
+  let gravity = 9.81
+  env.body.append(
+    slider({ label: 'Gravity', min: 0, max: 20, step: 0.1, get: () => gravity, set: (v) => { gravity = v; opts.solver.gravity.set(0, -v, 0) } }).row,
+    slider({ label: 'Wind ←→', min: -10, max: 10, step: 0.1, get: () => opts.solver.wind.x, set: (v) => (opts.solver.wind.x = v) }).row,
+    slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => opts.solver.wind.z, set: (v) => (opts.solver.wind.z = v) }).row,
+    slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) }).row
+  )
+  panel.append(env.root)
+
+  // ---- view ----
+  const view = section('View', true)
   const homePos = viewport.camera.position.clone()
   const homeTarget = viewport.controls.target.clone()
-  studio.add({ closeup: false }, 'closeup').name('Macro close-up').onChange((v: boolean) => {
-    if (v) {
-      viewport.camera.position.set(0.12, 1.16, 0.62)
-      viewport.controls.target.set(0, 1.08, 0.12)
-    } else {
-      viewport.camera.position.copy(homePos)
-      viewport.controls.target.copy(homeTarget)
-    }
-    viewport.controls.update()
-  })
+  let closeup = false
+  view.body.append(
+    toggle({
+      label: 'Macro close-up',
+      get: () => closeup,
+      set: (v) => {
+        closeup = v
+        if (v) {
+          viewport.camera.position.set(0.12, 1.16, 0.62)
+          viewport.controls.target.set(0, 1.08, 0.12)
+        } else {
+          viewport.camera.position.copy(homePos)
+          viewport.controls.target.copy(homeTarget)
+        }
+        viewport.controls.update()
+      }
+    }).row,
+    toggle({ label: 'Wireframe', get: () => opts.material.wireframe, set: (v) => (opts.material.wireframe = v) }).row,
+    toggle({ label: 'Show mannequin', get: () => opts.mannequin.visible, set: (v) => (opts.mannequin.visible = v) }).row
+  )
+  panel.append(view.root)
 
-  return gui
+  document.body.append(panel)
+  return panel
 }
