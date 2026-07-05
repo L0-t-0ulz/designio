@@ -54,7 +54,16 @@ export interface PanelOptions {
 }
 
 /** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
-export function createControlPanel(opts: PanelOptions): HTMLElement {
+/** Selection hooks the Library uses so it drives the same state as the panel. */
+export interface PanelApi {
+  selectGarment: (id: string) => void
+  selectFabric: (id: string) => void
+  setFigure: (t: BodyType) => void
+  /** Refresh the panel's garment controls from the current state (e.g. after a preset). */
+  syncGarment: () => void
+}
+
+export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; api: PanelApi } {
   const { current, garment, viewport } = opts
   const refreshers: Refreshable[] = []
   const track = (r: Refreshable): HTMLElement => {
@@ -238,17 +247,18 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   const selectSwatch = (id: string): void => {
     for (const [fid, node] of swatchEls) node.classList.toggle('selected', fid === id)
   }
+  function selectFabric(id: string): void {
+    opts.onSelectFabric(id)
+    selectSwatch(id)
+    refreshers.forEach((r) => r.refresh())
+  }
   const fabricCard = (f: (typeof opts.fabrics)[number]): HTMLElement => {
     const card = el('div', 'dio-swatch')
     const chip = el('div', 'dio-swatch-chip')
     chip.style.background = '#' + f.color.toString(16).padStart(6, '0')
     card.append(chip, el('div', 'dio-swatch-name', f.name))
     card.title = `${f.name} · ${f.gsm} gsm`
-    card.addEventListener('click', () => {
-      opts.onSelectFabric(f.id)
-      selectSwatch(f.id)
-      refreshers.forEach((r) => r.refresh())
-    })
+    card.addEventListener('click', () => selectFabric(f.id))
     swatchEls.set(f.id, card)
     return card
   }
@@ -372,6 +382,5 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   )
   panel.append(view.root)
 
-  document.body.append(panel)
-  return panel
+  return { panel, api: { selectGarment, selectFabric, setFigure, syncGarment } }
 }

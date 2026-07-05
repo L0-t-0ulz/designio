@@ -121,20 +121,209 @@
 .dio-shell-center canvas {
   display: block;
 }
+.dio-shell-left {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--glass);
+  border-right: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+}
 .dio-shell-right {
   min-width: 0;
   overflow: hidden;
   background: var(--glass);
   border-left: 1px solid var(--hairline);
   display: flex;
+  flex-direction: column;
 }
 
-/* the existing control panel, docked to fill the right region */
+/* ---- Library panel (left) ---- */
+.dio-lib {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+}
+.dio-lib-tabs {
+  display: flex;
+  flex: none;
+  padding: 8px 8px 0;
+  gap: 4px;
+}
+.dio-lib-tab {
+  flex: 1;
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--fg-1);
+  font: inherit;
+  font-size: 12px;
+  padding: 7px 4px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+}
+.dio-lib-tab:hover {
+  color: var(--fg-0);
+  background: var(--card-bg);
+}
+.dio-lib-tab.on {
+  color: var(--fg-0);
+  background: var(--accent-soft);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.dio-lib-search {
+  flex: none;
+  margin: 8px;
+  padding: 7px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  color: var(--fg-0);
+  font: inherit;
+  font-size: 12px;
+}
+.dio-lib-search::placeholder {
+  color: var(--fg-2);
+}
+.dio-lib-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 8px 12px;
+}
+.dio-lib-cat {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fg-2);
+  font-weight: 600;
+  margin: 10px 2px 6px;
+}
+.dio-lib-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dio-lib-item {
+  border: 1.5px solid transparent;
+  border-radius: var(--r-sm);
+  background: var(--bg-2);
+  padding: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
+}
+.dio-lib-item:hover {
+  border-color: var(--hairline-hi);
+  transform: translateY(-1px);
+}
+.dio-lib-item.on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.dio-lib-item svg {
+  width: 100%;
+  height: 58px;
+}
+.dio-lib-item svg path {
+  fill: #cbd0e0;
+}
+.dio-lib-item.on svg path {
+  fill: var(--accent-hi);
+}
+.dio-lib-item canvas {
+  width: 100%;
+  height: 40px;
+  border-radius: 6px;
+  display: block;
+}
+.dio-lib-name {
+  font-size: 10.5px;
+  color: var(--fg-1);
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dio-lib-item.on .dio-lib-name {
+  color: var(--fg-0);
+}
+.dio-lib-empty {
+  color: var(--fg-2);
+  font-size: 12px;
+  padding: 16px 4px;
+  text-align: center;
+}
+
+/* ---- Object Browser (top of the right dock) ---- */
+.dio-objbrowser {
+  flex: none;
+  border-bottom: 1px solid var(--hairline);
+  padding: 8px 10px 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.dio-objbrowser-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fg-2);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.dio-obj-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: default;
+}
+.dio-obj-item:hover {
+  background: var(--card-bg);
+}
+.dio-obj-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+.dio-obj-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--fg-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dio-obj-vis {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--fg-2);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+.dio-obj-vis:hover {
+  color: var(--fg-0);
+  background: var(--card-bg);
+}
+.dio-obj-item.hidden .dio-obj-name {
+  color: var(--fg-2);
+  text-decoration: line-through;
+}
+
+/* the existing control panel, docked below the Object Browser in the right region */
 .dio-shell-right .dio-panel {
   position: static;
   width: 100%;
+  flex: 1;
+  min-height: 0;
   max-height: none;
-  height: 100%;
+  overflow-y: auto;
   border: none;
   border-radius: 0;
   box-shadow: none;

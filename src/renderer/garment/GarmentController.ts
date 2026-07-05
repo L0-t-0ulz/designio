@@ -14,6 +14,7 @@ interface Piece {
   positions: Float32Array
   mesh: THREE.Mesh
   solver: XPBDSolver
+  name: string
   /** Reset this piece's positions to its undraped shape. */
   refill: () => void
 }
@@ -42,11 +43,11 @@ export class GarmentController {
     this.dispose()
     const def = getGarment(type)
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
-      this.addPiece(p.build, p.refill)
+      this.addPiece(p.build, p.refill, p.name)
     }
   }
 
-  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void): void {
+  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string): void {
     const { geometry, positions, nx, ny, pinnedTop } = build
     const mesh = new THREE.Mesh(geometry, this.material)
     mesh.castShadow = true
@@ -59,7 +60,12 @@ export class GarmentController {
     solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)
     solver.wind.set(this.windX, 0, this.windZ)
-    this.pieces.push({ geometry, positions, mesh, solver, refill: () => fill(positions) })
+    this.pieces.push({ geometry, positions, mesh, solver, name, refill: () => fill(positions) })
+  }
+
+  /** The garment's pieces for the Object Browser (name + mesh; visibility via mesh.visible). */
+  getPieces(): { name: string; mesh: THREE.Mesh }[] {
+    return this.pieces.map((p) => ({ name: p.name, mesh: p.mesh }))
   }
 
   setGravity(y: number): void {

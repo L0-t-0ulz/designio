@@ -6,6 +6,9 @@ import { Viewport } from './core/Viewport'
 import { createStudioShell } from './shell/StudioShell'
 import { buildMenuBar } from './shell/menuBar'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
+import { buildLibrary } from './shell/library'
+import { buildObjectBrowser } from './shell/objectBrowser'
+import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
@@ -253,6 +256,7 @@ function initStudio(config: DesignConfig): void {
     onAnim: setAnimMode,
     onToggleWireframe: () => (material.wireframe = !material.wireframe),
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
+    onToggleLibrary: () => shell.toggleLeft(),
     onTogglePanel: () => shell.toggleRight(),
     onResetLayout: () => shell.resetLayout(),
     onAbout: () =>
@@ -270,7 +274,8 @@ function initStudio(config: DesignConfig): void {
   )
 
   // ---- control panel (docked into the right region) ----
-  const panel = createControlPanel({
+  let syncBrowsers: () => void = () => {}
+  const { panel, api } = createControlPanel({
     loop,
     viewport,
     material,
@@ -287,10 +292,14 @@ function initStudio(config: DesignConfig): void {
       if (design) current.color = base // keep the design's base colour
       applyFabricVisual()
       applyFabricPhysics()
+      syncBrowsers()
     },
     onVisualEdit: applyFabricVisual,
     onPhysicsEdit: applyFabricPhysics,
-    onGarmentEdit: () => garmentCtl.build(garment.type, garment),
+    onGarmentEdit: () => {
+      garmentCtl.build(garment.type, garment)
+      syncBrowsers()
+    },
     onPatternEdit: () => patternCtl.build(patternParams),
     onResew: () => patternCtl.resew(),
     onDrop: () => (mode === 'templates' ? garmentCtl.redrape() : patternCtl.resew()),
@@ -309,9 +318,15 @@ function initStudio(config: DesignConfig): void {
       anim.speed = v
       viewport.controls.autoRotateSpeed = v * 2.2
     },
-    onColor: setColor,
+    onColor: (h) => {
+      setColor(h)
+      syncBrowsers()
+    },
     bodySize,
-    onBodySize: setBody,
+    onBodySize: (b) => {
+      setBody(b)
+      syncBrowsers()
+    },
     onBodyMode: (realistic) => {
       mannequin.setBodyMode(realistic)
       if (mode === 'templates') garmentCtl.redrape()
@@ -319,7 +334,46 @@ function initStudio(config: DesignConfig): void {
     },
     onBack: goBack
   })
-  shell.right.appendChild(panel) // dock the control panel into the shell's right region
+
+  // ---- Object Browser (top of the right dock) + docked control panel below ----
+  const objBrowser = buildObjectBrowser(
+    shell.right,
+    () => (mode === 'templates' ? garmentCtl.getPieces() : []),
+    () => current.color
+  )
+  shell.right.appendChild(panel)
+
+  // ---- Library (left): browse + apply, staying in sync with the panel ----
+  function applyPreset(p: Preset): void {
+    const c = p.config
+    if (c.garmentType) {
+      garment.type = c.garmentType
+      Object.assign(garment, getGarment(c.garmentType).defaults)
+    }
+    if (c.length != null) garment.length = c.length
+    if (c.ease != null) garment.ease = c.ease
+    if (c.flare != null) garment.flare = c.flare
+    if (c.neckline) garment.neckline = c.neckline
+    if (c.sleeve) garment.sleeve = c.sleeve
+    api.syncGarment()
+    garmentCtl.build(garment.type, garment)
+    if (c.fabricId) api.selectFabric(c.fabricId)
+    if (c.color != null) setColor(c.color)
+    syncBrowsers()
+  }
+  const library = buildLibrary(shell.left, {
+    selectGarment: api.selectGarment,
+    selectFabric: api.selectFabric,
+    setFigure: api.setFigure,
+    applyPreset,
+    currentGarment: () => garment.type,
+    currentFabric: () => current.id,
+    currentBodyType: () => bodySize.bodyType
+  })
+  syncBrowsers = () => {
+    library.refresh()
+    objBrowser.refresh()
+  }
 
   if (params.get('closeup') === '1') {
     viewport.camera.position.set(0.12, 1.16, 0.62)

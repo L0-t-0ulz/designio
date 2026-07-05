@@ -91,10 +91,11 @@ export function garmentTubeSpecs(def: GarmentDefinition, params: GarmentParams, 
   return specs
 }
 
-/** A ready-to-simulate garment piece (geometry + how to reset it). */
+/** A ready-to-simulate garment piece (geometry + how to reset it + a display name). */
 export interface SimPiece {
   build: TubeBuild
   refill: (pos: Float32Array) => void
+  name: string
 }
 
 /**
@@ -109,20 +110,22 @@ export function buildGarment(
   colliders: Capsule[]
 ): SimPiece[] {
   const out: SimPiece[] = []
+  const legName = ['Left leg', 'Right leg']
+  const sleeveName = ['Left sleeve', 'Right sleeve']
   for (const pc of def.pieces) {
     if (pc.kind === 'bodyTube') {
       const spec = bodyTubeToSpec(pc, params, m)
-      out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec) })
+      out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: 'Body' })
     } else if (pc.kind === 'legTubes') {
-      for (const spec of legTubeSpecs(params, m)) {
-        out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec) })
-      }
+      legTubeSpecs(params, m).forEach((spec, i) => {
+        out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: legName[i] })
+      })
     } else if (pc.kind === 'sleeves') {
       const sleeve = params.sleeve ?? 'none'
       if (sleeve !== 'none') {
-        for (const spec of sleeveSpecs(sleeve === 'long', colliders)) {
-          out.push({ build: buildAxisTube(spec), refill: (pos) => fillAxisTube(pos, spec) })
-        }
+        sleeveSpecs(sleeve === 'long', colliders).forEach((spec, i) => {
+          out.push({ build: buildAxisTube(spec), refill: (pos) => fillAxisTube(pos, spec), name: sleeveName[i] })
+        })
       }
     }
   }
