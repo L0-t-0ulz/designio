@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import type { Capsule } from './colliders'
-import { BodyMesh } from './BodyMesh'
+import { BodyMesh, type BodyPart } from './BodyMesh'
 import { loadGlbBody, type GlbBody } from './GlbMannequin'
 
 /** Key body measurements (metres) garments are fitted to (scale with body size). */
@@ -99,7 +99,15 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
 
   const group = new THREE.Group()
   group.name = 'mannequin'
-  const material = new THREE.MeshStandardMaterial({ color: 0xbdb2a0, roughness: 0.82, metalness: 0 })
+  // Matte studio-mannequin material (neutral plaster; a whisper of sheen).
+  const material = new THREE.MeshPhysicalMaterial({
+    color: 0xe9e7e2,
+    roughness: 0.85,
+    metalness: 0,
+    sheen: 0.25,
+    sheenRoughness: 0.85,
+    sheenColor: new THREE.Color(0xffffff)
+  })
 
   const bones: Bone[] = []
   const colliders: Capsule[] = []
@@ -122,9 +130,9 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const bodyMesh = new BodyMesh(material)
   group.add(bodyMesh.object)
 
-  // Realistic GLB body (the visual); capsules stay the cloth collider. Falls back
-  // to the metaball body if the asset can't load.
-  let useGlb = true
+  // Default = the polished procedural matte body (animatable). The GLB is an
+  // optional drop-in (toggled on), so replacing assets/mannequin.glb swaps it in.
+  let useGlb = false
   let glb: GlbBody | null = null
   loadGlbBody(
     material,
@@ -147,6 +155,35 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     armR: new THREE.Vector3(),
     legL: new THREE.Vector3(),
     legR: new THREE.Vector3()
+  }
+
+  // Anatomy radii per collider index (a = start, b = end of each segment). The
+  // narrow torso-bottom (waist) + wider hips blend into a natural waist.
+  const partSpec: { rA: () => number; rB: () => number; cap?: BodyPart['cap'] }[] = [
+    { rA: () => 0.1 * body.build, rB: () => 0.1 * body.build, cap: 'head' },
+    { rA: () => 0.052 * body.build, rB: () => 0.06 * body.build }, // neck
+    { rA: () => measurements.waistR, rB: () => measurements.chestR }, // torso (waist→chest)
+    { rA: () => 0.075 * body.build, rB: () => 0.075 * body.build }, // shoulders
+    { rA: () => measurements.hipR * 0.82, rB: () => measurements.hipR * 0.82 }, // hips
+    { rA: () => 0.056 * body.build, rB: () => 0.046 * body.build }, // upper arm
+    { rA: () => 0.046 * body.build, rB: () => 0.036 * body.build, cap: 'hand' }, // forearm
+    { rA: () => measurements.thighR, rB: () => measurements.thighR * 0.68 }, // thigh
+    { rA: () => measurements.thighR * 0.68, rB: () => 0.05 * body.build, cap: 'foot' } // shin
+  ]
+  const fullSpec = [...partSpec, ...partSpec.slice(5)] // mirror arms + legs
+  const parts: BodyPart[] = colliders.map((c, i) => ({
+    a: c.a,
+    b: c.b,
+    radiusA: 0,
+    radiusB: 0,
+    cap: fullSpec[i].cap
+  }))
+  const buildParts = (): BodyPart[] => {
+    for (let i = 0; i < parts.length; i++) {
+      parts[i].radiusA = fullSpec[i].rA()
+      parts[i].radiusB = fullSpec[i].rB()
+    }
+    return parts
   }
 
   /** Recompute rest bones + measurements + pivots from the current body size. */
@@ -223,7 +260,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     if (key === lastKey) return
     lastKey = key
     applyPose(curAngle)
-    bodyMesh.rebuild(colliders)
+    bodyMesh.rebuild(buildParts())
   }
 
   const resize = (next: BodyParams): void => {
@@ -231,7 +268,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     body.build = next.build
     applyBody()
     applyPose(curAngle)
-    bodyMesh.rebuild(colliders)
+    bodyMesh.rebuild(buildParts())
     glb?.fit(body.height, body.build)
   }
 
@@ -243,7 +280,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       applyPose(curAngle)
       lastKey = ''
     } else {
-      bodyMesh.rebuild(colliders)
+      bodyMesh.rebuild(buildParts())
     }
     if (glb) glb.model.visible = useGlb
     bodyMesh.object.visible = !useGlb
@@ -251,7 +288,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
 
   applyBody()
   applyPose(curAngle)
-  bodyMesh.rebuild(colliders)
+  bodyMesh.rebuild(buildParts())
   lastKey = '0.0000,0.0000'
 
   return { group, colliders, measurements, update, resize, setBodyMode }
