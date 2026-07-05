@@ -18,6 +18,9 @@ Built as a desktop app (Electron + Three.js + TypeScript).
 
 ## What you can do right now
 
+- **Start on the "Design your piece" page**: pick a garment (dress / skirt / top / pants), colour it,
+  **add your own graphic + text**, and set the fit — with a **live 3D preview** (the garment draped on
+  the mannequin, auto-rotating). Then hit **Design in 3D →** to open it in the full studio.
 - Orbit / zoom / pan around a **smooth human mannequin** (a continuous body, built procedurally with
   metaballs) in a **bright reflective studio** (post-processed: subtle bloom, crisp SMAA, mirror floor).
 - Pick a **garment template** — **dress, skirt, top, or pants** — and tweak its **length, looseness,

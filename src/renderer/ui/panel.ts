@@ -42,6 +42,7 @@ export interface PanelOptions {
   anim: { mode: AnimationMode; speed: number }
   onSetAnimMode: (m: AnimationMode) => void
   onAnimSpeed: (v: number) => void
+  onColor: (hex: number) => void
 }
 
 /** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
@@ -157,7 +158,7 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   // ---- appearance ----
   const look = section('Appearance')
   look.body.append(
-    track(colorField({ label: 'Colour', get: () => current.color, set: (v) => { current.color = v; opts.onVisualEdit() } })),
+    track(colorField({ label: 'Colour', get: () => current.color, set: (v) => opts.onColor(v) })),
     track(slider({ label: 'Roughness', min: 0, max: 1, step: 0.01, get: () => current.roughness, set: (v) => { current.roughness = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheen', min: 0, max: 1, step: 0.01, get: () => current.sheen, set: (v) => { current.sheen = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Weave density', min: 40, max: 400, step: 1, get: () => current.weaveScale, set: (v) => { current.weaveScale = v; opts.onVisualEdit() } })),
