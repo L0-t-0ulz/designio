@@ -4,8 +4,10 @@ import type { AnimationMode } from '../avatar/Mannequin'
 
 export interface MenuActions {
   onNew: () => void
-  onOpenProject: () => void
+  onProjects: () => void
   onSaveProject: () => void
+  onExportDio: () => void
+  onOpenProject: () => void
   onExport: (fmt: ExportFormat) => void
   onUndo: () => void
   onRedo: () => void
@@ -93,9 +95,11 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
 
   menu('File', [
     { label: 'New design…', run: a.onNew },
+    { label: 'Your projects…', run: a.onProjects },
     { sep: true },
-    { label: 'Open project… (.dio)', run: a.onOpenProject },
-    { label: 'Save project (.dio)', run: a.onSaveProject },
+    { label: 'Save project', run: a.onSaveProject },
+    { label: 'Export project (.dio)', run: a.onExportDio },
+    { label: 'Open project (.dio)…', run: a.onOpenProject },
     { sep: true },
     ex('glb', 'Export 3D — glTF (.glb)'),
     ex('obj', 'Export 3D — OBJ'),

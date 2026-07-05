@@ -61,6 +61,8 @@ Renderer modules:
   `SizeLabel`/`gradeParams` grade a layer's girth by size),
   `GarmentStack` (the live layers: each its own material · fabric · print · `GarmentController`; many
   garments simulate on one mannequin). Adding a garment is `stack.addLayer`; the active layer is edited.
+  `projectStore` (the **in-app project library** — localStorage list/save/load/delete/rename of saved
+  `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested).
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
@@ -68,8 +70,9 @@ Renderer modules:
   production spec**: real chest/waist/hip/length/sleeve/inseam + fabric area + seam length from the same
   construction), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM +
   embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF), `techpack`, `save`.
-- `start/` — `StartPage` (the "design your piece" landing), `PreviewStudio` (live 3D preview),
-  `design` (`DesignConfig`), `presets` (ready-made looks).
+- `start/` — `Homepage` (launcher → New design · **Your projects** · templates), `ProjectsPage` (the
+  **project gallery** — open · rename · delete · import/export `.dio`), `StartPage` (the "design your
+  piece" builder), `PreviewStudio` (live 3D preview), `design` (`DesignConfig`), `presets` (looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
   (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar` (File: New · Open/Save
   `.dio` project · Exports; Edit: undo/redo · cut/copy/paste/duplicate/delete garment), `statusBar`,
@@ -100,5 +103,5 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (procedural vs realistic-GLB avatar) ·
 `?layers=<id>,<id>` (layer extra garments on the body — a layered outfit) ·
 `?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable) · `?page=start` (deep-link the
-builder, bypassing the homepage). Entry is the homepage launcher → start page → studio. Regenerate docs
-with `npm run capture`.
+builder) · `?page=projects[&demo]` (the Projects gallery; `demo` seeds a few looks). Entry is the homepage
+launcher → start page / Projects → studio. Regenerate docs with `npm run capture`.
