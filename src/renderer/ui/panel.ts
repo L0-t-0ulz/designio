@@ -43,6 +43,8 @@ export interface PanelOptions {
   onSetAnimMode: (m: AnimationMode) => void
   onAnimSpeed: (v: number) => void
   onColor: (hex: number) => void
+  bodySize: { height: number; build: number }
+  onBodySize: (b: { height: number; build: number }) => void
 }
 
 /** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
@@ -129,6 +131,14 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
     opts.onSetMode(m)
   }
   switchMode(opts.mode)
+
+  // ---- mannequin size ----
+  const bodySec = section('Mannequin', true)
+  bodySec.body.append(
+    slider({ label: 'Height', min: 0.85, max: 1.15, step: 0.01, format: (v) => `${Math.round(v * 175)} cm`, get: () => opts.bodySize.height, set: (v) => { opts.bodySize.height = v; opts.onBodySize(opts.bodySize) } }).row,
+    slider({ label: 'Build', min: 0.8, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.build, set: (v) => { opts.bodySize.build = v; opts.onBodySize(opts.bodySize) } }).row
+  )
+  panel.append(bodySec.root)
 
   // ---- fabric gallery ----
   const fabricSec = section('Fabric')

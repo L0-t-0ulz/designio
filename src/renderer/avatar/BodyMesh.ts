@@ -5,11 +5,11 @@ import type { Capsule } from './colliders'
 // Field cube: local [-1,1] mapped by position + uniform scale S, centred on the
 // body. Metaballs are placed along the skeleton bones so they blend into one
 // smooth, connected body (instead of disconnected capsules).
-const RES = 48
+const RES = 56 // smoother body; cube also sized to fit taller mannequins
 const ISO = 80
 const SUBTRACT = 12
-const CENTER = new THREE.Vector3(0, 0.88, 0)
-const S = 1.0
+const CENTER = new THREE.Vector3(0, 0.95, 0)
+const S = 1.2
 // Per-ball strength for a target world radius R (iso radius ≈ sqrt(strength/ISO)).
 // Balls overlap along a bone, so we scale down to keep limbs close to R.
 const STRENGTH_MUL = 0.4

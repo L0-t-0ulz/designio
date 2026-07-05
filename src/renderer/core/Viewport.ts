@@ -5,6 +5,15 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+
+/** Subtle vignette for a cinematic frame. */
+const VignetteShader = {
+  uniforms: { tDiffuse: { value: null }, darkness: { value: 0.65 }, offset: { value: 1.05 } },
+  vertexShader: /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+  fragmentShader: /* glsl */ `uniform sampler2D tDiffuse; uniform float darkness; uniform float offset; varying vec2 vUv;
+    void main(){ vec4 tex = texture2D(tDiffuse, vUv); vec2 uv = (vUv - 0.5) * offset; float v = clamp(1.0 - dot(uv, uv) * darkness, 0.0, 1.0); gl_FragColor = vec4(tex.rgb * v, tex.a); }`
+}
 
 /**
  * Owns the scene graph, camera, renderer, orbit controls and a post-processing
@@ -45,6 +54,7 @@ export class Viewport {
     // Barely-there: only strong speculars (silk/satin sheen) get a soft glow.
     this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.14, 0.5, 1.9)
     this.composer.addPass(this.bloom)
+    this.composer.addPass(new ShaderPass(VignetteShader))
     this.composer.addPass(new OutputPass())
     this.composer.addPass(new SMAAPass())
 
