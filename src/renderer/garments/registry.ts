@@ -24,7 +24,7 @@ export const GARMENTS: GarmentDefinition[] = [
       { kind: 'sleeves' }
     ],
     supports: { neckline: true, sleeve: true, length: true, ease: true, flare: true },
-    defaults: { length: 0.6, ease: 0.03, flare: 0.05, neckline: 'scoop', sleeve: 'short' }
+    defaults: { length: 0.6, ease: 0.015, flare: 0.05, neckline: 'scoop', sleeve: 'short' }
   },
   {
     id: 'skirt',
@@ -41,7 +41,7 @@ export const GARMENTS: GarmentDefinition[] = [
       }
     ],
     supports: { length: true, ease: true, flare: true },
-    defaults: { length: 0.6, ease: 0.03, flare: 0.05 }
+    defaults: { length: 0.6, ease: 0.015, flare: 0.05 }
   },
   {
     id: 'top',
@@ -61,7 +61,7 @@ export const GARMENTS: GarmentDefinition[] = [
       { kind: 'sleeves' }
     ],
     supports: { neckline: true, sleeve: true, length: true, ease: true, flare: true },
-    defaults: { length: 0.6, ease: 0.03, flare: 0.05, neckline: 'scoop', sleeve: 'short' }
+    defaults: { length: 0.6, ease: 0.015, flare: 0.05, neckline: 'scoop', sleeve: 'short' }
   },
   {
     id: 'pants',
@@ -69,7 +69,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'bottom',
     pieces: [{ kind: 'legTubes' }],
     supports: { length: true, ease: true, flare: true },
-    defaults: { length: 0.6, ease: 0.03, flare: 0.05 }
+    defaults: { length: 0.6, ease: 0.015, flare: 0.05 }
   }
 ]
 
