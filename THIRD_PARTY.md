@@ -15,6 +15,7 @@ DesignIO ships license-clean assets only. The default mannequin is **procedural*
 |---------|---------|---------|
 | `three` | 3D engine | MIT |
 | `three-mesh-bvh` | Mesh BVH for cloth↔body collision | MIT |
+| `split.js` | Resizable panel splitters (studio shell) | MIT |
 | `@fontsource-variable/inter` | Inter variable font | OFL-1.1 |
 | `lucide` | SVG icons | ISC |
 | `motion` | UI animation | MIT |
