@@ -1,21 +1,25 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 
 /**
- * Owns the Three.js scene graph, camera, WebGL renderer and orbit controls,
- * and keeps them sized to the container element.
+ * Owns the scene graph, camera, renderer, orbit controls and a post-processing
+ * composer (subtle bloom + SMAA) for a premium look. Kept sized to the container.
  */
 export class Viewport {
   readonly scene = new THREE.Scene()
   readonly camera: THREE.PerspectiveCamera
   readonly renderer: THREE.WebGLRenderer
   readonly controls: OrbitControls
+  private readonly composer: EffectComposer
+  private readonly bloom: UnrealBloomPass
 
   constructor(private readonly container: HTMLElement) {
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      powerPreference: 'high-performance'
-    })
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -34,6 +38,16 @@ export class Viewport {
     this.controls.target.set(0, 1.0, 0)
     this.controls.update()
 
+    // Post-processing. OutputPass reads tone mapping + exposure from the renderer
+    // and applies them (plus sRGB) at the end, so the exposure control still works.
+    this.composer = new EffectComposer(this.renderer)
+    this.composer.addPass(new RenderPass(this.scene, this.camera))
+    // Barely-there: only strong speculars (silk/satin sheen) get a soft glow.
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.14, 0.5, 1.9)
+    this.composer.addPass(this.bloom)
+    this.composer.addPass(new OutputPass())
+    this.composer.addPass(new SMAAPass())
+
     window.addEventListener('resize', this.onResize)
     this.onResize()
   }
@@ -44,10 +58,12 @@ export class Viewport {
     this.camera.aspect = w / h
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(w, h)
+    this.composer.setSize(w, h)
+    this.bloom.setSize(w, h)
   }
 
   render(): void {
     this.controls.update()
-    this.renderer.render(this.scene, this.camera)
+    this.composer.render()
   }
 }

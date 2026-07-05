@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { Reflector } from 'three/examples/jsm/objects/Reflector.js'
 
 /** Vertical gradient backdrop (a soft studio cyclorama), as a texture. */
 function gradientBackground(top: string, bottom: string): THREE.Texture {
@@ -18,9 +19,9 @@ function gradientBackground(top: string, bottom: string): THREE.Texture {
 }
 
 /**
- * A neutral, evenly-lit studio (the look garment software uses): image-based
- * environment for soft reflections, a gradient cyclorama backdrop, a soft
- * shadow-casting key light, fill + rim, and a subtle floor with contact shadow.
+ * A clean, bright product studio (the premium 3D-mockup look): image-based
+ * lighting, a soft gradient cyclorama, a subtle cool/warm rim rig, and a gently
+ * **reflective floor** with a shadow-catcher on top so contact shadows read.
  */
 export function setupEnvironment(
   scene: THREE.Scene,
@@ -30,13 +31,13 @@ export function setupEnvironment(
   const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
   scene.environment = envTexture
 
-  const background = gradientBackground('#aab0be', '#4a4e58')
+  const background = gradientBackground('#dee1e8', '#a9aeba')
   scene.background = background
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x54586a, 0.8)
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.75)
   scene.add(hemi)
 
-  const key = new THREE.DirectionalLight(0xfff6ec, 2.6)
+  const key = new THREE.DirectionalLight(0xfff6ec, 2.0)
   key.position.set(3.2, 6.0, 4.2)
   key.castShadow = true
   key.shadow.mapSize.set(2048, 2048)
@@ -49,30 +50,39 @@ export function setupEnvironment(
   key.shadow.camera.bottom = -extent
   key.shadow.bias = -0.0004
   key.shadow.normalBias = 0.02
-  key.shadow.radius = 5 // softer penumbra
+  key.shadow.radius = 5
   scene.add(key)
 
-  const fill = new THREE.DirectionalLight(0xdfe6ff, 0.7)
-  fill.position.set(-4, 2.5, 2)
-  scene.add(fill)
+  const coolRim = new THREE.DirectionalLight(0x9cc0ff, 0.6)
+  coolRim.position.set(-4, 3, -4)
+  scene.add(coolRim)
+  const warmRim = new THREE.DirectionalLight(0xffc79a, 0.35)
+  warmRim.position.set(4.5, 1.6, -2)
+  scene.add(warmRim)
 
-  const rim = new THREE.DirectionalLight(0xffffff, 0.9)
-  rim.position.set(-2, 3.5, -5)
-  scene.add(rim)
+  // Gently reflective floor + a transparent shadow-catcher above it.
+  const floor = new Reflector(new THREE.CircleGeometry(14, 96), {
+    textureWidth: 1024,
+    textureHeight: 1024,
+    color: 0x8f95a3,
+    clipBias: 0.003
+  })
+  floor.rotation.x = -Math.PI / 2
+  scene.add(floor)
 
-  // Soft neutral floor that mainly reads as a contact shadow.
-  const ground = new THREE.Mesh(
-    new THREE.CircleGeometry(10, 96),
-    new THREE.MeshStandardMaterial({ color: 0x6c7180, roughness: 0.9, metalness: 0 })
+  const shadowCatcher = new THREE.Mesh(
+    new THREE.CircleGeometry(14, 96),
+    new THREE.ShadowMaterial({ opacity: 0.28 })
   )
-  ground.rotation.x = -Math.PI / 2
-  ground.receiveShadow = true
-  scene.add(ground)
+  shadowCatcher.rotation.x = -Math.PI / 2
+  shadowCatcher.position.y = 0.001
+  shadowCatcher.receiveShadow = true
+  scene.add(shadowCatcher)
 
-  const grid = new THREE.GridHelper(20, 40, 0x8890a0, 0x60646f)
+  const grid = new THREE.GridHelper(24, 48, 0x8890a2, 0x9aa0ac)
   const gridMat = grid.material as THREE.Material
   gridMat.transparent = true
-  gridMat.opacity = 0.25
+  gridMat.opacity = 0.12
   grid.position.y = 0.002
   scene.add(grid)
 
