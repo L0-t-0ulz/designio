@@ -70,13 +70,19 @@ export class GarmentController {
 
   setGravity(y: number): void {
     this.gravityY = y
-    for (const p of this.pieces) p.solver.gravity.set(0, -y, 0)
+    for (const p of this.pieces) {
+      p.solver.gravity.set(0, -y, 0)
+      p.solver.wake()
+    }
   }
 
   setWind(x: number, z: number): void {
     this.windX = x
     this.windZ = z
-    for (const p of this.pieces) p.solver.wind.set(x, 0, z)
+    for (const p of this.pieces) {
+      p.solver.wind.set(x, 0, z)
+      p.solver.wake()
+    }
   }
 
   step(dt: number): void {

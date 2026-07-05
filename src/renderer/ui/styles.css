@@ -280,6 +280,33 @@ canvas {
   cursor: pointer;
 }
 
+/* ---- printed-graphic (PNG) uploader ---- */
+.dio-graphic {
+  margin: 6px 0 2px;
+}
+.dio-graphic .dio-actions {
+  margin: 4px 0 8px;
+}
+.dio-text {
+  grid-column: 1 / -1;
+  width: 100%;
+  box-sizing: border-box;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 8px;
+  border: 1px solid var(--dio-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--dio-text);
+  font-size: 12.5px;
+  outline: none;
+}
+.dio-text:focus {
+  border-color: var(--dio-accent, #7c74ff);
+}
+.dio-text::placeholder {
+  color: var(--dio-muted);
+}
+
 /* ---- property-editor context tabs (Garment / Avatar) ---- */
 .dio-ctx-tabs {
   display: flex;

@@ -78,12 +78,14 @@ export class PatternController {
   setGravity(y: number): void {
     this.gravityY = y
     this.world?.gravity.set(0, -y, 0)
+    this.world?.wake()
   }
 
   setWind(x: number, z: number): void {
     this.windX = x
     this.windZ = z
     this.world?.wind.set(x, 0, z)
+    this.world?.wake()
   }
 
   clear(): void {

@@ -6,7 +6,7 @@ import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
-import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
+import { button, colorField, el, section, slider, textField, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
 
 export interface GarmentState {
@@ -20,6 +20,16 @@ export interface GarmentState {
 
 export type DesignMode = 'templates' | 'pattern'
 export type ExportFormat = 'glb' | 'obj' | 'svg' | 'dxf' | 'techpack' | 'json'
+
+/** Live control over the garment's printed graphic (PNG) + text, from the studio. */
+export interface GraphicControls {
+  imageName: () => string | null
+  scale: () => number
+  text: () => string
+  setImage: (img: HTMLImageElement | null, name: string | null) => void
+  setScale: (v: number) => void
+  setText: (t: string) => void
+}
 
 export interface PanelOptions {
   loop: Loop
@@ -46,6 +56,8 @@ export interface PanelOptions {
   onSetAnimMode: (m: AnimationMode) => void
   onAnimSpeed: (v: number) => void
   onColor: (hex: number) => void
+  /** Add / adjust a printed graphic (PNG) + text on the garment (optional). */
+  graphic?: GraphicControls
   bodySize: BodyParams
   onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
@@ -226,6 +238,37 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // ---- appearance ----
+  // A PNG graphic + printed text applied to the garment, adjustable live.
+  function graphicControls(g: GraphicControls): HTMLElement {
+    const wrap = el('div', 'dio-graphic')
+    const fileInput = el('input') as HTMLInputElement
+    fileInput.type = 'file'
+    fileInput.accept = 'image/png,image/jpeg,image/webp,image/*'
+    fileInput.style.display = 'none'
+    const row = el('div', 'dio-actions')
+    const render = (): void => {
+      row.replaceChildren()
+      const name = g.imageName()
+      row.append(button(name ? `🖼 ${name}` : '＋ Add graphic (PNG)', () => fileInput.click()))
+      if (name) row.append(button('Remove', () => { g.setImage(null, null); render() }))
+    }
+    const loadImage = (file: File): void => {
+      if (!file.type.startsWith('image/') || file.size > 8_000_000) return
+      const img = new Image()
+      img.onload = () => { g.setImage(img, file.name.slice(0, 18)); render() }
+      img.src = URL.createObjectURL(file)
+    }
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files?.[0]
+      if (f) loadImage(f)
+    })
+    render()
+    wrap.append(row, fileInput)
+    wrap.append(track(textField({ label: 'Print text', placeholder: 'e.g. LOGO', maxLength: 24, get: () => g.text(), set: (v) => g.setText(v) })))
+    wrap.append(track(slider({ label: 'Graphic size', min: 0.15, max: 0.8, step: 0.01, get: () => g.scale(), set: (v) => g.setScale(v) })))
+    return wrap
+  }
+
   const look = section('Appearance')
   look.body.append(
     track(colorField({ label: 'Colour', get: () => current.color, set: (v) => opts.onColor(v) })),
@@ -236,6 +279,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheen streak', min: 0, max: 1, step: 0.01, get: () => current.anisotropy, set: (v) => { current.anisotropy = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
+  if (opts.graphic) look.body.append(graphicControls(opts.graphic))
   // ---- fabric physics ----
   const cloth = section('Fabric physics', true)
   cloth.body.append(

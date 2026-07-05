@@ -99,6 +99,31 @@ export function colorField(o: ColorOpts): Refreshable {
   return { row, refresh: sync }
 }
 
+export interface TextOpts {
+  label: string
+  get: () => string
+  set: (v: string) => void
+  placeholder?: string
+  maxLength?: number
+}
+
+/** A labelled single-line text input. */
+export function textField(o: TextOpts): Refreshable {
+  const row = el('div', 'dio-row')
+  const label = el('label', undefined, o.label)
+  const input = el('input', 'dio-text')
+  input.type = 'text'
+  if (o.placeholder) input.placeholder = o.placeholder
+  if (o.maxLength) input.maxLength = o.maxLength
+  const sync = (): void => {
+    input.value = o.get()
+  }
+  input.addEventListener('input', () => o.set(input.value))
+  row.append(label, input)
+  sync()
+  return { row, refresh: sync }
+}
+
 export function button(label: string, onClick: () => void, primary = false): HTMLButtonElement {
   const b = el('button', 'dio-btn' + (primary ? ' primary' : ''), label)
   b.addEventListener('click', onClick)

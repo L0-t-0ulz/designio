@@ -80,9 +80,12 @@ The construction panel is **schema-driven**: each garment shows only the control
 | ![A strapless satin gown draped on the mannequin](docs/catalog-gown.png) | ![A denim jumpsuit — torso plus two legs](docs/catalog-jumpsuit.png) |
 
 ### Two slim model mannequins — and full body shaping
-Design on a clean, matte **studio mannequin** with a smooth featureless (store-mannequin) head. Pick a
+Design on a clean, matte **studio mannequin** sculpted like a real dress form — **defined shoulders,
+bust/chest, nipped waist, hips, tapered limbs with knees, and shaped head / hands / feet**. Pick a
 **female** or **male** figure — both slim and elongated like runway models — then **shape the body**:
-height, overall build, and independent **bust / waist / hips** to create real body shapes.
+height, overall build, and independent **bust / waist / hips** to create real body shapes. Prefer a
+**photoreal avatar**? Drop a CC0 human `mannequin.glb` into `src/renderer/assets/` and flip *Imported
+body (GLB)* — the capsule skeleton stays the cloth collider, so garments still drape correctly.
 
 | Female model | Male model |
 | --- | --- |
@@ -113,16 +116,27 @@ micro-surface:
 
 ![Macro close-up of satin — procedural weave normal map + sheen + anisotropic highlights](docs/closeup.png)
 
-### Pattern (sew) mode — the CLO3D loop
-Adjust flat **FRONT / BACK panels** (bust, length) and **Sew & simulate** — the panels stitch at the side
-seams and wrap the body into a 3D garment.
+### Real per-garment 2D pattern — the CLO3D loop, both ways
+Flip the central viewport to **2D Pattern** and you get the **actual flat pattern of the garment you
+designed** — the front/back bodice unwrapped with its **real neckline curve, armhole and side seams**,
+A-line skirt/dress panels, tapered trouser legs, and a shaped sleeve, each with **seam allowance, grainline
+and notches**. It's derived from the exact 3D construction, so 2D and 3D always agree. Export it as **SVG /
+DXF** for a cutter. (Or work the other way in **Pattern (sew)** mode: adjust FRONT/BACK panels and *Sew &
+simulate* to wrap them onto the body.)
 
 ![Pattern mode — two panels sewn around the torso](docs/pattern.png)
 
+### Add your own graphic + text, right in the studio
+Beyond the start page, the studio's **Appearance** panel lets you **import a PNG** (or JP/WebP) and add
+**printed text** onto the garment live — with an adjustable graphic size — so you can iterate on prints
+while the cloth simulates.
+
 ### Animate it (4D) + export to get it made
-Animate the mannequin — **idle / walk / turntable** — and watch the garment move with the body (a swinging
-skirt, a flowing dress). Tune **gravity / wind / exposure**. Then **export**: **3D** (glTF / OBJ), **2D
-pattern** (SVG / DXF for a cutter), and a **measurement tech-pack** (printable HTML + JSON).
+At default settings the garment **hangs perfectly still** (the solver sleeps when there's no wind and the
+body isn't moving — no drift or jitter). Animate the mannequin — **idle / walk / turntable** — and watch
+the garment move with the body (a swinging skirt, a flowing dress); tune **gravity / wind / exposure**.
+Then **export**: **3D** (glTF / OBJ), **2D pattern** (SVG / DXF for a cutter), and a **measurement
+tech-pack** (printable HTML + JSON).
 
 ---
 

@@ -96,3 +96,41 @@ describe('XPBDSolver drape (integration)', () => {
     expect(minY).toBeLessThan(spawn.y - 0.1)
   })
 })
+
+describe('XPBDSolver rest / sleep', () => {
+  const drape = (): { solver: XPBDSolver; positions: Float32Array } => {
+    const nx = 14
+    const ny = 14
+    const spacing = 0.04
+    const center = new THREE.Vector3(0, 1.0, 0)
+    const sphere: Capsule = { a: center.clone(), b: center.clone(), radius: 0.25 }
+    const positions = new Float32Array(nx * ny * 3)
+    const spawn = new THREE.Vector3(-((nx - 1) * spacing) / 2, 1.45, -((ny - 1) * spacing) / 2)
+    fillFlatGrid(positions, nx, ny, spacing, spawn)
+    const solver = new XPBDSolver(nx, ny, positions, FABRICS.cotton)
+    solver.colliders = [sphere]
+    return { solver, positions }
+  }
+
+  it('settles to a dead stop with no wind (garment stays still at default)', () => {
+    const { solver, positions } = drape()
+    for (let i = 0; i < 800; i++) solver.step(1 / 60) // fall, drape, then sleep
+    const snap = positions.slice()
+    for (let i = 0; i < 30; i++) solver.step(1 / 60)
+    let maxDelta = 0
+    for (let k = 0; k < positions.length; k++) maxDelta = Math.max(maxDelta, Math.abs(positions[k] - snap[k]))
+    expect(maxDelta).toBe(0) // asleep → not a single particle drifts
+  })
+
+  it('wakes back up when the wind picks up', () => {
+    const { solver, positions } = drape()
+    for (let i = 0; i < 800; i++) solver.step(1 / 60)
+    const snap = positions.slice()
+    solver.wind.set(8, 0, 0)
+    solver.wake()
+    for (let i = 0; i < 10; i++) solver.step(1 / 60)
+    let moved = 0
+    for (let k = 0; k < positions.length; k++) moved = Math.max(moved, Math.abs(positions[k] - snap[k]))
+    expect(moved).toBeGreaterThan(1e-4)
+  })
+})

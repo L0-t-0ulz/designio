@@ -59,6 +59,13 @@ export class XPBDSolver {
   private readonly windScale: number
   private time = 0
 
+  // ---- rest / sleep: with no wind and a still body, settle to a dead stop ----
+  private restFrames = 0
+  private asleep = false
+  private colliderSig = 0
+  private static readonly SLEEP_VEL = 0.02 // m/s — below this the cloth is "at rest"
+  private static readonly SLEEP_FRAMES = 24 // consecutive still frames before it sleeps
+
   // scratch vectors (no per-particle allocation)
   private readonly _p = new THREE.Vector3()
   private readonly _c = new THREE.Vector3()
@@ -107,6 +114,7 @@ export class XPBDSolver {
     for (const con of this.constraints) {
       con.compliance = con.bend ? params.bendCompliance : params.stretchCompliance
     }
+    this.wake()
   }
 
   /** Copy positions -> prev and clear velocities (call after respawning). */
@@ -114,6 +122,48 @@ export class XPBDSolver {
     this.vel.fill(0)
     this.time = 0
     this.syncPrev()
+    this.wake()
+  }
+
+  /** Re-activate the solver after any change (wind, gravity, fabric, respawn, body move). */
+  wake(): void {
+    this.asleep = false
+    this.restFrames = 0
+  }
+
+  /** Cheap fingerprint of the collider poses — changes when the body moves/resizes. */
+  private colliderSignature(): number {
+    let s = 0
+    for (const c of this.colliders) s += c.a.x + c.a.y + c.a.z + c.b.x + c.b.y + c.b.z + c.radius
+    return s
+  }
+
+  /**
+   * After a step, sleep the cloth once it has been still (and windless) long
+   * enough — so at default settings the garment hangs perfectly still instead of
+   * drifting/jittering forever. Any wind, body motion, or edit wakes it again.
+   */
+  private updateRest(): void {
+    if (this.wind.lengthSq() > 1e-6) {
+      this.restFrames = 0
+      return
+    }
+    const { vel, invMass: im, count } = this
+    let maxSq = 0
+    for (let k = 0; k < count; k++) {
+      if (im[k] === 0) continue
+      const i = k * 3
+      const s = vel[i] * vel[i] + vel[i + 1] * vel[i + 1] + vel[i + 2] * vel[i + 2]
+      if (s > maxSq) maxSq = s
+    }
+    if (maxSq < XPBDSolver.SLEEP_VEL * XPBDSolver.SLEEP_VEL) {
+      if (++this.restFrames >= XPBDSolver.SLEEP_FRAMES) {
+        this.vel.fill(0) // dead stop — no residual drift
+        this.asleep = true
+      }
+    } else {
+      this.restFrames = 0
+    }
   }
 
   private syncPrev(): void {
@@ -167,9 +217,18 @@ export class XPBDSolver {
 
   /** Advance the simulation by `dt` seconds using `substeps` internal steps. */
   step(dt: number): void {
+    // Wake if the body moved (animation / resize) — the garment must follow it.
+    const sig = this.colliderSignature()
+    if (sig !== this.colliderSig) {
+      this.colliderSig = sig
+      this.wake()
+    }
+    if (this.asleep) return // resting: hold the settled drape, spend no cycles
+
     const sub = dt / this.substeps
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
     if (this.bodyCollider?.ready) this.solveBody()
+    this.updateRest()
   }
 
   /**

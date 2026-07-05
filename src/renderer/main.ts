@@ -22,6 +22,7 @@ import { createFabricMaterial, applyFabric } from './cloth/FabricMaterial'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ } from './export/exporters3d'
 import { patternToSVG, patternToDXF } from './export/patternExport'
+import { garmentPatternSVG, garmentPatternDXF } from './export/garmentPattern'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { saveFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat } from './ui/panel'
@@ -136,6 +137,23 @@ function initStudio(config: DesignConfig): void {
     }
   }
 
+  // ---- printed graphic (PNG) + text, addable/adjustable live in the studio ----
+  let graphicName: string | null = config.image ? 'graphic' : null
+  function refreshDesign(): void {
+    if (hasArt(config)) {
+      if (!design) design = buildDesignArt(config)
+      material.map = design.texture
+      material.color.set(0xffffff) // the design canvas owns the base colour
+      design.redraw()
+      material.needsUpdate = true
+    } else if (design) {
+      material.map = null // no art left → back to the plain fabric look
+      design = null
+      material.needsUpdate = true
+      applyFabricVisual()
+    }
+  }
+
   // ---- loop ----
   let simTime = 0
   let statusHandles: StatusHandles | null = null
@@ -169,9 +187,12 @@ function initStudio(config: DesignConfig): void {
   // ---- professional studio shell (menu bar · viewport · dock · status bar) ----
   const shell = createStudioShell(() => viewport.resize())
   viewport.mount(shell.center)
-  const centerTabs = buildCenterTabs(shell.center, () =>
-    patternToSVG({ bust: patternParams.bust, length: patternParams.length })
-  )
+  // Templates → the real per-garment flat pattern; Pattern mode → the sewn top.
+  const patternSVG = (): string =>
+    mode === 'templates'
+      ? garmentPatternSVG(getGarment(garment.type), garment, mannequin.measurements, mannequin.colliders)
+      : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
+  const centerTabs = buildCenterTabs(shell.center, patternSVG)
 
   // ---- deep-links (snapshots) ----
   const params = new URLSearchParams(location.search)
@@ -200,7 +221,10 @@ function initStudio(config: DesignConfig): void {
     }
   }
   if (bodyChanged) setBody(bodySize)
-  if (params.get('body') === 'mesh') mannequin.setBodyMode(false)
+  if (params.get('view') === 'pattern') centerTabs.show('pattern')
+  const bodyRender = params.get('body')
+  if (bodyRender === 'mesh') mannequin.setBodyMode(false)
+  else if (bodyRender === 'glb') mannequin.setBodyMode(true)
 
   // ---- export ----
   function techData(): TechpackData {
@@ -230,12 +254,22 @@ function initStudio(config: DesignConfig): void {
       case 'obj':
         await saveFile('garment.obj', exportOBJ(meshes), [{ name: 'Wavefront OBJ', extensions: ['obj'] }])
         break
-      case 'svg':
-        await saveFile('pattern.svg', patternToSVG(dims), [{ name: 'SVG', extensions: ['svg'] }])
+      case 'svg': {
+        const svg =
+          mode === 'templates'
+            ? garmentPatternSVG(getGarment(garment.type), garment, mannequin.measurements, mannequin.colliders)
+            : patternToSVG(dims)
+        await saveFile('pattern.svg', svg, [{ name: 'SVG', extensions: ['svg'] }])
         break
-      case 'dxf':
-        await saveFile('pattern.dxf', patternToDXF(dims), [{ name: 'DXF', extensions: ['dxf'] }])
+      }
+      case 'dxf': {
+        const dxf =
+          mode === 'templates'
+            ? garmentPatternDXF(getGarment(garment.type), garment, mannequin.measurements, mannequin.colliders)
+            : patternToDXF(dims)
+        await saveFile('pattern.dxf', dxf, [{ name: 'DXF', extensions: ['dxf'] }])
         break
+      }
       case 'techpack':
         await saveFile('techpack.html', techpackHTML(techData()), [{ name: 'HTML', extensions: ['html'] }])
         break
@@ -305,7 +339,10 @@ function initStudio(config: DesignConfig): void {
     garment,
     patternParams,
     mode,
-    onSetMode: setMode,
+    onSetMode: (m) => {
+      setMode(m)
+      centerTabs.refresh()
+    },
     onSelectFabric: (id) => {
       const base = current.color
       Object.assign(current, getFabric(id))
@@ -318,6 +355,7 @@ function initStudio(config: DesignConfig): void {
     onPhysicsEdit: applyFabricPhysics,
     onGarmentEdit: () => {
       garmentCtl.build(garment.type, garment)
+      centerTabs.refresh()
       syncBrowsers()
     },
     onPatternEdit: () => {
@@ -345,9 +383,28 @@ function initStudio(config: DesignConfig): void {
       setColor(h)
       syncBrowsers()
     },
+    graphic: {
+      imageName: () => graphicName,
+      scale: () => config.imageScale,
+      text: () => config.text,
+      setImage: (img, name) => {
+        config.image = img
+        graphicName = name
+        refreshDesign()
+      },
+      setScale: (v) => {
+        config.imageScale = v
+        design?.redraw()
+      },
+      setText: (t) => {
+        config.text = t
+        refreshDesign()
+      }
+    },
     bodySize,
     onBodySize: (b) => {
       setBody(b)
+      centerTabs.refresh()
       syncBrowsers()
     },
     onBodyMode: (realistic) => {
@@ -387,6 +444,7 @@ function initStudio(config: DesignConfig): void {
     garmentCtl.build(garment.type, garment)
     if (c.fabricId) api.selectFabric(c.fabricId)
     if (c.color != null) setColor(c.color)
+    centerTabs.refresh()
     syncBrowsers()
   }
   const library = buildLibrary(shell.left, {
