@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 
+export type NecklineStyle = 'strapless' | 'scoop' | 'crew' | 'v'
+
 export interface TubeSpec {
   /** Number of rings top→bottom (=> ny). */
   rings: number
@@ -11,6 +13,36 @@ export interface TubeSpec {
   radiusBottom: number
   centerX?: number
   centerZ?: number
+  /** Neckline: shapes the top edge (straps at the shoulders, a dip for the neck). */
+  neckline?: NecklineStyle
+  /** Shoulder height — the straps rise to here for non-strapless necklines. */
+  shoulderY?: number
+  /** Optional cinched-waist radius (bust → waist → hip hourglass). */
+  radiusWaist?: number
+  /** Fraction of the height where the waist sits (0 top … 1 hem). */
+  waistT?: number
+}
+
+/** Per-angle top-edge height: straps at the sides (shoulders), a dip for the neck. */
+function topEdge(spec: TubeSpec, angle: number): number {
+  const style = spec.neckline ?? 'strapless'
+  if (style === 'strapless') return spec.topY
+  const shoulderY = spec.shoulderY ?? spec.topY
+  const side = Math.abs(Math.cos(angle)) // 1 at the sides (shoulders), 0 front/back
+  const front = Math.max(0, Math.sin(angle)) // 1 at centre-front
+  let dip: number
+  if (style === 'crew') dip = 0.055 * (1 - side ** 0.55)
+  else if (style === 'scoop') dip = 0.13 * (1 - side)
+  else dip = 0.09 * (1 - side) + 0.12 * front * (1 - side) // v: deeper at the front
+  return shoulderY - dip
+}
+
+/** Radius along the height, with an optional cinched waist. */
+function radiusAt(spec: TubeSpec, t: number): number {
+  if (spec.radiusWaist == null) return spec.radiusTop + (spec.radiusBottom - spec.radiusTop) * t
+  const wt = spec.waistT ?? 0.45
+  if (t <= wt) return spec.radiusTop + (spec.radiusWaist - spec.radiusTop) * (t / wt)
+  return spec.radiusWaist + (spec.radiusBottom - spec.radiusWaist) * ((t - wt) / (1 - wt))
 }
 
 export interface TubeBuild {
@@ -29,15 +61,16 @@ export interface TubeBuild {
  * (a slight A-line). Shared by the initial build and by respawn.
  */
 export function fillTube(positions: Float32Array, spec: TubeSpec): void {
-  const { rings, radial, topY, bottomY, radiusTop, radiusBottom } = spec
+  const { rings, radial, bottomY } = spec
   const cx = spec.centerX ?? 0
   const cz = spec.centerZ ?? 0
   for (let iy = 0; iy < rings; iy++) {
     const t = rings > 1 ? iy / (rings - 1) : 0
-    const y = topY + (bottomY - topY) * t
-    const r = radiusTop + (radiusBottom - radiusTop) * t
+    const r = radiusAt(spec, t)
     for (let ix = 0; ix < radial; ix++) {
       const a = (ix / radial) * Math.PI * 2
+      const top = topEdge(spec, a) // per-column top so the neckline is shaped
+      const y = top + (bottomY - top) * t
       const k = (iy * radial + ix) * 3
       positions[k] = cx + Math.cos(a) * r
       positions[k + 1] = y

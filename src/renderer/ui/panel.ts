@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
 import type { GarmentType } from '../garment/templates'
+import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
@@ -12,6 +13,7 @@ export interface GarmentState {
   length: number
   ease: number
   flare: number
+  neckline: NecklineStyle
 }
 
 export type DesignMode = 'templates' | 'pattern'
@@ -102,8 +104,30 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
     seg.append(b)
   }
   seg.style.flexWrap = 'wrap'
+
+  // neckline picker (applies to tops/dresses)
+  const neckRow = el('div', 'dio-actions')
+  neckRow.style.flexWrap = 'wrap'
+  const necks: [string, NecklineStyle][] = [
+    ['Scoop', 'scoop'],
+    ['Crew', 'crew'],
+    ['V', 'v'],
+    ['None', 'strapless']
+  ]
+  const neckBtns = new Map<NecklineStyle, HTMLButtonElement>()
+  for (const [name, n] of necks) {
+    const b = button(name, () => {
+      garment.neckline = n
+      for (const [nn, node] of neckBtns) node.classList.toggle('primary', nn === n)
+      opts.onGarmentEdit()
+    }, garment.neckline === n)
+    neckBtns.set(n, b)
+    neckRow.append(b)
+  }
+
   garmentSec.body.append(
     seg,
+    neckRow,
     slider({ label: 'Length', min: 0, max: 1, step: 0.01, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } }).row,
     slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } }).row,
     slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } }).row
