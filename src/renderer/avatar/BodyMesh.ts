@@ -1,24 +1,30 @@
 import * as THREE from 'three'
 import { MarchingCubes } from 'three/examples/jsm/objects/MarchingCubes.js'
-import type { Capsule } from './colliders'
 
 // Field cube: local [-1,1] mapped by position + uniform scale S, centred on the
-// body. Metaballs are placed along the skeleton bones so they blend into one
-// smooth, connected body (instead of disconnected capsules).
-const RES = 56 // smoother body; cube also sized to fit taller mannequins
+// body. Metaballs are placed along shaped anatomy segments so they blend into one
+// smooth, connected mannequin.
+const RES = 60
 const ISO = 80
 const SUBTRACT = 12
 const CENTER = new THREE.Vector3(0, 0.95, 0)
 const S = 1.2
-// Per-ball strength for a target world radius R (iso radius ≈ sqrt(strength/ISO)).
-// Balls overlap along a bone, so we scale down to keep limbs close to R.
 const STRENGTH_MUL = 0.4
-const VISUAL_R = 1.1 // visual body a touch fuller than the collider radius
+const VISUAL_R = 1.08
+
+/** A shaped body segment: a→b with tapering radius, plus an optional end cap. */
+export interface BodyPart {
+  a: THREE.Vector3
+  b: THREE.Vector3
+  radiusA: number
+  radiusB: number
+  cap?: 'hand' | 'foot' | 'head'
+}
 
 /**
- * A smooth, connected human body built from metaballs (marching cubes) placed
- * along the mannequin skeleton. Rebuilt from the (posed) colliders so it moves
- * with the animation.
+ * A smooth, connected matte mannequin built from metaballs along shaped anatomy
+ * segments (tapered torso/limbs, hands, feet, a shaped head). Rebuilt from the
+ * (posed, sized) parts so it moves with the animation and resize.
  */
 export class BodyMesh {
   readonly object: MarchingCubes
@@ -26,7 +32,7 @@ export class BodyMesh {
   private readonly p = new THREE.Vector3()
 
   constructor(material: THREE.Material) {
-    this.object = new MarchingCubes(RES, material, true, false, 250000)
+    this.object = new MarchingCubes(RES, material, true, false, 320000)
     this.object.isolation = ISO
     this.object.position.copy(CENTER)
     this.object.scale.setScalar(S)
@@ -43,21 +49,40 @@ export class BodyMesh {
     )
   }
 
-  /** Rebuild the metaball field from the current (posed) body capsules. */
-  rebuild(bones: Capsule[]): void {
-    const mc = this.object
-    mc.reset()
-    for (const bone of bones) {
-      const len = bone.a.distanceTo(bone.b)
-      const R = bone.radius * VISUAL_R
-      const strength = ISO * (R / (2 * S)) ** 2 * STRENGTH_MUL
-      const steps = Math.max(1, Math.ceil(len / (bone.radius * 0.6)))
+  private ball(world: THREE.Vector3, radius: number): void {
+    this.toField(world, this.f)
+    const strength = ISO * ((radius * VISUAL_R) / (2 * S)) ** 2 * STRENGTH_MUL
+    this.object.addBall(this.f.x, this.f.y, this.f.z, strength, SUBTRACT)
+  }
+
+  /** Rebuild the metaball field from the current shaped body parts. */
+  rebuild(parts: BodyPart[]): void {
+    this.object.reset()
+    for (const part of parts) {
+      const len = part.a.distanceTo(part.b)
+      const rMin = Math.max(0.01, Math.min(part.radiusA, part.radiusB))
+      const steps = Math.max(1, Math.ceil(len / (rMin * 0.5)))
       for (let i = 0; i <= steps; i++) {
-        this.p.copy(bone.a).lerp(bone.b, steps === 0 ? 0 : i / steps)
-        this.toField(this.p, this.f)
-        mc.addBall(this.f.x, this.f.y, this.f.z, strength, SUBTRACT)
+        const t = steps === 0 ? 0 : i / steps
+        this.p.copy(part.a).lerp(part.b, t)
+        this.ball(this.p, part.radiusA + (part.radiusB - part.radiusA) * t)
+      }
+      if (part.cap === 'hand') {
+        this.p.copy(part.b)
+        this.ball(this.p, part.radiusB * 1.4) // rounded hand
+      } else if (part.cap === 'foot') {
+        const dir = new THREE.Vector3().subVectors(part.b, part.a).normalize()
+        this.p.copy(part.b).addScaledVector(new THREE.Vector3(0, 0, 1), part.radiusB * 1.8)
+        this.p.y -= part.radiusB * 0.4
+        this.ball(this.p, part.radiusB * 1.1) // foot extends forward
+        void dir
+      } else if (part.cap === 'head') {
+        this.p.copy(part.b)
+        this.p.y -= part.radiusB * 0.7
+        this.p.z += part.radiusB * 0.2
+        this.ball(this.p, part.radiusB * 0.72) // jaw/chin
       }
     }
-    mc.update()
+    this.object.update()
   }
 }
