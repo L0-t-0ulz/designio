@@ -45,6 +45,7 @@ export interface PanelOptions {
   onColor: (hex: number) => void
   bodySize: { height: number; build: number }
   onBodySize: (b: { height: number; build: number }) => void
+  onBodyMode: (realistic: boolean) => void
 }
 
 /** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
@@ -134,7 +135,9 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
 
   // ---- mannequin size ----
   const bodySec = section('Mannequin', true)
+  let realisticBody = true
   bodySec.body.append(
+    toggle({ label: 'Realistic body', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
     slider({ label: 'Height', min: 0.85, max: 1.15, step: 0.01, format: (v) => `${Math.round(v * 175)} cm`, get: () => opts.bodySize.height, set: (v) => { opts.bodySize.height = v; opts.onBodySize(opts.bodySize) } }).row,
     slider({ label: 'Build', min: 0.8, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.build, set: (v) => { opts.bodySize.build = v; opts.onBodySize(opts.bodySize) } }).row
   )

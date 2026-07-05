@@ -144,6 +144,7 @@ function initStudio(config: DesignConfig): void {
   if (bh) bodySize.height = +bh
   if (bb) bodySize.build = +bb
   if (bh || bb) setBody(bodySize)
+  if (params.get('body') === 'mesh') mannequin.setBodyMode(false)
 
   // ---- export ----
   function techData(): TechpackData {
@@ -231,7 +232,12 @@ function initStudio(config: DesignConfig): void {
     },
     onColor: setColor,
     bodySize,
-    onBodySize: setBody
+    onBodySize: setBody,
+    onBodyMode: (realistic) => {
+      mannequin.setBodyMode(realistic)
+      if (mode === 'templates') garmentCtl.redrape()
+      else patternCtl.resew()
+    }
   })
 
   if (params.get('closeup') === '1') {
