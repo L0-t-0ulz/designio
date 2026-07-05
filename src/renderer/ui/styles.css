@@ -553,6 +553,18 @@ canvas {
   color: var(--fg-0);
 }
 
+/* fabric family label */
+.dio-fam-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fg-2);
+  font-weight: 600;
+  margin: 12px 0 6px;
+}
+.dio-fam-label:first-child {
+  margin-top: 2px;
+}
 /* fabric swatch grid */
 .dio-start-swatches {
   display: grid;

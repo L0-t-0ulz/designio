@@ -4,7 +4,7 @@ import type { Viewport } from '../core/Viewport'
 import type { GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
-import type { Fabric } from '../fabric/FabricLibrary'
+import { FABRIC_FAMILIES, type Fabric } from '../fabric/FabricLibrary'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
 
@@ -223,14 +223,13 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   )
   panel.append(bodySec.root)
 
-  // ---- fabric gallery ----
+  // ---- fabric gallery (grouped by family) ----
   const fabricSec = section('Fabric')
-  const gallery = el('div', 'dio-swatches')
   const swatchEls = new Map<string, HTMLElement>()
   const selectSwatch = (id: string): void => {
     for (const [fid, node] of swatchEls) node.classList.toggle('selected', fid === id)
   }
-  for (const f of opts.fabrics) {
+  const fabricCard = (f: (typeof opts.fabrics)[number]): HTMLElement => {
     const card = el('div', 'dio-swatch')
     const chip = el('div', 'dio-swatch-chip')
     chip.style.background = '#' + f.color.toString(16).padStart(6, '0')
@@ -242,10 +241,17 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
       refreshers.forEach((r) => r.refresh())
     })
     swatchEls.set(f.id, card)
-    gallery.append(card)
+    return card
+  }
+  for (const fam of FABRIC_FAMILIES) {
+    const group = opts.fabrics.filter((f) => f.family === fam.id)
+    if (!group.length) continue
+    fabricSec.body.append(el('div', 'dio-fam-label', fam.label))
+    const grid = el('div', 'dio-swatches')
+    for (const f of group) grid.append(fabricCard(f))
+    fabricSec.body.append(grid)
   }
   selectSwatch(current.id)
-  fabricSec.body.append(gallery)
   panel.append(fabricSec.root)
 
   // ---- appearance ----

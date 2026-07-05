@@ -2,7 +2,7 @@ import { animate, stagger } from 'motion'
 import { createElement, ArrowRight, Upload } from 'lucide'
 import type { BodyType } from '../avatar/Mannequin'
 import { GARMENT_TYPES, type GarmentType } from '../garment/templates'
-import type { Fabric } from '../fabric/FabricLibrary'
+import { FABRIC_FAMILIES, type Fabric } from '../fabric/FabricLibrary'
 import { weaveHeight } from '../fabric/weaveTexture'
 import { el } from '../ui/controls'
 import { defaultConfig, type DesignConfig } from './design'
@@ -243,10 +243,10 @@ export function showStartPage(
   // ---- controls ----
   const controls = el('div', 'dio-start-controls dio-start-anim')
 
-  // fabric swatch grid
-  const swatches = el('div', 'dio-start-swatches')
+  // fabric swatches, grouped by family
+  const swatches = el('div')
   const swatchEls = new Map<string, HTMLElement>()
-  for (const f of fabrics) {
+  const buildSwatch = (f: Fabric): HTMLElement => {
     const sw = el('div', 'dio-start-swatch')
     sw.setAttribute('role', 'button')
     sw.tabIndex = 0
@@ -266,7 +266,15 @@ export function showStartPage(
       }
     })
     swatchEls.set(f.id, sw)
-    swatches.append(sw)
+    return sw
+  }
+  for (const fam of FABRIC_FAMILIES) {
+    const group = fabrics.filter((f) => f.family === fam.id)
+    if (!group.length) continue
+    swatches.append(el('div', 'dio-fam-label', fam.label))
+    const grid = el('div', 'dio-start-swatches')
+    for (const f of group) grid.append(buildSwatch(f))
+    swatches.append(grid)
   }
   swatchEls.get(config.fabricId)?.classList.add('selected')
 

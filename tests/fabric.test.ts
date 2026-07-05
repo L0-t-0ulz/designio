@@ -10,6 +10,7 @@ import { weaveHeight, weaveNormal } from '../src/renderer/fabric/weaveTexture'
 const base: Fabric = {
   id: 'x',
   name: 'X',
+  family: 'woven',
   gsm: 150,
   stretch: 0.2,
   bendiness: 0.5,
@@ -87,5 +88,22 @@ describe('weave texture math', () => {
     const h1 = weaveHeight('plain', 0.3, 0.3, 16)
     const h2 = weaveHeight('twill', 0.3, 0.3, 16)
     expect(h1).not.toBeCloseTo(h2, 3)
+  })
+})
+
+describe('fabric library families', () => {
+  it('every fabric declares a family and all families are populated', () => {
+    const fams = new Set(FABRIC_LIBRARY.map((f) => f.family))
+    for (const fam of ['woven', 'silk', 'knit', 'specialty'] as const) {
+      expect(fams.has(fam)).toBe(true)
+    }
+    expect(FABRIC_LIBRARY.length).toBeGreaterThanOrEqual(20)
+  })
+
+  it('stiff fabrics derive a stiffer bend than fluid ones (distinct drape)', () => {
+    const denim = fabricToSolverParams(getFabric('denim'))
+    const chiffon = fabricToSolverParams(getFabric('chiffon'))
+    expect(denim.bendCompliance).toBeLessThan(chiffon.bendCompliance)
+    expect(denim.mass).toBeGreaterThan(chiffon.mass) // denim heavier
   })
 })
