@@ -109,12 +109,20 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
     const b = button(label(t), () => {
       garment.type = t
       for (const [gt, node] of segBtns) node.classList.toggle('primary', gt === t)
+      updateGarmentCtls()
       opts.onGarmentEdit()
     }, t === garment.type)
     segBtns.set(t, b)
     seg.append(b)
   }
   seg.style.flexWrap = 'wrap'
+
+  // Neckline + sleeves only make sense on tops/dresses — hide them for skirt/pants.
+  function updateGarmentCtls(): void {
+    const upper = garment.type === 'top' || garment.type === 'dress'
+    neckRow.classList.toggle('dio-hidden', !upper)
+    sleeveRow.classList.toggle('dio-hidden', !upper)
+  }
 
   // neckline picker (applies to tops/dresses)
   const neckRow = el('div', 'dio-actions')
@@ -155,6 +163,7 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
     sleeveRow.append(b)
   }
 
+  updateGarmentCtls()
   garmentSec.body.append(
     seg,
     neckRow,
