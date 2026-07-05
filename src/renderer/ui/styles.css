@@ -1114,13 +1114,19 @@ canvas {
 }
 
 /* ---- Projects gallery page ---- */
-.dio-proj-hero {
-  position: relative;
+.dio-proj .dio-back {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  margin-left: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
-.dio-proj-hero .dio-back {
-  position: absolute;
-  top: 0;
-  left: 0;
+.dio-proj .dio-back svg {
+  width: 14px;
+  height: 14px;
 }
 .dio-proj-actions {
   display: flex;

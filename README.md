@@ -131,8 +131,14 @@ Dress the mannequin in a **whole outfit** — add as many garments as you like (
 jacket…), each with its own fabric, colour and print, all simulating together on one body. The **Object
 Browser** lists every garment: **select** one to edit it, toggle its **visibility**, and **add / duplicate
 / delete** from the toolbar. Full **cut / copy / paste** (⌘X/C/V), **duplicate** (⌘D) and **undo / redo**
-(⌘Z / ⇧⌘Z). When you're happy, **Save project** to a `.dio` file and **Open** it later to pick up exactly
-where you left off — then export it to get it made.
+(⌘Z / ⇧⌘Z). When you're happy, **Save project** — it's kept in your in-app **Projects** library.
+
+### Your projects — a real library
+Every design you save shows up on a **Projects** page (with a thumbnail) — reopen any of them in one click,
+**rename** or **delete** them, and **import / export `.dio`** files to move work between machines. New
+design and a way home tie the whole app together: **Homepage → Your projects → Studio**.
+
+![The Projects gallery — saved designs with thumbnails, open / rename / delete](docs/projects.png)
 
 ### Add your own graphic + text, right in the studio
 Beyond the start page, the studio's **Appearance** panel lets you **import a PNG** (or JP/WebP) and add

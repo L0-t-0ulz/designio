@@ -12,6 +12,7 @@ const capture = path.join(__dirname, 'capture.cjs')
 // deep-links straight into the studio (fixed camera + deterministic cloth settle).
 const shots = [
   ['docs/homepage.png', 4000, ''],
+  ['docs/projects.png', 3500, 'page=projects&demo=1'],
   ['docs/catalog-start.png', 4000, 'page=start&still=1'],
   ['docs/fabrics-start.png', 7000, 'garment=dress&fabric=velvet&start=0'],
   ['docs/catalog-gown.png', 7000, 'garment=gown&fabric=satin&start=0'],
