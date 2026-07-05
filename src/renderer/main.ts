@@ -28,6 +28,8 @@ import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
 import { showHomepage } from './start/Homepage'
+import { showProjectsPage } from './start/ProjectsPage'
+import { loadProject, saveProjectRecord } from './studio/projectStore'
 import { defaultConfig, type DesignConfig } from './start/design'
 import { GarmentStack } from './studio/GarmentStack'
 import {
@@ -52,8 +54,14 @@ viewport.scene.add(mannequin.group)
 let clipboard: GarmentLayerData | null = null
 
 /** Build the full 3D studio from a design config (called after the start page). */
-function initStudio(config: DesignConfig): void {
-  const doc0 = docFromConfig(config)
+function initStudio(
+  config: DesignConfig,
+  opened?: { doc: ProjectDoc; projectId: string; projectName: string }
+): void {
+  const doc0 = opened?.doc ?? docFromConfig(config)
+  // Bind to a library project when opened from the Projects page (else save creates one).
+  let projectId: string | null = opened?.projectId ?? null
+  let projectName = opened?.projectName ?? 'Untitled'
   const l0 = doc0.layers[0]
   const bodySize = { ...doc0.body }
   const anim = { mode: doc0.scene.animMode, speed: doc0.scene.animSpeed }
@@ -82,8 +90,9 @@ function initStudio(config: DesignConfig): void {
   stack.setGravity(gravity)
   stack.setWind(windX, windZ)
   stack.addLayer({ ...l0 })
-  stack.active.image = config.image // carry a start-page upload onto the first layer
-  stack.active.imageName = config.image ? 'graphic' : null
+  const img0 = opened ? null : config.image // carry a start-page upload onto the first layer
+  stack.active.image = img0
+  stack.active.imageName = img0 ? 'graphic' : null
   stack.applyLook(stack.active)
 
   // ---- undo / redo (coarse: whole-document snapshots) ----
@@ -231,11 +240,42 @@ function initStudio(config: DesignConfig): void {
     syncBrowsers()
   }
 
-  // ---- project save / open (.dio) ----
+  // ---- projects: library save + .dio import/export ----
   const DIO_FILTER = [{ name: 'DesignIO project', extensions: ['dio'] }]
-  async function saveProject(): Promise<void> {
-    await saveFile('design.dio', serializeDoc(currentDoc()), DIO_FILTER)
+  /** A small JPEG dataURL of the current viewport (best-effort) for the Projects gallery. */
+  function captureThumb(): string | undefined {
+    try {
+      viewport.render() // ensure the buffer is fresh before reading it
+      const src = viewport.renderer.domElement
+      const w = 320
+      const h = Math.round((w * src.height) / src.width) || 220
+      const c = document.createElement('canvas')
+      c.width = w
+      c.height = h
+      const ctx = c.getContext('2d')
+      if (!ctx) return undefined
+      ctx.drawImage(src, 0, 0, w, h)
+      return c.toDataURL('image/jpeg', 0.6)
+    } catch {
+      return undefined
+    }
   }
+  /** Save into the in-app library (upsert; prompts for a name the first time). */
+  function saveProject(): void {
+    if (!projectId) {
+      const name = window.prompt('Name this project', projectName === 'Untitled' ? stack.active.data.garmentType : projectName)
+      if (!name || !name.trim()) return
+      projectName = name.trim()
+    }
+    projectId = saveProjectRecord({ id: projectId ?? undefined, name: projectName, doc: currentDoc(), thumb: captureThumb() })
+    statusHandles?.setSelection(`Saved “${projectName}”`)
+  }
+  /** Export the current project to a portable .dio file. */
+  async function exportDio(): Promise<void> {
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'design'
+    await saveFile(`${safe}.dio`, serializeDoc(currentDoc()), DIO_FILTER)
+  }
+  /** Import a .dio file into the current studio (replaces the scene). */
   async function openProject(): Promise<void> {
     const r = await openFile(DIO_FILTER)
     if (!r) return
@@ -243,6 +283,7 @@ function initStudio(config: DesignConfig): void {
       const doc = parseDoc(r.content)
       pushUndo()
       applyDoc(doc)
+      projectId = null // an imported file becomes a new library entry on next save
     } catch (e) {
       window.alert('Could not open project: ' + (e as Error).message)
     }
@@ -427,21 +468,30 @@ function initStudio(config: DesignConfig): void {
     stack.clear()
     patternCtl?.clear()
   }
+  // "← Start / Projects": opened from a project → back to the Projects gallery;
+  // opened from the builder → back to "Design your piece" keeping this design.
   function goBack(): void {
     teardown()
-    showStartPage(FABRIC_LIBRARY, initStudio, config, openHome)
+    if (opened) openProjects()
+    else showStartPage(FABRIC_LIBRARY, initStudio, config, openHome)
   }
   function goHome(): void {
     teardown()
     openHome()
+  }
+  function goProjects(): void {
+    teardown()
+    openProjects()
   }
 
   // ---- menu bar + status bar (wired to the real actions) ----
   let simpleView = false
   buildMenuBar(shell.menubar, {
     onNew: goHome,
+    onProjects: goProjects,
+    onSaveProject: saveProject,
+    onExportDio: () => void exportDio(),
     onOpenProject: () => void openProject(),
-    onSaveProject: () => void saveProject(),
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
     onUndo: undo,
     onRedo: redo,
@@ -681,13 +731,26 @@ function initStudio(config: DesignConfig): void {
   }
 }
 
-// ---- the app launcher (Homepage → start page → studio) -----
+// ---- the app launcher (Homepage → start page / projects → studio) -----
 function openHome(): void {
   showHomepage({
     onNewDesign: () => showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome),
     // Templates open the preview pre-filled (Homepage → Preview → Studio), so the
     // route is consistent and you can tweak before entering 3D.
-    onTemplate: (cfg) => showStartPage(FABRIC_LIBRARY, initStudio, cfg, openHome)
+    onTemplate: (cfg) => showStartPage(FABRIC_LIBRARY, initStudio, cfg, openHome),
+    onProjects: openProjects
+  })
+}
+
+// ---- the Projects gallery (open a saved design straight into the studio) -----
+function openProjects(): void {
+  showProjectsPage({
+    onOpen: (id) => {
+      const rec = loadProject(id)
+      if (rec) initStudio(defaultConfig(), { doc: rec.doc, projectId: rec.id, projectName: rec.name })
+    },
+    onNewDesign: () => showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome),
+    onHome: openHome
   })
 }
 
@@ -717,6 +780,28 @@ if (skipStart) {
   initStudio(cfg)
 } else if (entryParams.get('page') === 'start') {
   showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome) // deep-link to the builder
+} else if (entryParams.get('page') === 'projects') {
+  if (entryParams.get('demo')) seedDemoProjects() // populate a few looks for a snapshot
+  openProjects()
 } else {
   openHome()
+}
+
+/** Seed a few example projects (only if the library is empty) — for demos/snapshots. */
+function seedDemoProjects(): void {
+  if (loadProject('__probe__') || (typeof localStorage !== 'undefined' && localStorage.getItem('dio-projects-v1'))) return
+  const looks: [string, GarmentType, string][] = [
+    ['Linen sundress', 'dress', 'linen'],
+    ['Satin gown', 'gown', 'satin'],
+    ['Denim jumpsuit', 'jumpsuit', 'denim'],
+    ['Wool wide-leg', 'wide-leg', 'wool-flannel']
+  ]
+  for (const [name, g, fabric] of looks) {
+    const cfg = defaultConfig()
+    cfg.garmentType = g
+    Object.assign(cfg, getGarment(g).defaults)
+    cfg.fabricId = fabric
+    cfg.color = getFabric(fabric).color
+    saveProjectRecord({ name, doc: docFromConfig(cfg) })
+  }
 }

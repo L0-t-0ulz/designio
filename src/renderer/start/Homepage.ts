@@ -24,6 +24,7 @@ export function configFromPreset(p: Preset): DesignConfig {
 export interface HomeActions {
   onNewDesign: () => void
   onTemplate: (config: DesignConfig) => void
+  onProjects: () => void
 }
 
 /**
@@ -50,6 +51,12 @@ export function showHomepage(opts: HomeActions): void {
   arrow.append(createElement(ArrowRight))
   cta.append(arrow)
   hero.append(cta)
+  const projectsLink = el('button', 'dio-home-link', 'Your projects →')
+  projectsLink.addEventListener('click', () => {
+    overlay.remove()
+    opts.onProjects()
+  })
+  hero.append(projectsLink)
   overlay.append(hero)
 
   // ---- templates ----
