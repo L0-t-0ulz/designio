@@ -57,14 +57,17 @@ Renderer modules:
 - `garment/` — `GarmentController` (one garment's multi-piece sim, consumes the factory); `templates`
   (shared `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh collision.
 - `studio/` — the **multi-garment layer stack**: `document` (`ProjectDoc` = body + scene + serialisable
-  garment `layers[]`; `serializeDoc`/`parseDoc` — the `.dio` project + undo/redo snapshots + clipboard),
+  garment `layers[]`; `serializeDoc`/`parseDoc` — the `.dio` project + undo/redo snapshots + clipboard;
+  `SizeLabel`/`gradeParams` grade a layer's girth by size),
   `GarmentStack` (the live layers: each its own material · fabric · print · `GarmentController`; many
   garments simulate on one mannequin). Adding a garment is `stack.addLayer`; the active layer is edited.
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
-  A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF), `patternExport` (SVG/DXF
-  for the sewn-pattern mode), `techpack` (HTML/JSON), `save`.
+  A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF), `garmentMetrics` (**live
+  production spec**: real chest/waist/hip/length/sleeve/inseam + fabric area + seam length from the same
+  construction), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM +
+  embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF), `techpack`, `save`.
 - `start/` — `StartPage` (the "design your piece" landing), `PreviewStudio` (live 3D preview),
   `design` (`DesignConfig`), `presets` (ready-made looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
