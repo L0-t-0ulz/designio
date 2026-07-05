@@ -36,7 +36,15 @@ export class Loop {
     return this.running
   }
 
+  /** Permanently stop the RAF loop (e.g. when disposing a preview scene). */
+  stop(): void {
+    this.stopped = true
+  }
+
+  private stopped = false
+
   private frame = (): void => {
+    if (this.stopped) return
     const now = performance.now() / 1000
     let frameTime = now - this.lastTime
     this.lastTime = now
