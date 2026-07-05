@@ -143,7 +143,13 @@ export class PreviewStudio {
     requestAnimationFrame(() => {
       this.bodyQueued = false
       const c = this.pendingBody!
-      this.mannequin.resize({ height: c.bodyHeight, build: c.bodyBuild })
+      this.mannequin.resize({
+        height: c.bodyHeight,
+        build: c.bodyBuild,
+        bust: c.bodyBust,
+        waist: c.bodyWaist,
+        hips: c.bodyHips
+      })
       this.ctl.build(c.garmentType, c)
     })
   }

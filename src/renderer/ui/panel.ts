@@ -3,7 +3,7 @@ import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
 import type { GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
-import type { AnimationMode } from '../avatar/Mannequin'
+import type { AnimationMode, BodyParams } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
@@ -46,8 +46,8 @@ export interface PanelOptions {
   onSetAnimMode: (m: AnimationMode) => void
   onAnimSpeed: (v: number) => void
   onColor: (hex: number) => void
-  bodySize: { height: number; build: number }
-  onBodySize: (b: { height: number; build: number }) => void
+  bodySize: BodyParams
+  onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
 }
 
@@ -184,7 +184,10 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   bodySec.body.append(
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
     slider({ label: 'Height', min: 0.85, max: 1.15, step: 0.01, format: (v) => `${Math.round(v * 175)} cm`, get: () => opts.bodySize.height, set: (v) => { opts.bodySize.height = v; opts.onBodySize(opts.bodySize) } }).row,
-    slider({ label: 'Build', min: 0.8, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.build, set: (v) => { opts.bodySize.build = v; opts.onBodySize(opts.bodySize) } }).row
+    slider({ label: 'Build', min: 0.8, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.build, set: (v) => { opts.bodySize.build = v; opts.onBodySize(opts.bodySize) } }).row,
+    slider({ label: 'Bust', min: 0.82, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.bust, set: (v) => { opts.bodySize.bust = v; opts.onBodySize(opts.bodySize) } }).row,
+    slider({ label: 'Waist', min: 0.78, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.waist, set: (v) => { opts.bodySize.waist = v; opts.onBodySize(opts.bodySize) } }).row,
+    slider({ label: 'Hips', min: 0.82, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.hips, set: (v) => { opts.bodySize.hips = v; opts.onBodySize(opts.bodySize) } }).row
   )
   panel.append(bodySec.root)
 
