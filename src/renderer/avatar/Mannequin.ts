@@ -46,14 +46,14 @@ const REF_HIP = 0.11
 // male = broad shoulders, straighter waist, narrow hips. Both lean.
 const PROPORTIONS: Record<BodyType, Proportions> = {
   female: {
-    chestR: 0.132, waistR: 0.104, hipR: 0.162, thighR: 0.081,
-    shoulderHalfX: 0.163, hipHalfX: 0.116, upperArmR: 0.042, foreArmR: 0.033,
-    headR: 0.091, neckR: 0.045
+    chestR: 0.132, waistR: 0.097, hipR: 0.162, thighR: 0.081,
+    shoulderHalfX: 0.151, hipHalfX: 0.116, upperArmR: 0.041, foreArmR: 0.032,
+    headR: 0.095, neckR: 0.05
   },
   male: {
-    chestR: 0.155, waistR: 0.126, hipR: 0.143, thighR: 0.094,
-    shoulderHalfX: 0.212, hipHalfX: 0.099, upperArmR: 0.053, foreArmR: 0.042,
-    headR: 0.098, neckR: 0.053
+    chestR: 0.155, waistR: 0.119, hipR: 0.143, thighR: 0.094,
+    shoulderHalfX: 0.201, hipHalfX: 0.099, upperArmR: 0.052, foreArmR: 0.041,
+    headR: 0.101, neckR: 0.057
   }
 }
 
@@ -133,8 +133,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const baseDefs: { a: [number, number, number]; b: [number, number, number]; radius: number; part: Part; w: WidthKey }[] = [
     { a: [0, 1.61, 0], b: [0, 1.66, 0], radius: 0.1, part: 'root', w: 'center' },
     { a: [0, 1.46, 0], b: [0, 1.55, 0], radius: 0.048, part: 'root', w: 'center' },
-    { a: [0, 1.0, 0], b: [0, 1.44, 0], radius: 0.15, part: 'root', w: 'center' },
-    { a: [-0.19, 1.44, 0], b: [0.19, 1.44, 0], radius: 0.075, part: 'root', w: 'shoulder' },
+    { a: [0, 1.0, 0], b: [0, 1.42, 0], radius: 0.15, part: 'root', w: 'center' },
+    { a: [-0.15, 1.43, 0], b: [0.15, 1.43, 0], radius: 0.05, part: 'root', w: 'shoulder' },
     { a: [-0.14, 0.98, 0], b: [0.14, 0.98, 0], radius: 0.14, part: 'root', w: 'hip' },
     { a: [-0.19, 1.43, 0], b: [-0.31, 1.1, 0.02], radius: 0.05, part: 'armL', w: 'shoulder' },
     { a: [-0.31, 1.1, 0.02], b: [-0.4, 0.82, 0.05], radius: 0.042, part: 'armL', w: 'shoulder' },
@@ -233,9 +233,9 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const seatRadius = (): number => measurements.hipR * SEAT
   const partSpec: { rA: () => number; rB: () => number; cap?: BodyPart['cap'] }[] = [
     { rA: () => P().headR * body.build, rB: () => P().headR * body.build, cap: 'head' },
-    { rA: () => P().neckR * body.build, rB: () => (P().neckR + 0.008) * body.build }, // neck
-    { rA: () => measurements.waistR, rB: () => measurements.chestR }, // torso (waist→chest)
-    { rA: () => 0.07 * body.build, rB: () => 0.07 * body.build }, // shoulders
+    { rA: () => P().neckR * body.build, rB: () => (P().neckR + 0.014) * body.build }, // neck (widens to jaw/shoulders)
+    { rA: () => measurements.waistR, rB: () => measurements.chestR * 0.88 }, // torso (waist→upper-chest; bust adds fullness)
+    { rA: () => 0.05 * body.build, rB: () => 0.05 * body.build }, // shoulders (slim — trapezius/deltoid round it)
     { rA: () => seatRadius(), rB: () => seatRadius() }, // hips/seat (single-source; slim rear)
     { rA: () => P().upperArmR * body.build, rB: () => (P().upperArmR - 0.008) * body.build }, // upper arm
     { rA: () => (P().upperArmR - 0.008) * body.build, rB: () => P().foreArmR * body.build, cap: 'hand' }, // forearm
@@ -262,7 +262,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   // chest & upper-back depth, knees — the difference between a plain tube and a
   // believable human figure. When the body is static the collision BVH is rebuilt
   // from this richer surface, so garments drape over the real shape.
-  const shape: BodyPart[] = Array.from({ length: 8 }, () => ({
+  const shape: BodyPart[] = Array.from({ length: 10 }, () => ({
     a: new THREE.Vector3(),
     b: new THREE.Vector3(),
     radiusA: 0,
@@ -301,11 +301,11 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       setSeg(0, -x, cY + 0.06, cR * 0.02, -x, cY, cR * 0.26, r)
       setSeg(1, x, cY + 0.06, cR * 0.02, x, cY, cR * 0.26, r)
     }
-    // deltoids — round the shoulder caps into the arms
-    const dR = P().upperArmR * bl * 1.5
-    const dx = sHX * 0.86
-    setSeg(2, -dx, sY, 0, -dx * 1.02, sY - 0.06, 0, dR)
-    setSeg(3, dx, sY, 0, dx * 1.02, sY - 0.06, 0, dR)
+    // deltoids — round the shoulder caps into the arms (bigger, rounder, softer)
+    const dR = P().upperArmR * bl * 1.7
+    const dx = sHX * 0.82
+    setSeg(2, -dx, sY - 0.01, 0, -dx * 1.02, sY - 0.08, 0, dR)
+    setSeg(3, dx, sY - 0.01, 0, dx * 1.02, sY - 0.08, 0, dR)
     // chest-front + upper-back depth (so the torso reads as a body, not a cylinder)
     setSeg(4, 0, cY + 0.03, cR * 0.05, 0, cY - 0.1, cR * 0.32, cR * (female ? 0.5 : 0.56))
     setSeg(5, 0, sY - 0.03, -cR * 0.1, 0, cY - 0.02, -cR * 0.42, cR * 0.44)
@@ -314,6 +314,11 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     const kR = tR * 0.66
     setSeg(6, -kx, kY + 0.06, tR * 0.1, -kx, kY - 0.04, tR * 0.34, kR)
     setSeg(7, kx, kY + 0.06, tR * 0.1, kx, kY - 0.04, tR * 0.34, kR)
+    // trapezius — a smooth slope from the neck base out to the shoulders (kills the
+    // square notch between neck and shoulder that made the figure look boxy)
+    const trR = P().neckR * bl * 0.95
+    setSeg(8, -0.03, sY + 0.05, -0.01, -dx * 0.92, sY - 0.02, -0.01, trR)
+    setSeg(9, 0.03, sY + 0.05, -0.01, dx * 0.92, sY - 0.02, -0.01, trR)
     return shape
   }
 
