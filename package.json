@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "description": "DesignIO — a personal 3D clothing design tool (CLO3D / Browzwear-style). Foundation: 3D viewport, mannequin, and real-time cloth draping.",
-  "author": "ZayanKhan-12",
-  "license": "MIT",
+  "author": "Zayan Khan <khanzayan_123@hotmail.com>",
+  "license": "UNLICENSED",
   "main": "./out/main/index.js",
   "engines": {
     "node": ">=18"
