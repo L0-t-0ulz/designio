@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import type { Capsule } from '../avatar/colliders'
+import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
 import type { ClothWorld } from '../cloth/ClothWorld'
 import { buildSewnTop, type PatternParams } from './pattern'
@@ -22,7 +23,8 @@ export class PatternController {
     private readonly scene: THREE.Scene,
     private readonly material: THREE.Material,
     private readonly colliders: Capsule[],
-    private readonly params: () => FabricParams
+    private readonly params: () => FabricParams,
+    private readonly bodyCollider: BodyCollider | null = null
   ) {}
 
   /** Build (or rebuild) the sewn garment from pattern params, and show it. */
@@ -31,6 +33,7 @@ export class PatternController {
     const sewn = buildSewnTop(p, this.params())
     this.world = sewn.world
     this.world.colliders = this.colliders
+    this.world.bodyCollider = this.bodyCollider
     this.world.gravity.set(0, -this.gravityY, 0)
     this.world.wind.set(this.windX, 0, this.windZ)
     this.geometries = sewn.geometries

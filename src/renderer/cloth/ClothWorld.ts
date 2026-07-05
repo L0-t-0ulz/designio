@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { type Capsule, closestPointOnSegment } from '../avatar/colliders'
+import type { BodyCollider } from './BodyCollider'
 import type { FabricParams } from './fabricPresets'
 
 interface Constraint {
@@ -29,6 +30,10 @@ export class ClothWorld {
   wind = new THREE.Vector3(0, 0, 0)
   substeps = 14
   colliders: Capsule[] = []
+  /** Mesh-accurate body collision (once-per-frame corrective on top of capsules). */
+  bodyCollider: BodyCollider | null = null
+  /** Garment thickness: cloth rests this far off the body surface. */
+  bodySkin = 0.008
   groundY = 0.001
   params: FabricParams
 
@@ -40,6 +45,7 @@ export class ClothWorld {
   private time = 0
   private readonly _p = new THREE.Vector3()
   private readonly _c = new THREE.Vector3()
+  private readonly _bodyOut = new THREE.Vector3()
 
   constructor(params: FabricParams) {
     this.params = params
@@ -103,6 +109,42 @@ export class ClothWorld {
   step(dt: number): void {
     const sub = dt / this.substeps
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
+    if (this.bodyCollider?.ready) this.solveBody()
+  }
+
+  /** Mesh-accurate body contact (once per frame); mirrors {@link XPBDSolver.solveBody}. */
+  private solveBody(): void {
+    const { positions: pos, vel, invMass: im, count } = this
+    const bc = this.bodyCollider!
+    const skin = this.bodySkin
+    const out = this._bodyOut
+    for (let k = 0; k < count; k++) {
+      if (im[k] === 0) continue
+      const i = k * 3
+      const px = pos[i]
+      const py = pos[i + 1]
+      const pz = pos[i + 2]
+      const r = bc.resolve(px, py, pz, skin, out)
+      if (!r) continue
+      pos[i] = r.x
+      pos[i + 1] = r.y
+      pos[i + 2] = r.z
+      let nx = r.x - px
+      let ny = r.y - py
+      let nz = r.z - pz
+      const l = Math.hypot(nx, ny, nz)
+      if (l > 1e-8) {
+        nx /= l
+        ny /= l
+        nz /= l
+        const vn = vel[i] * nx + vel[i + 1] * ny + vel[i + 2] * nz
+        if (vn < 0) {
+          vel[i] -= vn * nx
+          vel[i + 1] -= vn * ny
+          vel[i + 2] -= vn * nz
+        }
+      }
+    }
   }
 
   private substep(dt: number): void {

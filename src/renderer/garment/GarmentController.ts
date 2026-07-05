@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import type { Capsule } from '../avatar/colliders'
 import type { Measurements } from '../avatar/Mannequin'
+import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
 import {
   buildAxisTube,
@@ -37,7 +38,8 @@ export class GarmentController {
     private readonly material: THREE.Material,
     private readonly colliders: Capsule[],
     private readonly measurements: Measurements,
-    private readonly params: () => FabricParams
+    private readonly params: () => FabricParams,
+    private readonly bodyCollider: BodyCollider | null = null
   ) {}
 
   /** (Re)build the garment for a template + params. */
@@ -85,6 +87,7 @@ export class GarmentController {
 
     const solver = new XPBDSolver(nx, ny, positions, this.params(), { pinned: pinnedTop, wrapX: true })
     solver.colliders = this.colliders
+    solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)
     solver.wind.set(this.windX, 0, this.windZ)
     this.pieces.push({ geometry, positions, mesh, solver, refill: () => fill(positions) })

@@ -44,13 +44,15 @@ function initStudio(config: DesignConfig): void {
     material,
     mannequin.colliders,
     mannequin.measurements,
-    () => fabricToSolverParams(current)
+    () => fabricToSolverParams(current),
+    mannequin.bodyCollider
   )
   const patternCtl = new PatternController(
     viewport.scene,
     material,
     mannequin.colliders,
-    () => fabricToSolverParams(current)
+    () => fabricToSolverParams(current),
+    mannequin.bodyCollider
   )
 
   const garment = {
