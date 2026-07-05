@@ -6,7 +6,8 @@ import {
   GARMENT_TYPES,
   type GarmentType
 } from '../src/renderer/garment/templates'
-import { fillTube } from '../src/renderer/cloth/Garment'
+import * as THREE from 'three'
+import { fillTube, fillAxisTube } from '../src/renderer/cloth/Garment'
 
 describe('garment construction', () => {
   it('tops/dresses carry a neckline + shoulder line; a dress has a cinched waist', () => {
@@ -35,6 +36,27 @@ describe('garment construction', () => {
     const sideY = pos[0 * 3 + 1] // ix=0 → a=0 (side / shoulder)
     const frontY = pos[Math.round(radial / 4) * 3 + 1] // a≈π/2 (centre-front)
     expect(sideY).toBeGreaterThan(frontY + 0.02)
+  })
+
+  it('a sleeve (axis tube) builds rings perpendicular to the arm axis', () => {
+    const radial = 16
+    const rings = 8
+    const pos = new Float32Array(radial * rings * 3)
+    fillAxisTube(pos, {
+      rings,
+      radial,
+      a: new THREE.Vector3(0, 1, 0),
+      b: new THREE.Vector3(0.4, 1, 0), // axis = +x
+      radiusStart: 0.06,
+      radiusEnd: 0.06
+    })
+    for (let ix = 0; ix < radial; ix++) {
+      const x = pos[ix * 3]
+      const y = pos[ix * 3 + 1]
+      const z = pos[ix * 3 + 2]
+      expect(Math.abs(x)).toBeLessThan(1e-6) // ring ⟂ to the +x axis
+      expect(Math.hypot(y - 1, z)).toBeCloseTo(0.06, 5) // at the tube radius
+    }
   })
 })
 
