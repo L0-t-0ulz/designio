@@ -255,6 +255,7 @@ function initStudio(config: DesignConfig): void {
   }
 
   // ---- menu bar + status bar (wired to the real actions) ----
+  let simpleView = false
   buildMenuBar(shell.menubar, {
     onNew: goBack,
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
@@ -263,6 +264,11 @@ function initStudio(config: DesignConfig): void {
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
     onToggleLibrary: () => shell.toggleLeft(),
     onTogglePanel: () => shell.toggleRight(),
+    onToggleSimple: () => {
+      simpleView = !simpleView
+      shell.setLeftVisible(!simpleView) // Simple = calm subset (hide Library + Object Browser)
+      objBrowser.setVisible(!simpleView)
+    },
     onResetLayout: () => shell.resetLayout(),
     onAbout: () =>
       window.alert('DesignIO — a fully-3D clothing design studio.\n© Zayan Khan. All rights reserved.')

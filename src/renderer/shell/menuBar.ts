@@ -10,6 +10,7 @@ export interface MenuActions {
   onToggleMannequin: () => void
   onToggleLibrary: () => void
   onTogglePanel: () => void
+  onToggleSimple: () => void
   onResetLayout: () => void
   onAbout: () => void
 }
@@ -102,6 +103,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Stand still', run: () => a.onAnim('static') }
   ])
   menu('View', [
+    { label: 'Simple / Pro view', run: a.onToggleSimple },
+    { sep: true },
     { label: 'Toggle Library', run: a.onToggleLibrary },
     { label: 'Toggle right panel', run: a.onTogglePanel },
     { label: 'Reset layout', run: a.onResetLayout },

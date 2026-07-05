@@ -1,3 +1,4 @@
+import { createElement, Pause, Play } from 'lucide'
 import { el } from '../ui/controls'
 
 export interface StatusHandles {
@@ -17,7 +18,8 @@ export function buildStatusBar(host: HTMLElement, onToggleSim: () => void, runni
   const fps = el('span', 'dio-status-item dio-status-fps', '— fps')
 
   const setSim = (r: boolean): void => {
-    simBtn.textContent = r ? '❙❙ Pause' : '▶ Play'
+    simBtn.replaceChildren(createElement(r ? Pause : Play), document.createTextNode(r ? ' Pause' : ' Play'))
+    simBtn.setAttribute('aria-label', r ? 'Pause simulation' : 'Play simulation')
     sim.textContent = r ? 'Simulating' : 'Paused'
   }
   setSim(running)
