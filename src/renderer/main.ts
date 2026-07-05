@@ -7,7 +7,7 @@ import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { GarmentController } from './garment/GarmentController'
 import type { GarmentType } from './garment/templates'
-import { GARMENT_IDS } from './garments/registry'
+import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
 import { createFabricMaterial, applyFabric } from './cloth/FabricMaterial'
@@ -298,7 +298,10 @@ const skipStart =
 if (skipStart) {
   const cfg = defaultConfig()
   const g = entryParams.get('garment') as GarmentType | null
-  if (g && GARMENT_IDS.includes(g)) cfg.garmentType = g
+  if (g && GARMENT_IDS.includes(g)) {
+    cfg.garmentType = g
+    Object.assign(cfg, getGarment(g).defaults) // show the garment as designed (e.g. a gown = strapless/long)
+  }
   const fb = entryParams.get('fabric')
   if (fb) {
     cfg.fabricId = fb
