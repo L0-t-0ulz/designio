@@ -19,6 +19,9 @@
     "snapshot": "npm run build && electron scripts/capture.cjs docs/preview.png 8000"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
+    "lucide": "^1.23.0",
+    "motion": "^12.42.2",
     "three": "^0.185.1"
   },
   "devDependencies": {

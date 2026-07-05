@@ -1,3 +1,5 @@
+import '@fontsource-variable/inter'
+import './ui/tokens.css'
 import './ui/styles.css'
 import { Viewport } from './core/Viewport'
 import { setupEnvironment } from './core/Environment'
