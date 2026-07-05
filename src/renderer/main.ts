@@ -8,7 +8,7 @@ import { buildMenuBar } from './shell/menuBar'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { buildLibrary } from './shell/library'
 import { buildObjectBrowser } from './shell/objectBrowser'
-import { buildCenterTabs } from './shell/centerTabs'
+import { buildCenterTabs, type PatternEditor } from './shell/centerTabs'
 import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
@@ -39,6 +39,7 @@ import {
   gradeParams,
   serializeDoc,
   parseDoc,
+  SIZES,
   type ProjectDoc,
   type GarmentLayerData
 } from './studio/document'
@@ -327,7 +328,45 @@ function initStudio(
     mode === 'templates'
       ? garmentPatternSVG(getGarment(stack.active.data.garmentType), gradeParams(stack.active.data), mannequin.measurements, mannequin.colliders)
       : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
-  const centerTabs = buildCenterTabs(shell.center, patternSVG)
+
+  // Persist the edit buffer → active layer, rebuild + refresh everywhere. Shared by
+  // the 3D Property Editor AND the 2D pattern tools, so 2D and 3D drive one design.
+  function applyGarmentEdit(): void {
+    const l = stack.active
+    l.data.garmentType = garment.type
+    l.data.length = garment.length
+    l.data.ease = garment.ease
+    l.data.flare = garment.flare
+    l.data.neckline = garment.neckline
+    l.data.sleeve = garment.sleeve
+    l.data.size = garment.size
+    stack.rebuild(l)
+    centerTabs.refresh()
+    api.refreshMetrics()
+    syncBrowsers()
+  }
+  const clampN = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v))
+  // Editing from the 2D pane → same edit path, then re-sync the 3D panel controls.
+  const editFrom2D = (mut: () => void): void => {
+    mut()
+    applyGarmentEdit()
+    api.refresh()
+  }
+  const patternEditor: PatternEditor = {
+    length: () => garment.length,
+    ease: () => garment.ease,
+    flare: () => garment.flare,
+    size: () => garment.size,
+    supports: () => {
+      const s = getGarment(garment.type).supports
+      return { length: !!s.length, ease: !!s.ease, flare: !!s.flare }
+    },
+    nudgeLength: (d) => editFrom2D(() => (garment.length = clampN(garment.length + d, 0, 1))),
+    nudgeEase: (d) => editFrom2D(() => (garment.ease = clampN(garment.ease + d, 0, 0.12))),
+    nudgeFlare: (d) => editFrom2D(() => (garment.flare = clampN(garment.flare + d, 0, 0.22))),
+    nudgeSize: (d) => editFrom2D(() => (garment.size = SIZES[clampN(SIZES.indexOf(garment.size) + d, 0, SIZES.length - 1)]))
+  }
+  const centerTabs = buildCenterTabs(shell.center, patternSVG, patternEditor)
 
   // ---- deep-links (snapshots) ----
   const params = new URLSearchParams(location.search)
@@ -562,20 +601,7 @@ function initStudio(
       if (mode === 'templates') stack.setActivePhysics()
       else patternCtl?.setFabricPhysics()
     },
-    onGarmentEdit: () => {
-      const l = stack.active
-      l.data.garmentType = garment.type
-      l.data.length = garment.length
-      l.data.ease = garment.ease
-      l.data.flare = garment.flare
-      l.data.neckline = garment.neckline
-      l.data.sleeve = garment.sleeve
-      l.data.size = garment.size
-      stack.rebuild(l)
-      centerTabs.refresh()
-      api.refreshMetrics()
-      syncBrowsers()
-    },
+    onGarmentEdit: applyGarmentEdit,
     onPatternEdit: () => {
       patternCtl?.build(patternParams)
       centerTabs.refresh()
