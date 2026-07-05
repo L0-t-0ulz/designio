@@ -65,7 +65,7 @@ function initStudio(config: DesignConfig): void {
   }
   const patternParams = { ...DEFAULT_PATTERN }
   const anim = { mode: 'static' as AnimationMode, speed: 1 }
-  const bodySize = { height: 1, build: 1 }
+  const bodySize = { height: config.bodyHeight, build: config.bodyBuild }
   let mode: DesignMode = 'templates'
 
   function setBody(next: { height: number; build: number }): void {
@@ -134,6 +134,7 @@ function initStudio(config: DesignConfig): void {
   )
 
   setMode(mode)
+  if (bodySize.height !== 1 || bodySize.build !== 1) setBody(bodySize)
   applyFabricVisual()
   loop.start()
 

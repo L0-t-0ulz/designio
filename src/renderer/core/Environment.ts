@@ -3,14 +3,13 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js'
 
 /** Vertical gradient backdrop (a soft studio cyclorama), as a texture. */
-function gradientBackground(top: string, bottom: string): THREE.Texture {
+function gradientBackground(stops: [number, string][]): THREE.Texture {
   const canvas = document.createElement('canvas')
   canvas.width = 2
   canvas.height = 512
   const ctx = canvas.getContext('2d')!
   const grad = ctx.createLinearGradient(0, 0, 0, 512)
-  grad.addColorStop(0, top)
-  grad.addColorStop(1, bottom)
+  for (const [at, color] of stops) grad.addColorStop(at, color)
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, 2, 512)
   const tex = new THREE.CanvasTexture(canvas)
@@ -18,26 +17,53 @@ function gradientBackground(top: string, bottom: string): THREE.Texture {
   return tex
 }
 
+/** Soft radial glow (white centre → transparent) for a floor "light pool". */
+function radialGlowTexture(): THREE.Texture {
+  const s = 256
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = s
+  const ctx = canvas.getContext('2d')!
+  const grad = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2)
+  grad.addColorStop(0, 'rgba(255,255,255,0.55)')
+  grad.addColorStop(0.45, 'rgba(255,255,255,0.16)')
+  grad.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, s, s)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  return tex
+}
+
 /**
- * A clean, bright product studio (the premium 3D-mockup look): image-based
- * lighting, a soft gradient cyclorama, a subtle cool/warm rim rig, and a gently
- * **reflective floor** with a shadow-catcher on top so contact shadows read.
+ * A clean, colour-accurate product studio (the premium 3D-mockup look): image-based
+ * lighting, a soft gradient cyclorama, a cool/warm rim rig, a gently **reflective
+ * floor** with a shadow-catcher, a subtle **pedestal**, and a soft **light pool**
+ * so the figure reads as a lit hero on a stage. Shared by the studio + the homepage
+ * preview so both 3D scenes match.
  */
 export function setupEnvironment(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer
 ): { dispose: () => void } {
+  const disposables: { dispose: () => void }[] = []
+  const track = <T extends { dispose: () => void }>(o: T): T => (disposables.push(o), o)
+
   const pmrem = new THREE.PMREMGenerator(renderer)
   const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
   scene.environment = envTexture
 
-  const background = gradientBackground('#dee1e8', '#a9aeba')
+  // Deeper cyclorama falloff → more contrast so the matte body reads with form.
+  const background = gradientBackground([
+    [0, '#e2e5ec'],
+    [0.55, '#bcc1cd'],
+    [1, '#878d9c']
+  ])
   scene.background = background
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.75)
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.62)
   scene.add(hemi)
 
-  const key = new THREE.DirectionalLight(0xfff6ec, 2.0)
+  const key = new THREE.DirectionalLight(0xfff6ec, 1.9)
   key.position.set(3.2, 6.0, 4.2)
   key.castShadow = true
   key.shadow.mapSize.set(2048, 2048)
@@ -56,41 +82,68 @@ export function setupEnvironment(
   const coolRim = new THREE.DirectionalLight(0x9cc0ff, 0.6)
   coolRim.position.set(-4, 3, -4)
   scene.add(coolRim)
-  const warmRim = new THREE.DirectionalLight(0xffc79a, 0.35)
+  const warmRim = new THREE.DirectionalLight(0xffc79a, 0.32)
   warmRim.position.set(4.5, 1.6, -2)
   scene.add(warmRim)
 
   // Gently reflective floor + a transparent shadow-catcher above it.
-  const floor = new Reflector(new THREE.CircleGeometry(14, 96), {
+  const floor = new Reflector(track(new THREE.CircleGeometry(14, 96)), {
     textureWidth: 1024,
     textureHeight: 1024,
-    color: 0x8f95a3,
+    color: 0x828794,
     clipBias: 0.003
   })
   floor.rotation.x = -Math.PI / 2
   scene.add(floor)
+  disposables.push({ dispose: () => floor.dispose() })
 
-  const shadowCatcher = new THREE.Mesh(
-    new THREE.CircleGeometry(14, 96),
-    new THREE.ShadowMaterial({ opacity: 0.28 })
-  )
+  const shadowMat = track(new THREE.ShadowMaterial({ opacity: 0.3 }))
+  const shadowCatcher = new THREE.Mesh(track(new THREE.CircleGeometry(14, 96)), shadowMat)
   shadowCatcher.rotation.x = -Math.PI / 2
   shadowCatcher.position.y = 0.001
   shadowCatcher.receiveShadow = true
   scene.add(shadowCatcher)
 
+  // Soft light pool — lifts the figure off the floor with a gentle spotlight glow.
+  const poolTex = track(radialGlowTexture())
+  const poolMat = track(
+    new THREE.MeshBasicMaterial({
+      map: poolTex,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    })
+  )
+  const pool = new THREE.Mesh(track(new THREE.PlaneGeometry(3.2, 3.2)), poolMat)
+  pool.rotation.x = -Math.PI / 2
+  pool.position.y = 0.004
+  scene.add(pool)
+
+  // Subtle pedestal so the piece stands on a product podium.
+  const pedMat = track(
+    new THREE.MeshStandardMaterial({ color: 0xdfe2ea, roughness: 0.62, metalness: 0 })
+  )
+  const pedestal = new THREE.Mesh(track(new THREE.CylinderGeometry(0.62, 0.7, 0.08, 72)), pedMat)
+  pedestal.position.y = 0.04
+  pedestal.castShadow = true
+  pedestal.receiveShadow = true
+  scene.add(pedestal)
+
   const grid = new THREE.GridHelper(24, 48, 0x8890a2, 0x9aa0ac)
   const gridMat = grid.material as THREE.Material
   gridMat.transparent = true
-  gridMat.opacity = 0.12
+  gridMat.opacity = 0.1
   grid.position.y = 0.002
   scene.add(grid)
+  disposables.push({ dispose: () => gridMat.dispose() })
 
   return {
     dispose: () => {
       pmrem.dispose()
       envTexture.dispose()
       background.dispose()
+      for (const d of disposables) d.dispose()
     }
   }
 }

@@ -15,7 +15,7 @@ import { getFabric, fabricToSolverParams, type Fabric } from '../fabric/FabricLi
 import { buildDesignArt, hasArt, type DesignArt, type DesignConfig } from './design'
 
 const VignetteShader = {
-  uniforms: { tDiffuse: { value: null }, darkness: { value: 0.5 }, offset: { value: 1.1 } },
+  uniforms: { tDiffuse: { value: null }, darkness: { value: 0.62 }, offset: { value: 1.05 } },
   vertexShader: /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: /* glsl */ `uniform sampler2D tDiffuse; uniform float darkness; uniform float offset; varying vec2 vUv;
     void main(){ vec4 t = texture2D(tDiffuse, vUv); vec2 uv = (vUv - 0.5) * offset; float v = clamp(1.0 - dot(uv, uv) * darkness, 0.0, 1.0); gl_FragColor = vec4(t.rgb * v, t.a); }`
@@ -46,6 +46,8 @@ export class PreviewStudio {
   private paused = false
   private firstFrame = true
   private resumeTimer = 0
+  private bodyQueued = false
+  private pendingBody: DesignConfig | null = null
 
   constructor(
     private readonly container: HTMLElement,
@@ -56,21 +58,23 @@ export class PreviewStudio {
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-    this.renderer.toneMappingExposure = 1.05
+    this.renderer.toneMappingExposure = 0.95 // tamed so the matte body reads with form
     container.appendChild(this.renderer.domElement)
 
     this.env = setupEnvironment(this.scene, this.renderer)
 
-    this.camera = new THREE.PerspectiveCamera(38, 1, 0.05, 100)
-    this.camera.position.set(0, 1.12, 3.2)
+    // Three-quarter hero framing: slightly low, angled, close enough to fill the
+    // wide preview so the piece is the subject (not a small figure in dead space).
+    this.camera = new THREE.PerspectiveCamera(36, 1, 0.05, 100)
+    this.camera.position.set(1.05, 1.02, 2.55)
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.enableDamping = true
     this.controls.enablePan = false
     this.controls.minDistance = 1.6
     this.controls.maxDistance = 5
-    this.controls.target.set(0, 1.0, 0)
+    this.controls.target.set(0, 0.92, 0)
     this.controls.autoRotate = !this.reducedMotion
-    this.controls.autoRotateSpeed = 2.2 // ~1 rev / 24 s
+    this.controls.autoRotateSpeed = 2.0 // ~1 rev / 26 s
     this.controls.update()
 
     this.scene.add(this.mannequin.group)
@@ -88,7 +92,7 @@ export class PreviewStudio {
     // reflective floor + shadow-catcher in setupEnvironment) ----
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.camera))
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.14, 0.5, 1.9)
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.1, 0.5, 2.0)
     this.composer.addPass(this.bloom)
     this.composer.addPass(new ShaderPass(VignetteShader))
     this.composer.addPass(new OutputPass())
@@ -126,6 +130,22 @@ export class PreviewStudio {
   rebuild(config: DesignConfig): void {
     this.applyLook(config)
     this.ctl.build(config.garmentType, config)
+  }
+
+  /**
+   * Resize the mannequin (height/build), then refit the garment. Coalesced to one
+   * rebuild per frame so dragging the slider doesn't stack RES-90 body + BVH builds.
+   */
+  setBody(config: DesignConfig): void {
+    this.pendingBody = config
+    if (this.bodyQueued) return
+    this.bodyQueued = true
+    requestAnimationFrame(() => {
+      this.bodyQueued = false
+      const c = this.pendingBody!
+      this.mannequin.resize({ height: c.bodyHeight, build: c.bodyBuild })
+      this.ctl.build(c.garmentType, c)
+    })
   }
 
   /** Update material only (colour / fabric / graphic / text). */

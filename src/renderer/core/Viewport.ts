@@ -33,7 +33,7 @@ export class Viewport {
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-    this.renderer.toneMappingExposure = 1.05
+    this.renderer.toneMappingExposure = 0.95 // matches the homepage preview
     container.appendChild(this.renderer.domElement)
 
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.05, 100)

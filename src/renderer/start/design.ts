@@ -12,6 +12,9 @@ export interface DesignConfig {
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
+  /** Mannequin size — height scales Y, build scales width/girth. */
+  bodyHeight: number
+  bodyBuild: number
   /** Your uploaded graphic/print (optional). */
   image: HTMLImageElement | null
   imageScale: number
@@ -29,6 +32,8 @@ export function defaultConfig(): DesignConfig {
     flare: 0.05,
     neckline: 'scoop',
     sleeve: 'short',
+    bodyHeight: 1,
+    bodyBuild: 1,
     image: null,
     imageScale: 0.4,
     text: '',
