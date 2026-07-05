@@ -1,18 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { MEASUREMENTS } from '../src/renderer/avatar/Mannequin'
-import {
-  buildGarmentSpecs,
-  DEFAULT_PARAMS,
-  GARMENT_TYPES,
-  type GarmentType
-} from '../src/renderer/garment/templates'
 import * as THREE from 'three'
+import { MEASUREMENTS } from '../src/renderer/avatar/Mannequin'
+import { DEFAULT_PARAMS, GARMENT_TYPES, type GarmentType } from '../src/renderer/garment/templates'
+import { getGarment, GARMENTS } from '../src/renderer/garments/registry'
+import { garmentTubeSpecs } from '../src/renderer/garments/factory'
 import { fillTube, fillAxisTube } from '../src/renderer/cloth/Garment'
+import type { GarmentParams } from '../src/renderer/garment/templates'
 
-describe('garment construction', () => {
+const specs = (t: GarmentType, p: GarmentParams = DEFAULT_PARAMS): ReturnType<typeof garmentTubeSpecs> =>
+  garmentTubeSpecs(getGarment(t), p, MEASUREMENTS)
+
+describe('garment construction (schema + factory)', () => {
   it('tops/dresses carry a neckline + shoulder line; a dress has a cinched waist', () => {
-    const dress = buildGarmentSpecs('dress', DEFAULT_PARAMS, MEASUREMENTS)[0]
-    const top = buildGarmentSpecs('top', DEFAULT_PARAMS, MEASUREMENTS)[0]
+    const dress = specs('dress')[0]
+    const top = specs('top')[0]
     expect(dress.neckline).toBe('scoop')
     expect(dress.shoulderY).toBe(MEASUREMENTS.shoulderY)
     expect(dress.radiusWaist).toBeLessThan(dress.radiusTop) // waist cinched vs bust
@@ -60,19 +61,26 @@ describe('garment construction', () => {
   })
 })
 
-describe('garment templates', () => {
-  it('produces the right number of pieces per type', () => {
-    const count = (t: GarmentType): number =>
-      buildGarmentSpecs(t, DEFAULT_PARAMS, MEASUREMENTS).length
-    expect(count('dress')).toBe(1)
-    expect(count('skirt')).toBe(1)
-    expect(count('top')).toBe(1)
-    expect(count('pants')).toBe(2) // two legs
+describe('garment registry + factory', () => {
+  it('every definition is data-valid (id/name/pieces/supports)', () => {
+    for (const g of GARMENTS) {
+      expect(g.id).toBeTruthy()
+      expect(g.name).toBeTruthy()
+      expect(g.pieces.length).toBeGreaterThan(0)
+      expect(g.supports).toBeTruthy()
+    }
+  })
+
+  it('produces the right number of tube pieces per type', () => {
+    expect(specs('dress').length).toBe(1)
+    expect(specs('skirt').length).toBe(1)
+    expect(specs('top').length).toBe(1)
+    expect(specs('pants').length).toBe(2) // two legs
   })
 
   it('produces geometrically valid tube pieces', () => {
     for (const t of GARMENT_TYPES) {
-      for (const spec of buildGarmentSpecs(t, DEFAULT_PARAMS, MEASUREMENTS)) {
+      for (const spec of specs(t)) {
         expect(spec.topY).toBeGreaterThan(spec.bottomY)
         expect(spec.radiusTop).toBeGreaterThan(0)
         expect(spec.radiusBottom).toBeGreaterThan(0)
@@ -83,13 +91,13 @@ describe('garment templates', () => {
   })
 
   it('length makes the hem lower', () => {
-    const short = buildGarmentSpecs('dress', { ...DEFAULT_PARAMS, length: 0.1 }, MEASUREMENTS)[0]
-    const long = buildGarmentSpecs('dress', { ...DEFAULT_PARAMS, length: 0.95 }, MEASUREMENTS)[0]
+    const short = specs('dress', { ...DEFAULT_PARAMS, length: 0.1 })[0]
+    const long = specs('dress', { ...DEFAULT_PARAMS, length: 0.95 })[0]
     expect(long.bottomY).toBeLessThan(short.bottomY)
   })
 
   it('pants legs are offset left and right of centre', () => {
-    const [l, r] = buildGarmentSpecs('pants', DEFAULT_PARAMS, MEASUREMENTS)
+    const [l, r] = specs('pants')
     expect(Math.sign(l.centerX ?? 0)).toBe(-Math.sign(r.centerX ?? 0))
     expect(Math.abs(l.centerX ?? 0)).toBeCloseTo(MEASUREMENTS.hipHalfX, 6)
   })

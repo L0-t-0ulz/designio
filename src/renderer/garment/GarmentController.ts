@@ -3,16 +3,11 @@ import type { Capsule } from '../avatar/colliders'
 import type { Measurements } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
-import {
-  buildAxisTube,
-  buildTubeGarment,
-  fillAxisTube,
-  fillTube,
-  type AxisTubeSpec,
-  type TubeBuild
-} from '../cloth/Garment'
+import type { TubeBuild } from '../cloth/Garment'
 import { XPBDSolver } from '../cloth/XPBDSolver'
-import { buildGarmentSpecs, type GarmentParams, type GarmentType } from './templates'
+import type { GarmentParams, GarmentType } from './templates'
+import { buildGarment } from '../garments/factory'
+import { getGarment } from '../garments/registry'
 
 interface Piece {
   geometry: THREE.BufferGeometry
@@ -42,39 +37,13 @@ export class GarmentController {
     private readonly bodyCollider: BodyCollider | null = null
   ) {}
 
-  /** (Re)build the garment for a template + params. */
+  /** (Re)build the garment from its data definition + fit params via the factory. */
   build(type: GarmentType, garmentParams: GarmentParams): void {
     this.dispose()
-    for (const spec of buildGarmentSpecs(type, garmentParams, this.measurements)) {
-      this.addPiece(buildTubeGarment(spec), (pos) => fillTube(pos, spec))
+    const def = getGarment(type)
+    for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
+      this.addPiece(p.build, p.refill)
     }
-    const sleeve = garmentParams.sleeve ?? 'none'
-    if ((type === 'top' || type === 'dress') && sleeve !== 'none') {
-      for (const spec of this.sleeveSpecs(sleeve === 'long')) {
-        this.addPiece(buildAxisTube(spec), (pos) => fillAxisTube(pos, spec))
-      }
-    }
-  }
-
-  /** Two sleeve tubes along the arm capsules (indices 5/6 = left, 9/10 = right). */
-  private sleeveSpecs(long: boolean): AxisTubeSpec[] {
-    const arms: [Capsule, Capsule][] = [
-      [this.colliders[5], this.colliders[6]],
-      [this.colliders[9], this.colliders[10]]
-    ]
-    return arms.map(([upper, fore]) => {
-      const a = upper.a.clone() // shoulder
-      const b = (long ? fore.b : upper.b).clone() // wrist or elbow
-      const len = a.distanceTo(b)
-      return {
-        rings: Math.max(6, Math.min(28, Math.round(len / 0.03))),
-        radial: 26,
-        a,
-        b,
-        radiusStart: 0.085,
-        radiusEnd: (long ? fore.radius : upper.radius) + 0.03
-      }
-    })
   }
 
   private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void): void {
