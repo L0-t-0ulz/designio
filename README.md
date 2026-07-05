@@ -4,13 +4,13 @@ A personal, fully-3D clothing design tool — in the spirit of [CLO3D](https://w
 [Browzwear](https://browzwear.com/) — for designing your own clothes realistically and virtually.
 Built as a desktop app (Electron + Three.js + TypeScript).
 
-> **Status: Early build.** A real-time garment drapes on a dress-form mannequin in a studio scene with
-> live cloth physics. Pattern drafting, sewing 2D panels into 3D garments, and photoreal fabric detail
-> come next (see the roadmap).
+> **Status: Working build.** Design garments (templates or sewn from 2D patterns) on a **smooth human
+> mannequin**, dress them in real fabrics with live cloth physics, animate the body, and export the
+> result — all in a studio scene.
 
-![DesignIO — a fitted cotton dress draped on the dress-form mannequin](docs/preview.png)
+![DesignIO — a fitted cotton dress draped on the smooth human mannequin](docs/preview.png)
 
-*Live capture: a fitted sleeveless dress simulated on the mannequin in the studio.*
+*Live capture: a fitted dress simulated on the smooth (metaball) mannequin in the studio.*
 
 ![DesignIO — macro close-up of woven satin showing the weave and sheen](docs/closeup.png)
 
@@ -18,7 +18,8 @@ Built as a desktop app (Electron + Three.js + TypeScript).
 
 ## What you can do right now
 
-- Orbit / zoom / pan around a dress-form mannequin in a neutral studio scene.
+- Orbit / zoom / pan around a **smooth human mannequin** (a continuous body, built procedurally with
+  metaballs) in a neutral studio scene.
 - Pick a **garment template** — **dress, skirt, top, or pants** — and tweak its **length, looseness,
   and flare**; it rebuilds and re-drapes on the body (pants simulate as two legs).
 - Each garment **drapes with real folds** — an XPBD cloth solver with body-capsule collision +
