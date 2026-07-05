@@ -1,7 +1,11 @@
 import '@fontsource-variable/inter'
 import './ui/tokens.css'
 import './ui/styles.css'
+import './ui/shell.css'
 import { Viewport } from './core/Viewport'
+import { createStudioShell } from './shell/StudioShell'
+import { buildMenuBar } from './shell/menuBar'
+import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
@@ -129,6 +133,9 @@ function initStudio(config: DesignConfig): void {
 
   // ---- loop ----
   let simTime = 0
+  let statusHandles: StatusHandles | null = null
+  let frames = 0
+  let fpsT = performance.now()
   const loop = new Loop(
     (dt) => {
       simTime += dt
@@ -138,6 +145,13 @@ function initStudio(config: DesignConfig): void {
     () => {
       active.updateMeshes()
       viewport.render()
+      frames++
+      const now = performance.now()
+      if (now - fpsT >= 500) {
+        statusHandles?.setFps((frames * 1000) / (now - fpsT))
+        frames = 0
+        fpsT = now
+      }
     }
   )
 
@@ -146,6 +160,10 @@ function initStudio(config: DesignConfig): void {
   if (bt !== 'female' || Object.values(bodyScales).some((v) => v !== 1)) setBody(bodySize)
   applyFabricVisual()
   loop.start()
+
+  // ---- professional studio shell (menu bar · viewport · dock · status bar) ----
+  const shell = createStudioShell(() => viewport.resize())
+  viewport.mount(shell.center)
 
   // ---- deep-links (snapshots) ----
   const params = new URLSearchParams(location.search)
@@ -222,13 +240,36 @@ function initStudio(config: DesignConfig): void {
   // ---- back to the start page ("Design your piece") ----
   function goBack(): void {
     loop.stop()
-    panel.remove()
+    shell.dispose()
     garmentCtl.clear()
     patternCtl.clear()
     showStartPage(FABRIC_LIBRARY, initStudio, config)
   }
 
-  // ---- UI ----
+  // ---- menu bar + status bar (wired to the real actions) ----
+  buildMenuBar(shell.menubar, {
+    onNew: goBack,
+    onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
+    onAnim: setAnimMode,
+    onToggleWireframe: () => (material.wireframe = !material.wireframe),
+    onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
+    onTogglePanel: () => shell.toggleRight(),
+    onResetLayout: () => shell.resetLayout(),
+    onAbout: () =>
+      window.alert('DesignIO — a fully-3D clothing design studio.\n© Zayan Khan. All rights reserved.')
+  })
+  let running = true
+  statusHandles = buildStatusBar(
+    shell.statusbar,
+    () => {
+      running = !running
+      loop.setRunning(running)
+      statusHandles?.setSim(running)
+    },
+    running
+  )
+
+  // ---- control panel (docked into the right region) ----
   const panel = createControlPanel({
     loop,
     viewport,
@@ -278,6 +319,7 @@ function initStudio(config: DesignConfig): void {
     },
     onBack: goBack
   })
+  shell.right.appendChild(panel) // dock the control panel into the shell's right region
 
   if (params.get('closeup') === '1') {
     viewport.camera.position.set(0.12, 1.16, 0.62)

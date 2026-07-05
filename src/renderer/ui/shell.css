@@ -1,0 +1,201 @@
+/* ===== Professional studio shell (menu bar · viewport · dock · status bar) ===== */
+.dio-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-0);
+  color: var(--fg-0);
+  font: 13px/1.4 var(--font-ui);
+}
+
+/* ---- menu bar ---- */
+.dio-shell-menubar {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  height: 36px;
+  padding: 0 6px;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border-bottom: 1px solid var(--hairline);
+  user-select: none;
+}
+.dio-menu-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 0 8px;
+  font-weight: 680;
+  letter-spacing: -0.2px;
+}
+.dio-menu-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+.dio-menu {
+  position: relative;
+  display: flex;
+}
+.dio-menu-btn {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--fg-1);
+  font: inherit;
+  padding: 0 11px;
+  cursor: pointer;
+  border-radius: 7px;
+  margin: 4px 1px;
+}
+.dio-menu-btn:hover,
+.dio-menu.open .dio-menu-btn {
+  background: var(--accent-soft);
+  color: var(--fg-0);
+}
+.dio-menu-drop {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 2px;
+  min-width: 210px;
+  z-index: 40;
+  padding: 5px;
+  background: var(--glass-hi);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-3);
+}
+.dio-menu.open .dio-menu-drop {
+  display: block;
+}
+.dio-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--fg-0);
+  font: inherit;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dio-menu-item:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.dio-menu-item.disabled {
+  color: var(--fg-2);
+  cursor: default;
+}
+.dio-menu-item.disabled:hover {
+  background: none;
+  color: var(--fg-2);
+}
+.dio-menu-sep {
+  height: 1px;
+  margin: 5px 6px;
+  background: var(--hairline);
+}
+
+/* ---- body (viewport + dock) ---- */
+.dio-shell-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.dio-shell-center {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bg-1);
+}
+.dio-shell-center canvas {
+  display: block;
+}
+.dio-shell-right {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--glass);
+  border-left: 1px solid var(--hairline);
+  display: flex;
+}
+
+/* the existing control panel, docked to fill the right region */
+.dio-shell-right .dio-panel {
+  position: static;
+  width: 100%;
+  max-height: none;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ---- split.js gutter ---- */
+.gutter {
+  background: var(--bg-2);
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+  border-left: 1px solid var(--hairline);
+  border-right: 1px solid var(--hairline);
+}
+.gutter.gutter-horizontal:hover {
+  background: var(--accent-soft);
+}
+
+/* ---- status bar ---- */
+.dio-shell-status {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  color: var(--fg-1);
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  border-top: 1px solid var(--hairline);
+  user-select: none;
+}
+.dio-status-btn {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: var(--card-bg);
+  color: var(--fg-0);
+  font: inherit;
+  font-size: 11.5px;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+}
+.dio-status-btn:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.dio-status-item {
+  color: var(--fg-1);
+  font-variant-numeric: tabular-nums;
+}
+.dio-status-spacer {
+  flex: 1;
+}
+.dio-status-fps {
+  color: var(--fg-2);
+  min-width: 56px;
+  text-align: right;
+}

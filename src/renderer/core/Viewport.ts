@@ -27,7 +27,7 @@ export class Viewport {
   private readonly composer: EffectComposer
   private readonly bloom: UnrealBloomPass
 
-  constructor(private readonly container: HTMLElement) {
+  constructor(private container: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.shadowMap.enabled = true
@@ -59,6 +59,18 @@ export class Viewport {
     this.composer.addPass(new SMAAPass())
 
     window.addEventListener('resize', this.onResize)
+    this.onResize()
+  }
+
+  /** Move the canvas into a new container (e.g. the shell's centre pane) + resize. */
+  mount(container: HTMLElement): void {
+    container.appendChild(this.renderer.domElement)
+    this.container = container
+    this.onResize()
+  }
+
+  /** Re-fit to the current container (call after a splitter drag / panel collapse). */
+  resize(): void {
     this.onResize()
   }
 
