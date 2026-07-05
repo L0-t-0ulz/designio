@@ -245,19 +245,28 @@ function initStudio(config: DesignConfig): void {
     }
   }
 
-  // ---- back to the start page ("Design your piece") ----
-  function goBack(): void {
+  // ---- navigation out of the studio ----
+  function teardown(): void {
     loop.stop()
     shell.dispose()
     garmentCtl.clear()
     patternCtl.clear()
+  }
+  // "← Start": back to the builder, keeping this design.
+  function goBack(): void {
+    teardown()
     showStartPage(FABRIC_LIBRARY, initStudio, config, openHome)
+  }
+  // "New design": start fresh from the homepage launcher.
+  function goHome(): void {
+    teardown()
+    openHome()
   }
 
   // ---- menu bar + status bar (wired to the real actions) ----
   let simpleView = false
   buildMenuBar(shell.menubar, {
-    onNew: goBack,
+    onNew: goHome,
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
     onAnim: setAnimMode,
     onToggleWireframe: () => (material.wireframe = !material.wireframe),
@@ -411,7 +420,9 @@ function initStudio(config: DesignConfig): void {
 function openHome(): void {
   showHomepage({
     onNewDesign: () => showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome),
-    onTemplate: (cfg) => initStudio(cfg)
+    // Templates open the preview pre-filled (Homepage → Preview → Studio), so the
+    // route is consistent and you can tweak before entering 3D.
+    onTemplate: (cfg) => showStartPage(FABRIC_LIBRARY, initStudio, cfg, openHome)
   })
 }
 
