@@ -6,11 +6,30 @@
  * of a `.dio` project. Pure + unit-tested; the runtime (main.ts) builds live
  * meshes/solvers from it and reads them back into it.
  */
-import type { GarmentType, SleeveStyle } from '../garment/templates'
+import type { GarmentParams, GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import type { DesignConfig } from '../start/design'
 import { getGarment } from '../garments/registry'
+
+/** Manufacturing sizes. `M` is the drafted block; each step grades the girth. */
+export type SizeLabel = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL'
+export const SIZES: SizeLabel[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+const SIZE_STEP: Record<SizeLabel, number> = { XS: -2, S: -1, M: 0, L: 1, XL: 2, XXL: 3 }
+/** Girth grade per size: one step ≈ +4 cm circumference (≈ +0.64 cm radius). */
+export function sizeEase(size: SizeLabel): number {
+  return SIZE_STEP[size] * 0.0064
+}
+/** A layer's construction params with its size grade folded into the ease (girth). */
+export function gradeParams(l: GarmentLayerData): GarmentParams {
+  return {
+    length: l.length,
+    ease: Math.max(0, l.ease + sizeEase(l.size)),
+    flare: l.flare,
+    neckline: l.neckline,
+    sleeve: l.sleeve
+  }
+}
 
 /** One garment worn on the body (its own construction + fabric + print). */
 export interface GarmentLayerData {
@@ -20,6 +39,8 @@ export interface GarmentLayerData {
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
+  /** Manufacturing size (grades the girth). */
+  size: SizeLabel
   fabricId: string
   color: number
   /** Printed text on the garment ('' = none). Uploaded PNGs are runtime-only. */
@@ -68,6 +89,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     flare: c.flare,
     neckline: c.neckline,
     sleeve: c.sleeve,
+    size: 'M',
     fabricId: c.fabricId,
     color: c.color,
     text: c.text,
@@ -86,6 +108,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     flare: d.flare ?? 0.05,
     neckline: d.neckline ?? 'scoop',
     sleeve: d.sleeve ?? 'short',
+    size: 'M',
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',
     color: 0xc85a54,
     text: '',

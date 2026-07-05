@@ -14,7 +14,7 @@ import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { buildDesignArt, hasArt, type DesignArt } from '../start/design'
-import type { GarmentLayerData } from './document'
+import { gradeParams, type GarmentLayerData } from './document'
 
 const TEXT_COLOR = 0x1a1a22
 
@@ -95,7 +95,7 @@ export class GarmentStack {
   }
 
   rebuild(l: StackLayer): void {
-    l.controller.build(l.data.garmentType, l.data)
+    l.controller.build(l.data.garmentType, gradeParams(l.data))
     this.applyVisibility(l)
   }
   rebuildAll(): void {
