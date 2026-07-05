@@ -57,7 +57,8 @@ Renderer modules:
   `design` (`DesignConfig`), `presets` (ready-made looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
   (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar`, `statusBar`,
-  `library` (tabbed asset browser), `objectBrowser` (scene pieces + visibility), `layoutStore`.
+  `library` (tabbed asset browser), `objectBrowser` (scene pieces + visibility), `centerTabs`
+  (3D · 2D-pattern dual viewport), `layoutStore`.
 - `ui/` — `panel` (the **context-sensitive Property Editor** — Garment/Avatar/Scene; returns `{panel, api}`
   the Library drives), `controls` (DOM helpers), `thumbnails` (shared swatch/silhouette), `patternSchematic`,
   `tokens.css` / `styles.css` / `shell.css`.

@@ -56,10 +56,11 @@ to open it in the full studio (and **← Start** to come back, keeping your desi
 
 ### A professional studio (CLO3D-style, but friendly)
 The studio is a **dockable CAD-style workspace** — a top **menu bar**, a left **Library** (tabbed,
-searchable: garments · fabrics · avatars · presets), the central **3D viewport**, a right **Object
-Browser** (scene pieces + show/hide) above a context-sensitive **Property Editor** (Garment / Avatar /
-Scene), and a **status bar** (live fps · simulate/pause). Panels **resize, collapse, and persist**. Built
-vanilla (CSS + split.js) — with sensible defaults so it stays approachable, not overwhelming.
+searchable: garments · fabrics · avatars · presets), a **dual central viewport** (**3D** · **2D pattern**),
+a right **Object Browser** (scene pieces + show/hide) above a context-sensitive **Property Editor** (Garment
+/ Avatar / Scene), and a **status bar** (live fps · simulate/pause). Panels **resize, collapse, and
+persist**. Built vanilla (CSS + split.js) — with sensible defaults so it stays approachable, not
+overwhelming.
 
 ### A real garment catalog — 16 garments, all data-driven
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
