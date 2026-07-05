@@ -54,8 +54,12 @@ Renderer modules:
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
   supported controls), `registry` (the garments, as data), `factory` (`buildGarment` composes pieces).
   Adding a garment is a data change, not new code.
-- `garment/` — `GarmentController` (multi-piece sim manager, consumes the factory); `templates` (shared
-  `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh-accurate collision.
+- `garment/` — `GarmentController` (one garment's multi-piece sim, consumes the factory); `templates`
+  (shared `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh collision.
+- `studio/` — the **multi-garment layer stack**: `document` (`ProjectDoc` = body + scene + serialisable
+  garment `layers[]`; `serializeDoc`/`parseDoc` — the `.dio` project + undo/redo snapshots + clipboard),
+  `GarmentStack` (the live layers: each its own material · fabric · print · `GarmentController`; many
+  garments simulate on one mannequin). Adding a garment is `stack.addLayer`; the active layer is edited.
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
@@ -64,14 +68,17 @@ Renderer modules:
 - `start/` — `StartPage` (the "design your piece" landing), `PreviewStudio` (live 3D preview),
   `design` (`DesignConfig`), `presets` (ready-made looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
-  (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar`, `statusBar`,
-  `library` (tabbed asset browser), `objectBrowser` (scene pieces + visibility), `centerTabs`
-  (3D · 2D-pattern dual viewport), `layoutStore`.
+  (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar` (File: New · Open/Save
+  `.dio` project · Exports; Edit: undo/redo · cut/copy/paste/duplicate/delete garment), `statusBar`,
+  `library` (tabbed asset browser), `objectBrowser` (the **garment layers** worn on the body — select ·
+  visibility · add/duplicate/delete), `centerTabs` (3D · 2D-pattern dual viewport), `layoutStore`.
 - `ui/` — `panel` (the **context-sensitive Property Editor** — Garment/Avatar/Scene; returns `{panel, api}`
   the Library drives), `controls` (DOM helpers), `thumbnails` (shared swatch/silhouette), `patternSchematic`,
   `tokens.css` / `styles.css` / `shell.css`.
-- `main.ts` — `initStudio(config)` builds the shell, mounts the viewport + Library + Object Browser +
-  Property Editor; shows the start page first (deep-links skip in).
+- `main.ts` — `initStudio(config)` builds the shell + a `GarmentStack`, mounts the viewport + Library +
+  Object Browser + Property Editor; the panel edits the **active layer** via buffers; owns undo/redo
+  (doc snapshots), the garment clipboard, keyboard shortcuts, and `.dio` save/open. Start page first
+  (deep-links skip in). Electron: `dialog:saveFile` + `dialog:openFile` IPC.
 
 ## Conventions
 
@@ -88,6 +95,7 @@ Renderer modules:
 its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>` ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (procedural vs realistic-GLB avatar) ·
+`?layers=<id>,<id>` (layer extra garments on the body — a layered outfit) ·
 `?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable) · `?page=start` (deep-link the
 builder, bypassing the homepage). Entry is the homepage launcher → start page → studio. Regenerate docs
 with `npm run capture`.

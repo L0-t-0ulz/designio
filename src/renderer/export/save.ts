@@ -5,6 +5,7 @@ export interface SaveFilter {
 
 interface DesignioApi {
   saveFile(name: string, data: string | Uint8Array, filters?: SaveFilter[]): Promise<string | null>
+  openFile?(filters?: SaveFilter[]): Promise<{ path: string; content: string } | null>
 }
 
 declare global {
@@ -37,4 +38,26 @@ export async function saveFile(
   a.download = name
   a.click()
   URL.revokeObjectURL(url)
+}
+
+/**
+ * Open a text file via the Electron open dialog; falls back to a hidden file
+ * input in the browser. Returns the file's text (+ path) or null if cancelled.
+ */
+export async function openFile(filters?: SaveFilter[]): Promise<{ path: string; content: string } | null> {
+  const api = window.designio
+  if (api?.openFile) return api.openFile(filters)
+  return new Promise((resolve) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    if (filters?.[0]) input.accept = filters[0].extensions.map((e) => '.' + e).join(',')
+    input.addEventListener('change', () => {
+      const f = input.files?.[0]
+      if (!f) return resolve(null)
+      const reader = new FileReader()
+      reader.onload = () => resolve({ path: f.name, content: String(reader.result) })
+      reader.readAsText(f)
+    })
+    input.click()
+  })
 }

@@ -126,6 +126,14 @@ simulate* to wrap them onto the body.)
 
 ![Pattern mode — two panels sewn around the torso](docs/pattern.png)
 
+### Layer many garments · save & reopen your project
+Dress the mannequin in a **whole outfit** — add as many garments as you like (a top *and* a skirt *and* a
+jacket…), each with its own fabric, colour and print, all simulating together on one body. The **Object
+Browser** lists every garment: **select** one to edit it, toggle its **visibility**, and **add / duplicate
+/ delete** from the toolbar. Full **cut / copy / paste** (⌘X/C/V), **duplicate** (⌘D) and **undo / redo**
+(⌘Z / ⇧⌘Z). When you're happy, **Save project** to a `.dio` file and **Open** it later to pick up exactly
+where you left off — then export it to get it made.
+
 ### Add your own graphic + text, right in the studio
 Beyond the start page, the studio's **Appearance** panel lets you **import a PNG** (or JP/WebP) and add
 **printed text** onto the garment live — with an adjustable graphic size — so you can iterate on prints

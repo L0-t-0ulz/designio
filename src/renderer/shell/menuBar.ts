@@ -4,7 +4,16 @@ import type { AnimationMode } from '../avatar/Mannequin'
 
 export interface MenuActions {
   onNew: () => void
+  onOpenProject: () => void
+  onSaveProject: () => void
   onExport: (fmt: ExportFormat) => void
+  onUndo: () => void
+  onRedo: () => void
+  onCut: () => void
+  onCopy: () => void
+  onPaste: () => void
+  onDuplicate: () => void
+  onDelete: () => void
   onAnim: (mode: AnimationMode) => void
   onToggleWireframe: () => void
   onToggleMannequin: () => void
@@ -85,6 +94,9 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
   menu('File', [
     { label: 'New design…', run: a.onNew },
     { sep: true },
+    { label: 'Open project… (.dio)', run: a.onOpenProject },
+    { label: 'Save project (.dio)', run: a.onSaveProject },
+    { sep: true },
     ex('glb', 'Export 3D — glTF (.glb)'),
     ex('obj', 'Export 3D — OBJ'),
     ex('svg', 'Export pattern — SVG'),
@@ -93,8 +105,15 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('json', 'Export design (JSON)')
   ])
   menu('Edit', [
-    { label: 'Undo', disabled: true },
-    { label: 'Redo', disabled: true }
+    { label: 'Undo', run: a.onUndo },
+    { label: 'Redo', run: a.onRedo },
+    { sep: true },
+    { label: 'Cut garment', run: a.onCut },
+    { label: 'Copy garment', run: a.onCopy },
+    { label: 'Paste garment', run: a.onPaste },
+    { label: 'Duplicate garment', run: a.onDuplicate },
+    { sep: true },
+    { label: 'Delete garment', run: a.onDelete }
   ])
   menu('Avatar', [
     { label: 'Idle', run: () => a.onAnim('idle') },

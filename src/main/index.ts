@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, shell, type Session } from 'electron'
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 const REPO_URL = 'https://github.com/ZayanKhan-12/designio'
@@ -86,6 +86,15 @@ ipcMain.handle(
     return filePath
   }
 )
+
+// Open-file bridge for reopening `.dio` projects.
+ipcMain.handle('dialog:openFile', async (_event, { filters }: { filters?: Electron.FileFilter[] }) => {
+  const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+  const { canceled, filePaths } = await dialog.showOpenDialog(win!, { properties: ['openFile'], filters })
+  if (canceled || !filePaths[0]) return null
+  const content = await readFile(filePaths[0], 'utf8')
+  return { path: filePaths[0], content }
+})
 
 app.whenReady().then(() => {
   buildMenu()

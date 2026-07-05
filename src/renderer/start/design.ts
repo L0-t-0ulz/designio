@@ -56,10 +56,19 @@ export interface DesignArt {
   redraw: () => void
 }
 
+/** The minimal fields the albedo canvas needs — a `DesignConfig` or a garment layer. */
+export interface DesignArtInput {
+  color: number
+  image: HTMLImageElement | null
+  imageScale: number
+  text: string
+  textColor: number
+}
+
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 
 /** Whether the design carries any user art (graphic or text) vs a plain colour. */
-export function hasArt(c: DesignConfig): boolean {
+export function hasArt(c: { image: HTMLImageElement | null; text: string }): boolean {
   return c.image != null || c.text.trim().length > 0
 }
 
@@ -68,7 +77,7 @@ export function hasArt(c: DesignConfig): boolean {
  * `map`. Base colour fills it; your graphic + text sit on the chest area. The
  * procedural weave normal map still layers on top for fabric detail.
  */
-export function buildDesignArt(config: DesignConfig): DesignArt {
+export function buildDesignArt(config: DesignArtInput): DesignArt {
   const size = 1024
   const canvas = document.createElement('canvas')
   canvas.width = size
