@@ -8,6 +8,7 @@ import { buildMenuBar } from './shell/menuBar'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { buildLibrary } from './shell/library'
 import { buildObjectBrowser } from './shell/objectBrowser'
+import { buildCenterTabs } from './shell/centerTabs'
 import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
@@ -168,6 +169,9 @@ function initStudio(config: DesignConfig): void {
   // ---- professional studio shell (menu bar · viewport · dock · status bar) ----
   const shell = createStudioShell(() => viewport.resize())
   viewport.mount(shell.center)
+  const centerTabs = buildCenterTabs(shell.center, () =>
+    patternToSVG({ bust: patternParams.bust, length: patternParams.length })
+  )
 
   // ---- deep-links (snapshots) ----
   const params = new URLSearchParams(location.search)
@@ -301,7 +305,10 @@ function initStudio(config: DesignConfig): void {
       garmentCtl.build(garment.type, garment)
       syncBrowsers()
     },
-    onPatternEdit: () => patternCtl.build(patternParams),
+    onPatternEdit: () => {
+      patternCtl.build(patternParams)
+      centerTabs.refresh()
+    },
     onResew: () => patternCtl.resew(),
     onDrop: () => (mode === 'templates' ? garmentCtl.redrape() : patternCtl.resew()),
     onSetGravity: (v) => {
