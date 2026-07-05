@@ -34,7 +34,7 @@ export function defaultConfig(): DesignConfig {
     fabricId: 'cotton-poplin',
     color: 0xc85a54,
     length: 0.6,
-    ease: 0.03,
+    ease: 0.015,
     flare: 0.05,
     neckline: 'scoop',
     sleeve: 'short',

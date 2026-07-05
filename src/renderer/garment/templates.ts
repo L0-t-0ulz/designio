@@ -20,7 +20,7 @@ export interface GarmentParams {
 
 export const DEFAULT_PARAMS: GarmentParams = {
   length: 0.6,
-  ease: 0.03,
+  ease: 0.015,
   flare: 0.05,
   neckline: 'scoop',
   sleeve: 'short'
