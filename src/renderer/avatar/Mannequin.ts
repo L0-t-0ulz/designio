@@ -194,7 +194,10 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
 
   // Default = the polished procedural matte body (animatable). The GLB is an
   // optional drop-in (toggled on), so replacing assets/mannequin.glb swaps it in.
+  // `wantGlb` remembers the toggle intent even if the async load hasn't finished
+  // yet (so toggling — or a ?body=glb deep-link — is honoured once it loads).
   let useGlb = false
+  let wantGlb = false
   let glb: GlbBody | null = null
   loadGlbBody(
     material,
@@ -202,10 +205,10 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       glb = b
       group.add(b.model)
       b.fit(body.height, body.build)
-      b.model.visible = useGlb
-      bodyMesh.object.visible = !useGlb
+      applyBodyMode() // honour any toggle made while the model was still loading
     },
     () => {
+      wantGlb = false
       useGlb = false
       bodyMesh.object.visible = true
     }
@@ -253,6 +256,74 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       parts[i].radiusB = fullSpec[i].rB()
     }
     return parts
+  }
+
+  // Extra *visual-only* shaping metaballs (never colliders): bust/pecs, deltoids,
+  // chest & upper-back depth, knees — the difference between a plain tube and a
+  // believable human figure. When the body is static the collision BVH is rebuilt
+  // from this richer surface, so garments drape over the real shape.
+  const shape: BodyPart[] = Array.from({ length: 8 }, () => ({
+    a: new THREE.Vector3(),
+    b: new THREE.Vector3(),
+    radiusA: 0,
+    radiusB: 0
+  }))
+  const setSeg = (
+    i: number,
+    ax: number, ay: number, az: number,
+    bx: number, by: number, bz: number,
+    r: number
+  ): void => {
+    shape[i].a.set(ax, ay, az)
+    shape[i].b.set(bx, by, bz)
+    shape[i].radiusA = r
+    shape[i].radiusB = r
+  }
+  const buildShape = (): BodyPart[] => {
+    const m = measurements
+    const female = body.bodyType === 'female'
+    const cR = m.chestR
+    const cY = m.chestY
+    const sY = m.shoulderY
+    const kY = m.kneeY
+    const tR = m.thighR
+    const sHX = m.shoulderHalfX
+    const bl = body.build
+    // bust (female) / pecs (male)
+    if (female) {
+      const r = cR * 0.5 * body.bust
+      const x = cR * 0.5
+      setSeg(0, -x, cY + 0.02, cR * 0.12, -x, cY - 0.05, cR * 0.52, r)
+      setSeg(1, x, cY + 0.02, cR * 0.12, x, cY - 0.05, cR * 0.52, r)
+    } else {
+      const r = cR * 0.46 * body.bust
+      const x = cR * 0.62
+      setSeg(0, -x, cY + 0.06, cR * 0.02, -x, cY, cR * 0.26, r)
+      setSeg(1, x, cY + 0.06, cR * 0.02, x, cY, cR * 0.26, r)
+    }
+    // deltoids — round the shoulder caps into the arms
+    const dR = P().upperArmR * bl * 1.5
+    const dx = sHX * 0.86
+    setSeg(2, -dx, sY, 0, -dx * 1.02, sY - 0.06, 0, dR)
+    setSeg(3, dx, sY, 0, dx * 1.02, sY - 0.06, 0, dR)
+    // chest-front + upper-back depth (so the torso reads as a body, not a cylinder)
+    setSeg(4, 0, cY + 0.03, cR * 0.05, 0, cY - 0.1, cR * 0.32, cR * (female ? 0.5 : 0.56))
+    setSeg(5, 0, sY - 0.03, -cR * 0.1, 0, cY - 0.02, -cR * 0.42, cR * 0.44)
+    // knees
+    const kx = 0.12 * bl
+    const kR = tR * 0.66
+    setSeg(6, -kx, kY + 0.06, tR * 0.1, -kx, kY - 0.04, tR * 0.34, kR)
+    setSeg(7, kx, kY + 0.06, tR * 0.1, kx, kY - 0.04, tR * 0.34, kR)
+    return shape
+  }
+
+  // Collider-bound parts + visual shaping parts, referenced once (both are mutated
+  // in place each rebuild, so this array stays valid without per-frame allocation).
+  const allParts: BodyPart[] = [...parts, ...shape]
+  const buildAll = (): BodyPart[] => {
+    buildParts()
+    buildShape()
+    return allParts
   }
 
   /** Recompute rest bones + measurements + pivots from the current body size. */
@@ -337,7 +408,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     if (key === lastKey) return
     lastKey = key
     applyPose(curAngle)
-    bodyMesh.rebuild(buildParts())
+    bodyMesh.rebuild(buildAll())
     syncBodyBVH(true) // animating → capsules; rebuilding the BVH per frame is too costly
   }
 
@@ -345,29 +416,34 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     Object.assign(body, next)
     applyBody()
     applyPose(curAngle)
-    bodyMesh.rebuild(buildParts())
+    bodyMesh.rebuild(buildAll())
     syncBodyBVH(false) // static after a resize → rebuild the collision surface
     glb?.fit(body.height, body.build)
   }
 
-  /** Switch between the realistic GLB (static) and the animatable metaball body. */
-  const setBodyMode = (realistic: boolean): void => {
-    useGlb = realistic && glb != null
+  /** Apply the current GLB/metaball choice (used by the toggle AND the async loader). */
+  function applyBodyMode(): void {
+    useGlb = wantGlb && glb != null
     if (useGlb) {
       curAngle.legL = curAngle.legR = curAngle.armL = curAngle.armR = 0
       applyPose(curAngle)
       lastKey = ''
     } else {
-      bodyMesh.rebuild(buildParts())
+      bodyMesh.rebuild(buildAll())
     }
     if (glb) glb.model.visible = useGlb
     bodyMesh.object.visible = !useGlb
     syncBodyBVH(false) // GLB → invalidate (no metaball surface); metaball → rebuild
   }
+  /** Switch between the realistic GLB (static) and the animatable metaball body. */
+  const setBodyMode = (realistic: boolean): void => {
+    wantGlb = realistic
+    applyBodyMode()
+  }
 
   applyBody()
   applyPose(curAngle)
-  bodyMesh.rebuild(buildParts())
+  bodyMesh.rebuild(buildAll())
   syncBodyBVH(false) // initial static body → build the collision surface
   lastKey = '0.0000,0.0000'
 

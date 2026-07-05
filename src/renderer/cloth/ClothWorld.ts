@@ -43,6 +43,12 @@ export class ClothWorld {
   private lambda = new Float32Array(0)
   private windScale = 0
   private time = 0
+  // rest / sleep — settle to a dead stop when windless + still (mirrors XPBDSolver)
+  private restFrames = 0
+  private asleep = false
+  private colliderSig = 0
+  private static readonly SLEEP_VEL = 0.02
+  private static readonly SLEEP_FRAMES = 24
   private readonly _p = new THREE.Vector3()
   private readonly _c = new THREE.Vector3()
   private readonly _bodyOut = new THREE.Vector3()
@@ -97,6 +103,7 @@ export class ClothWorld {
     for (const c of this.constraints) {
       if (c.rest > 0) c.compliance = c.bend ? params.bendCompliance : params.stretchCompliance
     }
+    this.wake()
   }
 
   reset(initial: Float32Array): void {
@@ -104,12 +111,55 @@ export class ClothWorld {
     this.prev.set(initial)
     this.vel.fill(0)
     this.time = 0
+    this.wake()
+  }
+
+  /** Re-activate after any change (wind, gravity, fabric, respawn, body move). */
+  wake(): void {
+    this.asleep = false
+    this.restFrames = 0
+  }
+
+  private colliderSignature(): number {
+    let s = 0
+    for (const c of this.colliders) s += c.a.x + c.a.y + c.a.z + c.b.x + c.b.y + c.b.z + c.radius
+    return s
+  }
+
+  private updateRest(): void {
+    if (this.wind.lengthSq() > 1e-6) {
+      this.restFrames = 0
+      return
+    }
+    const { vel, invMass: im, count } = this
+    let maxSq = 0
+    for (let k = 0; k < count; k++) {
+      if (im[k] === 0) continue
+      const i = k * 3
+      const s = vel[i] * vel[i] + vel[i + 1] * vel[i + 1] + vel[i + 2] * vel[i + 2]
+      if (s > maxSq) maxSq = s
+    }
+    if (maxSq < ClothWorld.SLEEP_VEL * ClothWorld.SLEEP_VEL) {
+      if (++this.restFrames >= ClothWorld.SLEEP_FRAMES) {
+        this.vel.fill(0)
+        this.asleep = true
+      }
+    } else {
+      this.restFrames = 0
+    }
   }
 
   step(dt: number): void {
+    const sig = this.colliderSignature()
+    if (sig !== this.colliderSig) {
+      this.colliderSig = sig
+      this.wake()
+    }
+    if (this.asleep) return
     const sub = dt / this.substeps
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
     if (this.bodyCollider?.ready) this.solveBody()
+    this.updateRest()
   }
 
   /** Mesh-accurate body contact (once per frame); mirrors {@link XPBDSolver.solveBody}. */

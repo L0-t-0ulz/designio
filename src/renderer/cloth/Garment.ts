@@ -24,7 +24,7 @@ export interface TubeSpec {
 }
 
 /** Per-angle top-edge height: straps at the sides (shoulders), a dip for the neck. */
-function topEdge(spec: TubeSpec, angle: number): number {
+export function topEdge(spec: TubeSpec, angle: number): number {
   const style = spec.neckline ?? 'strapless'
   if (style === 'strapless') return spec.topY
   const shoulderY = spec.shoulderY ?? spec.topY
@@ -38,7 +38,7 @@ function topEdge(spec: TubeSpec, angle: number): number {
 }
 
 /** Radius along the height, with an optional cinched waist. */
-function radiusAt(spec: TubeSpec, t: number): number {
+export function radiusAt(spec: TubeSpec, t: number): number {
   if (spec.radiusWaist == null) return spec.radiusTop + (spec.radiusBottom - spec.radiusTop) * t
   const wt = spec.waistT ?? 0.45
   if (t <= wt) return spec.radiusTop + (spec.radiusWaist - spec.radiusTop) * (t / wt)

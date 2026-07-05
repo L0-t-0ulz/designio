@@ -40,10 +40,15 @@ Renderer modules:
 - `core/` — `Viewport` (renderer + camera + OrbitControls + post-processing: bloom, vignette, SMAA),
   `Environment` (IBL, rim lights, reflective floor + shadow-catcher), `Loop` (fixed-timestep).
 - `avatar/` — `Mannequin` (poseable **and** resizable capsule skeleton; capsules are the cloth
-  colliders), `BodyMesh` (smooth metaball body via MarchingCubes), `colliders` (capsule math).
+  colliders — plus **visual-only shaping metaballs** for bust/pecs, deltoids, chest/back depth, knees),
+  `BodyMesh` (smooth metaball body via MarchingCubes; shaped head/hand/foot caps), `GlbMannequin`
+  (optional realistic-avatar drop-in — replace `assets/mannequin.glb`; the toggle is sticky across the
+  async load), `colliders` (capsule math).
 - `cloth/` — `XPBDSolver` (grid/tube cloth), `ClothWorld` (general particle+constraint solver for
-  sewn panels; seams are stitch constraints), `Garment` (tube builder), `ClothMesh`, `FabricMaterial`,
-  `fabricPresets` (`FabricParams` for the solver).
+  sewn panels; seams are stitch constraints), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
+  reused by the 2D pattern), `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`). Both
+  solvers **sleep** (dead-stop) when windless + still, so at default settings garments hang perfectly
+  still (any wind/body-move/edit wakes them).
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape),
   `weaveTexture` (procedural weave normal maps; pure math is unit-tested).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
@@ -52,7 +57,10 @@ Renderer modules:
 - `garment/` — `GarmentController` (multi-piece sim manager, consumes the factory); `templates` (shared
   `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh-accurate collision.
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
-- `export/` — `exporters3d` (glTF/OBJ), `patternExport` (SVG/DXF), `techpack` (HTML/JSON), `save`.
+- `export/` — `exporters3d` (glTF/OBJ), `garmentPattern` (**real per-garment flat pattern**: unwraps the
+  selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
+  A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF), `patternExport` (SVG/DXF
+  for the sewn-pattern mode), `techpack` (HTML/JSON), `save`.
 - `start/` — `StartPage` (the "design your piece" landing), `PreviewStudio` (live 3D preview),
   `design` (`DesignConfig`), `presets` (ready-made looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
@@ -79,6 +87,7 @@ Renderer modules:
 `?start=0` skip start page · `?garment=<id>` (registry id — dress, gown, jumpsuit, wide-leg, …; applies
 its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>` ·
+`?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (procedural vs realistic-GLB avatar) ·
 `?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable) · `?page=start` (deep-link the
 builder, bypassing the homepage). Entry is the homepage launcher → start page → studio. Regenerate docs
 with `npm run capture`.

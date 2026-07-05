@@ -3,6 +3,8 @@ import { el } from '../ui/controls'
 export interface CenterTabsHandle {
   /** Re-render the 2D pattern if it's the active pane. */
   refresh: () => void
+  /** Programmatically switch tab (used by the `?view=pattern` deep-link). */
+  show: (which: '3d' | 'pattern') => void
 }
 
 /**
@@ -38,6 +40,7 @@ export function buildCenterTabs(center: HTMLElement, patternSvg: () => string): 
   return {
     refresh: () => {
       if (!pane.classList.contains('dio-hidden')) render()
-    }
+    },
+    show
   }
 }

@@ -91,6 +91,42 @@ export function garmentTubeSpecs(def: GarmentDefinition, params: GarmentParams, 
   return specs
 }
 
+/** Sleeve axis specs for this garment (empty unless it has sleeves and `sleeve !== 'none'`). */
+export function garmentSleeveSpecs(
+  def: GarmentDefinition,
+  params: GarmentParams,
+  colliders: Capsule[]
+): AxisTubeSpec[] {
+  if (!def.pieces.some((pc) => pc.kind === 'sleeves')) return []
+  const sleeve = params.sleeve ?? 'none'
+  return sleeve === 'none' ? [] : sleeveSpecs(sleeve === 'long', colliders)
+}
+
+/**
+ * The construction specs a flat pattern needs, grouped by role. `legs`/`sleeves`
+ * are deduped to one (the mirror is "cut 2"). This is the single source the 2D
+ * pattern generator unwraps — it never re-derives geometry.
+ */
+export interface PatternSpecs {
+  body: TubeSpec[]
+  legs: TubeSpec[]
+  sleeves: AxisTubeSpec[]
+}
+export function garmentPatternSpecs(
+  def: GarmentDefinition,
+  params: GarmentParams,
+  m: Measurements,
+  colliders: Capsule[]
+): PatternSpecs {
+  const body: TubeSpec[] = []
+  const legs: TubeSpec[] = []
+  for (const pc of def.pieces) {
+    if (pc.kind === 'bodyTube') body.push(bodyTubeToSpec(pc, params, m))
+    else if (pc.kind === 'legTubes') legs.push(legTubeSpecs(params, m)[0]) // one leg; mirror is cut 2
+  }
+  return { body, legs, sleeves: garmentSleeveSpecs(def, params, colliders) }
+}
+
 /** A ready-to-simulate garment piece (geometry + how to reset it + a display name). */
 export interface SimPiece {
   build: TubeBuild

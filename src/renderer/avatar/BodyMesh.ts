@@ -71,19 +71,36 @@ export class BodyMesh {
         this.ball(this.p, part.radiusA + (part.radiusB - part.radiusA) * t)
       }
       if (part.cap === 'hand') {
-        this.p.copy(part.b)
-        this.ball(this.p, part.radiusB * 1.4) // rounded hand
-      } else if (part.cap === 'foot') {
+        // A flattened paddle along the forearm: palm + a slimmer finger block.
         const dir = new THREE.Vector3().subVectors(part.b, part.a).normalize()
-        this.p.copy(part.b).addScaledVector(new THREE.Vector3(0, 0, 1), part.radiusB * 1.8)
-        this.p.y -= part.radiusB * 0.4
-        this.ball(this.p, part.radiusB * 1.1) // foot extends forward
-        void dir
+        this.p.copy(part.b).addScaledVector(dir, part.radiusB * 1.1)
+        this.ball(this.p, part.radiusB * 1.15) // palm
+        this.p.copy(part.b).addScaledVector(dir, part.radiusB * 2.4)
+        this.ball(this.p, part.radiusB * 0.8) // fingers
+      } else if (part.cap === 'foot') {
+        // A foot that sits on the floor and extends forward (heel · arch · toe).
+        const fwd = new THREE.Vector3(0, 0, 1)
+        this.p.copy(part.b).addScaledVector(fwd, part.radiusB * 0.4)
+        this.ball(this.p, part.radiusB * 0.95) // heel/ankle
+        this.p.copy(part.b).addScaledVector(fwd, part.radiusB * 1.7)
+        this.p.y -= part.radiusB * 0.5
+        this.ball(this.p, part.radiusB * 0.9) // arch
+        this.p.copy(part.b).addScaledVector(fwd, part.radiusB * 3.0)
+        this.p.y -= part.radiusB * 0.7
+        this.ball(this.p, part.radiusB * 0.72) // toe
       } else if (part.cap === 'head') {
-        // Clean, featureless ovoid (store-mannequin egg head) — no jaw bump.
+        // A clean, featureless head ovoid: cranium · face · a soft jaw taper.
+        const r = part.radiusB
         this.p.copy(part.b)
-        this.p.y -= part.radiusB * 0.9
-        this.ball(this.p, part.radiusB * 0.84)
+        this.p.y += r * 0.35
+        this.ball(this.p, r * 0.98) // cranium
+        this.p.copy(part.b)
+        this.p.y -= r * 0.25
+        this.p.z += r * 0.06
+        this.ball(this.p, r * 0.86) // face/mid
+        this.p.copy(part.b)
+        this.p.y -= r * 0.78
+        this.ball(this.p, r * 0.58) // jaw/chin taper
       }
     }
     this.object.update()
