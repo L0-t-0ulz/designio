@@ -87,7 +87,8 @@ export function buildMannequin(): Mannequin {
 
   const group = new THREE.Group()
   group.name = 'mannequin'
-  const material = new THREE.MeshStandardMaterial({ color: 0xd9d2c6, roughness: 0.85, metalness: 0 })
+  // A warm tan dress-form tone: reads clearly on the light studio and won't bloom.
+  const material = new THREE.MeshStandardMaterial({ color: 0xbdb2a0, roughness: 0.82, metalness: 0 })
 
   const bones: Bone[] = []
   const colliders: Capsule[] = []

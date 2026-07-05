@@ -19,7 +19,7 @@ Built as a desktop app (Electron + Three.js + TypeScript).
 ## What you can do right now
 
 - Orbit / zoom / pan around a **smooth human mannequin** (a continuous body, built procedurally with
-  metaballs) in a neutral studio scene.
+  metaballs) in a **bright reflective studio** (post-processed: subtle bloom, crisp SMAA, mirror floor).
 - Pick a **garment template** — **dress, skirt, top, or pants** — and tweak its **length, looseness,
   and flare**; it rebuilds and re-drapes on the body (pants simulate as two legs).
 - Each garment **drapes with real folds** — an XPBD cloth solver with body-capsule collision +
