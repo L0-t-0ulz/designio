@@ -135,7 +135,8 @@ function startColor(labelText: string, get: () => number, set: (hex: number) => 
 export function showStartPage(
   fabrics: Fabric[],
   onStart: (config: DesignConfig) => void,
-  initial?: DesignConfig
+  initial?: DesignConfig,
+  onHome?: () => void
 ): void {
   const config = initial ? { ...initial } : defaultConfig()
   let preview: PreviewStudio | null = null
@@ -146,6 +147,18 @@ export function showStartPage(
   const title = el('div')
   title.append(el('div', 'dio-title', 'DesignIO'), el('div', 'dio-subtitle', 'Design your piece'))
   header.append(title)
+  if (onHome) {
+    const home = el('button', 'dio-back')
+    home.type = 'button'
+    home.style.marginLeft = 'auto'
+    home.append(document.createTextNode('← Home'))
+    home.addEventListener('click', () => {
+      preview?.dispose()
+      overlay.remove()
+      onHome()
+    })
+    header.append(home)
+  }
   overlay.append(header)
 
   const body = el('div', 'dio-start-body')

@@ -25,6 +25,7 @@ import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack
 import { saveFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat } from './ui/panel'
 import { showStartPage } from './start/StartPage'
+import { showHomepage } from './start/Homepage'
 import { buildDesignArt, defaultConfig, hasArt, type DesignArt, type DesignConfig } from './start/design'
 
 // ---- shared scene (built once) -------------------------------------------
@@ -246,7 +247,7 @@ function initStudio(config: DesignConfig): void {
     shell.dispose()
     garmentCtl.clear()
     patternCtl.clear()
-    showStartPage(FABRIC_LIBRARY, initStudio, config)
+    showStartPage(FABRIC_LIBRARY, initStudio, config, openHome)
   }
 
   // ---- menu bar + status bar (wired to the real actions) ----
@@ -393,7 +394,15 @@ function initStudio(config: DesignConfig): void {
   }
 }
 
-// ---- entry: start page, unless a snapshot deep-link jumps straight in -----
+// ---- the app launcher (Homepage → start page → studio) -----
+function openHome(): void {
+  showHomepage({
+    onNewDesign: () => showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome),
+    onTemplate: (cfg) => initStudio(cfg)
+  })
+}
+
+// ---- entry: homepage, unless a snapshot deep-link jumps straight in -----
 const entryParams = new URLSearchParams(location.search)
 const skipStart =
   entryParams.has('garment') ||
@@ -417,6 +426,8 @@ if (skipStart) {
   const txt = entryParams.get('text')
   if (txt) cfg.text = txt // lets snapshots exercise the printed-design map
   initStudio(cfg)
+} else if (entryParams.get('page') === 'start') {
+  showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome) // deep-link to the builder
 } else {
-  showStartPage(FABRIC_LIBRARY, initStudio)
+  openHome()
 }
