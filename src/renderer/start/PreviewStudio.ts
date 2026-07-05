@@ -80,7 +80,8 @@ export class PreviewStudio {
       this.material,
       this.mannequin.colliders,
       this.mannequin.measurements,
-      () => fabricToSolverParams(this.current)
+      () => fabricToSolverParams(this.current),
+      this.mannequin.bodyCollider
     )
 
     // ---- post-processing (studio-proven chain; grounding comes from the

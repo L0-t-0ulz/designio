@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { Capsule } from './colliders'
 import { BodyMesh, type BodyPart } from './BodyMesh'
 import { loadGlbBody, type GlbBody } from './GlbMannequin'
+import { BodyCollider } from '../cloth/BodyCollider'
 
 /** Key body measurements (metres) garments are fitted to (scale with body size). */
 export interface Measurements {
@@ -50,6 +51,8 @@ export interface Mannequin {
   group: THREE.Group
   colliders: Capsule[]
   measurements: Measurements
+  /** Mesh-accurate body collision surface (valid while the body is static). */
+  bodyCollider: BodyCollider
   update: (t: number, mode: AnimationMode, speed: number) => void
   /** Resize in place; mutates colliders + measurements so garments can refit. */
   resize: (body: BodyParams) => void
@@ -129,6 +132,15 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const measurements: Measurements = { ...MEASUREMENTS }
   const bodyMesh = new BodyMesh(material)
   group.add(bodyMesh.object)
+
+  // Mesh-accurate cloth collision surface. Rebuilt from the metaball body when
+  // it's static (the design case); invalidated during animation / GLB mode, where
+  // cloth falls back to the bone capsules.
+  const bodyCollider = new BodyCollider()
+  const syncBodyBVH = (animating: boolean): void => {
+    if (!useGlb && !animating) bodyCollider.buildFromMarchingCubes(bodyMesh.object)
+    else bodyCollider.invalidate()
+  }
 
   // Default = the polished procedural matte body (animatable). The GLB is an
   // optional drop-in (toggled on), so replacing assets/mannequin.glb swaps it in.
@@ -261,6 +273,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     lastKey = key
     applyPose(curAngle)
     bodyMesh.rebuild(buildParts())
+    syncBodyBVH(true) // animating → capsules; rebuilding the BVH per frame is too costly
   }
 
   const resize = (next: BodyParams): void => {
@@ -269,6 +282,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     applyBody()
     applyPose(curAngle)
     bodyMesh.rebuild(buildParts())
+    syncBodyBVH(false) // static after a resize → rebuild the collision surface
     glb?.fit(body.height, body.build)
   }
 
@@ -284,12 +298,14 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     }
     if (glb) glb.model.visible = useGlb
     bodyMesh.object.visible = !useGlb
+    syncBodyBVH(false) // GLB → invalidate (no metaball surface); metaball → rebuild
   }
 
   applyBody()
   applyPose(curAngle)
   bodyMesh.rebuild(buildParts())
+  syncBodyBVH(false) // initial static body → build the collision surface
   lastKey = '0.0000,0.0000'
 
-  return { group, colliders, measurements, update, resize, setBodyMode }
+  return { group, colliders, measurements, bodyCollider, update, resize, setBodyMode }
 }
