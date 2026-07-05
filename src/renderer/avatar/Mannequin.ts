@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import type { Capsule } from './colliders'
 import { BodyMesh } from './BodyMesh'
+import { loadGlbBody, type GlbBody } from './GlbMannequin'
 
 /** Key body measurements (metres) garments are fitted to (scale with body size). */
 export interface Measurements {
@@ -52,6 +53,8 @@ export interface Mannequin {
   update: (t: number, mode: AnimationMode, speed: number) => void
   /** Resize in place; mutates colliders + measurements so garments can refit. */
   resize: (body: BodyParams) => void
+  /** true = realistic GLB (static), false = animatable metaball body. */
+  setBodyMode: (realistic: boolean) => void
 }
 
 type Part = 'root' | 'armL' | 'armR' | 'legL' | 'legR'
@@ -119,6 +122,25 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const bodyMesh = new BodyMesh(material)
   group.add(bodyMesh.object)
 
+  // Realistic GLB body (the visual); capsules stay the cloth collider. Falls back
+  // to the metaball body if the asset can't load.
+  let useGlb = true
+  let glb: GlbBody | null = null
+  loadGlbBody(
+    material,
+    (b) => {
+      glb = b
+      group.add(b.model)
+      b.fit(body.height, body.build)
+      b.model.visible = useGlb
+      bodyMesh.object.visible = !useGlb
+    },
+    () => {
+      useGlb = false
+      bodyMesh.object.visible = true
+    }
+  )
+
   const pivot: Record<Part, THREE.Vector3> = {
     root: new THREE.Vector3(),
     armL: new THREE.Vector3(),
@@ -179,6 +201,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   }
 
   const update = (t: number, mode: AnimationMode, speed: number): void => {
+    if (useGlb && glb) return // realistic GLB body is static
     let legAmp = 0
     let armAmp = 0
     let freq = 0
@@ -209,6 +232,21 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     applyBody()
     applyPose(curAngle)
     bodyMesh.rebuild(colliders)
+    glb?.fit(body.height, body.build)
+  }
+
+  /** Switch between the realistic GLB (static) and the animatable metaball body. */
+  const setBodyMode = (realistic: boolean): void => {
+    useGlb = realistic && glb != null
+    if (useGlb) {
+      curAngle.legL = curAngle.legR = curAngle.armL = curAngle.armR = 0
+      applyPose(curAngle)
+      lastKey = ''
+    } else {
+      bodyMesh.rebuild(colliders)
+    }
+    if (glb) glb.model.visible = useGlb
+    bodyMesh.object.visible = !useGlb
   }
 
   applyBody()
@@ -216,5 +254,5 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   bodyMesh.rebuild(colliders)
   lastKey = '0.0000,0.0000'
 
-  return { group, colliders, measurements, update, resize }
+  return { group, colliders, measurements, update, resize, setBodyMode }
 }
