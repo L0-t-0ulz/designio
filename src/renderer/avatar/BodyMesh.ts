@@ -7,12 +7,12 @@ import { MarchingCubes } from 'three/examples/jsm/objects/MarchingCubes.js'
 // Higher RES → a smoother, finer watertight silhouette (a reliable collision
 // surface for the BVH). Rebuilt only on pose/size change (dirty-checked), so the
 // cost is paid once when static; capsules remain the fallback during animation.
-const RES = 90
+const RES = 100
 const ISO = 80
 const SUBTRACT = 12
 const CENTER = new THREE.Vector3(0, 0.95, 0)
 const S = 1.2
-const STRENGTH_MUL = 0.4
+const STRENGTH_MUL = 0.42
 const VISUAL_R = 1.08
 
 /** A shaped body segment: a→b with tapering radius, plus an optional end cap. */
@@ -35,7 +35,7 @@ export class BodyMesh {
   private readonly p = new THREE.Vector3()
 
   constructor(material: THREE.Material) {
-    this.object = new MarchingCubes(RES, material, true, false, 640000)
+    this.object = new MarchingCubes(RES, material, true, false, 900000)
     this.object.isolation = ISO
     this.object.position.copy(CENTER)
     this.object.scale.setScalar(S)
