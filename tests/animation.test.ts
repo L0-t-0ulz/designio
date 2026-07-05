@@ -27,3 +27,20 @@ describe('poseable mannequin', () => {
     expect(shin.b.distanceTo(rest)).toBeLessThan(1e-9)
   })
 })
+
+describe('slim seat (single source of truth)', () => {
+  const SEAT = 0.52 // must match Mannequin.ts; both mesh + collider use hipR * SEAT
+  it('the hip collider radius equals the mesh seat radius (no fat invisible capsule)', () => {
+    const m = buildMannequin()
+    // colliders[4] is the pelvis/hip segment.
+    expect(m.colliders[4].radius).toBeCloseTo(m.measurements.hipR * SEAT, 6)
+    // …and far slimmer than the old fat 0.14 capsule that pushed garments over the rear.
+    expect(m.colliders[4].radius).toBeLessThan(0.12)
+  })
+
+  it('the slim seat holds after a resize (still one source)', () => {
+    const m = buildMannequin()
+    m.resize({ bodyType: 'male', build: 1.1, hips: 1.2 })
+    expect(m.colliders[4].radius).toBeCloseTo(m.measurements.hipR * SEAT, 6)
+  })
+})

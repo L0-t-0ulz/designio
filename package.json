@@ -16,7 +16,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "snapshot": "npm run build && electron scripts/capture.cjs docs/preview.png 8000"
+    "snapshot": "npm run build && electron scripts/capture.cjs docs/preview.png 8000",
+    "capture": "npm run build && node scripts/capture-readme.cjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",

@@ -73,7 +73,9 @@ export class PreviewStudio {
     this.controls.minDistance = 1.6
     this.controls.maxDistance = 5
     this.controls.target.set(0, 0.92, 0)
-    this.controls.autoRotate = !this.reducedMotion
+    // `?still=1` freezes the turntable at the initial ¾ angle for repeatable captures.
+    const still = new URLSearchParams(location.search).get('still') === '1'
+    this.controls.autoRotate = !this.reducedMotion && !still
     this.controls.autoRotateSpeed = 2.0 // ~1 rev / 26 s
     this.controls.update()
 

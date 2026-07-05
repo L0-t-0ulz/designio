@@ -93,10 +93,11 @@ Every fabric carries **physical** properties (weight, stretch, bendiness, fricti
 - **Knits** — jersey, rib, French terry, fleece, cable knit
 - **Specialty** — leather, suede, velvet, tulle, spandex
 
-![Grouped, textured fabric swatches in the studio](docs/fabrics-start.png)
+![A velvet dress — each fabric drives both look and drape](docs/fabrics-start.png)
 
-Live-inspect any fabric (GSM, stretch, drape, grip, roughness, sheen, weave density/depth, anisotropy,
-sheerness), and macro-zoom to see the woven micro-surface:
+*Every fabric drives both look and drape — here, velvet.* Live-inspect any fabric (GSM, stretch, drape,
+grip, roughness, sheen, weave density/depth, anisotropy, sheerness), and macro-zoom to see the woven
+micro-surface:
 
 ![Macro close-up of satin — procedural weave normal map + sheen + anisotropic highlights](docs/closeup.png)
 
@@ -131,6 +132,7 @@ npm run build      # bundle main / preload / renderer into ./out
 npm run preview    # build, then run the packaged app
 npm test           # headless solver / geometry / catalog tests (vitest)
 npm run typecheck  # strict TypeScript, no emit
+npm run capture    # re-render all README screenshots from the current build
 ```
 
 ---

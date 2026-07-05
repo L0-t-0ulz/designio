@@ -222,12 +222,18 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   // Anatomy radii per collider index (a = start, b = end of each segment). The
   // narrow torso-bottom (waist) + wider hips blend into a natural waist.
   const P = (): Proportions => PROPORTIONS[body.bodyType]
+  // Pelvis/seat radius — ONE source of truth, consumed by BOTH the metaball mesh
+  // (partSpec below) and the hip collider (applyBody). Keeps the rear slim + near-flat
+  // and garments hanging straight over it. Hip *width* comes from the segment span, not
+  // this radius, so slimming it flattens depth (the rear) far more than width.
+  const SEAT = 0.52
+  const seatRadius = (): number => measurements.hipR * SEAT
   const partSpec: { rA: () => number; rB: () => number; cap?: BodyPart['cap'] }[] = [
     { rA: () => P().headR * body.build, rB: () => P().headR * body.build, cap: 'head' },
     { rA: () => P().neckR * body.build, rB: () => (P().neckR + 0.008) * body.build }, // neck
     { rA: () => measurements.waistR, rB: () => measurements.chestR }, // torso (waist→chest)
     { rA: () => 0.07 * body.build, rB: () => 0.07 * body.build }, // shoulders
-    { rA: () => measurements.hipR * 0.66, rB: () => measurements.hipR * 0.66 }, // hips (slimmer seat)
+    { rA: () => seatRadius(), rB: () => seatRadius() }, // hips/seat (single-source; slim rear)
     { rA: () => P().upperArmR * body.build, rB: () => (P().upperArmR - 0.008) * body.build }, // upper arm
     { rA: () => (P().upperArmR - 0.008) * body.build, rB: () => P().foreArmR * body.build, cap: 'hand' }, // forearm
     { rA: () => measurements.thighR, rB: () => measurements.thighR * 0.68 }, // thigh
@@ -283,6 +289,9 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       bone.radius = bone.baseRadius * b
       bone.collider.radius = bone.radius
     }
+    // Pelvis collider = the mesh seat radius (single source), so cloth collides against
+    // the *visible* slim rear, not a fat invisible capsule. bones[4] is the hip segment.
+    bones[4].radius = bones[4].collider.radius = seatRadius()
   }
 
   const a = new THREE.Vector3()
