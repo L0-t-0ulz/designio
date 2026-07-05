@@ -3,24 +3,11 @@ import { createElement, ArrowRight, Upload } from 'lucide'
 import type { BodyType } from '../avatar/Mannequin'
 import { FABRIC_FAMILIES, type Fabric } from '../fabric/FabricLibrary'
 import { GARMENT_CATEGORIES, garmentsByCategory, getGarment } from '../garments/registry'
-import type { GarmentIcon } from '../garments/schema'
-import { weaveHeight } from '../fabric/weaveTexture'
+import { GARMENT_SIL, fabricSwatchCanvas } from '../ui/thumbnails'
 import { el } from '../ui/controls'
 import { defaultConfig, type DesignConfig } from './design'
 import { PreviewStudio } from './PreviewStudio'
 
-// Clean, recognisable garment silhouettes (viewBox 0 0 200 300), symmetric about x=100.
-const SIL: Record<GarmentIcon, string> = {
-  // fit-and-flare dress: shoulders + short sleeves, nipped waist, A-line skirt
-  dress:
-    'M70,46 L84,46 Q100,62 116,46 L130,46 L164,76 L146,100 L134,88 L128,132 L168,268 L32,268 L72,132 L66,88 L54,100 L36,76 Z',
-  // t-shirt: neckline dip, short sleeves, straight body
-  top: 'M70,46 L84,46 Q100,62 116,46 L130,46 L164,76 L146,100 L134,88 L134,182 L66,182 L66,88 L54,100 L36,76 Z',
-  // A-line skirt with a waistband
-  skirt: 'M68,58 L132,58 L132,72 L126,72 L160,266 L40,266 L74,72 L68,72 Z',
-  // tapered trousers with a waistband + centre crotch notch
-  pants: 'M66,58 L134,58 L134,72 L128,72 L120,266 L106,266 L100,150 L94,266 L80,266 L72,72 L66,72 Z'
-}
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -29,38 +16,6 @@ function pop(node: HTMLElement): void {
   if (reduced) return
   animate(node, { scale: [0.96, 1.05, 1] }, { duration: 0.34, ease: [0.34, 1.56, 0.64, 1] })
   window.setTimeout(() => (node.style.transform = ''), 380)
-}
-
-/** A textured fabric swatch thumbnail (base colour + a weave hint). */
-function fabricSwatchCanvas(f: Fabric): HTMLCanvasElement {
-  const w = 120
-  const h = 44
-  const c = document.createElement('canvas')
-  c.width = w
-  c.height = h
-  const ctx = c.getContext('2d')!
-  const r = (f.color >> 16) & 255
-  const g = (f.color >> 8) & 255
-  const b = f.color & 255
-  const img = ctx.createImageData(w, h)
-  const threads = 26
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const shade = (weaveHeight(f.weave, x / w, y / h, threads) - 0.5) * 46 * f.normalStrength
-      const i = (y * w + x) * 4
-      img.data[i] = Math.max(0, Math.min(255, r + shade))
-      img.data[i + 1] = Math.max(0, Math.min(255, g + shade))
-      img.data[i + 2] = Math.max(0, Math.min(255, b + shade))
-      img.data[i + 3] = 255
-    }
-  }
-  ctx.putImageData(img, 0, 0)
-  const grad = ctx.createLinearGradient(0, 0, 0, h)
-  grad.addColorStop(0, 'rgba(255,255,255,' + (0.12 + f.sheen * 0.12) + ')')
-  grad.addColorStop(0.5, 'rgba(255,255,255,0)')
-  ctx.fillStyle = grad
-  ctx.fillRect(0, 0, w, h)
-  return c
 }
 
 interface SliderOpts {
@@ -224,7 +179,7 @@ export function showStartPage(
     for (const def of items) {
       const card = el('div', 'dio-start-card')
       card.setAttribute('role', 'radio')
-      card.innerHTML = `<svg viewBox="0 0 200 300"><path d="${SIL[def.icon ?? 'top']}"/></svg>`
+      card.innerHTML = `<svg viewBox="0 0 200 300"><path d="${GARMENT_SIL[def.icon ?? 'top']}"/></svg>`
       card.append(el('div', 'dio-start-card-name', def.name))
       order.push(def.id)
       const nav = (dir: number): void => {

@@ -1,29 +1,32 @@
 /** Persisted studio-shell layout (pure serialize/parse — no DOM, so it's testable). */
 export interface ShellLayout {
-  /** [centre %, right %] split sizes. */
-  sizes: [number, number]
+  /** [left %, centre %, right %] weights (normalised to the visible columns at build). */
+  sizes: [number, number, number]
+  /** Left Library column visible. */
+  leftVisible: boolean
   /** Right dock visible. */
   rightVisible: boolean
 }
 
-export const DEFAULT_LAYOUT: ShellLayout = { sizes: [74, 26], rightVisible: true }
+export const DEFAULT_LAYOUT: ShellLayout = { sizes: [18, 56, 26], leftVisible: true, rightVisible: true }
 
-const LS_KEY = 'dio-shell-v1'
+const LS_KEY = 'dio-shell-v2'
+
+const validSizes = (s: unknown): s is [number, number, number] =>
+  Array.isArray(s) && s.length === 3 && s.every((n) => typeof n === 'number' && n > 0 && n < 100)
 
 /** Parse persisted JSON (or null) into a valid layout, falling back to defaults. */
 export function parseLayout(raw: string | null): ShellLayout {
-  if (!raw) return { ...DEFAULT_LAYOUT }
+  if (!raw) return clone(DEFAULT_LAYOUT)
   try {
     const o = JSON.parse(raw) as Partial<ShellLayout>
-    const sizes =
-      Array.isArray(o.sizes) &&
-      o.sizes.length === 2 &&
-      o.sizes.every((n) => typeof n === 'number' && n > 0 && n < 100)
-        ? ([o.sizes[0], o.sizes[1]] as [number, number])
-        : ([...DEFAULT_LAYOUT.sizes] as [number, number])
-    return { sizes, rightVisible: o.rightVisible !== false }
+    return {
+      sizes: validSizes(o.sizes) ? [o.sizes[0], o.sizes[1], o.sizes[2]] : [...DEFAULT_LAYOUT.sizes],
+      leftVisible: o.leftVisible !== false,
+      rightVisible: o.rightVisible !== false
+    }
   } catch {
-    return { ...DEFAULT_LAYOUT }
+    return clone(DEFAULT_LAYOUT)
   }
 }
 
@@ -31,12 +34,16 @@ export function serializeLayout(l: ShellLayout): string {
   return JSON.stringify(l)
 }
 
+function clone(l: ShellLayout): ShellLayout {
+  return { sizes: [...l.sizes], leftVisible: l.leftVisible, rightVisible: l.rightVisible }
+}
+
 /** Read/write the layout from localStorage (browser only). */
 export function loadLayout(): ShellLayout {
   try {
     return parseLayout(localStorage.getItem(LS_KEY))
   } catch {
-    return { ...DEFAULT_LAYOUT }
+    return clone(DEFAULT_LAYOUT)
   }
 }
 export function saveLayout(l: ShellLayout): void {
