@@ -465,3 +465,32 @@
   color: var(--fg-2);
   font-size: 12px;
 }
+
+/* ---- icons + a11y ---- */
+.dio-status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.dio-status-btn svg {
+  width: 13px;
+  height: 13px;
+}
+.dio-obj-vis svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+.dio-menu-brand svg,
+.dio-home-cta svg {
+  display: block;
+}
+.dio-shell button:focus-visible,
+.dio-shell input:focus-visible,
+.dio-shell [tabindex]:focus-visible,
+.dio-home button:focus-visible,
+.dio-home [tabindex]:focus-visible {
+  outline: 2px solid var(--accent-hi);
+  outline-offset: 2px;
+  border-radius: 8px;
+}

@@ -15,6 +15,7 @@ export interface StudioShell {
   right: HTMLElement
   statusbar: HTMLElement
   toggleLeft(): void
+  setLeftVisible(v: boolean): void
   toggleRight(): void
   leftVisible(): boolean
   rightVisible(): boolean
@@ -102,6 +103,13 @@ export function createStudioShell(onLayout: () => void): StudioShell {
     toggleLeft() {
       captureSizes()
       layout.leftVisible = !layout.leftVisible
+      persist()
+      buildSplit()
+    },
+    setLeftVisible(v: boolean) {
+      if (layout.leftVisible === v) return
+      captureSizes()
+      layout.leftVisible = v
       persist()
       buildSplit()
     },

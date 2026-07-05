@@ -1,8 +1,11 @@
 import * as THREE from 'three'
+import { createElement, Eye, EyeOff } from 'lucide'
 import { el } from '../ui/controls'
 
 export interface ObjectBrowserHandle {
   refresh: () => void
+  /** Show/hide the whole browser (Simple/Pro view). */
+  setVisible: (v: boolean) => void
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
@@ -40,9 +43,10 @@ export function buildObjectBrowser(
         name.style.cursor = 'pointer'
         name.addEventListener('click', () => onSelect(p.name))
       }
-      const vis = el('button', 'dio-obj-vis', p.mesh.visible ? '👁' : '⦸')
-      vis.title = 'Show / hide'
-      vis.setAttribute('aria-label', `Toggle visibility of ${p.name}`)
+      const vis = el('button', 'dio-obj-vis')
+      vis.append(createElement(p.mesh.visible ? Eye : EyeOff))
+      vis.title = p.mesh.visible ? 'Hide' : 'Show'
+      vis.setAttribute('aria-label', `${p.mesh.visible ? 'Hide' : 'Show'} ${p.name}`)
       vis.addEventListener('click', () => {
         p.mesh.visible = !p.mesh.visible
         render()
@@ -52,5 +56,8 @@ export function buildObjectBrowser(
     }
   }
   render()
-  return { refresh: render }
+  return {
+    refresh: render,
+    setVisible: (v) => (root.style.display = v ? '' : 'none')
+  }
 }
