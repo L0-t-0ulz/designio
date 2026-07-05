@@ -1,15 +1,16 @@
 import { animate, stagger } from 'motion'
 import { createElement, ArrowRight, Upload } from 'lucide'
 import type { BodyType } from '../avatar/Mannequin'
-import { GARMENT_TYPES, type GarmentType } from '../garment/templates'
 import { FABRIC_FAMILIES, type Fabric } from '../fabric/FabricLibrary'
+import { GARMENT_CATEGORIES, garmentsByCategory, getGarment } from '../garments/registry'
+import type { GarmentIcon } from '../garments/schema'
 import { weaveHeight } from '../fabric/weaveTexture'
 import { el } from '../ui/controls'
 import { defaultConfig, type DesignConfig } from './design'
 import { PreviewStudio } from './PreviewStudio'
 
 // Clean, recognisable garment silhouettes (viewBox 0 0 200 300), symmetric about x=100.
-const SIL: Record<GarmentType, string> = {
+const SIL: Record<GarmentIcon, string> = {
   // fit-and-flare dress: shoulders + short sleeves, nipped waist, A-line skirt
   dress:
     'M70,46 L84,46 Q100,62 116,46 L130,46 L164,76 L146,100 L134,88 L128,132 L168,268 L32,268 L72,132 L66,88 L54,100 L36,76 Z',
@@ -20,7 +21,6 @@ const SIL: Record<GarmentType, string> = {
   // tapered trousers with a waistband + centre crotch notch
   pants: 'M66,58 L134,58 L134,72 L128,72 L120,266 L106,266 L100,150 L94,266 L80,266 L72,72 L66,72 Z'
 }
-const label = (t: string): string => t[0].toUpperCase() + t.slice(1)
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -71,6 +71,8 @@ interface SliderOpts {
   get: () => number
   set: (v: number) => void
   format?: (v: number) => string
+  /** Receives the slider's sync fn, so external state changes can refresh it. */
+  ref?: (sync: () => void) => void
 }
 
 /** Homepage slider: accent-filled track + a value bubble while dragging. */
@@ -109,6 +111,7 @@ function startSlider(o: SliderOpts): HTMLElement {
   input.addEventListener('pointerup', hide)
   input.addEventListener('blur', hide)
   row.append(lab, val, wrap)
+  o.ref?.(sync)
   sync()
   return row
 }
@@ -192,46 +195,60 @@ export function showStartPage(
 
   const body = el('div', 'dio-start-body')
 
-  // ---- garment gallery (roving tabindex + arrow keys) ----
+  // ---- garment gallery (grouped by category; roving tabindex + arrow keys) ----
+  const fitSyncs: (() => void)[] = []
   const gallery = el('div', 'dio-start-gallery dio-start-anim')
   gallery.setAttribute('role', 'radiogroup')
-  gallery.setAttribute('aria-label', 'Garment type')
-  const cards = new Map<GarmentType, HTMLElement>()
-  const selectGarment = (t: GarmentType, focus = false): void => {
-    config.garmentType = t
-    for (const [gt, node] of cards) {
-      const on = gt === t
+  gallery.setAttribute('aria-label', 'Garment')
+  const cards = new Map<string, HTMLElement>()
+  const order: string[] = []
+  const selectGarment = (id: string, focus = false, applyDefaults = true): void => {
+    config.garmentType = id
+    if (applyDefaults) Object.assign(config, getGarment(id).defaults) // starting fit/style
+    for (const [gid, node] of cards) {
+      const on = gid === id
       node.classList.toggle('selected', on)
       node.setAttribute('aria-checked', String(on))
       node.tabIndex = on ? 0 : -1
       if (on && focus) node.focus()
     }
-    pop(cards.get(t)!)
+    pop(cards.get(id)!)
+    fitSyncs.forEach((s) => s()) // reflect the new length/ease/flare on the sliders
     preview?.rebuild(config)
   }
-  GARMENT_TYPES.forEach((t) => {
-    const card = el('div', 'dio-start-card')
-    card.setAttribute('role', 'radio')
-    card.innerHTML = `<svg viewBox="0 0 200 300"><path d="${SIL[t]}"/></svg>`
-    card.append(el('div', 'dio-start-card-name', label(t)))
-    card.addEventListener('click', () => selectGarment(t))
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        selectGarment(t)
-      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        e.preventDefault()
-        const i = (GARMENT_TYPES.indexOf(t) + 1) % GARMENT_TYPES.length
-        selectGarment(GARMENT_TYPES[i], true)
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        e.preventDefault()
-        const i = (GARMENT_TYPES.indexOf(t) + GARMENT_TYPES.length - 1) % GARMENT_TYPES.length
-        selectGarment(GARMENT_TYPES[i], true)
+  for (const cat of GARMENT_CATEGORIES) {
+    const items = garmentsByCategory(cat.id)
+    if (!items.length) continue
+    gallery.append(el('div', 'dio-fam-label', cat.label))
+    const grid = el('div', 'dio-cards')
+    for (const def of items) {
+      const card = el('div', 'dio-start-card')
+      card.setAttribute('role', 'radio')
+      card.innerHTML = `<svg viewBox="0 0 200 300"><path d="${SIL[def.icon ?? 'top']}"/></svg>`
+      card.append(el('div', 'dio-start-card-name', def.name))
+      order.push(def.id)
+      const nav = (dir: number): void => {
+        const i = (order.indexOf(def.id) + dir + order.length) % order.length
+        selectGarment(order[i], true)
       }
-    })
-    cards.set(t, card)
-    gallery.append(card)
-  })
+      card.addEventListener('click', () => selectGarment(def.id))
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          selectGarment(def.id)
+        } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault()
+          nav(1)
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault()
+          nav(-1)
+        }
+      })
+      cards.set(def.id, card)
+      grid.append(card)
+    }
+    gallery.append(grid)
+  }
   body.append(gallery)
 
   // ---- live 3D preview ----
@@ -384,9 +401,9 @@ export function showStartPage(
     startSlider({ label: 'Waist', min: 0.78, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => config.bodyWaist, set: (v) => { config.bodyWaist = v; preview?.setBody(config) } }),
     startSlider({ label: 'Hips', min: 0.82, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => config.bodyHips, set: (v) => { config.bodyHips = v; preview?.setBody(config) } }),
     el('div', 'dio-start-section', 'Fit'),
-    startSlider({ label: 'Length', min: 0, max: 1, step: 0.01, get: () => config.length, set: (v) => { config.length = v; preview?.rebuild(config) } }),
-    startSlider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => config.ease, set: (v) => { config.ease = v; preview?.rebuild(config) } }),
-    startSlider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => config.flare, set: (v) => { config.flare = v; preview?.rebuild(config) } })
+    startSlider({ label: 'Length', min: 0, max: 1, step: 0.01, ref: (s) => fitSyncs.push(s), get: () => config.length, set: (v) => { config.length = v; preview?.rebuild(config) } }),
+    startSlider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, ref: (s) => fitSyncs.push(s), get: () => config.ease, set: (v) => { config.ease = v; preview?.rebuild(config) } }),
+    startSlider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, ref: (s) => fitSyncs.push(s), get: () => config.flare, set: (v) => { config.flare = v; preview?.rebuild(config) } })
   )
 
   const go = el('button', 'dio-start-go')
@@ -406,7 +423,7 @@ export function showStartPage(
   document.body.append(overlay)
 
   // ---- create the live 3D preview + first garment ----
-  selectGarment(config.garmentType)
+  selectGarment(config.garmentType, false, false)
   preview = new PreviewStudio(canvasHost, () => canvasHost.classList.remove('loading'))
   preview.rebuild(config)
 

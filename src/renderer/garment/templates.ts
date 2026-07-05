@@ -1,9 +1,8 @@
 import type { NecklineStyle } from '../cloth/Garment'
 
-export type GarmentType = 'dress' | 'skirt' | 'top' | 'pants'
+/** A garment id from the registry (see garments/registry.ts). */
+export type GarmentType = string
 export type SleeveStyle = 'none' | 'short' | 'long'
-
-export const GARMENT_TYPES: GarmentType[] = ['dress', 'skirt', 'top', 'pants']
 
 export interface GarmentParams {
   /** Overall length, 0 (short) … 1 (long). */

@@ -6,7 +6,8 @@ import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { GarmentController } from './garment/GarmentController'
-import { GARMENT_TYPES, type GarmentType } from './garment/templates'
+import type { GarmentType } from './garment/templates'
+import { GARMENT_IDS } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
 import { createFabricMaterial, applyFabric } from './cloth/FabricMaterial'
@@ -236,7 +237,6 @@ function initStudio(config: DesignConfig): void {
     fabrics: FABRIC_LIBRARY,
     current,
     garment,
-    garmentTypes: GARMENT_TYPES,
     patternParams,
     mode,
     onSetMode: setMode,
@@ -298,7 +298,7 @@ const skipStart =
 if (skipStart) {
   const cfg = defaultConfig()
   const g = entryParams.get('garment') as GarmentType | null
-  if (g && GARMENT_TYPES.includes(g)) cfg.garmentType = g
+  if (g && GARMENT_IDS.includes(g)) cfg.garmentType = g
   const fb = entryParams.get('fabric')
   if (fb) {
     cfg.fabricId = fb

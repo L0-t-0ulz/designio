@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import * as THREE from 'three'
 import { MEASUREMENTS } from '../src/renderer/avatar/Mannequin'
-import { DEFAULT_PARAMS, GARMENT_TYPES, type GarmentType } from '../src/renderer/garment/templates'
-import { getGarment, GARMENTS } from '../src/renderer/garments/registry'
+import { DEFAULT_PARAMS, type GarmentType } from '../src/renderer/garment/templates'
+import { getGarment, GARMENTS, GARMENT_IDS } from '../src/renderer/garments/registry'
 import { garmentTubeSpecs } from '../src/renderer/garments/factory'
 import { fillTube, fillAxisTube } from '../src/renderer/cloth/Garment'
 import type { GarmentParams } from '../src/renderer/garment/templates'
@@ -78,8 +78,8 @@ describe('garment registry + factory', () => {
     expect(specs('pants').length).toBe(2) // two legs
   })
 
-  it('produces geometrically valid tube pieces', () => {
-    for (const t of GARMENT_TYPES) {
+  it('every catalog garment produces geometrically valid tube pieces', () => {
+    for (const t of GARMENT_IDS) {
       for (const spec of specs(t)) {
         expect(spec.topY).toBeGreaterThan(spec.bottomY)
         expect(spec.radiusTop).toBeGreaterThan(0)
