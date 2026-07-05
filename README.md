@@ -31,6 +31,7 @@ Built as a desktop app (Electron + Three.js + TypeScript).
   **Sew & simulate** — the two panels stitch at the side seams and wrap the body into a 3D garment.
 - **Export the design to get it made**: **3D** (glTF/OBJ), **2D pattern** (SVG/DXF for a cutter),
   and a **measurement tech-pack** (printable HTML + JSON) — saved via a native file dialog.
+- **Resize the mannequin** — **height & build** sliders — and the garment refits to the new body.
 - **Animate** the mannequin — **idle / walk / turntable** — and watch the garment move with the body
   ("4D"): a swinging skirt, a flowing dress, moving pant legs.
 - Choose from a **fabric library** (cotton poplin, denim, linen, wool flannel, silk charmeuse, satin,

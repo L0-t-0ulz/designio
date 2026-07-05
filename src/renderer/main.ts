@@ -59,7 +59,14 @@ function initStudio(config: DesignConfig): void {
   }
   const patternParams = { ...DEFAULT_PATTERN }
   const anim = { mode: 'static' as AnimationMode, speed: 1 }
+  const bodySize = { height: 1, build: 1 }
   let mode: DesignMode = 'templates'
+
+  function setBody(next: { height: number; build: number }): void {
+    mannequin.resize(next)
+    if (mode === 'templates') garmentCtl.build(garment.type, garment)
+    else patternCtl.build(patternParams)
+  }
 
   interface Steppable {
     step(dt: number): void
@@ -130,6 +137,11 @@ function initStudio(config: DesignConfig): void {
   if (modeParam === 'pattern') setMode('pattern')
   const animParam = params.get('anim') as AnimationMode | null
   if (animParam) setAnimMode(animParam)
+  const bh = params.get('bodyH')
+  const bb = params.get('bodyB')
+  if (bh) bodySize.height = +bh
+  if (bb) bodySize.build = +bb
+  if (bh || bb) setBody(bodySize)
 
   // ---- export ----
   function techData(): TechpackData {
@@ -215,7 +227,9 @@ function initStudio(config: DesignConfig): void {
       anim.speed = v
       viewport.controls.autoRotateSpeed = v * 2.2
     },
-    onColor: setColor
+    onColor: setColor,
+    bodySize,
+    onBodySize: setBody
   })
 
   if (params.get('closeup') === '1') {
