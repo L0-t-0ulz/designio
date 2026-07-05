@@ -49,6 +49,8 @@ export interface PanelOptions {
   bodySize: BodyParams
   onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
+  /** Return to the start page ("Design your piece"). */
+  onBack?: () => void
 }
 
 /** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
@@ -66,6 +68,14 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   const heading = el('div')
   heading.append(el('div', 'dio-title', 'DesignIO'), el('div', 'dio-subtitle', 'Garment Studio'))
   header.append(el('div', 'dio-logo'), heading)
+  if (opts.onBack) {
+    const back = el('button', 'dio-back')
+    back.type = 'button'
+    back.title = 'Back to “Design your piece”'
+    back.append(document.createTextNode('← Start'))
+    back.addEventListener('click', () => opts.onBack!())
+    header.append(back)
+  }
   panel.append(header)
 
   // ---- actions ----
