@@ -36,9 +36,13 @@ If you are unsure whether something is allowed, **ask first.**
 
 ---
 
-![DesignIO — the "Design your piece" studio with the full garment catalog and grouped fabric library](docs/catalog-start.png)
+![DesignIO homepage — hero, a New design button, a templates gallery, and a what-you-can-do strip](docs/homepage.png)
 
-*The "Design your piece" start page: pick from a categorised garment catalog, choose a fabric, and see a
+*The homepage launcher: start a **New design**, or jump straight in from a **template**.*
+
+![DesignIO — the "Design your piece" builder with the categorised garment catalog and grouped fabric library](docs/catalog-start.png)
+
+*The "Design your piece" builder: pick from a categorised garment catalog, choose a fabric, and see a
 live 3D preview draped on the mannequin — then open it in the full studio.*
 
 ---

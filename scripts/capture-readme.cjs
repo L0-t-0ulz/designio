@@ -11,7 +11,8 @@ const capture = path.join(__dirname, 'capture.cjs')
 // [outFile, waitMs, deepLink]. `still=1` freezes the start-page turntable; `start=0`
 // deep-links straight into the studio (fixed camera + deterministic cloth settle).
 const shots = [
-  ['docs/catalog-start.png', 4000, 'still=1'],
+  ['docs/homepage.png', 4000, ''],
+  ['docs/catalog-start.png', 4000, 'page=start&still=1'],
   ['docs/fabrics-start.png', 7000, 'garment=dress&fabric=velvet&start=0'],
   ['docs/catalog-gown.png', 7000, 'garment=gown&fabric=satin&start=0'],
   ['docs/catalog-jumpsuit.png', 7000, 'garment=jumpsuit&fabric=denim&start=0'],

@@ -868,3 +868,174 @@ canvas {
 .dio-hint b {
   color: #d8d8e4;
 }
+
+/* ===== Homepage launcher ===== */
+.dio-home {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 44px;
+  padding: clamp(40px, 8vh, 100px) 24px 60px;
+  background:
+    radial-gradient(760px 460px at 20% -8%, rgba(124, 111, 240, 0.2), transparent 60%),
+    radial-gradient(720px 520px at 100% 6%, rgba(176, 124, 255, 0.14), transparent 55%),
+    radial-gradient(1100px 620px at 50% -12%, #1b1b26, transparent 72%),
+    var(--bg-0);
+  color: var(--fg-0);
+  font: 15px/1.5 var(--font-ui);
+  text-align: center;
+}
+.dio-home * {
+  box-sizing: border-box;
+}
+.dio-home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 640px;
+}
+.dio-home-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 10px 40px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.dio-home-title {
+  font-size: clamp(40px, 7vw, 68px);
+  font-weight: 760;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  background: linear-gradient(100deg, #ffffff 18%, #cfd2ff 45%, var(--accent-hi) 70%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: dio-shimmer-text 7s ease-in-out infinite;
+}
+.dio-home-tag {
+  font-size: clamp(15px, 2.2vw, 19px);
+  color: var(--fg-1);
+  max-width: 34ch;
+}
+.dio-home-cta {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 15px 28px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--r-pill);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 12px 36px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur);
+  animation: dio-cta-pulse 3.2s ease-in-out infinite;
+}
+.dio-home-cta svg {
+  width: 18px;
+  height: 18px;
+}
+.dio-home-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 50px var(--accent-glow);
+}
+.dio-home-cta-arrow {
+  display: inline-flex;
+  transition: transform var(--dur) var(--ease-spring);
+}
+.dio-home-cta:hover .dio-home-cta-arrow {
+  transform: translateX(4px);
+}
+.dio-home-section {
+  width: 100%;
+  max-width: 760px;
+}
+.dio-home-h {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--fg-2);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.dio-home-templates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 12px;
+}
+.dio-home-card {
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color var(--dur-fast), transform var(--dur-fast) var(--ease-spring),
+    box-shadow var(--dur-fast);
+}
+.dio-home-card:hover {
+  border-color: var(--accent-line);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+}
+.dio-home-card svg {
+  width: 100%;
+  height: 78px;
+}
+.dio-home-card svg path {
+  fill: #cbd0e0;
+}
+.dio-home-card:hover svg path {
+  fill: var(--accent-hi);
+}
+.dio-home-card-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--fg-1);
+  margin-top: 6px;
+}
+.dio-home-chip {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  flex: none;
+}
+.dio-home-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px;
+}
+.dio-home-stat-big {
+  font-size: 22px;
+  font-weight: 720;
+  color: var(--fg-0);
+}
+.dio-home-stat-small {
+  font-size: 12px;
+  color: var(--fg-2);
+}
+.dio-home-anim {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dio-home-title,
+  .dio-home-cta {
+    animation: none;
+  }
+  .dio-home-anim {
+    opacity: 1;
+  }
+}

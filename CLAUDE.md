@@ -78,5 +78,6 @@ Renderer modules:
 `?start=0` skip start page · `?garment=<id>` (registry id — dress, gown, jumpsuit, wide-leg, …; applies
 its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>` ·
-`?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable). Regenerate docs with
-`npm run capture`.
+`?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable) · `?page=start` (deep-link the
+builder, bypassing the homepage). Entry is the homepage launcher → start page → studio. Regenerate docs
+with `npm run capture`.
