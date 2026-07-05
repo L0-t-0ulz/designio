@@ -8,6 +8,8 @@ import type { Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, textField, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
+import { SIZES, type SizeLabel } from '../studio/document'
+import type { GarmentMetrics } from '../export/garmentMetrics'
 
 export interface GarmentState {
   type: GarmentType
@@ -16,10 +18,11 @@ export interface GarmentState {
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
+  size: SizeLabel
 }
 
 export type DesignMode = 'templates' | 'pattern'
-export type ExportFormat = 'glb' | 'obj' | 'svg' | 'dxf' | 'techpack' | 'json'
+export type ExportFormat = 'glb' | 'obj' | 'svg' | 'dxf' | 'techpack' | 'json' | 'manufacture'
 
 /** Live control over the garment's printed graphic (PNG) + text, from the studio. */
 export interface GraphicControls {
@@ -59,6 +62,8 @@ export interface PanelOptions {
   onColor: (hex: number) => void
   /** Add / adjust a printed graphic (PNG) + text on the garment (optional). */
   graphic?: GraphicControls
+  /** Live measurements of the active garment (for the Measurements readout). */
+  getMetrics?: () => GarmentMetrics
   bodySize: BodyParams
   onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
@@ -78,6 +83,8 @@ export interface PanelApi {
   syncGarment: () => void
   /** Reload every control from the current state (e.g. after switching active layer). */
   refresh: () => void
+  /** Re-read the live measurements (e.g. after a garment/body/size edit). */
+  refreshMetrics: () => void
   /** Switch the editor context (Garment / Avatar). */
   setContext: (c: 'garment' | 'avatar') => void
 }
@@ -153,9 +160,27 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const easeS = slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
   const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
 
+  // size grade (XS…XXL) — grades the garment girth
+  const sizeRow = el('div', 'dio-actions')
+  sizeRow.style.flexWrap = 'wrap'
+  const sizeBtns = new Map<SizeLabel, HTMLButtonElement>()
+  const setSize = (s: SizeLabel): void => {
+    garment.size = s
+    for (const [ss, node] of sizeBtns) node.classList.toggle('primary', ss === s)
+    opts.onGarmentEdit()
+  }
+  for (const s of SIZES) {
+    const b = button(s, () => setSize(s), garment.size === s)
+    sizeBtns.set(s, b)
+    sizeRow.append(b)
+  }
+  const sizeBlock = el('div')
+  sizeBlock.append(el('div', 'dio-field-label', 'Size'), sizeRow)
+
   function syncNeckSleeve(): void {
     for (const [n, node] of neckBtns) node.classList.toggle('primary', n === garment.neckline)
     for (const [s, node] of sleeveBtns) node.classList.toggle('primary', s === garment.sleeve)
+    for (const [s, node] of sizeBtns) node.classList.toggle('primary', s === garment.size)
   }
   /** Reflect the selected garment: button primaries, supported controls, slider values. */
   function syncGarment(): void {
@@ -179,7 +204,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   const construction = section('Construction')
-  construction.body.append(neckRow, sleeveRow, lenS.row, easeS.row, flareS.row)
+  construction.body.append(sizeBlock, neckRow, sleeveRow, lenS.row, easeS.row, flareS.row)
   syncGarment()
 
   // ---- pattern (sew) ----
@@ -283,6 +308,42 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
   if (opts.graphic) look.body.append(graphicControls(opts.graphic))
+
+  // ---- measurements (live production spec) ----
+  const metricsSec = section('Measurements')
+  let unit: 'cm' | 'in' = 'cm'
+  const unitRow = el('div', 'dio-actions')
+  const cmBtn = button('cm', () => setUnit('cm'), true)
+  const inBtn = button('in', () => setUnit('in'), false)
+  unitRow.append(cmBtn, inBtn)
+  const metricsBody = el('div', 'dio-metrics')
+  function setUnit(u: 'cm' | 'in'): void {
+    unit = u
+    cmBtn.classList.toggle('primary', u === 'cm')
+    inBtn.classList.toggle('primary', u === 'in')
+    renderMetrics()
+  }
+  const metricLine = (label: string, text: string): HTMLElement => {
+    const row = el('div', 'dio-metric')
+    row.append(el('span', 'dio-metric-label', label), el('span', 'dio-metric-val', text))
+    return row
+  }
+  const fmtLen = (cm: number): string => (unit === 'cm' ? `${cm.toFixed(1)} cm` : `${(cm / 2.54).toFixed(1)} in`)
+  function renderMetrics(): void {
+    metricsBody.replaceChildren()
+    const m = opts.getMetrics?.()
+    if (!m) {
+      metricsBody.append(el('div', 'dio-lib-empty', 'Templates mode only'))
+      return
+    }
+    for (const r of m.rows) metricsBody.append(metricLine(r.label, fmtLen(r.cm)))
+    metricsBody.append(el('div', 'dio-metric-sep'))
+    metricsBody.append(metricLine('Fabric', `${m.fabricM2.toFixed(2)} m²`))
+    metricsBody.append(metricLine('Seam length', fmtLen(m.seamCm)))
+  }
+  metricsSec.body.append(unitRow, metricsBody)
+  if (opts.getMetrics) renderMetrics()
+
   // ---- fabric physics ----
   const cloth = section('Fabric physics', true)
   cloth.body.append(
@@ -360,7 +421,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
 
   // ---- context groups + tabs (Garment / Avatar / Scene) ----
   const garmentGroup = el('div')
-  garmentGroup.append(modeRow, construction.root, patternSec.root, look.root, cloth.root)
+  garmentGroup.append(modeRow, construction.root, patternSec.root, look.root, metricsSec.root, cloth.root)
   const avatarGroup = el('div', 'dio-hidden')
   avatarGroup.append(bodySec.root)
   const sceneGroup = el('div')
@@ -392,6 +453,10 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     refreshers.forEach((r) => r.refresh())
     figBtns.female.classList.toggle('primary', opts.bodySize.bodyType === 'female')
     figBtns.male.classList.toggle('primary', opts.bodySize.bodyType === 'male')
+    renderMetrics()
   }
-  return { panel, api: { selectGarment, selectFabric, setFigure, syncGarment, refresh: refreshAll, setContext } }
+  return {
+    panel,
+    api: { selectGarment, selectFabric, setFigure, syncGarment, refresh: refreshAll, refreshMetrics: renderMetrics, setContext }
+  }
 }

@@ -22,6 +22,8 @@ import { exportGLB, exportOBJ } from './export/exporters3d'
 import { patternToSVG, patternToDXF } from './export/patternExport'
 import { garmentPatternSVG, garmentPatternDXF } from './export/garmentPattern'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
+import { garmentMetrics } from './export/garmentMetrics'
+import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
@@ -32,6 +34,7 @@ import {
   docFromConfig,
   defaultLayer,
   cloneLayer,
+  gradeParams,
   serializeDoc,
   parseDoc,
   type ProjectDoc,
@@ -71,7 +74,8 @@ function initStudio(config: DesignConfig): void {
     ease: l0.ease,
     flare: l0.flare,
     neckline: l0.neckline,
-    sleeve: l0.sleeve
+    sleeve: l0.sleeve,
+    size: l0.size
   }
   const current: Fabric = { ...getFabric(l0.fabricId), color: l0.color }
 
@@ -151,6 +155,7 @@ function initStudio(config: DesignConfig): void {
     garment.flare = l.data.flare
     garment.neckline = l.data.neckline
     garment.sleeve = l.data.sleeve
+    garment.size = l.data.size
     Object.assign(current, l.fabric)
     api.refresh()
   }
@@ -279,7 +284,7 @@ function initStudio(config: DesignConfig): void {
   // Templates → the real per-garment flat pattern; Pattern mode → the sewn top.
   const patternSVG = (): string =>
     mode === 'templates'
-      ? garmentPatternSVG(getGarment(stack.active.data.garmentType), stack.active.data, mannequin.measurements, mannequin.colliders)
+      ? garmentPatternSVG(getGarment(stack.active.data.garmentType), gradeParams(stack.active.data), mannequin.measurements, mannequin.colliders)
       : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
   const centerTabs = buildCenterTabs(shell.center, patternSVG)
 
@@ -347,7 +352,7 @@ function initStudio(config: DesignConfig): void {
       case 'svg': {
         const svg =
           mode === 'templates'
-            ? garmentPatternSVG(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders)
+            ? garmentPatternSVG(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
             : patternToSVG(dims)
         await saveFile('pattern.svg', svg, [{ name: 'SVG', extensions: ['svg'] }])
         break
@@ -355,7 +360,7 @@ function initStudio(config: DesignConfig): void {
       case 'dxf': {
         const dxf =
           mode === 'templates'
-            ? garmentPatternDXF(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders)
+            ? garmentPatternDXF(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
             : patternToDXF(dims)
         await saveFile('pattern.dxf', dxf, [{ name: 'DXF', extensions: ['dxf'] }])
         break
@@ -366,6 +371,33 @@ function initStudio(config: DesignConfig): void {
       case 'json':
         await saveFile('design.json', techpackJSON(techData()), [{ name: 'JSON', extensions: ['json'] }])
         break
+      case 'manufacture':
+        await saveFile('manufacturing.html', manufactureHTML(manufactureBundle()), [{ name: 'HTML', extensions: ['html'] }])
+        break
+    }
+  }
+
+  // The whole outfit as a manufacturing pack (spec + BOM + flat patterns per layer).
+  function activeMetrics(l = stack.active): ReturnType<typeof garmentMetrics> {
+    const def = getGarment(l.data.garmentType)
+    return garmentMetrics(def.name, l.data.size, def, gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+  }
+  function manufactureBundle(): ManufactureBundle {
+    return {
+      title: 'DesignIO outfit',
+      body: { ...bodySize },
+      layers: stack.layers.map((l) => {
+        const def = getGarment(l.data.garmentType)
+        return {
+          name: def.name,
+          size: l.data.size,
+          fabricName: l.fabric.name,
+          gsm: l.fabric.gsm,
+          color: l.data.color,
+          metrics: activeMetrics(l),
+          patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+        }
+      })
     }
   }
 
@@ -488,8 +520,10 @@ function initStudio(config: DesignConfig): void {
       l.data.flare = garment.flare
       l.data.neckline = garment.neckline
       l.data.sleeve = garment.sleeve
+      l.data.size = garment.size
       stack.rebuild(l)
       centerTabs.refresh()
+      api.refreshMetrics()
       syncBrowsers()
     },
     onPatternEdit: () => {
@@ -541,11 +575,13 @@ function initStudio(config: DesignConfig): void {
         stack.refreshDesign(stack.active)
       }
     },
+    getMetrics: () => activeMetrics(),
     bodySize,
     onBodySize: (b) => {
       Object.assign(bodySize, b)
       setBody(bodySize)
       centerTabs.refresh()
+      api.refreshMetrics()
       syncBrowsers()
     },
     onBodyMode: (realistic) => {

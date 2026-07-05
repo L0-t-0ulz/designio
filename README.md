@@ -139,12 +139,20 @@ Beyond the start page, the studio's **Appearance** panel lets you **import a PNG
 **printed text** onto the garment live — with an adjustable graphic size — so you can iterate on prints
 while the cloth simulates.
 
+### Size it · see every measurement · pack it for the factory
+Pick a **size** (XS – XXL) and the garment **grades** to fit; the **Measurements** panel shows the real
+production spec **live** — chest, waist, hip, length, sleeve, inseam, hem sweep, plus estimated **fabric
+area** and **total seam length** (toggle **cm / in**). All of it is derived from the exact same
+construction as the 3D garment and the flat pattern, so it always agrees. When you're ready, **Export for
+manufacturing** — one printable pack (HTML + JSON) with, per garment, a **spec sheet**, a **fabric BOM**
+(fabric · weight · yardage) and the **embedded flat pattern** — everything a maker needs to cut and sew it.
+
 ### Animate it (4D) + export to get it made
 At default settings the garment **hangs perfectly still** (the solver sleeps when there's no wind and the
 body isn't moving — no drift or jitter). Animate the mannequin — **idle / walk / turntable** — and watch
 the garment move with the body (a swinging skirt, a flowing dress); tune **gravity / wind / exposure**.
-Then **export**: **3D** (glTF / OBJ), **2D pattern** (SVG / DXF for a cutter), and a **measurement
-tech-pack** (printable HTML + JSON).
+Then **export**: **3D** (glTF / OBJ), **2D pattern** (SVG / DXF for a cutter), a **measurement tech-pack**
+(HTML + JSON), and a full **manufacturing pack** (spec sheet + fabric BOM + embedded patterns).
 
 ---
 

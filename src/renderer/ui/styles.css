@@ -280,6 +280,35 @@ canvas {
   cursor: pointer;
 }
 
+/* ---- size grade label + live measurements ---- */
+.dio-field-label {
+  font-size: 11.5px;
+  color: var(--dio-muted);
+  margin: 4px 0 4px;
+}
+.dio-metrics {
+  margin-top: 4px;
+}
+.dio-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 3px 0;
+  font-size: 12.5px;
+}
+.dio-metric-label {
+  color: var(--dio-muted);
+}
+.dio-metric-val {
+  color: var(--dio-text);
+  font-variant-numeric: tabular-nums;
+}
+.dio-metric-sep {
+  height: 1px;
+  background: var(--dio-border);
+  margin: 6px 0;
+}
+
 /* ---- printed-graphic (PNG) uploader ---- */
 .dio-graphic {
   margin: 6px 0 2px;

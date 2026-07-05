@@ -102,7 +102,9 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('svg', 'Export pattern — SVG'),
     ex('dxf', 'Export pattern — DXF'),
     ex('techpack', 'Export tech-pack (HTML)'),
-    ex('json', 'Export design (JSON)')
+    ex('json', 'Export design (JSON)'),
+    { sep: true },
+    ex('manufacture', 'Export for manufacturing (HTML)')
   ])
   menu('Edit', [
     { label: 'Undo', run: a.onUndo },
