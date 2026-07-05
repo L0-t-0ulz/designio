@@ -4,8 +4,8 @@ import type { Viewport } from '../core/Viewport'
 import type { GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
-import { FABRIC_FAMILIES, type Fabric } from '../fabric/FabricLibrary'
-import { GARMENT_CATEGORIES, garmentsByCategory, getGarment } from '../garments/registry'
+import type { Fabric } from '../fabric/FabricLibrary'
+import { getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
 
@@ -49,6 +49,8 @@ export interface PanelOptions {
   bodySize: BodyParams
   onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
+  /** Notify the shell of the current editor context (for the status bar). */
+  onSelectContext?: (label: string) => void
   /** Return to the start page ("Design your piece"). */
   onBack?: () => void
 }
@@ -61,6 +63,8 @@ export interface PanelApi {
   setFigure: (t: BodyType) => void
   /** Refresh the panel's garment controls from the current state (e.g. after a preset). */
   syncGarment: () => void
+  /** Switch the editor context (Garment / Avatar). */
+  setContext: (c: 'garment' | 'avatar') => void
 }
 
 export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; api: PanelApi } {
@@ -87,46 +91,17 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
   panel.append(header)
 
-  // ---- actions ----
-  const actions = el('div', 'dio-actions')
-  let running = true
-  const simBtn = button('❙❙  Pause', () => {}, true)
-  simBtn.addEventListener('click', () => {
-    running = !running
-    opts.loop.setRunning(running)
-    simBtn.textContent = running ? '❙❙  Pause' : '▶  Play'
-    simBtn.classList.toggle('off', !running)
-  })
-  actions.append(simBtn, button('⤓  Re-drape', () => opts.onDrop()))
-  panel.append(actions)
-
-  // ---- design mode ----
+  // ---- design mode (Templates / Pattern) — garment context ----
   const modeRow = el('div', 'dio-actions')
   const modeBtns: Record<DesignMode, HTMLButtonElement> = {
     templates: button('Templates', () => switchMode('templates'), opts.mode === 'templates'),
     pattern: button('Pattern (sew)', () => switchMode('pattern'), opts.mode === 'pattern')
   }
   modeRow.append(modeBtns.templates, modeBtns.pattern)
-  panel.append(modeRow)
 
-  // ---- garment catalog (data-driven, grouped by category) ----
-  const garmentSec = section('Garment')
-  const catPicker = el('div')
+  // The garment *picker* now lives in the Library; this map stays empty (syncGarment
+  // just no-ops its highlight loop) but selectGarment/syncGarment remain the shared path.
   const garmentBtns = new Map<string, HTMLButtonElement>()
-  for (const cat of GARMENT_CATEGORIES) {
-    const items = garmentsByCategory(cat.id)
-    if (!items.length) continue
-    catPicker.append(el('div', 'dio-fam-label', cat.label))
-    const row = el('div', 'dio-actions')
-    row.style.flexWrap = 'wrap'
-    for (const def of items) {
-      const b = button(def.name, () => selectGarment(def.id), def.id === garment.type)
-      b.style.flex = '1 1 44%'
-      garmentBtns.set(def.id, b)
-      row.append(b)
-    }
-    catPicker.append(row)
-  }
 
   // neckline picker (tops/dresses)
   const neckRow = el('div', 'dio-actions')
@@ -188,9 +163,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     opts.onGarmentEdit()
   }
 
-  garmentSec.body.append(catPicker, neckRow, sleeveRow, lenS.row, easeS.row, flareS.row)
+  const construction = section('Construction')
+  construction.body.append(neckRow, sleeveRow, lenS.row, easeS.row, flareS.row)
   syncGarment()
-  panel.append(garmentSec.root)
 
   // ---- pattern (sew) ----
   const patternSec = section('Pattern')
@@ -203,20 +178,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     button('✂  Sew & simulate', () => opts.onResew())
   )
   refreshSchema()
-  panel.append(patternSec.root)
 
   function switchMode(m: DesignMode): void {
     opts.mode = m
     modeBtns.templates.classList.toggle('primary', m === 'templates')
     modeBtns.pattern.classList.toggle('primary', m === 'pattern')
-    garmentSec.root.classList.toggle('dio-hidden', m !== 'templates')
+    construction.root.classList.toggle('dio-hidden', m !== 'templates')
     patternSec.root.classList.toggle('dio-hidden', m !== 'pattern')
     opts.onSetMode(m)
   }
   switchMode(opts.mode)
 
-  // ---- mannequin size ----
-  const bodySec = section('Mannequin', true)
+  // ---- body / avatar ----
+  const bodySec = section('Body')
   let realisticBody = false
   const figRow = el('div', 'dio-actions')
   const figBtns: Record<BodyType, HTMLButtonElement> = {
@@ -239,10 +213,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     slider({ label: 'Waist', min: 0.78, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.waist, set: (v) => { opts.bodySize.waist = v; opts.onBodySize(opts.bodySize) } }).row,
     slider({ label: 'Hips', min: 0.82, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.hips, set: (v) => { opts.bodySize.hips = v; opts.onBodySize(opts.bodySize) } }).row
   )
-  panel.append(bodySec.root)
-
-  // ---- fabric gallery (grouped by family) ----
-  const fabricSec = section('Fabric')
+  // The fabric *gallery* now lives in the Library; keep selectFabric as the shared
+  // path (the swatch map stays empty, so its highlight loop no-ops).
   const swatchEls = new Map<string, HTMLElement>()
   const selectSwatch = (id: string): void => {
     for (const [fid, node] of swatchEls) node.classList.toggle('selected', fid === id)
@@ -252,26 +224,6 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     selectSwatch(id)
     refreshers.forEach((r) => r.refresh())
   }
-  const fabricCard = (f: (typeof opts.fabrics)[number]): HTMLElement => {
-    const card = el('div', 'dio-swatch')
-    const chip = el('div', 'dio-swatch-chip')
-    chip.style.background = '#' + f.color.toString(16).padStart(6, '0')
-    card.append(chip, el('div', 'dio-swatch-name', f.name))
-    card.title = `${f.name} · ${f.gsm} gsm`
-    card.addEventListener('click', () => selectFabric(f.id))
-    swatchEls.set(f.id, card)
-    return card
-  }
-  for (const fam of FABRIC_FAMILIES) {
-    const group = opts.fabrics.filter((f) => f.family === fam.id)
-    if (!group.length) continue
-    fabricSec.body.append(el('div', 'dio-fam-label', fam.label))
-    const grid = el('div', 'dio-swatches')
-    for (const f of group) grid.append(fabricCard(f))
-    fabricSec.body.append(grid)
-  }
-  selectSwatch(current.id)
-  panel.append(fabricSec.root)
 
   // ---- appearance ----
   const look = section('Appearance')
@@ -284,8 +236,6 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheen streak', min: 0, max: 1, step: 0.01, get: () => current.anisotropy, set: (v) => { current.anisotropy = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
-  panel.append(look.root)
-
   // ---- fabric physics ----
   const cloth = section('Fabric physics', true)
   cloth.body.append(
@@ -294,8 +244,6 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Drape (soft)', min: 0, max: 1, step: 0.01, get: () => current.bendiness, set: (v) => { current.bendiness = v; opts.onPhysicsEdit() } })),
     track(slider({ label: 'Grip', min: 0, max: 1, step: 0.01, get: () => current.friction, set: (v) => { current.friction = v; opts.onPhysicsEdit() } }))
   )
-  panel.append(cloth.root)
-
   // ---- environment ----
   const env = section('Environment', true)
   let gravity = 9.81
@@ -307,8 +255,6 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => windZ, set: (v) => { windZ = v; opts.onSetWind(windX, windZ) } }).row,
     slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) }).row
   )
-  panel.append(env.root)
-
   // ---- animation ----
   const animSec = section('Animation', true)
   const animRow = el('div', 'dio-actions')
@@ -334,27 +280,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     animRow,
     slider({ label: 'Speed', min: 0.2, max: 3, step: 0.1, get: () => opts.anim.speed, set: (v) => { opts.anim.speed = v; opts.onAnimSpeed(v) } }).row
   )
-  panel.append(animSec.root)
-
-  // ---- export ----
-  const exportSec = section('Export', true)
-  const exportGrid = el('div', 'dio-actions')
-  exportGrid.style.flexWrap = 'wrap'
-  const exp: [string, ExportFormat][] = [
-    ['3D · glTF', 'glb'],
-    ['3D · OBJ', 'obj'],
-    ['Pattern · SVG', 'svg'],
-    ['Pattern · DXF', 'dxf'],
-    ['Tech-pack', 'techpack'],
-    ['Data · JSON', 'json']
-  ]
-  for (const [name, fmt] of exp) {
-    const b = button(name, () => opts.onExport(fmt))
-    b.style.flex = '1 1 42%'
-    exportGrid.append(b)
-  }
-  exportSec.body.append(exportGrid)
-  panel.append(exportSec.root)
+  // (Export lives in the File menu; Re-drape + Play/Pause in the Scene group / status bar.)
 
   // ---- view ----
   const view = section('View', true)
@@ -380,7 +306,38 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     toggle({ label: 'Wireframe', get: () => opts.material.wireframe, set: (v) => (opts.material.wireframe = v) }).row,
     toggle({ label: 'Show mannequin', get: () => opts.mannequin.visible, set: (v) => (opts.mannequin.visible = v) }).row
   )
-  panel.append(view.root)
 
-  return { panel, api: { selectGarment, selectFabric, setFigure, syncGarment } }
+  // ---- Scene actions (re-drape) ----
+  const redrapeRow = el('div', 'dio-actions')
+  redrapeRow.append(button('⤓  Re-drape', () => opts.onDrop()))
+
+  // ---- context groups + tabs (Garment / Avatar / Scene) ----
+  const garmentGroup = el('div')
+  garmentGroup.append(modeRow, construction.root, patternSec.root, look.root, cloth.root)
+  const avatarGroup = el('div', 'dio-hidden')
+  avatarGroup.append(bodySec.root)
+  const sceneGroup = el('div')
+  sceneGroup.append(redrapeRow, env.root, animSec.root, view.root)
+
+  const ctxTabs = el('div', 'dio-ctx-tabs')
+  const ctxBtns: Record<'garment' | 'avatar', HTMLButtonElement> = {
+    garment: el('button', 'dio-ctx-tab on'),
+    avatar: el('button', 'dio-ctx-tab')
+  }
+  ctxBtns.garment.textContent = 'Garment'
+  ctxBtns.avatar.textContent = 'Avatar'
+  function setContext(c: 'garment' | 'avatar'): void {
+    garmentGroup.classList.toggle('dio-hidden', c !== 'garment')
+    avatarGroup.classList.toggle('dio-hidden', c !== 'avatar')
+    ctxBtns.garment.classList.toggle('on', c === 'garment')
+    ctxBtns.avatar.classList.toggle('on', c === 'avatar')
+    opts.onSelectContext?.(c === 'garment' ? 'Garment' : 'Avatar / mannequin')
+  }
+  ctxBtns.garment.addEventListener('click', () => setContext('garment'))
+  ctxBtns.avatar.addEventListener('click', () => setContext('avatar'))
+  ctxTabs.append(ctxBtns.garment, ctxBtns.avatar)
+
+  panel.append(ctxTabs, garmentGroup, avatarGroup, sceneGroup)
+
+  return { panel, api: { selectGarment, selectFabric, setFigure, syncGarment, setContext } }
 }

@@ -50,6 +50,13 @@ Start on the **"Design your piece"** page: choose a garment, colour it, **add yo
 shape the mannequin, and set the fit — all with a **live, auto-rotating 3D preview**. Hit **Design in 3D →**
 to open it in the full studio (and **← Start** to come back, keeping your design).
 
+### A professional studio (CLO3D-style, but friendly)
+The studio is a **dockable CAD-style workspace** — a top **menu bar**, a left **Library** (tabbed,
+searchable: garments · fabrics · avatars · presets), the central **3D viewport**, a right **Object
+Browser** (scene pieces + show/hide) above a context-sensitive **Property Editor** (Garment / Avatar /
+Scene), and a **status bar** (live fps · simulate/pause). Panels **resize, collapse, and persist**. Built
+vanilla (CSS + split.js) — with sensible defaults so it stays approachable, not overwhelming.
+
 ### A real garment catalog — 16 garments, all data-driven
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
 pieces), so breadth comes from data, not bespoke code. Grouped by category:
@@ -151,8 +158,9 @@ src/
     fabric/     FabricLibrary (24 fabrics by family) · weaveTexture (procedural weave normals)
     pattern/    2D panels → sew → drape
     export/     glTF/OBJ · SVG/DXF pattern · HTML/JSON tech-pack
-    start/      StartPage ("design your piece") · PreviewStudio · design config
-    ui/         studio control panel · design tokens + styles
+    start/      StartPage ("design your piece") · PreviewStudio · design config · presets
+    shell/      professional studio shell — StudioShell · menuBar · Library · ObjectBrowser · statusBar
+    ui/         Property Editor (context-sensitive panel) · controls · thumbnails · design tokens + styles
 tests/          headless solver / geometry / garment-catalog / fabric correctness
 ```
 

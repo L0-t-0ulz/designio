@@ -280,6 +280,30 @@ canvas {
   cursor: pointer;
 }
 
+/* ---- property-editor context tabs (Garment / Avatar) ---- */
+.dio-ctx-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 6px 0 8px;
+}
+.dio-ctx-tab {
+  flex: 1;
+  appearance: none;
+  border: 1px solid var(--dio-border);
+  background: var(--dio-card-bg);
+  color: var(--dio-muted);
+  font: inherit;
+  font-weight: 600;
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.dio-ctx-tab.on {
+  background: var(--dio-accent);
+  color: var(--on-accent);
+  border-color: transparent;
+}
+
 /* ---- start / design page (design system) ---- */
 .dio-start {
   position: fixed;

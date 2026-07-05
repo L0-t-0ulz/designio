@@ -332,6 +332,7 @@ function initStudio(config: DesignConfig): void {
       if (mode === 'templates') garmentCtl.redrape()
       else patternCtl.resew()
     },
+    onSelectContext: (label) => statusHandles?.setSelection(label),
     onBack: goBack
   })
 
@@ -339,7 +340,11 @@ function initStudio(config: DesignConfig): void {
   const objBrowser = buildObjectBrowser(
     shell.right,
     () => (mode === 'templates' ? garmentCtl.getPieces() : []),
-    () => current.color
+    () => current.color,
+    (name) => {
+      api.setContext('garment')
+      statusHandles?.setSelection(name)
+    }
   )
   shell.right.appendChild(panel)
 
@@ -362,9 +367,15 @@ function initStudio(config: DesignConfig): void {
     syncBrowsers()
   }
   const library = buildLibrary(shell.left, {
-    selectGarment: api.selectGarment,
+    selectGarment: (id) => {
+      api.setContext('garment')
+      api.selectGarment(id)
+    },
     selectFabric: api.selectFabric,
-    setFigure: api.setFigure,
+    setFigure: (t) => {
+      api.setContext('avatar')
+      api.setFigure(t)
+    },
     applyPreset,
     currentGarment: () => garment.type,
     currentFabric: () => current.id,

@@ -46,13 +46,23 @@ Renderer modules:
   `fabricPresets` (`FabricParams` for the solver).
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape),
   `weaveTexture` (procedural weave normal maps; pure math is unit-tested).
-- `garment/` — `templates` (dress/skirt/top/pants), `GarmentController` (multi-piece sim manager).
+- `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
+  supported controls), `registry` (the garments, as data), `factory` (`buildGarment` composes pieces).
+  Adding a garment is a data change, not new code.
+- `garment/` — `GarmentController` (multi-piece sim manager, consumes the factory); `templates` (shared
+  `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh-accurate collision.
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ), `patternExport` (SVG/DXF), `techpack` (HTML/JSON), `save`.
-- `start/` — `StartPage` (the "design your piece" landing), `PreviewStudio` (live 3D preview on the
-  start page), `design` (`DesignConfig` + the printed-design canvas texture).
-- `ui/` — `panel` (the studio control panel), `controls` (DOM helpers), `patternSchematic`, `styles.css`.
-- `main.ts` — `initStudio(config)` wires everything; shows the start page first (deep-links skip in).
+- `start/` — `StartPage` (the "design your piece" landing), `PreviewStudio` (live 3D preview),
+  `design` (`DesignConfig`), `presets` (ready-made looks).
+- `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
+  (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar`, `statusBar`,
+  `library` (tabbed asset browser), `objectBrowser` (scene pieces + visibility), `layoutStore`.
+- `ui/` — `panel` (the **context-sensitive Property Editor** — Garment/Avatar/Scene; returns `{panel, api}`
+  the Library drives), `controls` (DOM helpers), `thumbnails` (shared swatch/silhouette), `patternSchematic`,
+  `tokens.css` / `styles.css` / `shell.css`.
+- `main.ts` — `initStudio(config)` builds the shell, mounts the viewport + Library + Object Browser +
+  Property Editor; shows the start page first (deep-links skip in).
 
 ## Conventions
 
@@ -65,6 +75,8 @@ Renderer modules:
 
 ## Snapshot deep-links (query string)
 
-`?start=0` skip start page · `?garment=dress|skirt|top|pants` · `?fabric=<id>` · `?mode=pattern` ·
-`?anim=idle|walk|turn` · `?bodyH=<scale>&bodyB=<scale>` (mannequin size) · `?text=<print>` ·
-`?closeup=1` (macro camera).
+`?start=0` skip start page · `?garment=<id>` (registry id — dress, gown, jumpsuit, wide-leg, …; applies
+its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?bodyType=female|male` ·
+`?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>` ·
+`?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable). Regenerate docs with
+`npm run capture`.

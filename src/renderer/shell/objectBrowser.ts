@@ -14,7 +14,8 @@ const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 export function buildObjectBrowser(
   host: HTMLElement,
   getPieces: () => { name: string; mesh: THREE.Mesh }[],
-  fabricColor: () => number
+  fabricColor: () => number,
+  onSelect?: (name: string) => void
 ): ObjectBrowserHandle {
   host.replaceChildren()
   const root = el('div', 'dio-objbrowser')
@@ -35,6 +36,10 @@ export function buildObjectBrowser(
       const swatch = el('div', 'dio-obj-swatch')
       swatch.style.background = hex(fabricColor())
       const name = el('div', 'dio-obj-name', p.name)
+      if (onSelect) {
+        name.style.cursor = 'pointer'
+        name.addEventListener('click', () => onSelect(p.name))
+      }
       const vis = el('button', 'dio-obj-vis', p.mesh.visible ? '👁' : '⦸')
       vis.title = 'Show / hide'
       vis.setAttribute('aria-label', `Toggle visibility of ${p.name}`)
