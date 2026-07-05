@@ -2,6 +2,7 @@ import type { NecklineStyle, TubeSpec } from '../cloth/Garment'
 import type { Measurements } from '../avatar/Mannequin'
 
 export type GarmentType = 'dress' | 'skirt' | 'top' | 'pants'
+export type SleeveStyle = 'none' | 'short' | 'long'
 
 export const GARMENT_TYPES: GarmentType[] = ['dress', 'skirt', 'top', 'pants']
 
@@ -14,13 +15,16 @@ export interface GarmentParams {
   flare: number
   /** Neckline style for tops/dresses. */
   neckline?: NecklineStyle
+  /** Sleeves for tops/dresses. */
+  sleeve?: SleeveStyle
 }
 
 export const DEFAULT_PARAMS: GarmentParams = {
   length: 0.6,
   ease: 0.03,
   flare: 0.05,
-  neckline: 'scoop'
+  neckline: 'scoop',
+  sleeve: 'short'
 }
 
 const RADIAL = 60

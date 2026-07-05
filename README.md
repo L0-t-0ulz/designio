@@ -25,8 +25,9 @@ Built as a desktop app (Electron + Three.js + TypeScript).
   metaballs) in a **bright reflective studio** (post-processed: subtle bloom, crisp SMAA, mirror floor).
 - Pick a **garment template** — **dress, skirt, top, or pants** — and tweak its **length, looseness,
   and flare**; it rebuilds and re-drapes on the body (pants simulate as two legs).
-- Give tops & dresses a real **neckline** (scoop / crew / V / strapless) with shoulder coverage, and
-  dresses a **cinched waist** + flared skirt — constructed garments, not strapless tubes.
+- Give tops & dresses a real **neckline** (scoop / crew / V / strapless) with shoulder coverage,
+  **sleeves** (short / long, draped on the arms), and dresses a **cinched waist** + flared skirt —
+  constructed garments, not strapless tubes.
 - Each garment **drapes with real folds** — an XPBD cloth solver with body-capsule collision +
   friction, anchored so it stays on.
 - **Pattern mode** (the CLO3D loop): adjust flat **FRONT/BACK panels** (bust, length) and

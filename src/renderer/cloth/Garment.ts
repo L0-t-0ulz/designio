@@ -84,15 +84,9 @@ export function fillTube(positions: Float32Array, spec: TubeSpec): void {
  * body. Topologically an `nx(radial) * ny(rings)` grid that wraps in X; the
  * returned `positions` is the geometry's own buffer for zero-copy simulation.
  */
-export function buildTubeGarment(spec: TubeSpec): TubeBuild {
-  const nx = spec.radial
-  const ny = spec.rings
-  const count = nx * ny
-  const positions = new Float32Array(count * 3)
-  const uvs = new Float32Array(count * 2)
-
-  fillTube(positions, spec)
-
+/** Build the wrapped-tube geometry (uvs + closed-seam indices) + pinned top ring. */
+function finishTube(positions: Float32Array, nx: number, ny: number): TubeBuild {
+  const uvs = new Float32Array(nx * ny * 2)
   for (let iy = 0; iy < ny; iy++) {
     for (let ix = 0; ix < nx; ix++) {
       const k = iy * nx + ix
@@ -100,7 +94,6 @@ export function buildTubeGarment(spec: TubeSpec): TubeBuild {
       uvs[k * 2 + 1] = 1 - iy / (ny - 1)
     }
   }
-
   const indices: number[] = []
   for (let iy = 0; iy < ny - 1; iy++) {
     for (let ix = 0; ix < nx; ix++) {
@@ -112,7 +105,6 @@ export function buildTubeGarment(spec: TubeSpec): TubeBuild {
       indices.push(tl, bl, tr, tr, bl, br)
     }
   }
-
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
@@ -122,6 +114,57 @@ export function buildTubeGarment(spec: TubeSpec): TubeBuild {
 
   const pinnedTop: number[] = []
   for (let ix = 0; ix < nx; ix++) pinnedTop.push(ix) // iy = 0
-
   return { geometry, positions, nx, ny, pinnedTop }
+}
+
+/**
+ * Builds a closed tube garment (dress/tunic) wrapped around the body. The
+ * returned `positions` is the geometry's own buffer for zero-copy simulation.
+ */
+export function buildTubeGarment(spec: TubeSpec): TubeBuild {
+  const positions = new Float32Array(spec.radial * spec.rings * 3)
+  fillTube(positions, spec)
+  return finishTube(positions, spec.radial, spec.rings)
+}
+
+/** A tube that follows an arbitrary segment a→b (e.g. a sleeve along the arm). */
+export interface AxisTubeSpec {
+  rings: number
+  radial: number
+  a: THREE.Vector3
+  b: THREE.Vector3
+  radiusStart: number
+  radiusEnd: number
+}
+
+/** Writes rings perpendicular to the a→b axis, radius lerping start→end. */
+export function fillAxisTube(positions: Float32Array, spec: AxisTubeSpec): void {
+  const { rings, radial, a, b, radiusStart, radiusEnd } = spec
+  const axis = new THREE.Vector3().subVectors(b, a)
+  axis.multiplyScalar(1 / (axis.length() || 1))
+  const up = Math.abs(axis.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0)
+  const u = new THREE.Vector3().crossVectors(up, axis).normalize()
+  const v = new THREE.Vector3().crossVectors(axis, u).normalize()
+  for (let iy = 0; iy < rings; iy++) {
+    const t = rings > 1 ? iy / (rings - 1) : 0
+    const cx = a.x + (b.x - a.x) * t
+    const cy = a.y + (b.y - a.y) * t
+    const cz = a.z + (b.z - a.z) * t
+    const r = radiusStart + (radiusEnd - radiusStart) * t
+    for (let ix = 0; ix < radial; ix++) {
+      const ang = (ix / radial) * Math.PI * 2
+      const c = Math.cos(ang) * r
+      const s = Math.sin(ang) * r
+      const k = (iy * radial + ix) * 3
+      positions[k] = cx + u.x * c + v.x * s
+      positions[k + 1] = cy + u.y * c + v.y * s
+      positions[k + 2] = cz + u.z * c + v.z * s
+    }
+  }
+}
+
+export function buildAxisTube(spec: AxisTubeSpec): TubeBuild {
+  const positions = new Float32Array(spec.radial * spec.rings * 3)
+  fillAxisTube(positions, spec)
+  return finishTube(positions, spec.radial, spec.rings)
 }
