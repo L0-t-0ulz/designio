@@ -7,15 +7,28 @@ import { el } from '../ui/controls'
 import { defaultConfig, type DesignConfig } from './design'
 import { PreviewStudio } from './PreviewStudio'
 
+// Clean, recognisable garment silhouettes (viewBox 0 0 200 300), symmetric about x=100.
 const SIL: Record<GarmentType, string> = {
-  dress: 'M65,42 Q100,26 135,42 L148,82 L120,120 L150,278 L50,278 L80,120 L52,82 Z',
-  top: 'M60,46 Q100,30 140,46 L150,86 L124,112 L128,178 L72,178 L76,112 L50,86 Z',
-  skirt: 'M70,86 L130,86 L156,278 L44,278 Z',
-  pants: 'M70,72 L130,72 L127,150 L113,278 L92,278 L100,162 L88,278 L69,278 L73,150 Z'
+  // fit-and-flare dress: shoulders + short sleeves, nipped waist, A-line skirt
+  dress:
+    'M70,46 L84,46 Q100,62 116,46 L130,46 L164,76 L146,100 L134,88 L128,132 L168,268 L32,268 L72,132 L66,88 L54,100 L36,76 Z',
+  // t-shirt: neckline dip, short sleeves, straight body
+  top: 'M70,46 L84,46 Q100,62 116,46 L130,46 L164,76 L146,100 L134,88 L134,182 L66,182 L66,88 L54,100 L36,76 Z',
+  // A-line skirt with a waistband
+  skirt: 'M68,58 L132,58 L132,72 L126,72 L160,266 L40,266 L74,72 L68,72 Z',
+  // tapered trousers with a waistband + centre crotch notch
+  pants: 'M66,58 L134,58 L134,72 L128,72 L120,266 L106,266 L100,150 L94,266 L80,266 L72,72 L66,72 Z'
 }
 const label = (t: string): string => t[0].toUpperCase() + t.slice(1)
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/** A satisfying springy overshoot "pop" on select (cleared so CSS hover resumes). */
+function pop(node: HTMLElement): void {
+  if (reduced) return
+  animate(node, { scale: [0.96, 1.05, 1] }, { duration: 0.34, ease: [0.34, 1.56, 0.64, 1] })
+  window.setTimeout(() => (node.style.transform = ''), 380)
+}
 
 /** A textured fabric swatch thumbnail (base colour + a weave hint). */
 function fabricSwatchCanvas(f: Fabric): HTMLCanvasElement {
@@ -160,8 +173,12 @@ function startColor(labelText: string, get: () => number, set: (hex: number) => 
  * The "design your piece" start page: pick a garment, colour it, add your own
  * graphic + text, set the fit — with a live 3D preview. Opens the full studio.
  */
-export function showStartPage(fabrics: Fabric[], onStart: (config: DesignConfig) => void): void {
-  const config = defaultConfig()
+export function showStartPage(
+  fabrics: Fabric[],
+  onStart: (config: DesignConfig) => void,
+  initial?: DesignConfig
+): void {
+  const config = initial ? { ...initial } : defaultConfig()
   let preview: PreviewStudio | null = null
 
   const overlay = el('div', 'dio-start')
@@ -188,6 +205,7 @@ export function showStartPage(fabrics: Fabric[], onStart: (config: DesignConfig)
       node.tabIndex = on ? 0 : -1
       if (on && focus) node.focus()
     }
+    pop(cards.get(t)!)
     preview?.rebuild(config)
   }
   GARMENT_TYPES.forEach((t) => {
@@ -236,6 +254,7 @@ export function showStartPage(fabrics: Fabric[], onStart: (config: DesignConfig)
     const pick = (): void => {
       config.fabricId = f.id
       for (const [id, n] of swatchEls) n.classList.toggle('selected', id === f.id)
+      pop(sw)
       preview?.applyLook(config)
     }
     sw.addEventListener('click', pick)
@@ -310,6 +329,7 @@ export function showStartPage(fabrics: Fabric[], onStart: (config: DesignConfig)
   textInput.type = 'text'
   textInput.placeholder = 'Add a slogan…'
   textInput.maxLength = 24
+  textInput.value = config.text
   textInput.setAttribute('aria-label', 'Text on garment')
   textInput.addEventListener('input', () => {
     config.text = textInput.value

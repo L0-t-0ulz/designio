@@ -211,8 +211,17 @@ function initStudio(config: DesignConfig): void {
     }
   }
 
+  // ---- back to the start page ("Design your piece") ----
+  function goBack(): void {
+    loop.stop()
+    panel.remove()
+    garmentCtl.clear()
+    patternCtl.clear()
+    showStartPage(FABRIC_LIBRARY, initStudio, config)
+  }
+
   // ---- UI ----
-  createControlPanel({
+  const panel = createControlPanel({
     loop,
     viewport,
     material,
@@ -259,7 +268,8 @@ function initStudio(config: DesignConfig): void {
       mannequin.setBodyMode(realistic)
       if (mode === 'templates') garmentCtl.redrape()
       else patternCtl.resew()
-    }
+    },
+    onBack: goBack
   })
 
   if (params.get('closeup') === '1') {

@@ -63,6 +63,26 @@ canvas {
   color: var(--dio-muted);
   margin-top: 1px;
 }
+.dio-back {
+  margin-left: auto;
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: var(--card-bg);
+  color: var(--fg-1);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  padding: 6px 11px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
+}
+.dio-back:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--fg-0);
+  transform: translateX(-2px);
+}
 
 /* ---- action buttons ---- */
 .dio-actions {
@@ -278,6 +298,41 @@ canvas {
 .dio-start * {
   font-family: inherit;
 }
+/* living aurora — two slow drifting blobs behind the content */
+.dio-start::before,
+.dio-start::after {
+  content: '';
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.5;
+}
+.dio-start::before {
+  top: -22%;
+  left: -12%;
+  width: 62vw;
+  height: 62vw;
+  background: radial-gradient(circle, rgba(124, 111, 240, 0.32), transparent 62%);
+  animation: dio-aurora-1 22s ease-in-out infinite alternate;
+}
+.dio-start::after {
+  top: -18%;
+  right: -14%;
+  width: 54vw;
+  height: 54vw;
+  background: radial-gradient(circle, rgba(176, 124, 255, 0.24), transparent 60%);
+  animation: dio-aurora-2 26s ease-in-out infinite alternate;
+}
+@keyframes dio-aurora-1 {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(8vw, 6vh, 0) scale(1.12); }
+}
+@keyframes dio-aurora-2 {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to { transform: translate3d(-7vw, 5vh, 0) scale(1); }
+}
 .dio-start :focus-visible {
   outline: 2px solid var(--accent-hi);
   outline-offset: 2px;
@@ -288,6 +343,8 @@ canvas {
   align-items: center;
   gap: 14px;
   margin-bottom: var(--sp-5);
+  position: relative;
+  z-index: 1;
 }
 .dio-start-header .dio-logo {
   width: 40px;
@@ -301,10 +358,16 @@ canvas {
   font-weight: 720;
   letter-spacing: -0.4px;
   line-height: 1.1;
-  background: linear-gradient(118deg, #ffffff 12%, #d3d5ff 55%, var(--accent-hi));
+  background: linear-gradient(100deg, #ffffff 18%, #cfd2ff 38%, var(--accent-hi) 52%, #ffffff 72%);
+  background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: dio-shimmer-text 7s ease-in-out infinite;
+}
+@keyframes dio-shimmer-text {
+  0% { background-position: 130% 0; }
+  55%, 100% { background-position: -130% 0; }
 }
 .dio-start-header .dio-subtitle {
   font-size: 13px;
@@ -314,8 +377,10 @@ canvas {
 .dio-start-body {
   display: grid;
   grid-template-columns: 208px 1fr 328px;
-  gap: 24px;
+  gap: var(--sp-5);
   align-items: start;
+  position: relative;
+  z-index: 1;
 }
 @media (max-width: 980px) {
   .dio-start-body {
@@ -510,6 +575,14 @@ canvas {
   background: var(--accent-hi);
   box-shadow: 0 0 0 4px var(--accent-soft), 0 1px 4px rgba(0, 0, 0, 0.5);
   border: 2px solid #10121c;
+  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast);
+}
+.dio-start .dio-row input[type='range']:hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.dio-start .dio-row input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 7px var(--accent-soft), 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 .dio-bubble {
   position: absolute;
@@ -627,21 +700,45 @@ canvas {
 
 /* CTA */
 .dio-start-go {
+  position: relative;
+  overflow: hidden;
   width: 100%;
-  margin-top: 20px;
-  padding: 13px;
+  margin-top: var(--sp-5);
+  padding: 14px;
   font-size: 15px;
-  font-weight: 650;
-  color: #0e1020;
+  font-weight: 680;
+  letter-spacing: 0.1px;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--r-md);
-  background: linear-gradient(135deg, var(--accent), var(--accent-hi));
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 10px 30px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur);
+  animation: dio-cta-pulse 3.2s ease-in-out infinite;
+}
+.dio-start-go::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 42%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-18deg);
+  animation: dio-cta-shine 4.5s ease-in-out infinite;
 }
 .dio-start-go:hover {
-  box-shadow: 0 14px 40px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 46px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+@keyframes dio-cta-pulse {
+  0%, 100% { box-shadow: 0 10px 30px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+  50% { box-shadow: 0 14px 42px rgba(124, 111, 240, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.36); }
+}
+@keyframes dio-cta-shine {
+  0% { left: -60%; }
+  32%, 100% { left: 130%; }
 }
 .dio-start-go:hover .dio-go-arrow {
   transform: translateX(4px);
@@ -661,6 +758,11 @@ canvas {
 }
 @media (prefers-reduced-motion: reduce) {
   .dio-start *,
+  .dio-start::before,
+  .dio-start::after,
+  .dio-start-header .dio-title,
+  .dio-start-go,
+  .dio-start-go::after,
   .dio-start-card svg {
     transition: none !important;
     animation: none !important;
