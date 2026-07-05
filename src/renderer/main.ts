@@ -57,7 +57,8 @@ function initStudio(config: DesignConfig): void {
     type: config.garmentType,
     length: config.length,
     ease: config.ease,
-    flare: config.flare
+    flare: config.flare,
+    neckline: config.neckline
   }
   const patternParams = { ...DEFAULT_PATTERN }
   const anim = { mode: 'static' as AnimationMode, speed: 1 }

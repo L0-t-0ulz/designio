@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import type { GarmentType } from '../garment/templates'
+import type { NecklineStyle } from '../cloth/Garment'
 
 /** Everything the start page lets you build before entering the 3D studio. */
 export interface DesignConfig {
@@ -9,6 +10,7 @@ export interface DesignConfig {
   length: number
   ease: number
   flare: number
+  neckline: NecklineStyle
   /** Your uploaded graphic/print (optional). */
   image: HTMLImageElement | null
   imageScale: number
@@ -24,6 +26,7 @@ export function defaultConfig(): DesignConfig {
     length: 0.6,
     ease: 0.03,
     flare: 0.05,
+    neckline: 'scoop',
     image: null,
     imageScale: 0.4,
     text: '',
