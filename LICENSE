@@ -1,0 +1,32 @@
+DesignIO — Proprietary License
+Copyright (c) 2026 Zayan Khan. All rights reserved.
+
+This software and all associated files, source code, designs, assets, and
+documentation in this repository (collectively, the "Software") are the
+proprietary and confidential property of Zayan Khan (the "Author").
+
+NO LICENSE IS GRANTED.
+
+You may NOT use, run, copy, clone, fork, modify, merge, publish, distribute,
+sublicense, reproduce, reverse-engineer, or create derivative works from the
+Software, in whole or in part, by any means, WITHOUT the explicit prior WRITTEN
+permission of the Author.
+
+Permission must be requested IN ADVANCE, before any such use, by contacting the
+Author by email or any other means of contact:
+
+    Zayan Khan
+    khanzayan_123@hotmail.com
+
+Any use, copying, or distribution of the Software without prior written
+permission is strictly prohibited and may result in legal action.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE
+LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+Note: this project depends on third-party open-source packages, each licensed
+under its own terms (see THIRD_PARTY.md). Those licenses apply only to those
+respective third-party components, not to the Software itself.
