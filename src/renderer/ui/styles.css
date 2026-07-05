@@ -1,12 +1,5 @@
-:root {
-  --dio-accent: #7c8cff;
-  --dio-accent-soft: rgba(124, 140, 255, 0.18);
-  --dio-panel-bg: rgba(22, 24, 32, 0.82);
-  --dio-card-bg: rgba(255, 255, 255, 0.04);
-  --dio-border: rgba(255, 255, 255, 0.09);
-  --dio-text: #eceef6;
-  --dio-muted: #9aa0b5;
-}
+/* Design tokens live in tokens.css (single source of truth for start + studio).
+   The studio panel below references the --dio-* back-compat aliases. */
 
 /* ---- app-level ---- */
 #app {
@@ -31,9 +24,9 @@ canvas {
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   border: 1px solid var(--dio-border);
   border-radius: 16px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-3), inset 0 1px 0 var(--inner-hi);
   color: var(--dio-text);
-  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 13px/1.4 var(--font-ui);
   padding: 14px 14px 18px;
   user-select: none;
 }
@@ -274,11 +267,13 @@ canvas {
   z-index: 50;
   overflow: auto;
   background:
-    radial-gradient(1100px 620px at 50% -12%, #1a1a24, transparent 70%),
+    radial-gradient(760px 460px at 15% -8%, rgba(124, 111, 240, 0.18), transparent 60%),
+    radial-gradient(720px 520px at 102% 4%, rgba(176, 124, 255, 0.12), transparent 55%),
+    radial-gradient(1100px 620px at 50% -12%, #1b1b26, transparent 72%),
     var(--bg-0);
   color: var(--fg-0);
   font: 14px/1.5 var(--font-ui);
-  padding: 30px clamp(20px, 5vw, 64px);
+  padding: clamp(24px, 4vw, 40px) clamp(20px, 5vw, 64px);
 }
 .dio-start * {
   font-family: inherit;
@@ -291,18 +286,30 @@ canvas {
 .dio-start-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: var(--sp-5);
+}
+.dio-start-header .dio-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 6px 20px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 .dio-start-header .dio-title {
-  font-size: 21px;
-  font-weight: 680;
-  letter-spacing: -0.2px;
-  color: var(--fg-0);
+  font-size: 25px;
+  font-weight: 720;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+  background: linear-gradient(118deg, #ffffff 12%, #d3d5ff 55%, var(--accent-hi));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .dio-start-header .dio-subtitle {
   font-size: 13px;
   color: var(--fg-1);
+  margin-top: 2px;
 }
 .dio-start-body {
   display: grid;
@@ -319,13 +326,15 @@ canvas {
 /* glass surface mixin (gallery + controls) */
 .dio-start-gallery,
 .dio-start-controls {
-  background: var(--glass);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 160px),
+    var(--glass);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-2), inset 0 1px 0 var(--inner-hi);
-  padding: 14px;
+  padding: var(--sp-4);
 }
 .dio-start-gallery {
   display: grid;
@@ -379,12 +388,14 @@ canvas {
   color: var(--fg-0);
 }
 
-/* preview: a dark glass bezel around the opaque 3D canvas */
+/* preview: a dark glass bezel (studio stage) around the opaque 3D canvas */
 .dio-start-preview {
-  background: var(--bg-1);
+  background:
+    radial-gradient(130% 90% at 50% 0%, rgba(124, 111, 240, 0.1), transparent 58%),
+    var(--bg-1);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
-  padding: 14px;
+  padding: var(--sp-4);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -396,7 +407,7 @@ canvas {
   border-radius: var(--r-md);
   overflow: hidden;
   position: relative;
-  background: #c9ccd4; /* skeleton base until first frame */
+  background: var(--bg-2); /* skeleton base until first frame */
 }
 .dio-start-canvas.loading::after {
   content: '';
@@ -415,22 +426,30 @@ canvas {
   border-radius: var(--r-md);
 }
 .dio-start-preview-note {
-  margin-top: 12px;
+  margin-top: var(--sp-3);
   font-size: 12px;
-  color: var(--fg-2);
+  color: var(--fg-1);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hairline);
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
 }
 
 /* controls */
 .dio-start-section {
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   color: var(--fg-2);
-  margin: 16px 0 6px;
+  margin: var(--sp-4) 0 var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--hairline);
   font-weight: 600;
 }
 .dio-start-section:first-child {
   margin-top: 2px;
+  padding-top: 0;
+  border-top: none;
 }
 .dio-start .dio-row label {
   color: var(--fg-0);
@@ -454,11 +473,12 @@ canvas {
   transition: border-color var(--dur-fast) var(--ease-spring), transform var(--dur-fast);
 }
 .dio-start-swatch:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--hairline-hi);
+  transform: translateY(-1px);
 }
 .dio-start-swatch.selected {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 .dio-start-swatch:active {
   transform: scale(0.97);
