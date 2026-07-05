@@ -227,7 +227,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     { rA: () => P().neckR * body.build, rB: () => (P().neckR + 0.008) * body.build }, // neck
     { rA: () => measurements.waistR, rB: () => measurements.chestR }, // torso (waist→chest)
     { rA: () => 0.07 * body.build, rB: () => 0.07 * body.build }, // shoulders
-    { rA: () => measurements.hipR * 0.82, rB: () => measurements.hipR * 0.82 }, // hips
+    { rA: () => measurements.hipR * 0.66, rB: () => measurements.hipR * 0.66 }, // hips (slimmer seat)
     { rA: () => P().upperArmR * body.build, rB: () => (P().upperArmR - 0.008) * body.build }, // upper arm
     { rA: () => (P().upperArmR - 0.008) * body.build, rB: () => P().foreArmR * body.build, cap: 'hand' }, // forearm
     { rA: () => measurements.thighR, rB: () => measurements.thighR * 0.68 }, // thigh
