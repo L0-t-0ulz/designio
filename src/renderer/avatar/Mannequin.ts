@@ -21,36 +21,74 @@ export interface Measurements {
   shoulderHalfX: number
 }
 
-/** Base (size 1.0) measurements. Runtime sizes scale these. */
-export const MEASUREMENTS: Measurements = {
-  chestR: 0.16,
-  waistR: 0.145,
-  hipR: 0.19,
-  thighR: 0.1,
-  neckY: 1.5,
-  shoulderY: 1.44,
-  chestY: 1.34,
-  waistY: 1.06,
-  hipY: 0.96,
-  kneeY: 0.5,
-  ankleY: 0.1,
-  hipHalfX: 0.11,
-  shoulderHalfX: 0.2
+/** Two slim, elongated "runway model" figures — a female and a male. */
+export type BodyType = 'female' | 'male'
+
+/** Per-type proportions (radii + widths + limb girths), size 1.0. */
+interface Proportions {
+  chestR: number
+  waistR: number
+  hipR: number
+  thighR: number
+  shoulderHalfX: number
+  hipHalfX: number
+  upperArmR: number
+  foreArmR: number
+  headR: number
+  neckR: number
 }
 
+// Reference widths the skeleton bone X-positions were authored at (baseDefs).
+const REF_SHOULDER = 0.2
+const REF_HIP = 0.11
+
+// Slim, model-like figures: female = narrow shoulders, nipped waist, soft hips;
+// male = broad shoulders, straighter waist, narrow hips. Both lean.
+const PROPORTIONS: Record<BodyType, Proportions> = {
+  female: {
+    chestR: 0.132, waistR: 0.104, hipR: 0.162, thighR: 0.081,
+    shoulderHalfX: 0.163, hipHalfX: 0.116, upperArmR: 0.042, foreArmR: 0.033,
+    headR: 0.091, neckR: 0.045
+  },
+  male: {
+    chestR: 0.155, waistR: 0.126, hipR: 0.143, thighR: 0.094,
+    shoulderHalfX: 0.212, hipHalfX: 0.099, upperArmR: 0.053, foreArmR: 0.042,
+    headR: 0.098, neckR: 0.053
+  }
+}
+
+/** Vertical landmarks (shared; the height slider scales these). */
+const LANDMARKS = {
+  neckY: 1.5, shoulderY: 1.45, chestY: 1.34, waistY: 1.07, hipY: 0.95, kneeY: 0.49, ankleY: 0.09
+}
+
+function measurementsFor(type: BodyType): Measurements {
+  const p = PROPORTIONS[type]
+  return {
+    chestR: p.chestR, waistR: p.waistR, hipR: p.hipR, thighR: p.thighR,
+    hipHalfX: p.hipHalfX, shoulderHalfX: p.shoulderHalfX, ...LANDMARKS
+  }
+}
+
+/** Base (size 1.0) measurements — the female model by default. */
+export const MEASUREMENTS: Measurements = measurementsFor('female')
+
 /**
- * height scales Y; build scales overall girth (X/Z + radii). bust/waist/hips are
- * per-region multipliers on top of build, so the body can be *shaped* (hourglass,
- * pear, …), not just uniformly scaled.
+ * bodyType picks the figure (female/male). height scales Y; build scales overall
+ * girth; bust/waist/hips are per-region multipliers on top of build, so the body
+ * can be *shaped* (hourglass, pear, …), not just uniformly scaled.
  */
 export interface BodyParams {
+  bodyType: BodyType
   height: number
   build: number
   bust: number
   waist: number
   hips: number
 }
-export const DEFAULT_BODY: BodyParams = { height: 1, build: 1, bust: 1, waist: 1, hips: 1 }
+export const DEFAULT_BODY: BodyParams = {
+  bodyType: 'female', height: 1, build: 1, bust: 1, waist: 1, hips: 1
+}
 
 export type AnimationMode = 'static' | 'idle' | 'walk' | 'turn'
 
@@ -68,12 +106,15 @@ export interface Mannequin {
 }
 
 type Part = 'root' | 'armL' | 'armR' | 'legL' | 'legR'
+/** Which body-width the bone's X follows (so shoulder/hip width shapes the frame). */
+type WidthKey = 'shoulder' | 'hip' | 'center'
 
 interface Bone {
   baseA: THREE.Vector3
   baseB: THREE.Vector3
   baseRadius: number
   part: Part
+  widthKey: WidthKey
   restA: THREE.Vector3
   restB: THREE.Vector3
   radius: number
@@ -89,22 +130,23 @@ const X = new THREE.Vector3(1, 0, 0)
 export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const body: BodyParams = { ...DEFAULT_BODY, ...bodyInit }
 
-  const baseDefs: { a: [number, number, number]; b: [number, number, number]; radius: number; part: Part }[] = [
-    { a: [0, 1.61, 0], b: [0, 1.66, 0], radius: 0.1, part: 'root' },
-    { a: [0, 1.46, 0], b: [0, 1.55, 0], radius: 0.048, part: 'root' },
-    { a: [0, 1.0, 0], b: [0, 1.44, 0], radius: 0.15, part: 'root' },
-    { a: [-0.19, 1.44, 0], b: [0.19, 1.44, 0], radius: 0.075, part: 'root' },
-    { a: [-0.14, 0.98, 0], b: [0.14, 0.98, 0], radius: 0.14, part: 'root' },
-    { a: [-0.19, 1.43, 0], b: [-0.31, 1.1, 0.02], radius: 0.05, part: 'armL' },
-    { a: [-0.31, 1.1, 0.02], b: [-0.4, 0.82, 0.05], radius: 0.042, part: 'armL' },
-    { a: [-0.1, 0.98, 0], b: [-0.12, 0.52, 0.01], radius: 0.088, part: 'legL' },
-    { a: [-0.12, 0.52, 0.01], b: [-0.12, 0.08, 0.03], radius: 0.06, part: 'legL' }
+  const baseDefs: { a: [number, number, number]; b: [number, number, number]; radius: number; part: Part; w: WidthKey }[] = [
+    { a: [0, 1.61, 0], b: [0, 1.66, 0], radius: 0.1, part: 'root', w: 'center' },
+    { a: [0, 1.46, 0], b: [0, 1.55, 0], radius: 0.048, part: 'root', w: 'center' },
+    { a: [0, 1.0, 0], b: [0, 1.44, 0], radius: 0.15, part: 'root', w: 'center' },
+    { a: [-0.19, 1.44, 0], b: [0.19, 1.44, 0], radius: 0.075, part: 'root', w: 'shoulder' },
+    { a: [-0.14, 0.98, 0], b: [0.14, 0.98, 0], radius: 0.14, part: 'root', w: 'hip' },
+    { a: [-0.19, 1.43, 0], b: [-0.31, 1.1, 0.02], radius: 0.05, part: 'armL', w: 'shoulder' },
+    { a: [-0.31, 1.1, 0.02], b: [-0.4, 0.82, 0.05], radius: 0.042, part: 'armL', w: 'shoulder' },
+    { a: [-0.1, 0.98, 0], b: [-0.12, 0.52, 0.01], radius: 0.088, part: 'legL', w: 'hip' },
+    { a: [-0.12, 0.52, 0.01], b: [-0.12, 0.08, 0.03], radius: 0.06, part: 'legL', w: 'hip' }
   ]
   const mirrored = baseDefs.slice(5).map((d) => ({
     a: [-d.a[0], d.a[1], d.a[2]] as [number, number, number],
     b: [-d.b[0], d.b[1], d.b[2]] as [number, number, number],
     radius: d.radius,
-    part: (d.part === 'armL' ? 'armR' : 'legR') as Part
+    part: (d.part === 'armL' ? 'armR' : 'legR') as Part,
+    w: d.w
   }))
 
   const group = new THREE.Group()
@@ -129,6 +171,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       baseB: new THREE.Vector3(...d.b),
       baseRadius: d.radius,
       part: d.part,
+      widthKey: d.w,
       restA: new THREE.Vector3(),
       restB: new THREE.Vector3(),
       radius: 0,
@@ -178,16 +221,17 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
 
   // Anatomy radii per collider index (a = start, b = end of each segment). The
   // narrow torso-bottom (waist) + wider hips blend into a natural waist.
+  const P = (): Proportions => PROPORTIONS[body.bodyType]
   const partSpec: { rA: () => number; rB: () => number; cap?: BodyPart['cap'] }[] = [
-    { rA: () => 0.1 * body.build, rB: () => 0.1 * body.build, cap: 'head' },
-    { rA: () => 0.052 * body.build, rB: () => 0.06 * body.build }, // neck
+    { rA: () => P().headR * body.build, rB: () => P().headR * body.build, cap: 'head' },
+    { rA: () => P().neckR * body.build, rB: () => (P().neckR + 0.008) * body.build }, // neck
     { rA: () => measurements.waistR, rB: () => measurements.chestR }, // torso (waist→chest)
-    { rA: () => 0.075 * body.build, rB: () => 0.075 * body.build }, // shoulders
+    { rA: () => 0.07 * body.build, rB: () => 0.07 * body.build }, // shoulders
     { rA: () => measurements.hipR * 0.82, rB: () => measurements.hipR * 0.82 }, // hips
-    { rA: () => 0.056 * body.build, rB: () => 0.046 * body.build }, // upper arm
-    { rA: () => 0.046 * body.build, rB: () => 0.036 * body.build, cap: 'hand' }, // forearm
+    { rA: () => P().upperArmR * body.build, rB: () => (P().upperArmR - 0.008) * body.build }, // upper arm
+    { rA: () => (P().upperArmR - 0.008) * body.build, rB: () => P().foreArmR * body.build, cap: 'hand' }, // forearm
     { rA: () => measurements.thighR, rB: () => measurements.thighR * 0.68 }, // thigh
-    { rA: () => measurements.thighR * 0.68, rB: () => 0.05 * body.build, cap: 'foot' } // shin
+    { rA: () => measurements.thighR * 0.68, rB: () => 0.048 * body.build, cap: 'foot' } // shin
   ]
   const fullSpec = [...partSpec, ...partSpec.slice(5)] // mirror arms + legs
   const parts: BodyPart[] = colliders.map((c, i) => ({
@@ -209,28 +253,33 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   function applyBody(): void {
     const h = body.height
     const b = body.build
-    measurements.chestR = MEASUREMENTS.chestR * b * body.bust
-    measurements.waistR = MEASUREMENTS.waistR * b * body.waist
-    measurements.hipR = MEASUREMENTS.hipR * b * body.hips
-    measurements.thighR = MEASUREMENTS.thighR * b * body.hips
-    measurements.hipHalfX = MEASUREMENTS.hipHalfX * b * body.hips
-    measurements.shoulderHalfX = MEASUREMENTS.shoulderHalfX * b
-    measurements.neckY = MEASUREMENTS.neckY * h
-    measurements.shoulderY = MEASUREMENTS.shoulderY * h
-    measurements.chestY = MEASUREMENTS.chestY * h
-    measurements.waistY = MEASUREMENTS.waistY * h
-    measurements.hipY = MEASUREMENTS.hipY * h
-    measurements.kneeY = MEASUREMENTS.kneeY * h
-    measurements.ankleY = MEASUREMENTS.ankleY * h
+    const p = PROPORTIONS[body.bodyType]
+    measurements.chestR = p.chestR * b * body.bust
+    measurements.waistR = p.waistR * b * body.waist
+    measurements.hipR = p.hipR * b * body.hips
+    measurements.thighR = p.thighR * b * body.hips
+    measurements.hipHalfX = p.hipHalfX * b * body.hips
+    measurements.shoulderHalfX = p.shoulderHalfX * b
+    measurements.neckY = LANDMARKS.neckY * h
+    measurements.shoulderY = LANDMARKS.shoulderY * h
+    measurements.chestY = LANDMARKS.chestY * h
+    measurements.waistY = LANDMARKS.waistY * h
+    measurements.hipY = LANDMARKS.hipY * h
+    measurements.kneeY = LANDMARKS.kneeY * h
+    measurements.ankleY = LANDMARKS.ankleY * h
 
     pivot.armL.set(-measurements.shoulderHalfX, measurements.shoulderY, 0)
     pivot.armR.set(measurements.shoulderHalfX, measurements.shoulderY, 0)
     pivot.legL.set(-measurements.hipHalfX, measurements.hipY, 0)
     pivot.legR.set(measurements.hipHalfX, measurements.hipY, 0)
 
+    // Shoulder/hip width scale the frame (broad-shouldered male vs narrow female).
+    const shoulderR = p.shoulderHalfX / REF_SHOULDER
+    const hipR = p.hipHalfX / REF_HIP
     for (const bone of bones) {
-      bone.restA.set(bone.baseA.x * b, bone.baseA.y * h, bone.baseA.z * b)
-      bone.restB.set(bone.baseB.x * b, bone.baseB.y * h, bone.baseB.z * b)
+      const wr = bone.widthKey === 'shoulder' ? shoulderR : bone.widthKey === 'hip' ? hipR : 1
+      bone.restA.set(bone.baseA.x * b * wr, bone.baseA.y * h, bone.baseA.z * b)
+      bone.restB.set(bone.baseB.x * b * wr, bone.baseB.y * h, bone.baseB.z * b)
       bone.radius = bone.baseRadius * b
       bone.collider.radius = bone.radius
     }

@@ -3,7 +3,7 @@ import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
 import type { GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
-import type { AnimationMode, BodyParams } from '../avatar/Mannequin'
+import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
@@ -191,7 +191,20 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   // ---- mannequin size ----
   const bodySec = section('Mannequin', true)
   let realisticBody = false
+  const figRow = el('div', 'dio-actions')
+  const figBtns: Record<BodyType, HTMLButtonElement> = {
+    female: button('Female', () => setFigure('female'), opts.bodySize.bodyType === 'female'),
+    male: button('Male', () => setFigure('male'), opts.bodySize.bodyType === 'male')
+  }
+  function setFigure(t: BodyType): void {
+    opts.bodySize.bodyType = t
+    figBtns.female.classList.toggle('primary', t === 'female')
+    figBtns.male.classList.toggle('primary', t === 'male')
+    opts.onBodySize(opts.bodySize)
+  }
+  figRow.append(figBtns.female, figBtns.male)
   bodySec.body.append(
+    figRow,
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
     slider({ label: 'Height', min: 0.85, max: 1.15, step: 0.01, format: (v) => `${Math.round(v * 175)} cm`, get: () => opts.bodySize.height, set: (v) => { opts.bodySize.height = v; opts.onBodySize(opts.bodySize) } }).row,
     slider({ label: 'Build', min: 0.8, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.build, set: (v) => { opts.bodySize.build = v; opts.onBodySize(opts.bodySize) } }).row,

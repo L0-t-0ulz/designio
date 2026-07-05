@@ -144,6 +144,7 @@ export class PreviewStudio {
       this.bodyQueued = false
       const c = this.pendingBody!
       this.mannequin.resize({
+        bodyType: c.bodyType,
         height: c.bodyHeight,
         build: c.bodyBuild,
         bust: c.bodyBust,

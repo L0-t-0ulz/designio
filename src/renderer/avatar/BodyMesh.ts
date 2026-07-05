@@ -80,10 +80,10 @@ export class BodyMesh {
         this.ball(this.p, part.radiusB * 1.1) // foot extends forward
         void dir
       } else if (part.cap === 'head') {
+        // Clean, featureless ovoid (store-mannequin egg head) — no jaw bump.
         this.p.copy(part.b)
-        this.p.y -= part.radiusB * 0.7
-        this.p.z += part.radiusB * 0.2
-        this.ball(this.p, part.radiusB * 0.72) // jaw/chin
+        this.p.y -= part.radiusB * 0.9
+        this.ball(this.p, part.radiusB * 0.84)
       }
     }
     this.object.update()
