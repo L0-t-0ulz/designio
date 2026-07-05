@@ -1,5 +1,6 @@
 import { animate, stagger } from 'motion'
 import { createElement, ArrowRight, Upload } from 'lucide'
+import type { BodyType } from '../avatar/Mannequin'
 import { GARMENT_TYPES, type GarmentType } from '../garment/templates'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { weaveHeight } from '../fabric/weaveTexture'
@@ -323,6 +324,26 @@ export function showStartPage(
     if (f) loadImage(f)
   })
 
+  // Female / Male figure segmented toggle.
+  function figureToggle(): HTMLElement {
+    const row = el('div', 'dio-seg')
+    const make = (t: BodyType, text: string): HTMLElement => {
+      const b = el('button', 'dio-seg-btn', text)
+      b.setAttribute('type', 'button')
+      b.classList.toggle('on', config.bodyType === t)
+      b.addEventListener('click', () => {
+        config.bodyType = t
+        row.querySelectorAll('.dio-seg-btn').forEach((n) => n.classList.remove('on'))
+        b.classList.add('on')
+        pop(b)
+        preview?.setBody(config)
+      })
+      return b
+    }
+    row.append(make('female', 'Female'), make('male', 'Male'))
+    return row
+  }
+
   const textRow = el('div', 'dio-row')
   textRow.append(el('label', undefined, 'Text'))
   const textInput = el('input', 'dio-input') as HTMLInputElement
@@ -348,6 +369,7 @@ export function showStartPage(
     textRow,
     startColor('Text colour', () => config.textColor, (v) => { config.textColor = v; preview?.applyLook(config) }),
     el('div', 'dio-start-section', 'Mannequin'),
+    figureToggle(),
     startSlider({ label: 'Height', min: 0.9, max: 1.12, step: 0.005, format: (v) => `${Math.round(v * 170)} cm`, get: () => config.bodyHeight, set: (v) => { config.bodyHeight = v; preview?.setBody(config) } }),
     startSlider({ label: 'Build', min: 0.8, max: 1.35, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => config.bodyBuild, set: (v) => { config.bodyBuild = v; preview?.setBody(config) } }),
     startSlider({ label: 'Bust', min: 0.82, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => config.bodyBust, set: (v) => { config.bodyBust = v; preview?.setBody(config) } }),

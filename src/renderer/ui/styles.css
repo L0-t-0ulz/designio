@@ -523,6 +523,36 @@ canvas {
   color: var(--fg-1);
 }
 
+/* segmented toggle (e.g. Female / Male figure) */
+.dio-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 4px 0 10px;
+}
+.dio-seg-btn {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: var(--bg-2);
+  color: var(--fg-1);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  padding: 9px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-spring);
+}
+.dio-seg-btn:hover {
+  border-color: var(--hairline-hi);
+}
+.dio-seg-btn.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--fg-0);
+}
+
 /* fabric swatch grid */
 .dio-start-swatches {
   display: grid;

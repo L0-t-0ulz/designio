@@ -66,6 +66,7 @@ function initStudio(config: DesignConfig): void {
   const patternParams = { ...DEFAULT_PATTERN }
   const anim = { mode: 'static' as AnimationMode, speed: 1 }
   const bodySize = {
+    bodyType: config.bodyType,
     height: config.bodyHeight,
     build: config.bodyBuild,
     bust: config.bodyBust,
@@ -140,7 +141,8 @@ function initStudio(config: DesignConfig): void {
   )
 
   setMode(mode)
-  if (Object.values(bodySize).some((v) => v !== 1)) setBody(bodySize)
+  const { bodyType: bt, ...bodyScales } = bodySize
+  if (bt !== 'female' || Object.values(bodyScales).some((v) => v !== 1)) setBody(bodySize)
   applyFabricVisual()
   loop.start()
 
@@ -150,7 +152,7 @@ function initStudio(config: DesignConfig): void {
   if (modeParam === 'pattern') setMode('pattern')
   const animParam = params.get('anim') as AnimationMode | null
   if (animParam) setAnimMode(animParam)
-  const bodyParams: [string, keyof typeof bodySize][] = [
+  const bodyParams: [string, 'height' | 'build' | 'bust' | 'waist' | 'hips'][] = [
     ['bodyH', 'height'],
     ['bodyB', 'build'],
     ['bodyBust', 'bust'],
@@ -158,6 +160,11 @@ function initStudio(config: DesignConfig): void {
     ['bodyHips', 'hips']
   ]
   let bodyChanged = false
+  const btParam = params.get('bodyType')
+  if (btParam === 'male' || btParam === 'female') {
+    bodySize.bodyType = btParam
+    bodyChanged = true
+  }
   for (const [q, key] of bodyParams) {
     const v = params.get(q)
     if (v) {
