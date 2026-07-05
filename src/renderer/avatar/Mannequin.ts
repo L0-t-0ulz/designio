@@ -38,12 +38,19 @@ export const MEASUREMENTS: Measurements = {
   shoulderHalfX: 0.2
 }
 
-/** height scales Y, build scales width/girth (X/Z + radii). */
+/**
+ * height scales Y; build scales overall girth (X/Z + radii). bust/waist/hips are
+ * per-region multipliers on top of build, so the body can be *shaped* (hourglass,
+ * pear, …), not just uniformly scaled.
+ */
 export interface BodyParams {
   height: number
   build: number
+  bust: number
+  waist: number
+  hips: number
 }
-export const DEFAULT_BODY: BodyParams = { height: 1, build: 1 }
+export const DEFAULT_BODY: BodyParams = { height: 1, build: 1, bust: 1, waist: 1, hips: 1 }
 
 export type AnimationMode = 'static' | 'idle' | 'walk' | 'turn'
 
@@ -55,7 +62,7 @@ export interface Mannequin {
   bodyCollider: BodyCollider
   update: (t: number, mode: AnimationMode, speed: number) => void
   /** Resize in place; mutates colliders + measurements so garments can refit. */
-  resize: (body: BodyParams) => void
+  resize: (body: Partial<BodyParams>) => void
   /** true = realistic GLB (static), false = animatable metaball body. */
   setBodyMode: (realistic: boolean) => void
 }
@@ -202,11 +209,11 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   function applyBody(): void {
     const h = body.height
     const b = body.build
-    measurements.chestR = MEASUREMENTS.chestR * b
-    measurements.waistR = MEASUREMENTS.waistR * b
-    measurements.hipR = MEASUREMENTS.hipR * b
-    measurements.thighR = MEASUREMENTS.thighR * b
-    measurements.hipHalfX = MEASUREMENTS.hipHalfX * b
+    measurements.chestR = MEASUREMENTS.chestR * b * body.bust
+    measurements.waistR = MEASUREMENTS.waistR * b * body.waist
+    measurements.hipR = MEASUREMENTS.hipR * b * body.hips
+    measurements.thighR = MEASUREMENTS.thighR * b * body.hips
+    measurements.hipHalfX = MEASUREMENTS.hipHalfX * b * body.hips
     measurements.shoulderHalfX = MEASUREMENTS.shoulderHalfX * b
     measurements.neckY = MEASUREMENTS.neckY * h
     measurements.shoulderY = MEASUREMENTS.shoulderY * h
@@ -276,9 +283,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     syncBodyBVH(true) // animating → capsules; rebuilding the BVH per frame is too costly
   }
 
-  const resize = (next: BodyParams): void => {
-    body.height = next.height
-    body.build = next.build
+  const resize = (next: Partial<BodyParams>): void => {
+    Object.assign(body, next)
     applyBody()
     applyPose(curAngle)
     bodyMesh.rebuild(buildParts())

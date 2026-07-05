@@ -65,10 +65,16 @@ function initStudio(config: DesignConfig): void {
   }
   const patternParams = { ...DEFAULT_PATTERN }
   const anim = { mode: 'static' as AnimationMode, speed: 1 }
-  const bodySize = { height: config.bodyHeight, build: config.bodyBuild }
+  const bodySize = {
+    height: config.bodyHeight,
+    build: config.bodyBuild,
+    bust: config.bodyBust,
+    waist: config.bodyWaist,
+    hips: config.bodyHips
+  }
   let mode: DesignMode = 'templates'
 
-  function setBody(next: { height: number; build: number }): void {
+  function setBody(next: typeof bodySize): void {
     mannequin.resize(next)
     if (mode === 'templates') garmentCtl.build(garment.type, garment)
     else patternCtl.build(patternParams)
@@ -134,7 +140,7 @@ function initStudio(config: DesignConfig): void {
   )
 
   setMode(mode)
-  if (bodySize.height !== 1 || bodySize.build !== 1) setBody(bodySize)
+  if (Object.values(bodySize).some((v) => v !== 1)) setBody(bodySize)
   applyFabricVisual()
   loop.start()
 
@@ -144,11 +150,22 @@ function initStudio(config: DesignConfig): void {
   if (modeParam === 'pattern') setMode('pattern')
   const animParam = params.get('anim') as AnimationMode | null
   if (animParam) setAnimMode(animParam)
-  const bh = params.get('bodyH')
-  const bb = params.get('bodyB')
-  if (bh) bodySize.height = +bh
-  if (bb) bodySize.build = +bb
-  if (bh || bb) setBody(bodySize)
+  const bodyParams: [string, keyof typeof bodySize][] = [
+    ['bodyH', 'height'],
+    ['bodyB', 'build'],
+    ['bodyBust', 'bust'],
+    ['bodyWaist', 'waist'],
+    ['bodyHips', 'hips']
+  ]
+  let bodyChanged = false
+  for (const [q, key] of bodyParams) {
+    const v = params.get(q)
+    if (v) {
+      bodySize[key] = +v
+      bodyChanged = true
+    }
+  }
+  if (bodyChanged) setBody(bodySize)
   if (params.get('body') === 'mesh') mannequin.setBodyMode(false)
 
   // ---- export ----
