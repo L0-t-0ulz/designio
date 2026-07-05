@@ -34,7 +34,8 @@ export interface GraphicControls {
 export interface PanelOptions {
   loop: Loop
   viewport: Viewport
-  material: THREE.MeshPhysicalMaterial
+  /** Wireframe over the active/all garment material(s). */
+  wireframe: { get: () => boolean; set: (v: boolean) => void }
   mannequin: THREE.Object3D
   fabrics: Fabric[]
   current: Fabric
@@ -75,6 +76,8 @@ export interface PanelApi {
   setFigure: (t: BodyType) => void
   /** Refresh the panel's garment controls from the current state (e.g. after a preset). */
   syncGarment: () => void
+  /** Reload every control from the current state (e.g. after switching active layer). */
+  refresh: () => void
   /** Switch the editor context (Garment / Avatar). */
   setContext: (c: 'garment' | 'avatar') => void
 }
@@ -347,7 +350,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         viewport.controls.update()
       }
     }).row,
-    toggle({ label: 'Wireframe', get: () => opts.material.wireframe, set: (v) => (opts.material.wireframe = v) }).row,
+    toggle({ label: 'Wireframe', get: () => opts.wireframe.get(), set: (v) => opts.wireframe.set(v) }).row,
     toggle({ label: 'Show mannequin', get: () => opts.mannequin.visible, set: (v) => (opts.mannequin.visible = v) }).row
   )
 
@@ -383,5 +386,12 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
 
   panel.append(ctxTabs, garmentGroup, avatarGroup, sceneGroup)
 
-  return { panel, api: { selectGarment, selectFabric, setFigure, syncGarment, setContext } }
+  // Reload every control from the current state (after switching the active layer).
+  function refreshAll(): void {
+    syncGarment()
+    refreshers.forEach((r) => r.refresh())
+    figBtns.female.classList.toggle('primary', opts.bodySize.bodyType === 'female')
+    figBtns.male.classList.toggle('primary', opts.bodySize.bodyType === 'male')
+  }
+  return { panel, api: { selectGarment, selectFabric, setFigure, syncGarment, refresh: refreshAll, setContext } }
 }
