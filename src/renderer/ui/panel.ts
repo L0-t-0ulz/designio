@@ -5,6 +5,7 @@ import type { GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { FABRIC_FAMILIES, type Fabric } from '../fabric/FabricLibrary'
+import { GARMENT_CATEGORIES, garmentsByCategory, getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
 
@@ -28,7 +29,6 @@ export interface PanelOptions {
   fabrics: Fabric[]
   current: Fabric
   garment: GarmentState
-  garmentTypes: GarmentType[]
   patternParams: { bust: number; length: number }
   mode: DesignMode
   onSetMode: (m: DesignMode) => void
@@ -100,31 +100,26 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   modeRow.append(modeBtns.templates, modeBtns.pattern)
   panel.append(modeRow)
 
-  // ---- garment templates ----
+  // ---- garment catalog (data-driven, grouped by category) ----
   const garmentSec = section('Garment')
-  const seg = el('div', 'dio-actions')
-  const segBtns = new Map<GarmentType, HTMLButtonElement>()
-  const label = (t: string): string => t[0].toUpperCase() + t.slice(1)
-  for (const t of opts.garmentTypes) {
-    const b = button(label(t), () => {
-      garment.type = t
-      for (const [gt, node] of segBtns) node.classList.toggle('primary', gt === t)
-      updateGarmentCtls()
-      opts.onGarmentEdit()
-    }, t === garment.type)
-    segBtns.set(t, b)
-    seg.append(b)
-  }
-  seg.style.flexWrap = 'wrap'
-
-  // Neckline + sleeves only make sense on tops/dresses — hide them for skirt/pants.
-  function updateGarmentCtls(): void {
-    const upper = garment.type === 'top' || garment.type === 'dress'
-    neckRow.classList.toggle('dio-hidden', !upper)
-    sleeveRow.classList.toggle('dio-hidden', !upper)
+  const catPicker = el('div')
+  const garmentBtns = new Map<string, HTMLButtonElement>()
+  for (const cat of GARMENT_CATEGORIES) {
+    const items = garmentsByCategory(cat.id)
+    if (!items.length) continue
+    catPicker.append(el('div', 'dio-fam-label', cat.label))
+    const row = el('div', 'dio-actions')
+    row.style.flexWrap = 'wrap'
+    for (const def of items) {
+      const b = button(def.name, () => selectGarment(def.id), def.id === garment.type)
+      b.style.flex = '1 1 44%'
+      garmentBtns.set(def.id, b)
+      row.append(b)
+    }
+    catPicker.append(row)
   }
 
-  // neckline picker (applies to tops/dresses)
+  // neckline picker (tops/dresses)
   const neckRow = el('div', 'dio-actions')
   neckRow.style.flexWrap = 'wrap'
   const necks: [string, NecklineStyle][] = [
@@ -135,16 +130,12 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   ]
   const neckBtns = new Map<NecklineStyle, HTMLButtonElement>()
   for (const [name, n] of necks) {
-    const b = button(name, () => {
-      garment.neckline = n
-      for (const [nn, node] of neckBtns) node.classList.toggle('primary', nn === n)
-      opts.onGarmentEdit()
-    }, garment.neckline === n)
+    const b = button(name, () => { garment.neckline = n; syncNeckSleeve(); opts.onGarmentEdit() }, garment.neckline === n)
     neckBtns.set(n, b)
     neckRow.append(b)
   }
 
-  // sleeve picker (applies to tops/dresses)
+  // sleeve picker (tops/dresses)
   const sleeveRow = el('div', 'dio-actions')
   sleeveRow.style.flexWrap = 'wrap'
   const sleeves: [string, SleeveStyle][] = [
@@ -154,24 +145,42 @@ export function createControlPanel(opts: PanelOptions): HTMLElement {
   ]
   const sleeveBtns = new Map<SleeveStyle, HTMLButtonElement>()
   for (const [name, s] of sleeves) {
-    const b = button(name, () => {
-      garment.sleeve = s
-      for (const [ss, node] of sleeveBtns) node.classList.toggle('primary', ss === s)
-      opts.onGarmentEdit()
-    }, garment.sleeve === s)
+    const b = button(name, () => { garment.sleeve = s; syncNeckSleeve(); opts.onGarmentEdit() }, garment.sleeve === s)
     sleeveBtns.set(s, b)
     sleeveRow.append(b)
   }
 
-  updateGarmentCtls()
-  garmentSec.body.append(
-    seg,
-    neckRow,
-    sleeveRow,
-    slider({ label: 'Length', min: 0, max: 1, step: 0.01, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } }).row,
-    slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } }).row,
-    slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } }).row
-  )
+  const lenS = slider({ label: 'Length', min: 0, max: 1, step: 0.01, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } })
+  const easeS = slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
+  const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
+
+  function syncNeckSleeve(): void {
+    for (const [n, node] of neckBtns) node.classList.toggle('primary', n === garment.neckline)
+    for (const [s, node] of sleeveBtns) node.classList.toggle('primary', s === garment.sleeve)
+  }
+  /** Reflect the selected garment: button primaries, supported controls, slider values. */
+  function syncGarment(): void {
+    const def = getGarment(garment.type)
+    for (const [id, node] of garmentBtns) node.classList.toggle('primary', id === garment.type)
+    neckRow.classList.toggle('dio-hidden', !def.supports.neckline)
+    sleeveRow.classList.toggle('dio-hidden', !def.supports.sleeve)
+    lenS.row.classList.toggle('dio-hidden', !def.supports.length)
+    easeS.row.classList.toggle('dio-hidden', !def.supports.ease)
+    flareS.row.classList.toggle('dio-hidden', !def.supports.flare)
+    syncNeckSleeve()
+    lenS.refresh()
+    easeS.refresh()
+    flareS.refresh()
+  }
+  function selectGarment(id: string): void {
+    garment.type = id
+    Object.assign(garment, getGarment(id).defaults) // apply the garment's starting fit/style
+    syncGarment()
+    opts.onGarmentEdit()
+  }
+
+  garmentSec.body.append(catPicker, neckRow, sleeveRow, lenS.row, easeS.row, flareS.row)
+  syncGarment()
   panel.append(garmentSec.root)
 
   // ---- pattern (sew) ----

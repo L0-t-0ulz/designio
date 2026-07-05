@@ -402,9 +402,15 @@ canvas {
   padding: var(--sp-4);
 }
 .dio-start-gallery {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+.dio-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 .dio-start-card {
   background: var(--bg-2);

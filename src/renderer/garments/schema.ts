@@ -16,10 +16,15 @@ export interface GarmentDefinition {
   pieces: PieceSpec[]
   /** Which construction controls the UI should show for this garment. */
   supports: ConstructionCaps
-  /** Starting fit/style values. */
+  /** Starting fit/style values (applied when the garment is selected). */
   defaults: Partial<GarmentParams>
   defaultFabric?: string
+  /** Which silhouette icon to draw in the picker (defaults by category). */
+  icon?: GarmentIcon
 }
+
+/** The four base silhouette icons the picker can draw. */
+export type GarmentIcon = 'top' | 'skirt' | 'dress' | 'pants'
 
 /** Construction controls a garment supports (drives the dynamic UI). */
 export interface ConstructionCaps {
