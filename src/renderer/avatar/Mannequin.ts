@@ -118,6 +118,8 @@ export interface Mannequin {
   setBodyMode: (realistic: boolean) => void
   /** Current body anchors — garments pin to these so they follow the animated body. */
   anchors: () => BodyAnchors
+  /** Called when the body swaps (async GLB load / toggle) — re-drape garments onto it. */
+  setOnBodyChange: (cb: () => void) => void
 }
 
 type Part = 'root' | 'armL' | 'armR' | 'legL' | 'legR'
@@ -215,6 +217,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   let useGlb = false
   let wantGlb = true
   let glb: GlbBody | null = null
+  let onBodyChange: (() => void) | null = null // notified when the body swaps (GLB ↔ procedural)
   loadGlbBody(
     material,
     (b) => {
@@ -549,6 +552,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     if (glb) glb.model.visible = useGlb
     bodyMesh.object.visible = !useGlb
     syncBodyBVH(false) // GLB → invalidate (no metaball surface); metaball → rebuild
+    onBodyChange?.() // the body swapped (e.g. async GLB load) → garments re-drape + re-pin to it
   }
   /** Switch between the realistic GLB (static) and the animatable metaball body. */
   const setBodyMode = (realistic: boolean): void => {
@@ -562,5 +566,15 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   syncBodyBVH(false) // initial static body → build the collision surface
   lastKey = '0.0000,0.0000'
 
-  return { group, colliders, measurements, bodyCollider, update, resize, setBodyMode, anchors }
+  return {
+    group,
+    colliders,
+    measurements,
+    bodyCollider,
+    update,
+    resize,
+    setBodyMode,
+    anchors,
+    setOnBodyChange: (cb) => (onBodyChange = cb)
+  }
 }
