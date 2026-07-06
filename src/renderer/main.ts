@@ -574,7 +574,7 @@ function initStudio(
     onNew: goHome,
     onProjects: goProjects,
     onSaveProject: saveProject,
-    onExportDio: () => void exportDio(),
+    onExportDio: () => void exportDio().catch((err) => console.error('Export failed', err)),
     onOpenProject: () => void openProject(),
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
     onUndo: undo,

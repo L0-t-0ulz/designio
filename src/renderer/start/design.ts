@@ -100,7 +100,8 @@ export function defaultConfig(): DesignConfig {
 
 export interface DesignArt {
   texture: THREE.CanvasTexture
-  redraw: () => void
+  /** Repaint with the *current* colour + prints (pass fresh input so a recolour isn't stale). */
+  redraw: (input: DesignArtInput) => void
 }
 
 /** The minimal input the albedo canvas needs — a base colour + placed prints. */
@@ -132,10 +133,10 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
   texture.colorSpace = THREE.SRGBColorSpace
   texture.anisotropy = 4
 
-  const redraw = (): void => {
-    ctx.fillStyle = hex(input.color)
+  const redraw = (inp: DesignArtInput): void => {
+    ctx.fillStyle = hex(inp.color)
     ctx.fillRect(0, 0, size, size)
-    for (const p of input.prints) {
+    for (const p of inp.prints) {
       if (!printHasContent(p)) continue
       ctx.save()
       ctx.translate(p.x * size, p.y * size)
@@ -156,6 +157,6 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
     }
     texture.needsUpdate = true
   }
-  redraw()
+  redraw(input)
   return { texture, redraw }
 }

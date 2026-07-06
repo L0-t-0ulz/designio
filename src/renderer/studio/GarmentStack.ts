@@ -31,6 +31,11 @@ const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [
 const disposeMats = (l: StackLayer): void => {
   for (const m of layerMats(l)) m.dispose()
 }
+/** Free the print/design canvas textures (front + back) so they don't leak. */
+const disposeDesigns = (l: StackLayer): void => {
+  l.design?.texture.dispose()
+  l.backDesign?.texture.dispose()
+}
 
 export interface StackLayer {
   data: GarmentLayerData
@@ -200,9 +205,10 @@ export class GarmentStack {
       if (!l.design) l.design = buildDesignArt(input)
       l.material.map = l.design.texture
       l.material.color.set(0xffffff) // the print canvas owns the base colour
-      l.design.redraw()
+      l.design.redraw(input) // fresh input → the base colour tracks a recolour (not stale)
     } else if (l.design) {
       l.material.map = null
+      l.design.texture.dispose()
       l.design = null
     }
     // When the back panel has its own fabric it's a separate material/geometry group,
@@ -213,7 +219,7 @@ export class GarmentStack {
       if (!l.backDesign) l.backDesign = buildDesignArt(backInput)
       l.backMaterial.map = l.backDesign.texture
       l.backMaterial.color.set(0xffffff)
-      l.backDesign.redraw()
+      l.backDesign.redraw(backInput)
     } else if (l.backDesign) {
       l.backMaterial.map = null
       l.backDesign.texture.dispose()
@@ -226,11 +232,9 @@ export class GarmentStack {
 
   /** Rebuild a layer's print from scratch (image/text changed) + reapply. */
   refreshDesign(l: StackLayer): void {
+    disposeDesigns(l)
     l.design = null
-    if (l.backDesign) {
-      l.backDesign.texture.dispose()
-      l.backDesign = null
-    }
+    l.backDesign = null
     this.applyLook(l)
   }
 
@@ -343,6 +347,7 @@ export class GarmentStack {
     const [l] = this.layers.splice(this.activeIndex, 1)
     l.controller.clear()
     disposeMats(l)
+    disposeDesigns(l)
     this.disposeDecor(l)
     this.activeIndex = Math.min(this.activeIndex, this.layers.length - 1)
   }
@@ -412,6 +417,7 @@ export class GarmentStack {
     for (const l of this.layers) {
       l.controller.clear()
       disposeMats(l)
+      disposeDesigns(l)
       this.disposeDecor(l)
     }
     this.layers.length = 0

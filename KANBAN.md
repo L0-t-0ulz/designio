@@ -83,10 +83,10 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Colorways** — save several colour/fabric variants of one design and compare them side by side
 
 **Polish / tech-debt** _(found while building the above)_
-- [ ] **Live print recolour** — recolouring a printed garment should update the print-canvas base immediately (it can go stale until the print is next edited)
+- [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67
 - [ ] **Trim the renderer bundle** — code-split Three.js/addons; the renderer chunk is ~2.2 MB (Vite warns >500 KB)
-- [ ] **Free print textures on delete** — dispose the print `CanvasTexture`s when a layer is removed (small GPU leak)
-- [ ] **Two-sided cloth (thickness)** — the inside of a garment should read as fabric, not a hollow shell (backface material + a little shell thickness)
+- [x] **Free print textures on delete** — dispose the print `CanvasTexture`s on print removal / layer delete — PR #67
+- [ ] **Fabric thickness** — garments already render two-sided (insides show fabric); give edges/hems a thin inset shell so they don't read paper-thin
 - [ ] **Wire the library search + filters** — filter the garment/fabric browser as you type (by family, weight, stretch)
 - [ ] **Autosave + crash recovery** — periodically snapshot the working project so a crash doesn't lose work
 - [ ] **Golden-image snapshot tests in CI** — capture a few key looks and diff them each PR to catch visual regressions
