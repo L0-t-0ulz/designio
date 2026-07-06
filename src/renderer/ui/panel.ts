@@ -162,9 +162,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     sleeveRow.append(b)
   }
 
-  const lenS = slider({ label: 'Length', min: 0, max: 1, step: 0.01, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } })
-  const easeS = slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
-  const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
+  const lenS = slider({ label: 'Length', min: 0, max: 1, step: 0.01, fine: 0.005, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } })
+  const easeS = slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
+  const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
 
   // size grade (XS…XXL) — grades the garment girth
   const sizeRow = el('div', 'dio-actions')

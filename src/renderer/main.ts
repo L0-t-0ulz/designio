@@ -13,7 +13,8 @@ import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
-import type { GarmentType } from './garment/templates'
+import type { GarmentType, SleeveStyle } from './garment/templates'
+import type { NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
@@ -370,19 +371,26 @@ function initStudio(
     applyGarmentEdit()
     api.refresh()
   }
+  const NECKS: NecklineStyle[] = ['scoop', 'crew', 'v', 'strapless']
+  const SLEEVES: SleeveStyle[] = ['none', 'short', 'long']
+  const cycle = <T,>(list: T[], cur: T, d: number): T => list[((list.indexOf(cur) + d) % list.length + list.length) % list.length]
   const patternEditor: PatternEditor = {
     length: () => garment.length,
     ease: () => garment.ease,
     flare: () => garment.flare,
     size: () => garment.size,
+    neckline: () => garment.neckline,
+    sleeve: () => garment.sleeve,
     supports: () => {
       const s = getGarment(garment.type).supports
-      return { length: !!s.length, ease: !!s.ease, flare: !!s.flare }
+      return { length: !!s.length, ease: !!s.ease, flare: !!s.flare, neckline: !!s.neckline, sleeve: !!s.sleeve }
     },
     nudgeLength: (d) => editFrom2D(() => (garment.length = clampN(garment.length + d, 0, 1))),
     nudgeEase: (d) => editFrom2D(() => (garment.ease = clampN(garment.ease + d, 0, 0.12))),
     nudgeFlare: (d) => editFrom2D(() => (garment.flare = clampN(garment.flare + d, 0, 0.22))),
-    nudgeSize: (d) => editFrom2D(() => (garment.size = SIZES[clampN(SIZES.indexOf(garment.size) + d, 0, SIZES.length - 1)]))
+    nudgeSize: (d) => editFrom2D(() => (garment.size = SIZES[clampN(SIZES.indexOf(garment.size) + d, 0, SIZES.length - 1)])),
+    nudgeNeckline: (d) => editFrom2D(() => (garment.neckline = cycle(NECKS, garment.neckline, d))),
+    nudgeSleeve: (d) => editFrom2D(() => (garment.sleeve = cycle(SLEEVES, garment.sleeve, d)))
   }
   const centerTabs = buildCenterTabs(shell.center, patternSVG, patternEditor)
 
