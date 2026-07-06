@@ -394,16 +394,18 @@ canvas {
   left: -12%;
   width: 62vw;
   height: 62vw;
-  background: radial-gradient(circle, rgba(124, 111, 240, 0.32), transparent 62%);
+  background: radial-gradient(circle, var(--dio-aura-1, rgba(124, 111, 240, 0.32)), transparent 62%);
   animation: dio-aurora-1 22s ease-in-out infinite alternate;
+  transition: background 0.8s ease;
 }
 .dio-start::after {
   top: -18%;
   right: -14%;
   width: 54vw;
   height: 54vw;
-  background: radial-gradient(circle, rgba(176, 124, 255, 0.24), transparent 60%);
+  background: radial-gradient(circle, var(--dio-aura-2, rgba(176, 124, 255, 0.24)), transparent 60%);
   animation: dio-aurora-2 26s ease-in-out infinite alternate;
+  transition: background 0.8s ease;
 }
 @keyframes dio-aurora-1 {
   from { transform: translate3d(0, 0, 0) scale(1); }
@@ -615,6 +617,73 @@ canvas {
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   margin: 4px 0 10px;
+}
+/* wrapping variant for 3+ options (neckline / sleeve / size) */
+.dio-seg-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+.dio-seg-wrap .dio-seg-btn {
+  flex: 1 1 auto;
+  min-width: 40px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.dio-start-seg {
+  margin-bottom: 4px;
+}
+.dio-start-seglabel {
+  font-size: 12px;
+  color: var(--fg-1);
+  margin: 6px 0 2px;
+}
+/* quick-look preset chips */
+.dio-start-looks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+.dio-start-look {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: var(--card-bg);
+  color: var(--fg-1);
+  font-size: 12px;
+  padding: 6px 11px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
+}
+.dio-start-look:hover {
+  border-color: var(--accent-line);
+  color: var(--fg-0);
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+}
+/* Surprise / Spin toolbar */
+.dio-start-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.dio-start-tool {
+  flex: 1 1 auto;
+  appearance: none;
+  border: 1px solid var(--hairline-hi);
+  background: var(--card-bg);
+  color: var(--fg-0);
+  font-size: 12.5px;
+  font-weight: 550;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
+}
+.dio-start-tool:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  transform: translateY(-1px);
 }
 .dio-seg-btn {
   appearance: none;

@@ -13,6 +13,7 @@ import { GarmentController } from '../garment/GarmentController'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, type Fabric } from '../fabric/FabricLibrary'
 import { buildDesignArt, hasArt, type DesignArt, type DesignConfig } from './design'
+import { sizeEase } from '../studio/document'
 
 const VignetteShader = {
   uniforms: { tDiffuse: { value: null }, darkness: { value: 0.62 }, offset: { value: 1.05 } },
@@ -46,6 +47,7 @@ export class PreviewStudio {
   private paused = false
   private firstFrame = true
   private resumeTimer = 0
+  private spin = true
   private bodyQueued = false
   private pendingBody: DesignConfig | null = null
 
@@ -94,7 +96,7 @@ export class PreviewStudio {
     // reflective floor + shadow-catcher in setupEnvironment) ----
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.camera))
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.1, 0.5, 2.0)
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.16, 0.55, 1.9)
     this.composer.addPass(this.bloom)
     this.composer.addPass(new ShaderPass(VignetteShader))
     this.composer.addPass(new OutputPass())
@@ -128,10 +130,27 @@ export class PreviewStudio {
     this.loop.start()
   }
 
-  /** Rebuild the garment shape (type / fit changed), then apply the look. */
+  /** Fit params with the size grade folded into the girth (mirrors the studio). */
+  private graded(config: DesignConfig): { length: number; ease: number; flare: number; neckline: DesignConfig['neckline']; sleeve: DesignConfig['sleeve'] } {
+    return {
+      length: config.length,
+      ease: Math.max(0, config.ease + sizeEase(config.size)),
+      flare: config.flare,
+      neckline: config.neckline,
+      sleeve: config.sleeve
+    }
+  }
+
+  /** Rebuild the garment shape (type / fit / size changed), then apply the look. */
   rebuild(config: DesignConfig): void {
     this.applyLook(config)
-    this.ctl.build(config.garmentType, config)
+    this.ctl.build(config.garmentType, this.graded(config))
+  }
+
+  /** Turntable on/off (the preview's "spin / still" toggle). */
+  setAutoRotate(on: boolean): void {
+    this.spin = on && !this.reducedMotion
+    this.controls.autoRotate = this.spin
   }
 
   /**
@@ -153,7 +172,7 @@ export class PreviewStudio {
         waist: c.bodyWaist,
         hips: c.bodyHips
       })
-      this.ctl.build(c.garmentType, c)
+      this.ctl.build(c.garmentType, this.graded(c))
     })
   }
 
@@ -178,7 +197,7 @@ export class PreviewStudio {
     this.controls.autoRotate = false
   }
   private releaseRotate = (): void => {
-    if (this.reducedMotion) return
+    if (this.reducedMotion || !this.spin) return
     window.clearTimeout(this.resumeTimer)
     this.resumeTimer = window.setTimeout(() => (this.controls.autoRotate = true), 1500)
   }

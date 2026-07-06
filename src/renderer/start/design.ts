@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
+import type { SizeLabel } from '../studio/document'
 
 /** Everything the start page lets you build before entering the 3D studio. */
 export interface DesignConfig {
@@ -13,6 +14,8 @@ export interface DesignConfig {
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
+  /** Manufacturing size (grades the garment girth). */
+  size: SizeLabel
   /** Mannequin figure — female or male (slim model proportions). */
   bodyType: BodyType
   /** Mannequin size — height scales Y, build scales overall girth; bust/waist/hips shape it. */
@@ -38,6 +41,7 @@ export function defaultConfig(): DesignConfig {
     flare: 0.05,
     neckline: 'scoop',
     sleeve: 'short',
+    size: 'M',
     bodyType: 'female',
     bodyHeight: 1,
     bodyBuild: 1,

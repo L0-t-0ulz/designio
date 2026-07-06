@@ -89,7 +89,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     flare: c.flare,
     neckline: c.neckline,
     sleeve: c.sleeve,
-    size: 'M',
+    size: c.size,
     fabricId: c.fabricId,
     color: c.color,
     text: c.text,
