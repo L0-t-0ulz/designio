@@ -197,8 +197,10 @@ At default settings the garment **hangs perfectly still** (the solver sleeps whe
 body isn't moving — no drift or jitter). Set the mannequin to **idle / walk** and the imported avatar
 **moves on the spot** — and the clothes **stay on and move with it**. Garments pin to the body's
 **shoulders / hips** (not to fixed space), so they follow the stride — a dress swishes, a skirt sways — and
-the cloth colliders track the rig's bones so the fabric drapes over the moving arms and legs. Add a
-**turntable**, and tune **gravity / wind / exposure**. Then **export**: **3D** (glTF / OBJ), **2D pattern**
+the cloth colliders track the rig's bones so the fabric drapes over the moving arms and legs. And every
+fabric **moves in character**: aerodynamic drag makes a light, sheer **chiffon billow, float and lag**
+while a heavy **denim** follows **near-rigid** — real per-fabric secondary motion. Add a **turntable**,
+and tune **gravity / wind / exposure**. Then **export**: **3D** (glTF / OBJ), **2D pattern**
 (SVG / DXF for a cutter), a **measurement tech-pack** (HTML + JSON), and a full **manufacturing pack**
 (spec sheet + fabric BOM + embedded patterns).
 
@@ -266,9 +268,10 @@ category picker + schema-driven construction UI · female/male slim models with 
 mesh-accurate BVH body collision · **per-part physics** (leather drapes stiffer than jersey) · **per-panel
 fabric** (front vs back on body + legs) · **prints on any panel** · **imported GLB avatar as the default
 body** · **body-pinned garments** — the avatar **walks in place with its clothes on** (GLB idle/walk clips +
-bone-driven collider fit + garments pinned to the shoulders/hips) · a production-grade, consistent UI.
+bone-driven collider fit + garments pinned to the shoulders/hips) · **4D per-fabric secondary motion**
+(chiffon floats/flutters, denim near-rigid) · a production-grade, consistent UI.
 
-Planned (in phases): **4D** per-fabric secondary motion (lag/flutter vs near-rigid) · cloth **self-collision
+Planned (in phases): cloth **self-collision
 + thickness** · **layering / full outfits** (garment↔garment collision) · **tailored outerwear** (lapels,
 structured coats) · export polish.
 
