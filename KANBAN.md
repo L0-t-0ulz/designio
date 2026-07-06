@@ -35,6 +35,9 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Contrast trim** — collar/cuffs/pockets/hem — PR #49
 - [x] **Seam allowance + notches** (production) — PR #49
 - [x] **Multiple placeable prints** — logos + text, each positioned / sized / rotated — PR #51
+- [x] **Per-part physics** — leather drapes stiffer than jersey (per-piece solver params) — PR #53
+- [x] **Per-panel fabric** — front vs back fabric on the body + legs (colour-blocking) — PR #55
+- [x] **Back-panel prints** — logos/text placed on the back render on the back panel — PR #56
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -56,13 +59,21 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 ## 📋 Backlog / ideas
 
-- [ ] **Per-part physics** — leather drapes stiffer than jersey (per-piece solver params)
+**Features**
 - [ ] **Photoreal GLB avatar** as default (drop-in slot is ready — needs a CC0 `.glb`)
 - [ ] **More garments** — blazer · hoodie · cargo pants · coat · blouse (data-driven)
-- [ ] **Per-panel fabric** — front vs back vs each panel separately
 - [ ] **Cloth self / inter-collision** — layered garments push off each other
 - [ ] **Topstitching + seam styles** on the 3D + pattern
 - [ ] **A real Render tab** (high-quality still)
+- [ ] **Prints on sleeves & legs** — prints are body-only today; extend the design map to the sleeve/leg pieces (and their back panels)
+- [ ] **Prints on the 2D flat pattern** — show placed logos/text on the exported panels + manufacturing pack
+- [ ] **Per-panel physics** — front vs back drape stiffness (deferred from per-panel fabric; needs per-constraint region params in the XPBD solver)
+- [ ] **Split sleeves front/back** — per-panel fabric splits the body + legs; sleeves are still a single panel
+
+**Polish / tech-debt** _(found while building the above)_
+- [ ] **Live print recolour** — recolouring a printed garment should update the print-canvas base immediately (it can go stale until the print is next edited)
+- [ ] **Trim the renderer bundle** — code-split Three.js/addons; the renderer chunk is ~2.2 MB (Vite warns >500 KB)
+- [ ] **Free print textures on delete** — dispose the print `CanvasTexture`s when a layer is removed (small GPU leak)
 
 ---
 

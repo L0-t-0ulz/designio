@@ -140,7 +140,7 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
       ctx.save()
       ctx.translate(p.x * size, p.y * size)
       ctx.rotate((p.rotation * Math.PI) / 180)
-      ctx.scale(-1, 1) // the garment's front face samples the canvas mirrored — un-flip
+      ctx.scale(-1, 1) // the garment face samples the canvas mirrored — un-flip (front + back alike)
       if (p.kind === 'image' && p.image) {
         const w = p.scale * size
         const h = w * (p.image.height / p.image.width)

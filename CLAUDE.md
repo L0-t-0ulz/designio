@@ -112,7 +112,9 @@ Renderer modules:
 
 `?start=0` skip start page · `?garment=<id>` (registry id — dress, gown, jumpsuit, wide-leg, …; applies
 its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?bodyType=female|male` ·
-`?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>` ·
+`?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>`
+(+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
+back-fabric panel) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (procedural vs realistic-GLB avatar) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem=1` (construction detail) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
