@@ -418,6 +418,30 @@ export function showStartPage(
     (v) => { config.size = v as DesignConfig['size']; preview?.rebuild(config) }
   )
 
+  // construction-detail chips (collar / cuff / pleats / darts), shown per garment
+  const detailWrap = el('div', 'dio-start-looks')
+  const detailChip = (label: string, get: () => boolean, set: (v: boolean) => void, key: 'collar' | 'cuff' | 'pleats' | 'dart'): void => {
+    const chip = el('button', 'dio-start-look', label)
+    chip.setAttribute('type', 'button')
+    const sync = (): void => {
+      chip.classList.toggle('on', get())
+      chip.classList.toggle('dio-hidden', !getGarment(config.garmentType).supports[key])
+    }
+    chip.addEventListener('click', () => {
+      set(!get())
+      sync()
+      pop(chip)
+      preview?.rebuild(config)
+    })
+    sync()
+    fitSyncs.push(sync)
+    detailWrap.append(chip)
+  }
+  detailChip('Collar', () => !!config.collar, (v) => (config.collar = v), 'collar')
+  detailChip('Cuff', () => !!config.cuff, (v) => (config.cuff = v), 'cuff')
+  detailChip('Pleats', () => !!config.pleats, (v) => (config.pleats = v), 'pleats')
+  detailChip('Darts', () => !!config.dart, (v) => (config.dart = v), 'dart')
+
   // Quick looks — one-tap presets.
   const looks = el('div', 'dio-start-looks')
   const applyLook = (cfg: DesignConfig): void => {
@@ -488,6 +512,8 @@ export function showStartPage(
     necklineRow,
     sleeveRow,
     sizeRow,
+    el('div', 'dio-start-seglabel', 'Details'),
+    detailWrap,
     el('div', 'dio-start-section', 'Fit'),
     startSlider({ label: 'Length', min: 0, max: 1, step: 0.01, ref: (s) => fitSyncs.push(s), get: () => config.length, set: (v) => { config.length = v; preview?.rebuild(config) } }),
     startSlider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, ref: (s) => fitSyncs.push(s), get: () => config.ease, set: (v) => { config.ease = v; preview?.rebuild(config) } }),

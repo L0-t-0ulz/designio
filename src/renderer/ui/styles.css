@@ -661,6 +661,11 @@ canvas {
   background: var(--accent-soft);
   transform: translateY(-1px);
 }
+.dio-start-look.on {
+  border-color: var(--accent);
+  color: var(--fg-0);
+  background: var(--accent-soft);
+}
 /* Surprise / Spin toolbar */
 .dio-start-toolbar {
   display: flex;

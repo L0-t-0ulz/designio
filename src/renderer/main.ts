@@ -84,7 +84,11 @@ function initStudio(
     flare: l0.flare,
     neckline: l0.neckline,
     sleeve: l0.sleeve,
-    size: l0.size
+    size: l0.size,
+    collar: l0.collar,
+    cuff: l0.cuff,
+    pleats: l0.pleats,
+    dart: l0.dart
   }
   const current: Fabric = { ...getFabric(l0.fabricId), color: l0.color }
 
@@ -166,6 +170,10 @@ function initStudio(
     garment.neckline = l.data.neckline
     garment.sleeve = l.data.sleeve
     garment.size = l.data.size
+    garment.collar = l.data.collar
+    garment.cuff = l.data.cuff
+    garment.pleats = l.data.pleats
+    garment.dart = l.data.dart
     Object.assign(current, l.fabric)
     api.refresh()
   }
@@ -340,6 +348,10 @@ function initStudio(
     l.data.neckline = garment.neckline
     l.data.sleeve = garment.sleeve
     l.data.size = garment.size
+    l.data.collar = garment.collar
+    l.data.cuff = garment.cuff
+    l.data.pleats = garment.pleats
+    l.data.dart = garment.dart
     stack.rebuild(l)
     centerTabs.refresh()
     api.refreshMetrics()
@@ -803,6 +815,10 @@ if (skipStart) {
   }
   const txt = entryParams.get('text')
   if (txt) cfg.text = txt // lets snapshots exercise the printed-design map
+  if (entryParams.get('collar')) cfg.collar = true
+  if (entryParams.get('cuff')) cfg.cuff = true
+  if (entryParams.get('pleats')) cfg.pleats = true
+  if (entryParams.get('dart')) cfg.dart = true
   initStudio(cfg)
 } else if (entryParams.get('page') === 'start') {
   showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome) // deep-link to the builder

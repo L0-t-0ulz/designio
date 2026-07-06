@@ -27,7 +27,11 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     ease: Math.max(0, l.ease + sizeEase(l.size)),
     flare: l.flare,
     neckline: l.neckline,
-    sleeve: l.sleeve
+    sleeve: l.sleeve,
+    collar: l.collar,
+    cuff: l.cuff,
+    pleats: l.pleats,
+    dart: l.dart
   }
 }
 
@@ -41,6 +45,11 @@ export interface GarmentLayerData {
   sleeve: SleeveStyle
   /** Manufacturing size (grades the girth). */
   size: SizeLabel
+  // construction detail (optional)
+  collar?: boolean
+  cuff?: boolean
+  pleats?: boolean
+  dart?: boolean
   fabricId: string
   color: number
   /** Printed text on the garment ('' = none). Uploaded PNGs are runtime-only. */
@@ -90,6 +99,10 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     neckline: c.neckline,
     sleeve: c.sleeve,
     size: c.size,
+    collar: c.collar,
+    cuff: c.cuff,
+    pleats: c.pleats,
+    dart: c.dart,
     fabricId: c.fabricId,
     color: c.color,
     text: c.text,
@@ -109,6 +122,10 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     neckline: d.neckline ?? 'scoop',
     sleeve: d.sleeve ?? 'short',
     size: 'M',
+    collar: d.collar,
+    cuff: d.cuff,
+    pleats: d.pleats,
+    dart: d.dart,
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',
     color: 0xc85a54,
     text: '',

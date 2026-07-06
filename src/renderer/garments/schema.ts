@@ -33,6 +33,11 @@ export interface ConstructionCaps {
   length?: boolean
   ease?: boolean
   flare?: boolean
+  // ---- construction detail ----
+  collar?: boolean
+  cuff?: boolean
+  pleats?: boolean
+  dart?: boolean
 }
 
 export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece
