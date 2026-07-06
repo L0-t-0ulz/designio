@@ -92,10 +92,13 @@ export const DEFAULT_BODY: BodyParams = {
 
 export type AnimationMode = 'static' | 'idle' | 'walk' | 'turn'
 
-/** World-space frames garments pin to so they follow the moving body (torso = tops, hip = bottoms). */
+/** World-space frames garments pin to so they follow the moving body (torso = tops, hip = bottoms,
+ *  armL/armR = sleeves; armL is the −x arm, armR the +x). */
 export interface BodyAnchors {
   torso: THREE.Matrix4
   hip: THREE.Matrix4
+  armL: THREE.Matrix4
+  armR: THREE.Matrix4
 }
 
 export interface Mannequin {
@@ -442,6 +445,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   // procedural → static frames at the chest/hip landmarks (the torso doesn't animate).
   const torsoMat = new THREE.Matrix4()
   const hipMat = new THREE.Matrix4()
+  const armLMat = new THREE.Matrix4()
+  const armRMat = new THREE.Matrix4()
   const anchors = (): BodyAnchors => {
     if (useGlb && glb?.bones.hips) {
       const chest = glb.bones.chest ?? glb.bones.neck ?? glb.bones.hips
@@ -449,11 +454,25 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       glb.bones.hips.updateWorldMatrix(true, false)
       torsoMat.copy(chest.matrixWorld)
       hipMat.copy(glb.bones.hips.matrixWorld)
+      const la = glb.bones.lArm
+      const ra = glb.bones.rArm
+      if (la && ra) {
+        la.updateWorldMatrix(true, false)
+        ra.updateWorldMatrix(true, false)
+        const laIsNeg = la.matrixWorld.elements[12] <= ra.matrixWorld.elements[12] // −x arm → armL
+        armLMat.copy((laIsNeg ? la : ra).matrixWorld)
+        armRMat.copy((laIsNeg ? ra : la).matrixWorld)
+      } else {
+        armLMat.copy(torsoMat)
+        armRMat.copy(torsoMat)
+      }
     } else {
       torsoMat.makeTranslation(0, measurements.chestY, 0)
       hipMat.makeTranslation(0, measurements.hipY, 0)
+      armLMat.makeTranslation(-measurements.shoulderHalfX, measurements.shoulderY, 0)
+      armRMat.makeTranslation(measurements.shoulderHalfX, measurements.shoulderY, 0)
     }
-    return { torso: torsoMat, hip: hipMat }
+    return { torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat }
   }
 
   let lastT = 0
@@ -464,9 +483,9 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       // Play the rig's idle/walk clip (idle frozen when static) then snap the cloth
       // capsules onto its bones; garments follow via their body anchors (see anchors()).
       const animating = mode === 'idle' || mode === 'walk'
-      // Ease the walk to ~0.6× so the stride (and the cloth that hangs off it) reads
-      // graceful rather than frantic; idle plays at full rate.
-      const rate = mode === 'walk' ? 0.6 : 1
+      // Ease the walk to half speed so the stride (and the cloth that hangs off it) reads
+      // graceful rather than frantic, and the sim keeps up; idle plays at full rate.
+      const rate = mode === 'walk' ? 0.5 : 1
       glb.update(animating ? dt * speed * rate : 0, mode === 'walk')
       fitCollidersToGlb()
       return
