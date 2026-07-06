@@ -9,16 +9,22 @@ import type { GarmentParams, GarmentType } from './templates'
 import { buildGarment } from '../garments/factory'
 import { getGarment } from '../garments/registry'
 
+/** Which body anchor a pin group follows (matrix keys of BodyAnchors). */
+type AnchorKey = 'torso' | 'hip' | 'armL' | 'armR' | 'foreL' | 'foreR'
+
 interface Piece {
   geometry: THREE.BufferGeometry
   positions: Float32Array
   mesh: THREE.Mesh
   solver: XPBDSolver
   name: string
-  /** Average position of the pinned top ring — picks which body anchor the piece hangs from. */
-  pinnedY: number
+  /** Top ring (shoulder/waist) + mid ring (elbow, for sleeves) + the top ring's average position. */
+  topRing: number[]
+  midRing: number[]
   pinnedX: number
-  anchorKind: 'torso' | 'hip' | 'armL' | 'armR'
+  pinnedY: number
+  /** The body anchors this piece's pin groups follow (recomputed on each bind). */
+  pinGroups: { idx: number[]; kind: AnchorKey }[]
   /** Reset this piece's positions to its undraped shape. */
   refill: () => void
 }
@@ -66,6 +72,9 @@ export class GarmentController {
     solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)
     solver.wind.set(this.windX, 0, this.windZ)
+    const topRing = [...pinnedTop]
+    const midY = Math.floor((ny - 1) / 2)
+    const midRing = Array.from({ length: nx }, (_, ix) => midY * nx + ix) // mid ring (a sleeve's elbow)
     let pinnedY = 0
     let pinnedX = 0
     for (const idx of pinnedTop) {
@@ -73,20 +82,49 @@ export class GarmentController {
       pinnedY += positions[idx * 3 + 1]
     }
     const n = pinnedTop.length || 1
-    this.pieces.push({ geometry, positions, mesh, solver, name, pinnedY: pinnedY / n, pinnedX: pinnedX / n, anchorKind: 'torso', refill: () => fill(positions) })
+    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions) })
   }
 
-  /** Bind each piece's pinned ring to the body part it hangs from — a sleeve to its arm,
-   * a top to the torso, a skirt/trouser to the hips — so it follows that part's motion. */
+  /** Bind each piece's pin groups to the body parts it hangs from — a sleeve pins its
+   * shoulder to the arm (and, if it reaches, its cuff to the hand so it hugs the whole
+   * arm), a top to the torso, a skirt/trouser to the hips — so each follows that part. */
   private bindPinsToBody(): void {
     const a = this.anchors()
     if (!a) return
     const torsoY = a.torso.elements[13]
     const hipY = a.hip.elements[13]
+    const ringCentre = (p: Piece, ring: number[]): [number, number, number] => {
+      let x = 0
+      let y = 0
+      let z = 0
+      for (const idx of ring) {
+        x += p.positions[idx * 3]
+        y += p.positions[idx * 3 + 1]
+        z += p.positions[idx * 3 + 2]
+      }
+      const m = ring.length || 1
+      return [x / m, y / m, z / m]
+    }
     for (const p of this.pieces) {
-      if (/sleeve/i.test(p.name)) p.anchorKind = p.pinnedX < 0 ? 'armL' : 'armR'
-      else p.anchorKind = Math.abs(p.pinnedY - torsoY) <= Math.abs(p.pinnedY - hipY) ? 'torso' : 'hip'
-      p.solver.bindPins(a[p.anchorKind])
+      const groups: { idx: number[]; kind: AnchorKey }[] = []
+      if (/sleeve/i.test(p.name)) {
+        groups.push({ idx: p.topRing, kind: p.pinnedX < 0 ? 'armL' : 'armR' })
+        // A long sleeve whose mid ring reaches the elbow also pins to the forearm, so it
+        // bends with the arm (the forearm moves far less than the hand — no drag).
+        if (a.rigged) {
+          const foreKind: AnchorKey = p.pinnedX < 0 ? 'foreL' : 'foreR'
+          const fore = a[foreKind]
+          const [cx, cy, cz] = ringCentre(p, p.midRing)
+          const dx = cx - fore.elements[12]
+          const dy = cy - fore.elements[13]
+          const dz = cz - fore.elements[14]
+          if (dx * dx + dy * dy + dz * dz < 0.15 * 0.15) groups.push({ idx: p.midRing, kind: foreKind })
+        }
+      } else {
+        groups.push({ idx: p.topRing, kind: Math.abs(p.pinnedY - torsoY) <= Math.abs(p.pinnedY - hipY) ? 'torso' : 'hip' })
+      }
+      p.pinGroups = groups
+      p.solver.bindPinGroups(groups.map((g) => ({ idx: g.idx, anchor: a[g.kind] })))
     }
   }
 
@@ -115,7 +153,7 @@ export class GarmentController {
   step(dt: number): void {
     const a = this.anchors()
     for (const p of this.pieces) {
-      p.solver.setAnchor(a ? a[p.anchorKind] : null)
+      p.solver.setPinAnchors(p.pinGroups.map((g) => (a ? a[g.kind] : null)))
       p.solver.step(dt)
     }
   }

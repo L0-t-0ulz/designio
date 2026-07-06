@@ -93,12 +93,16 @@ export const DEFAULT_BODY: BodyParams = {
 export type AnimationMode = 'static' | 'idle' | 'walk' | 'turn'
 
 /** World-space frames garments pin to so they follow the moving body (torso = tops, hip = bottoms,
- *  armL/armR = sleeves; armL is the −x arm, armR the +x). */
+ *  armL/armR = sleeve shoulders, handL/handR = sleeve cuffs; armL/handL are the −x side, R the +x). */
 export interface BodyAnchors {
   torso: THREE.Matrix4
   hip: THREE.Matrix4
   armL: THREE.Matrix4
   armR: THREE.Matrix4
+  foreL: THREE.Matrix4
+  foreR: THREE.Matrix4
+  /** true when the limbs actually animate (GLB) — sleeves then also elbow-pin to the forearms. */
+  rigged: boolean
 }
 
 export interface Mannequin {
@@ -447,6 +451,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const hipMat = new THREE.Matrix4()
   const armLMat = new THREE.Matrix4()
   const armRMat = new THREE.Matrix4()
+  const foreLMat = new THREE.Matrix4()
+  const foreRMat = new THREE.Matrix4()
   const anchors = (): BodyAnchors => {
     if (useGlb && glb?.bones.hips) {
       const chest = glb.bones.chest ?? glb.bones.neck ?? glb.bones.hips
@@ -456,23 +462,29 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       hipMat.copy(glb.bones.hips.matrixWorld)
       const la = glb.bones.lArm
       const ra = glb.bones.rArm
-      if (la && ra) {
-        la.updateWorldMatrix(true, false)
-        ra.updateWorldMatrix(true, false)
-        const laIsNeg = la.matrixWorld.elements[12] <= ra.matrixWorld.elements[12] // −x arm → armL
-        armLMat.copy((laIsNeg ? la : ra).matrixWorld)
-        armRMat.copy((laIsNeg ? ra : la).matrixWorld)
-      } else {
-        armLMat.copy(torsoMat)
-        armRMat.copy(torsoMat)
+      const setSide = (mat: THREE.Matrix4, other: THREE.Matrix4, neg?: THREE.Object3D, pos?: THREE.Object3D, laIsNeg = true): void => {
+        if (neg && pos) {
+          neg.updateWorldMatrix(true, false)
+          pos.updateWorldMatrix(true, false)
+          mat.copy((laIsNeg ? neg : pos).matrixWorld)
+          other.copy((laIsNeg ? pos : neg).matrixWorld)
+        } else {
+          mat.copy(torsoMat)
+          other.copy(torsoMat)
+        }
       }
-    } else {
-      torsoMat.makeTranslation(0, measurements.chestY, 0)
-      hipMat.makeTranslation(0, measurements.hipY, 0)
-      armLMat.makeTranslation(-measurements.shoulderHalfX, measurements.shoulderY, 0)
-      armRMat.makeTranslation(measurements.shoulderHalfX, measurements.shoulderY, 0)
+      const laIsNeg = !la || !ra || la.matrixWorld.elements[12] <= ra.matrixWorld.elements[12] // −x arm → armL
+      setSide(armLMat, armRMat, la, ra, laIsNeg)
+      setSide(foreLMat, foreRMat, glb.bones.lFore, glb.bones.rFore, laIsNeg)
+      return { torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: true }
     }
-    return { torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat }
+    torsoMat.makeTranslation(0, measurements.chestY, 0)
+    hipMat.makeTranslation(0, measurements.hipY, 0)
+    armLMat.makeTranslation(-measurements.shoulderHalfX, measurements.shoulderY, 0)
+    armRMat.makeTranslation(measurements.shoulderHalfX, measurements.shoulderY, 0)
+    foreLMat.copy(armLMat)
+    foreRMat.copy(armRMat)
+    return { torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: false }
   }
 
   let lastT = 0
