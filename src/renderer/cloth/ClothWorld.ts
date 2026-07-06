@@ -45,10 +45,13 @@ export class ClothWorld {
   private time = 0
   // rest / sleep — settle to a dead stop when windless + still (mirrors XPBDSolver)
   private restFrames = 0
+  private framesSinceWake = 0
   private asleep = false
   private colliderSig = 0
   private static readonly SLEEP_VEL = 0.02
   private static readonly SLEEP_FRAMES = 24
+  private static readonly FORCE_SLEEP_FRAMES = 300
+  private static readonly VMAX = 8
   private readonly _p = new THREE.Vector3()
   private readonly _c = new THREE.Vector3()
   private readonly _bodyOut = new THREE.Vector3()
@@ -118,6 +121,7 @@ export class ClothWorld {
   wake(): void {
     this.asleep = false
     this.restFrames = 0
+    this.framesSinceWake = 0
   }
 
   private colliderSignature(): number {
@@ -129,8 +133,10 @@ export class ClothWorld {
   private updateRest(): void {
     if (this.wind.lengthSq() > 1e-6) {
       this.restFrames = 0
+      this.framesSinceWake = 0
       return
     }
+    this.framesSinceWake++
     const { vel, invMass: im, count } = this
     let maxSq = 0
     for (let k = 0; k < count; k++) {
@@ -139,13 +145,11 @@ export class ClothWorld {
       const s = vel[i] * vel[i] + vel[i + 1] * vel[i + 1] + vel[i + 2] * vel[i + 2]
       if (s > maxSq) maxSq = s
     }
-    if (maxSq < ClothWorld.SLEEP_VEL * ClothWorld.SLEEP_VEL) {
-      if (++this.restFrames >= ClothWorld.SLEEP_FRAMES) {
-        this.vel.fill(0)
-        this.asleep = true
-      }
-    } else {
-      this.restFrames = 0
+    if (maxSq < ClothWorld.SLEEP_VEL * ClothWorld.SLEEP_VEL) this.restFrames++
+    else this.restFrames = 0
+    if (this.restFrames >= ClothWorld.SLEEP_FRAMES || this.framesSinceWake >= ClothWorld.FORCE_SLEEP_FRAMES) {
+      this.vel.fill(0)
+      this.asleep = true
     }
   }
 
@@ -270,12 +274,25 @@ export class ClothWorld {
 
     this.solveCollisions()
 
+    // damping + stability net (cap velocity, keep positions in a sane box) — mirrors XPBDSolver
     const damp = Math.max(0, 1 - this.params.damping * dt)
+    const VMAX2 = ClothWorld.VMAX * ClothWorld.VMAX
     for (let k = 0; k < count; k++) {
       const i = k * 3
       vel[i] *= damp
       vel[i + 1] *= damp
       vel[i + 2] *= damp
+      const v2 = vel[i] * vel[i] + vel[i + 1] * vel[i + 1] + vel[i + 2] * vel[i + 2]
+      if (v2 > VMAX2) {
+        const s = ClothWorld.VMAX / Math.sqrt(v2)
+        vel[i] *= s
+        vel[i + 1] *= s
+        vel[i + 2] *= s
+      }
+      if (im[k] === 0) continue
+      pos[i] = pos[i] < -1.5 ? -1.5 : pos[i] > 1.5 ? 1.5 : pos[i]
+      pos[i + 1] = pos[i + 1] < -0.5 ? -0.5 : pos[i + 1] > 2.3 ? 2.3 : pos[i + 1]
+      pos[i + 2] = pos[i + 2] < -1.5 ? -1.5 : pos[i + 2] > 1.5 ? 1.5 : pos[i + 2]
     }
   }
 

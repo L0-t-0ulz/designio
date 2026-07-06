@@ -61,10 +61,13 @@ export class XPBDSolver {
 
   // ---- rest / sleep: with no wind and a still body, settle to a dead stop ----
   private restFrames = 0
+  private framesSinceWake = 0
   private asleep = false
   private colliderSig = 0
   private static readonly SLEEP_VEL = 0.02 // m/s — below this the cloth is "at rest"
   private static readonly SLEEP_FRAMES = 24 // consecutive still frames before it sleeps
+  private static readonly FORCE_SLEEP_FRAMES = 300 // ~5 s: force a rest even if it keeps swaying
+  private static readonly VMAX = 8 // m/s velocity cap (stability net; real cloth stays well under)
 
   // scratch vectors (no per-particle allocation)
   private readonly _p = new THREE.Vector3()
@@ -129,6 +132,7 @@ export class XPBDSolver {
   wake(): void {
     this.asleep = false
     this.restFrames = 0
+    this.framesSinceWake = 0
   }
 
   /** Cheap fingerprint of the collider poses — changes when the body moves/resizes. */
@@ -146,8 +150,10 @@ export class XPBDSolver {
   private updateRest(): void {
     if (this.wind.lengthSq() > 1e-6) {
       this.restFrames = 0
+      this.framesSinceWake = 0 // wind → stay awake and flutter
       return
     }
+    this.framesSinceWake++
     const { vel, invMass: im, count } = this
     let maxSq = 0
     for (let k = 0; k < count; k++) {
@@ -156,13 +162,13 @@ export class XPBDSolver {
       const s = vel[i] * vel[i] + vel[i + 1] * vel[i + 1] + vel[i + 2] * vel[i + 2]
       if (s > maxSq) maxSq = s
     }
-    if (maxSq < XPBDSolver.SLEEP_VEL * XPBDSolver.SLEEP_VEL) {
-      if (++this.restFrames >= XPBDSolver.SLEEP_FRAMES) {
-        this.vel.fill(0) // dead stop — no residual drift
-        this.asleep = true
-      }
-    } else {
-      this.restFrames = 0
+    if (maxSq < XPBDSolver.SLEEP_VEL * XPBDSolver.SLEEP_VEL) this.restFrames++
+    else this.restFrames = 0
+    // Sleep once settled, OR force it after a few seconds so a garment that keeps
+    // gently swaying still comes to rest at default and stays static until changed.
+    if (this.restFrames >= XPBDSolver.SLEEP_FRAMES || this.framesSinceWake >= XPBDSolver.FORCE_SLEEP_FRAMES) {
+      this.vel.fill(0) // dead stop — no residual drift
+      this.asleep = true
     }
   }
 
@@ -356,13 +362,27 @@ export class XPBDSolver {
     // 4. collisions (body capsules + ground), with friction
     this.solveCollisions()
 
-    // 5. damping
+    // 5. damping + a stability net: cap velocity and keep positions in a sane box
+    // around the body, so a garment can never diverge/"fly away" (e.g. a long gown
+    // oscillating between the legs). Real cloth at 1 g never needs these limits.
     const damp = Math.max(0, 1 - this.params.damping * dt)
+    const VMAX2 = XPBDSolver.VMAX * XPBDSolver.VMAX
     for (let k = 0; k < count; k++) {
       const i = k * 3
       vel[i] *= damp
       vel[i + 1] *= damp
       vel[i + 2] *= damp
+      const v2 = vel[i] * vel[i] + vel[i + 1] * vel[i + 1] + vel[i + 2] * vel[i + 2]
+      if (v2 > VMAX2) {
+        const s = XPBDSolver.VMAX / Math.sqrt(v2)
+        vel[i] *= s
+        vel[i + 1] *= s
+        vel[i + 2] *= s
+      }
+      if (im[k] === 0) continue
+      pos[i] = pos[i] < -1.5 ? -1.5 : pos[i] > 1.5 ? 1.5 : pos[i]
+      pos[i + 1] = pos[i + 1] < -0.5 ? -0.5 : pos[i + 1] > 2.3 ? 2.3 : pos[i + 1]
+      pos[i + 2] = pos[i + 2] < -1.5 ? -1.5 : pos[i + 2] > 1.5 ? 1.5 : pos[i + 2]
     }
   }
 

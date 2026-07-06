@@ -81,10 +81,12 @@ export class BodyCollider {
    */
   resolve(px: number, py: number, pz: number, skin: number, out: THREE.Vector3): THREE.Vector3 | null {
     if (!this.bvh || !this.normals) return null
+    if (!Number.isFinite(px + py + pz)) return null // never query with a bad point
     this._p.set(px, py, pz)
     const hit = this.bvh.closestPointToPoint(this._p, this._hit)
     if (!hit) return null
     const n = this.faceNormal(hit.faceIndex, this._n)
+    if (n.x === 0 && n.y === 0 && n.z === 0) return null // degenerate normal → skip (capsules cover it)
     const cx = hit.point.x
     const cy = hit.point.y
     const cz = hit.point.z
@@ -111,10 +113,13 @@ export class BodyCollider {
     const a = idx[f]
     const b = idx[f + 1]
     const c = idx[f + 2]
-    let nx = (nrm.getX(a) + nrm.getX(b) + nrm.getX(c)) / 3
-    let ny = (nrm.getY(a) + nrm.getY(b) + nrm.getY(c)) / 3
-    let nz = (nrm.getZ(a) + nrm.getZ(b) + nrm.getZ(c)) / 3
-    const l = Math.hypot(nx, ny, nz) || 1
+    const nx = (nrm.getX(a) + nrm.getX(b) + nrm.getX(c)) / 3
+    const ny = (nrm.getY(a) + nrm.getY(b) + nrm.getY(c)) / 3
+    const nz = (nrm.getZ(a) + nrm.getZ(b) + nrm.getZ(c)) / 3
+    const l = Math.hypot(nx, ny, nz)
+    // A zero-area triangle (MarchingCubes can emit them) gives a NaN/zero normal —
+    // `|| 1` would let the NaN through and blow the cloth up, so guard it hard.
+    if (!(l > 1e-8)) return out.set(0, 0, 0)
     const s = (this.flip ? -1 : 1) / l
     return out.set(nx * s, ny * s, nz * s)
   }
