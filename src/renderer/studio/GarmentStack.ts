@@ -205,10 +205,10 @@ export class GarmentStack {
       l.design = null
     }
     // When the back panel has its own fabric it's a separate material/geometry group,
-    // so give it its own albedo (back colour + the same prints, un-mirrored for the
-    // back face) — otherwise a print placed on the back (u>0.5) wouldn't show.
+    // so give it its own albedo (the back colour + the same prints) — otherwise a
+    // print placed on the back (u>0.5) wouldn't show on the back material.
     if (hasArt(input) && l.data.partFabrics?.back) {
-      const backInput = { color: this.panelFabric(l, 'back').color, prints: l.prints, mirror: false }
+      const backInput = { color: this.panelFabric(l, 'back').color, prints: l.prints }
       if (!l.backDesign) l.backDesign = buildDesignArt(backInput)
       l.backMaterial.map = l.backDesign.texture
       l.backMaterial.color.set(0xffffff)
