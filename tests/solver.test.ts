@@ -133,4 +133,19 @@ describe('XPBDSolver rest / sleep', () => {
     for (let k = 0; k < positions.length; k++) moved = Math.max(moved, Math.abs(positions[k] - snap[k]))
     expect(moved).toBeGreaterThan(1e-4)
   })
+
+  it('force-settles after a few seconds even if it never stops moving', () => {
+    // A single free-falling particle (no ground/collider) keeps speeding up, so it
+    // never velocity-sleeps — the force timeout must still freeze it (static at default).
+    const positions = new Float32Array([0, 2, 0])
+    const solver = new XPBDSolver(1, 1, positions, FABRICS.cotton)
+    solver.groundY = -1e6 // no ground — only the stability box can stop it
+    for (let i = 0; i < 320; i++) solver.step(1 / 60) // past the ~5 s force-sleep
+    expect(positions[1]).toBeLessThan(1) // it fell well below its start (y=2)
+    const snap = positions.slice()
+    for (let i = 0; i < 30; i++) solver.step(1 / 60)
+    let maxDelta = 0
+    for (let k = 0; k < positions.length; k++) maxDelta = Math.max(maxDelta, Math.abs(positions[k] - snap[k]))
+    expect(maxDelta).toBe(0) // force-froze to a dead stop
+  })
 })
