@@ -97,10 +97,12 @@ the capsule skeleton stays the cloth collider, so garments drape correctly.
 | --- | --- | --- |
 | ![Slim female model mannequin](docs/model-female.png) | ![Slim male model mannequin](docs/model-male.png) | ![The default imported GLB avatar wearing a silk dress](docs/body-glb.png) |
 
-### Real 3D drape with mesh-accurate collision
+### Real 3D drape with mesh-accurate + cloth-cloth collision
 Each garment **simulates** with an **XPBD** cloth solver and collides against the **true body surface**
 (a BVH over the mannequin mesh) plus skeleton capsules — so it hugs the real silhouette, sleeves sit on
-the arms, and skirts flare naturally. Cloth normals are recomputed every frame for smooth shading.
+the arms, and skirts flare naturally. Cloth also collides with **itself and other garments** (a global
+spatial-hash pass), so a flared skirt doesn't pass through itself and a **layered outfit pushes off**
+rather than interpenetrating. Cloth normals are recomputed every frame for smooth shading.
 
 ![A satin dress draping on the body with a full flared skirt](docs/bvh-dress.png)
 
@@ -141,10 +143,13 @@ them onto the body.)
 
 ### Layer many garments · save & reopen your project
 Dress the mannequin in a **whole outfit** — add as many garments as you like (a top *and* a skirt *and* a
-jacket…), each with its own fabric, colour and print, all simulating together on one body. The **Object
-Browser** lists every garment: **select** one to edit it, toggle its **visibility**, and **add / duplicate
-/ delete** from the toolbar. Full **cut / copy / paste** (⌘X/C/V), **duplicate** (⌘D) and **undo / redo**
-(⌘Z / ⇧⌘Z). When you're happy, **Save project** — it's kept in your in-app **Projects** library.
+jacket…), each with its own fabric, colour and print, all simulating together on one body, and **colliding
+with each other** so the layers sit apart instead of interpenetrating. The **Object Browser** lists every
+garment: **select** one to edit it, toggle its **visibility**, and **add / duplicate / delete** from the
+toolbar. Full **cut / copy / paste** (⌘X/C/V), **duplicate** (⌘D) and **undo / redo** (⌘Z / ⇧⌘Z). When
+you're happy, **Save project** — it's kept in your in-app **Projects** library.
+
+![A layered outfit — a denim tee over an A-line skirt, each its own garment, sitting apart](docs/outfit.png)
 
 ### Your projects — a real library
 Every design you save shows up on a **Projects** page (with a thumbnail) — reopen any of them in one click,
@@ -269,11 +274,11 @@ mesh-accurate BVH body collision · **per-part physics** (leather drapes stiffer
 fabric** (front vs back on body + legs) · **prints on any panel** · **imported GLB avatar as the default
 body** · **body-pinned garments** — the avatar **walks in place with its clothes on** (GLB idle/walk clips +
 bone-driven collider fit + garments pinned to the shoulders/hips) · **4D per-fabric secondary motion**
-(chiffon floats/flutters, denim near-rigid) · a production-grade, consistent UI.
+(chiffon floats/flutters, denim near-rigid) · **cloth self / inter-collision** (garments push off each
+other + themselves) · a production-grade, consistent UI.
 
-Planned (in phases): cloth **self-collision
-+ thickness** · **layering / full outfits** (garment↔garment collision) · **tailored outerwear** (lapels,
-structured coats) · export polish.
+Planned (in phases): **fabric thickness** (garments are two-sided; give edges a shell) · **tailored
+outerwear** (lapels, structured coats) · more garments · export polish.
 
 ---
 

@@ -5,6 +5,7 @@ import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
 import type { TubeBuild } from '../cloth/Garment'
 import { XPBDSolver } from '../cloth/XPBDSolver'
+import type { SimPieceView } from '../cloth/ClothCollision'
 import type { GarmentParams, GarmentType } from './templates'
 import { buildGarment } from '../garments/factory'
 import { getGarment } from '../garments/registry'
@@ -153,6 +154,19 @@ export class GarmentController {
   /** The garment's pieces for the Object Browser (name + mesh; visibility via mesh.visible). */
   getPieces(): { name: string; mesh: THREE.Mesh }[] {
     return this.pieces.map((p) => ({ name: p.name, mesh: p.mesh }))
+  }
+
+  /** Per-piece particle views for the global cloth-collision pass. */
+  simPieces(): SimPieceView[] {
+    return this.pieces.map((p) => ({
+      positions: p.positions,
+      prev: p.solver.prev,
+      invMass: p.solver.invMass,
+      nx: p.solver.nx,
+      ny: p.solver.ny,
+      wrapX: true,
+      wake: () => p.solver.wake()
+    }))
   }
 
   setGravity(y: number): void {
