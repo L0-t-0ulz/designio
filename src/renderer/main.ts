@@ -871,7 +871,14 @@ if (skipStart) {
     cfg.color = getFabric(fb).color
   }
   const txt = entryParams.get('text')
-  if (txt) cfg.prints.push(newTextPrint(txt)) // lets snapshots exercise the printed-design map
+  if (txt) {
+    const p = newTextPrint(txt) // lets snapshots exercise the printed-design map
+    const px = entryParams.get('textX')
+    const py = entryParams.get('textY')
+    if (px) p.x = +px // 0…1 across the garment (0.25 front centre, 0.75 back centre)
+    if (py) p.y = +py
+    cfg.prints.push(p)
+  }
   if (entryParams.get('prints') === 'demo') {
     cfg.prints.push({ ...newTextPrint('TEAM'), x: 0.25, y: 0.36, scale: 0.5, color: 0xffffff })
     cfg.prints.push({ ...newTextPrint('2026'), x: 0.25, y: 0.52, scale: 0.3, rotation: -8, color: 0xffffff })
