@@ -15,10 +15,9 @@ import { getFabric, fabricToSolverParams, type Fabric } from '../fabric/FabricLi
 import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs } from '../garments/factory'
 import { pocketPlacements } from '../garments/decor'
-import { buildDesignArt, hasArt, type DesignArt } from '../start/design'
+import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type Print } from '../start/design'
 import { gradeParams, type GarmentLayerData } from './document'
 
-const TEXT_COLOR = 0x1a1a22
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
 
 const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [l.material, l.sleeveMaterial, l.legMaterial, l.trimMaterial]
@@ -41,9 +40,8 @@ export interface StackLayer {
   design: DesignArt | null
   /** Non-simulated decoration (patch pockets + trim bands) parented to the layer. */
   decor: THREE.Group
-  /** Uploaded PNG (runtime-only; not serialised into `.dio`). */
-  image: HTMLImageElement | null
-  imageName: string | null
+  /** Placed prints (logos + text) — runtime (images live here). */
+  prints: Print[]
 }
 
 export interface LayerSummary {
@@ -78,14 +76,8 @@ export class GarmentStack {
     return this.layers.length
   }
 
-  private artInput(l: StackLayer): {
-    color: number
-    image: HTMLImageElement | null
-    imageScale: number
-    text: string
-    textColor: number
-  } {
-    return { color: l.data.color, image: l.image, imageScale: l.data.imageScale, text: l.data.text, textColor: TEXT_COLOR }
+  private artInput(l: StackLayer): { color: number; prints: Print[] } {
+    return { color: l.data.color, prints: l.prints }
   }
 
   /** The fabric for a garment part (its override, or the body default). */
@@ -236,8 +228,7 @@ export class GarmentStack {
       controller,
       design: null,
       decor,
-      image: null,
-      imageName: null
+      prints: (data.prints ?? []).map(printFromSpec)
     }
     this.layers.push(layer)
     if (makeActive) this.activeIndex = this.layers.length - 1

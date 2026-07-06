@@ -31,7 +31,7 @@ import { showStartPage } from './start/StartPage'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord } from './studio/projectStore'
-import { defaultConfig, type DesignConfig } from './start/design'
+import { defaultConfig, newImagePrint, newTextPrint, type DesignConfig } from './start/design'
 import { GarmentStack, type PartId } from './studio/GarmentStack'
 import {
   docFromConfig,
@@ -102,9 +102,7 @@ function initStudio(
   stack.setGravity(gravity)
   stack.setWind(windX, windZ)
   stack.addLayer({ ...l0 })
-  const img0 = opened ? null : config.image // carry a start-page upload onto the first layer
-  stack.active.image = img0
-  stack.active.imageName = img0 ? 'graphic' : null
+  if (!opened) stack.active.prints = config.prints.map((p) => ({ ...p })) // carry start-page prints (with images)
   stack.applyLook(stack.active)
 
   // ---- undo / redo (coarse: whole-document snapshots) ----
@@ -690,21 +688,33 @@ function initStudio(
       stack.applyLook(stack.active)
       syncBrowsers()
     },
-    graphic: {
-      imageName: () => stack.active.imageName,
-      scale: () => stack.active.data.imageScale,
-      text: () => stack.active.data.text,
-      setImage: (img, name) => {
-        stack.active.image = img
-        stack.active.imageName = name
+    prints: {
+      list: () => stack.active.prints.map((p) => ({ id: p.id, kind: p.kind, label: p.kind === 'image' ? (p.imageName ?? 'logo') : p.text || 'text' })),
+      get: (id) => {
+        const p = stack.active.prints.find((q) => q.id === id)
+        return p ? { kind: p.kind, x: p.x, y: p.y, scale: p.scale, rotation: p.rotation, text: p.text, color: p.color } : null
+      },
+      addImage: (image, name) => {
+        const p = newImagePrint(image, name)
+        stack.active.prints.push(p)
         stack.refreshDesign(stack.active)
+        return p.id
       },
-      setScale: (v) => {
-        stack.active.data.imageScale = v
-        stack.active.design?.redraw()
+      addText: () => {
+        const p = newTextPrint('TEXT')
+        stack.active.prints.push(p)
+        stack.refreshDesign(stack.active)
+        return p.id
       },
-      setText: (t) => {
-        stack.active.data.text = t
+      update: (id, patch) => {
+        const p = stack.active.prints.find((q) => q.id === id)
+        if (p) {
+          Object.assign(p, patch)
+          stack.refreshDesign(stack.active)
+        }
+      },
+      remove: (id) => {
+        stack.active.prints = stack.active.prints.filter((q) => q.id !== id)
         stack.refreshDesign(stack.active)
       }
     },
@@ -859,7 +869,11 @@ if (skipStart) {
     cfg.color = getFabric(fb).color
   }
   const txt = entryParams.get('text')
-  if (txt) cfg.text = txt // lets snapshots exercise the printed-design map
+  if (txt) cfg.prints.push(newTextPrint(txt)) // lets snapshots exercise the printed-design map
+  if (entryParams.get('prints') === 'demo') {
+    cfg.prints.push({ ...newTextPrint('TEAM'), x: 0.25, y: 0.36, scale: 0.5, color: 0xffffff })
+    cfg.prints.push({ ...newTextPrint('2026'), x: 0.25, y: 0.52, scale: 0.3, rotation: -8, color: 0xffffff })
+  }
   if (entryParams.get('collar')) cfg.collar = true
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
