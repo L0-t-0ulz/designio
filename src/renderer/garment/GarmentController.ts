@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import type { Capsule } from '../avatar/colliders'
-import type { Measurements } from '../avatar/Mannequin'
+import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
 import type { TubeBuild } from '../cloth/Garment'
@@ -15,6 +15,9 @@ interface Piece {
   mesh: THREE.Mesh
   solver: XPBDSolver
   name: string
+  /** Average height of the pinned top ring — picks the torso vs hip body anchor. */
+  pinnedY: number
+  anchorKind: 'torso' | 'hip'
   /** Reset this piece's positions to its undraped shape. */
   refill: () => void
 }
@@ -35,7 +38,8 @@ export class GarmentController {
     private readonly colliders: Capsule[],
     private readonly measurements: Measurements,
     private readonly params: (pieceName: string) => FabricParams,
-    private readonly bodyCollider: BodyCollider | null = null
+    private readonly bodyCollider: BodyCollider | null = null,
+    private readonly anchors: () => BodyAnchors | null = () => null
   ) {}
 
   /** (Re)build the garment from its data definition + fit params via the factory. */
@@ -45,6 +49,7 @@ export class GarmentController {
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
       this.addPiece(p.build, p.refill, p.name)
     }
+    this.bindPinsToBody() // hang each piece from the body so it follows animation
   }
 
   private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string): void {
@@ -60,7 +65,22 @@ export class GarmentController {
     solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)
     solver.wind.set(this.windX, 0, this.windZ)
-    this.pieces.push({ geometry, positions, mesh, solver, name, refill: () => fill(positions) })
+    let pinnedY = 0
+    for (const idx of pinnedTop) pinnedY += positions[idx * 3 + 1]
+    pinnedY = pinnedTop.length ? pinnedY / pinnedTop.length : 0
+    this.pieces.push({ geometry, positions, mesh, solver, name, pinnedY, anchorKind: 'torso', refill: () => fill(positions) })
+  }
+
+  /** Bind each piece's pinned ring to the nearest body anchor (torso for tops, hip for bottoms). */
+  private bindPinsToBody(): void {
+    const a = this.anchors()
+    if (!a) return
+    const torsoY = a.torso.elements[13]
+    const hipY = a.hip.elements[13]
+    for (const p of this.pieces) {
+      p.anchorKind = Math.abs(p.pinnedY - torsoY) <= Math.abs(p.pinnedY - hipY) ? 'torso' : 'hip'
+      p.solver.bindPins(a[p.anchorKind])
+    }
   }
 
   /** The garment's pieces for the Object Browser (name + mesh; visibility via mesh.visible). */
@@ -86,7 +106,11 @@ export class GarmentController {
   }
 
   step(dt: number): void {
-    for (const p of this.pieces) p.solver.step(dt)
+    const a = this.anchors()
+    for (const p of this.pieces) {
+      p.solver.setAnchor(a ? a[p.anchorKind] : null)
+      p.solver.step(dt)
+    }
   }
 
   getMeshes(): THREE.Object3D[] {
@@ -108,6 +132,7 @@ export class GarmentController {
       p.geometry.computeVertexNormals()
       p.geometry.computeBoundingSphere()
     }
+    this.bindPinsToBody() // re-hang from the body at the fresh drape
   }
 
   setFabricPhysics(): void {
