@@ -305,7 +305,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
 
   // ---- body / avatar ----
   const bodySec = section('Body')
-  let realisticBody = false
+  let realisticBody = true // the GLB avatar is the default body
   const figRow = el('div', 'dio-actions')
   const figBtns: Record<BodyType, HTMLButtonElement> = {
     female: button('Female', () => setFigure('female'), opts.bodySize.bodyType === 'female'),

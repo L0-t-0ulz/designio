@@ -192,12 +192,13 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     else bodyCollider.invalidate()
   }
 
-  // Default = the polished procedural matte body (animatable). The GLB is an
-  // optional drop-in (toggled on), so replacing assets/mannequin.glb swaps it in.
-  // `wantGlb` remembers the toggle intent even if the async load hasn't finished
-  // yet (so toggling — or a ?body=glb deep-link — is honoured once it loads).
+  // Default = the bundled GLB body (a real avatar; drop a photoreal skin into
+  // assets/mannequin.glb to swap it). It loads async, so the procedural matte body
+  // shows until it arrives, then swaps in; a load failure keeps the procedural body
+  // (graceful fallback). `?body=mesh` or the Avatar toggle forces the procedural one.
+  // `wantGlb` remembers the intent even if the async load hasn't finished yet.
   let useGlb = false
-  let wantGlb = false
+  let wantGlb = true
   let glb: GlbBody | null = null
   loadGlbBody(
     material,
