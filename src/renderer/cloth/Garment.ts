@@ -95,20 +95,28 @@ function finishTube(positions: Float32Array, nx: number, ny: number): TubeBuild 
     }
   }
   const indices: number[] = []
-  for (let iy = 0; iy < ny - 1; iy++) {
-    for (let ix = 0; ix < nx; ix++) {
-      const ixr = (ix + 1) % nx // wrap the seam closed
-      const tl = iy * nx + ix
-      const tr = iy * nx + ixr
-      const bl = (iy + 1) * nx + ix
-      const br = (iy + 1) * nx + ixr
-      indices.push(tl, bl, tr, tr, bl, br)
-    }
+  const quad = (ix: number, iy: number): void => {
+    const ixr = (ix + 1) % nx // wrap the seam closed
+    const tl = iy * nx + ix
+    const tr = iy * nx + ixr
+    const bl = (iy + 1) * nx + ix
+    const br = (iy + 1) * nx + ixr
+    indices.push(tl, bl, tr, tr, bl, br)
   }
+  // Emit front columns [0,half) then back columns [half,nx) as two contiguous
+  // blocks → material groups 0 (front, +z) and 1 (back, −z), split at the side
+  // seams. Lets a piece render front/back with its own fabric (per-panel fabric).
+  const half = Math.floor(nx / 2)
+  for (let iy = 0; iy < ny - 1; iy++) for (let ix = 0; ix < half; ix++) quad(ix, iy)
+  const frontCount = indices.length
+  for (let iy = 0; iy < ny - 1; iy++) for (let ix = half; ix < nx; ix++) quad(ix, iy)
+
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
   geometry.setIndex(indices)
+  geometry.addGroup(0, frontCount, 0) // front panel
+  geometry.addGroup(frontCount, indices.length - frontCount, 1) // back panel
   geometry.computeVertexNormals()
   geometry.computeBoundingSphere()
 

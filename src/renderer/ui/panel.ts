@@ -216,9 +216,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   function rebuildPartRow(): void {
     partRow.replaceChildren()
     const def = getGarment(garment.type)
-    const parts: [string, PartId][] = [['Body', 'body']]
+    const hasLegs = def.pieces.some((p) => p.kind === 'legTubes')
+    const parts: [string, PartId][] = [
+      ['Body', 'body'],
+      ['Back', 'back']
+    ]
     if (def.supports.sleeve) parts.push(['Sleeves', 'sleeves'])
-    if (def.pieces.some((p) => p.kind === 'legTubes')) parts.push(['Legs', 'legs'])
+    if (hasLegs) parts.push(['Legs', 'legs'], ['Legs back', 'legBack'])
     parts.push(['Trim', 'trim'])
     if (!parts.some(([, p]) => p === currentPart)) currentPart = 'body'
     for (const [label, p] of parts) {

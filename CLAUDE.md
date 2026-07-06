@@ -65,7 +65,10 @@ Renderer modules:
   `GarmentStack` (the live layers: each its own materials · fabric · print · `GarmentController`; many
   garments simulate on one mannequin). **Per-part fabric**: a material per part (body / sleeves / legs)
   assigned to each piece mesh by name, + a **trim** material with contrast decor bands (hem/neckline) and
-  trim-coloured pockets — `stack.setPart(part, {fabricId?, color?})`. Adding a garment is `stack.addLayer`.
+  trim-coloured pockets — `stack.setPart(part, {fabricId?, color?})`. **Per-panel fabric**: each tube
+  splits into **front (+z) / back (−z)** geometry groups (`finishTube`), so the body/leg mesh takes a
+  `[front, back]` material array when its `back`/`legBack` panel has its own fabric (visual only —
+  `panelFabricId` falls back back→body, legBack→legs→body). Adding a garment is `stack.addLayer`.
   `projectStore` (the **in-app project library** — localStorage list/save/load/delete/rename of saved
   `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested).
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
@@ -113,6 +116,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (procedural vs realistic-GLB avatar) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem=1` (construction detail) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
+`?backFabric=<id>` · `?legBackFabric=<id>` (per-panel fabric — the body/leg **back** panel) ·
 `?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable) · `?page=start` (deep-link the
 builder) · `?page=projects[&demo]` (the Projects gallery; `demo` seeds a few looks). Entry is the homepage
 launcher → start page / Projects → studio. Regenerate docs with `npm run capture`.
