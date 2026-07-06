@@ -43,6 +43,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Sleeves hug the arm** — a long sleeve pins at the shoulder + elbow so it bends with the arm during the walk — PR #63
 - [x] **4D per-fabric secondary motion** — aerodynamic drag: chiffon billows/floats/lags, denim near-rigid — PR #65
 - [x] **Cloth self / inter-collision** — garments push off each other + don't pass through themselves (spatial-hash particle repulsion) — PR #69
+- [x] **More garments** — blouse · hoodie · cargo pants · blazer · coat (+ Outerwear category), all data-driven — PR #70
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -66,7 +67,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Features**
 - [ ] **Drop in a real photoreal skin** — the GLB slot is now the default + renders own materials; add a CC0 photoreal human `.glb` at `assets/mannequin.glb` (current is a clean rigged mannequin)
-- [ ] **More garments** — blazer · hoodie · cargo pants · coat · blouse (data-driven)
+- [ ] **More garments** — cargo/tapered variants, a real **hood** on the hoodie, structured jackets (blazer · hoodie · cargo · coat · blouse shipped — PR #70)
 - [ ] **Topstitching + seam styles** on the 3D + pattern
 - [ ] **A real Render tab** (high-quality still)
 - [ ] **Prints on sleeves & legs** — prints are body-only today; extend the design map to the sleeve/leg pieces (and their back panels)

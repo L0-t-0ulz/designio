@@ -64,22 +64,23 @@ a right **Object Browser** (scene pieces + show/hide) above a context-sensitive 
 persist**. Built vanilla (CSS + split.js) — with sensible defaults so it stays approachable, not
 overwhelming.
 
-### A real garment catalog — 16 garments, all data-driven
+### A real garment catalog — 21 garments, all data-driven
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
 pieces), so breadth comes from data, not bespoke code. Grouped by category:
 
-- **Tops** — t-shirt, tank, crop top, long-sleeve, tube top, tunic
-- **Bottoms** — A-line / pencil / maxi skirt, trousers, shorts, wide-leg
+- **Tops** — t-shirt, tank, crop top, long-sleeve, tube top, tunic, blouse, hoodie
+- **Bottoms** — A-line / pencil / maxi skirt, trousers, shorts, wide-leg, cargo pants
 - **Dresses** — dress, sheath, slip, gown
 - **One-pieces** — jumpsuit
+- **Outerwear** — blazer, coat
 
 The construction panel is **schema-driven**: each garment shows only the controls it supports —
 **neckline** (scoop / crew / V / strapless), **sleeves** (short / long), **length**, **looseness**, and
 **flare**. Tops & dresses get shoulder coverage + cinched waists; the jumpsuit is a torso + two legs.
 
-| Gown (strapless satin) | Jumpsuit (denim, one-piece) |
-| --- | --- |
-| ![A strapless satin gown draped on the mannequin](docs/catalog-gown.png) | ![A denim jumpsuit — torso plus two legs](docs/catalog-jumpsuit.png) |
+| Gown (strapless satin) | Jumpsuit (denim, one-piece) | Coat (outerwear, to the knee) |
+| --- | --- | --- |
+| ![A strapless satin gown draped on the mannequin](docs/catalog-gown.png) | ![A denim jumpsuit — torso plus two legs](docs/catalog-jumpsuit.png) | ![A long coat with a collar, over the body](docs/catalog-coat.png) |
 
 ### Two slim model mannequins — and full body shaping
 Design on a clean, matte **studio mannequin** sculpted like a real dress form — **defined shoulders,
@@ -268,7 +269,7 @@ is a data change, not new code.**
 
 ## Roadmap
 
-Shipped: data-driven garment schema + factory · 24-fabric library by family · 16-garment catalog with a
+Shipped: data-driven garment schema + factory · 24-fabric library by family · 21-garment catalog (incl. outerwear) with a
 category picker + schema-driven construction UI · female/male slim models with bust/waist/hips shaping ·
 mesh-accurate BVH body collision · **per-part physics** (leather drapes stiffer than jersey) · **per-panel
 fabric** (front vs back on body + legs) · **prints on any panel** · **imported GLB avatar as the default
