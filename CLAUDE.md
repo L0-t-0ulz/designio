@@ -62,7 +62,8 @@ Renderer modules:
   (`pocketPlacements` — pure patch-pocket positions; the stack renders them as non-sim patch meshes).
   Adding a garment or a supported detail is a data change, not new code.
 - `garment/` — `GarmentController` (one garment's multi-piece sim, consumes the factory; **binds each
-  piece's pinned ring to the torso or hip body anchor** by pin height, so it follows the animated body); `templates`
+  piece to body anchors** — a top to the torso, a skirt/trouser to the hips, a **sleeve to its arm (+ elbow
+  to the forearm)** — via the solver's pin groups, so each follows that part of the animated body); `templates`
   (shared `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh collision.
 - `studio/` — the **multi-garment layer stack**: `document` (`ProjectDoc` = body + scene + serialisable
   garment `layers[]`; `serializeDoc`/`parseDoc` — the `.dio` project + undo/redo snapshots + clipboard;

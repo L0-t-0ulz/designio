@@ -75,6 +75,20 @@ describe('XPBDSolver body-pin', () => {
     }
   })
 
+  it('binds separate pin groups to their own anchors (sleeve: shoulder + elbow)', () => {
+    const { positions, solver } = makeGrid()
+    solver.gravity.set(0, 0, 0)
+    solver.reset()
+    solver.bindPinGroups([
+      { idx: [0], anchor: new THREE.Matrix4() },
+      { idx: [2], anchor: new THREE.Matrix4() }
+    ])
+    solver.setPinAnchors([new THREE.Matrix4().makeTranslation(0.3, 0, 0), new THREE.Matrix4().makeTranslation(0, 0.4, 0)])
+    solver.step(1 / 60)
+    expect(positions[0]).toBeCloseTo(0.3, 5) // group A → +0.3 x
+    expect(positions[2 * 3 + 1]).toBeCloseTo(1.4, 5) // group B → +0.4 y
+  })
+
   it('with no anchor the pins stay fixed in space (unchanged behaviour)', () => {
     const { positions, solver } = makeGrid()
     solver.reset()

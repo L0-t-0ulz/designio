@@ -50,12 +50,12 @@ export class XPBDSolver {
 
   private readonly constraints: Constraint[] = []
   private readonly lambda: Float32Array
-  private readonly pinned: Set<number>
-  /** Pinned indices in order + their rest world positions, for pinning to a moving body. */
-  private readonly pinnedList: number[]
-  private pinRest: Float32Array | null = null
-  private pinBindInv: THREE.Matrix4 | null = null
-  private curAnchor: THREE.Matrix4 | null = null
+  private pinned: Set<number>
+  /** Pinned particles grouped by the body anchor they follow (a sleeve pins its
+   *  shoulder ring to the arm + its cuff ring to the hand; most pieces have one group). */
+  private pinnedList: number[]
+  private pinGroups: { idx: number[]; rest: Float32Array; bindInv: THREE.Matrix4 }[] = []
+  private curAnchors: (THREE.Matrix4 | null)[] = []
   private readonly _delta = new THREE.Matrix4()
   private readonly _pin = new THREE.Vector3()
   /** Removed particles (e.g. a cut-out): no mass, no constraints. */
@@ -133,49 +133,76 @@ export class XPBDSolver {
     this.vel.fill(0)
     this.time = 0
     this.syncPrev()
-    this.pinBindInv = null // drop the body binding until re-bound (bindPins)
+    this.pinGroups = [] // drop the body binding until re-bound (bindPins/bindPinGroups)
+    this.curAnchors = []
     this.wake()
   }
 
   /**
-   * Bind the pinned particles to a body **anchor**: record their current world
-   * positions relative to `anchor`. Then each `step` re-places them at
-   * `curAnchor · offset`, so the garment hangs from (and follows) the moving body.
-   * Call right after `reset()`/respawn, with the body at its draped pose.
+   * Bind the pinned ring to a body **anchor**: record its world positions relative to
+   * `anchor`. Each `step` re-places them at `curAnchor · offset`, so the garment hangs
+   * from (and follows) the moving body. Call right after `reset()`/respawn.
    */
   bindPins(anchor: THREE.Matrix4): void {
-    if (this.pinnedList.length === 0) return
-    if (!this.pinRest || this.pinRest.length !== this.pinnedList.length * 3) {
-      this.pinRest = new Float32Array(this.pinnedList.length * 3)
-    }
-    for (let j = 0; j < this.pinnedList.length; j++) {
-      const i = this.pinnedList[j] * 3
-      this.pinRest[j * 3] = this.positions[i]
-      this.pinRest[j * 3 + 1] = this.positions[i + 1]
-      this.pinRest[j * 3 + 2] = this.positions[i + 2]
-    }
-    this.pinBindInv = anchor.clone().invert()
-    this.curAnchor = anchor
+    this.bindPinGroups([{ idx: this.pinnedList.slice(), anchor }])
   }
 
-  /** The body anchor to follow this frame (null → pins stay fixed in space). */
+  /**
+   * Bind several pin **groups**, each to its own anchor (e.g. a sleeve: shoulder ring →
+   * arm, cuff ring → hand). Any listed index becomes pinned (kinematic).
+   */
+  bindPinGroups(groups: { idx: number[]; anchor: THREE.Matrix4 }[]): void {
+    let added = false
+    for (const g of groups)
+      for (const i of g.idx)
+        if (!this.pinned.has(i)) {
+          this.pinned.add(i)
+          added = true
+        }
+    if (added) {
+      this.pinnedList = [...this.pinned]
+      this.applyMass()
+    }
+    this.pinGroups = groups.map((g) => {
+      const rest = new Float32Array(g.idx.length * 3)
+      for (let j = 0; j < g.idx.length; j++) {
+        const i = g.idx[j] * 3
+        rest[j * 3] = this.positions[i]
+        rest[j * 3 + 1] = this.positions[i + 1]
+        rest[j * 3 + 2] = this.positions[i + 2]
+      }
+      return { idx: g.idx, rest, bindInv: g.anchor.clone().invert() }
+    })
+    this.curAnchors = groups.map((g) => g.anchor as THREE.Matrix4 | null)
+  }
+
+  /** The anchor each pin group follows this frame (null → that group stays fixed). */
+  setPinAnchors(anchors: (THREE.Matrix4 | null)[]): void {
+    this.curAnchors = anchors
+  }
+  /** Single-group convenience — the whole pinned ring follows one anchor. */
   setAnchor(anchor: THREE.Matrix4 | null): void {
-    this.curAnchor = anchor
+    if (this.curAnchors.length <= 1) this.curAnchors = [anchor]
+    else this.curAnchors[0] = anchor
   }
 
-  /** Re-place pinned particles at the current anchor; returns true if any moved. */
+  /** Re-place each pinned group at its current anchor; returns true if any moved. */
   private applyPins(): boolean {
-    if (!this.pinBindInv || !this.curAnchor || !this.pinRest) return false
-    this._delta.multiplyMatrices(this.curAnchor, this.pinBindInv)
     let moved = false
-    for (let j = 0; j < this.pinnedList.length; j++) {
-      this._pin.set(this.pinRest[j * 3], this.pinRest[j * 3 + 1], this.pinRest[j * 3 + 2]).applyMatrix4(this._delta)
-      const i = this.pinnedList[j] * 3
-      if (this._pin.x !== this.positions[i] || this._pin.y !== this.positions[i + 1] || this._pin.z !== this.positions[i + 2]) {
-        moved = true
-        this.positions[i] = this.prev[i] = this._pin.x
-        this.positions[i + 1] = this.prev[i + 1] = this._pin.y
-        this.positions[i + 2] = this.prev[i + 2] = this._pin.z
+    for (let gi = 0; gi < this.pinGroups.length; gi++) {
+      const cur = this.curAnchors[gi]
+      if (!cur) continue
+      const g = this.pinGroups[gi]
+      this._delta.multiplyMatrices(cur, g.bindInv)
+      for (let j = 0; j < g.idx.length; j++) {
+        this._pin.set(g.rest[j * 3], g.rest[j * 3 + 1], g.rest[j * 3 + 2]).applyMatrix4(this._delta)
+        const i = g.idx[j] * 3
+        if (this._pin.x !== this.positions[i] || this._pin.y !== this.positions[i + 1] || this._pin.z !== this.positions[i + 2]) {
+          moved = true
+          this.positions[i] = this.prev[i] = this._pin.x
+          this.positions[i + 1] = this.prev[i + 1] = this._pin.y
+          this.positions[i + 2] = this.prev[i + 2] = this._pin.z
+        }
       }
     }
     return moved
