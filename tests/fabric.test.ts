@@ -48,6 +48,23 @@ describe('fabricToSolverParams', () => {
     const crisp = fabricToSolverParams({ ...base, bendiness: 0 })
     expect(soft.bendCompliance).toBeGreaterThan(crisp.bendCompliance)
   })
+
+  it('aerodynamic drag rises for light, fluid, sheer fabrics', () => {
+    const light = fabricToSolverParams({ ...base, gsm: 40 })
+    const heavy = fabricToSolverParams({ ...base, gsm: 400 })
+    expect(light.aero).toBeGreaterThan(heavy.aero)
+
+    const fluid = fabricToSolverParams({ ...base, bendiness: 1 })
+    const crisp = fabricToSolverParams({ ...base, bendiness: 0 })
+    expect(fluid.aero).toBeGreaterThan(crisp.aero)
+
+    const sheer = fabricToSolverParams({ ...base, transmission: 0.6 })
+    const opaque = fabricToSolverParams({ ...base, transmission: 0 })
+    expect(sheer.aero).toBeGreaterThan(opaque.aero)
+
+    // real fabrics: chiffon catches far more air than denim
+    expect(fabricToSolverParams(getFabric('chiffon')).aero).toBeGreaterThan(fabricToSolverParams(getFabric('denim')).aero)
+  })
 })
 
 describe('FABRIC_LIBRARY', () => {
