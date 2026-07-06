@@ -64,6 +64,9 @@ export function fabricToSolverParams(fabric: Fabric): FabricParams {
     // stiffer (less bendy) fabric settles with more damping
     damping: 0.6 + (1 - fabric.bendiness) * 0.8,
     friction: fabric.friction,
+    // aerodynamic drag: a light, sheer, fluid sheet catches the air (billows / floats /
+    // lags); a heavy, crisp one ignores it (near-rigid follow of the moving body).
+    aero: 1 + 12 * (1 - Math.min(1, fabric.gsm / 340)) * (0.4 + 0.6 * fabric.bendiness) + 4 * fabric.transmission,
     color: fabric.color
   }
 }
