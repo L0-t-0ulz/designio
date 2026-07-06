@@ -10,6 +10,7 @@ import type { Capsule } from '../avatar/colliders'
 import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
 import { GarmentController } from '../garment/GarmentController'
+import { ClothCollision } from '../cloth/ClothCollision'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
@@ -366,8 +367,12 @@ export class GarmentStack {
     }
   }
 
+  private readonly collision = new ClothCollision()
   step(dt: number): void {
     for (const l of this.layers) if (l.data.visible) l.controller.step(dt)
+    // Global cloth self / inter collision over every visible garment (layered outfits
+    // push off each other; a garment doesn't pass through itself).
+    this.collision.resolve(this.layers.flatMap((l) => (l.data.visible ? l.controller.simPieces() : [])))
   }
   updateMeshes(): void {
     for (const l of this.layers) if (l.data.visible) l.controller.updateMeshes()
