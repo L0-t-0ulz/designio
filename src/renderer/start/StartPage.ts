@@ -420,7 +420,7 @@ export function showStartPage(
 
   // construction-detail chips (collar / cuff / pleats / darts), shown per garment
   const detailWrap = el('div', 'dio-start-looks')
-  const detailChip = (label: string, get: () => boolean, set: (v: boolean) => void, key: 'collar' | 'cuff' | 'pleats' | 'dart'): void => {
+  const detailChip = (label: string, get: () => boolean, set: (v: boolean) => void, key: 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem'): void => {
     const chip = el('button', 'dio-start-look', label)
     chip.setAttribute('type', 'button')
     const sync = (): void => {
@@ -441,6 +441,8 @@ export function showStartPage(
   detailChip('Cuff', () => !!config.cuff, (v) => (config.cuff = v), 'cuff')
   detailChip('Pleats', () => !!config.pleats, (v) => (config.pleats = v), 'pleats')
   detailChip('Darts', () => !!config.dart, (v) => (config.dart = v), 'dart')
+  detailChip('Pocket', () => !!config.pocket, (v) => (config.pocket = v), 'pocket')
+  detailChip('Rolled hem', () => !!config.hem, (v) => (config.hem = v), 'hem')
 
   // Quick looks — one-tap presets.
   const looks = el('div', 'dio-start-looks')

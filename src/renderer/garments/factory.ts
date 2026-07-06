@@ -32,7 +32,7 @@ function piece(
 /** A torso/dress/skirt tube from a `bodyTube` piece + the live measurements. */
 function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): TubeSpec {
   const topY = pc.topAnchor === 'shoulder' ? m.shoulderY : m.waistY
-  const hemDrop = pc.hemDropHi + (pc.hemDropLo - pc.hemDropHi) * p.length
+  const hemDrop = pc.hemDropHi + (pc.hemDropLo - pc.hemDropHi) * p.length - (p.hem ? 0.03 : 0) // rolled hem = shorter
   const hemY = Math.max(0.14, topY - hemDrop)
   const rTop = (pc.topR === 'chest' ? m.chestR : m.waistR) + p.ease
   const hipBase = pc.botR === 'hip90' ? m.hipR * 0.9 : m.hipR
@@ -54,7 +54,7 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
 
 /** The two trouser legs (hip → knee/ankle by length). */
 function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
-  const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY)
+  const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY) + (p.hem ? 0.03 : 0) // rolled hem = shorter leg
   const rTop = m.thighR + p.ease
   const rBot = m.thighR * 0.6 + p.ease * 0.6 + p.flare * 0.4 + (p.pleats ? 0.05 : 0)
   return [

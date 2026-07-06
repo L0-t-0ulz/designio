@@ -21,6 +21,8 @@ export interface DesignConfig {
   cuff?: boolean
   pleats?: boolean
   dart?: boolean
+  pocket?: boolean
+  hem?: boolean
   /** Mannequin figure — female or male (slim model proportions). */
   bodyType: BodyType
   /** Mannequin size — height scales Y, build scales overall girth; bust/waist/hips shape it. */

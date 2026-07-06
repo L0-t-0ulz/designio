@@ -88,7 +88,9 @@ function initStudio(
     collar: l0.collar,
     cuff: l0.cuff,
     pleats: l0.pleats,
-    dart: l0.dart
+    dart: l0.dart,
+    pocket: l0.pocket,
+    hem: l0.hem
   }
   const current: Fabric = { ...getFabric(l0.fabricId), color: l0.color }
 
@@ -174,6 +176,8 @@ function initStudio(
     garment.cuff = l.data.cuff
     garment.pleats = l.data.pleats
     garment.dart = l.data.dart
+    garment.pocket = l.data.pocket
+    garment.hem = l.data.hem
     Object.assign(current, l.fabric)
     api.refresh()
   }
@@ -352,6 +356,8 @@ function initStudio(
     l.data.cuff = garment.cuff
     l.data.pleats = garment.pleats
     l.data.dart = garment.dart
+    l.data.pocket = garment.pocket
+    l.data.hem = garment.hem
     stack.rebuild(l)
     centerTabs.refresh()
     api.refreshMetrics()
@@ -819,6 +825,8 @@ if (skipStart) {
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
   if (entryParams.get('dart')) cfg.dart = true
+  if (entryParams.get('pocket')) cfg.pocket = true
+  if (entryParams.get('hem')) cfg.hem = true
   initStudio(cfg)
 } else if (entryParams.get('page') === 'start') {
   showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome) // deep-link to the builder
