@@ -38,6 +38,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Per-part physics** — leather drapes stiffer than jersey (per-piece solver params) — PR #53
 - [x] **Per-panel fabric** — front vs back fabric on the body + legs (colour-blocking) — PR #55
 - [x] **Back-panel prints** — logos/text placed on the back render on the back panel — PR #56
+- [x] **GLB avatar as default** — imported GLB body is the default (own materials when textured · idle stance · fallback to procedural) — PR #57
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -60,7 +61,8 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 ## 📋 Backlog / ideas
 
 **Features**
-- [ ] **Photoreal GLB avatar** as default (drop-in slot is ready — needs a CC0 `.glb`)
+- [ ] **Drop in a real photoreal skin** — the GLB slot is now the default + renders own materials; add a CC0 photoreal human `.glb` at `assets/mannequin.glb` (current is a clean rigged mannequin)
+- [ ] **GLB animation + collider fit** — drive the GLB's own idle/walk/turn clips and fit the cloth colliders to the GLB mesh (today GLB is static + cloth uses the capsule skeleton)
 - [ ] **More garments** — blazer · hoodie · cargo pants · coat · blouse (data-driven)
 - [ ] **Cloth self / inter-collision** — layered garments push off each other
 - [ ] **Topstitching + seam styles** on the 3D + pattern
