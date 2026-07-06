@@ -164,6 +164,15 @@ the details it supports.
 
 ![A collar + cuffs + darted long-sleeve top](docs/detail.png)
 
+### Design each part — different fabrics, contrast trim
+Real garments aren't one material. Pick a **part** — **Body · Sleeves · Legs** — and give it its own
+**fabric and colour** (leather sleeves on a polyester body, denim body with a satin yoke…), add a
+**contrast trim** on the collar / cuffs / pockets / hem, and set the **seam allowance** + **notches** for
+production. Every part's fabric, the trim and the seam allowance flow into the **manufacturing pack** so a
+maker knows exactly what to cut in what.
+
+![Leather sleeves on a denim body with a contrast trim](docs/parts.png)
+
 ### Size it · see every measurement · pack it for the factory
 Pick a **size** (XS – XXL) and the garment **grades** to fit; the **Measurements** panel shows the real
 production spec **live** — chest, waist, hip, length, sleeve, inseam, hem sweep, plus estimated **fabric
