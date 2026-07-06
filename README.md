@@ -192,12 +192,17 @@ construction as the 3D garment and the flat pattern, so it always agrees. When y
 manufacturing** — one printable pack (HTML + JSON) with, per garment, a **spec sheet**, a **fabric BOM**
 (fabric · weight · yardage) and the **embedded flat pattern** — everything a maker needs to cut and sew it.
 
-### Animate it (4D) + export to get it made
+### Animate it (4D) — the avatar walks in its clothes
 At default settings the garment **hangs perfectly still** (the solver sleeps when there's no wind and the
-body isn't moving — no drift or jitter). Animate the mannequin — **idle / walk / turntable** — and watch
-the garment move with the body (a swinging skirt, a flowing dress); tune **gravity / wind / exposure**.
-Then **export**: **3D** (glTF / OBJ), **2D pattern** (SVG / DXF for a cutter), a **measurement tech-pack**
-(HTML + JSON), and a full **manufacturing pack** (spec sheet + fabric BOM + embedded patterns).
+body isn't moving — no drift or jitter). Set the mannequin to **idle / walk** and the imported avatar
+**moves on the spot** — and the clothes **stay on and move with it**. Garments pin to the body's
+**shoulders / hips** (not to fixed space), so they follow the stride — a dress swishes, a skirt sways — and
+the cloth colliders track the rig's bones so the fabric drapes over the moving arms and legs. Add a
+**turntable**, and tune **gravity / wind / exposure**. Then **export**: **3D** (glTF / OBJ), **2D pattern**
+(SVG / DXF for a cutter), a **measurement tech-pack** (HTML + JSON), and a full **manufacturing pack**
+(spec sheet + fabric BOM + embedded patterns).
+
+![The avatar mid-stride, its dress moving with the walk](docs/walk.png)
 
 ---
 
@@ -260,12 +265,12 @@ Shipped: data-driven garment schema + factory · 24-fabric library by family · 
 category picker + schema-driven construction UI · female/male slim models with bust/waist/hips shaping ·
 mesh-accurate BVH body collision · **per-part physics** (leather drapes stiffer than jersey) · **per-panel
 fabric** (front vs back on body + legs) · **prints on any panel** · **imported GLB avatar as the default
-body** · a production-grade, consistent UI.
+body** · **body-pinned garments** — the avatar **walks in place with its clothes on** (GLB idle/walk clips +
+bone-driven collider fit + garments pinned to the shoulders/hips) · a production-grade, consistent UI.
 
-Planned (in phases): **body-pinned garments** so the avatar can **walk / idle** with its clothes staying on
-(the GLB rig + bone-driven collider fit are in place; garments still pin to space today) · **4D** per-fabric
-secondary motion (lag/flutter vs near-rigid) · cloth **self-collision + thickness** · **layering / full
-outfits** (garment↔garment collision) · **tailored outerwear** (lapels, structured coats) · export polish.
+Planned (in phases): **4D** per-fabric secondary motion (lag/flutter vs near-rigid) · cloth **self-collision
++ thickness** · **layering / full outfits** (garment↔garment collision) · **tailored outerwear** (lapels,
+structured coats) · export polish.
 
 ---
 

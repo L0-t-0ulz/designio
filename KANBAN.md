@@ -39,6 +39,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Per-panel fabric** — front vs back fabric on the body + legs (colour-blocking) — PR #55
 - [x] **Back-panel prints** — logos/text placed on the back render on the back panel — PR #56
 - [x] **GLB avatar as default** — imported GLB body is the default (own materials when textured · idle stance · fallback to procedural) — PR #57
+- [x] **Body-pinned garments** — the avatar **walks in place with its clothes on**: GLB idle/walk clips + bone-driven collider fit + garments pinned to the shoulders/hips — PR #61
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -62,7 +63,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Features**
 - [ ] **Drop in a real photoreal skin** — the GLB slot is now the default + renders own materials; add a CC0 photoreal human `.glb` at `assets/mannequin.glb` (current is a clean rigged mannequin)
-- [ ] **Body-pinned garments** — pin a garment's top ring to the body's shoulders so the avatar can **walk/idle with clothes on**. _(Prototyped the GLB's idle/walk clips + bone-driven collider fit; blocked because garments pin to **world space**, not the body — so any body motion walks out of them. This is the real prerequisite for GLB animation.)_
 - [ ] **More garments** — blazer · hoodie · cargo pants · coat · blouse (data-driven)
 - [ ] **Cloth self / inter-collision** — layered garments push off each other
 - [ ] **Topstitching + seam styles** on the 3D + pattern

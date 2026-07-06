@@ -40,11 +40,15 @@ Renderer modules:
 - `core/` — `Viewport` (renderer + camera + OrbitControls + post-processing: bloom, vignette, SMAA),
   `Environment` (IBL, rim lights, reflective floor + shadow-catcher), `Loop` (fixed-timestep).
 - `avatar/` — `Mannequin` (poseable **and** resizable capsule skeleton; capsules are the cloth
-  colliders — plus **visual-only shaping metaballs** for bust/pecs, deltoids, chest/back depth, knees),
-  `BodyMesh` (smooth metaball body via MarchingCubes; shaped head/hand/foot caps), `GlbMannequin`
-  (optional realistic-avatar drop-in — replace `assets/mannequin.glb`; the toggle is sticky across the
-  async load), `colliders` (capsule math).
-- `cloth/` — `XPBDSolver` (grid/tube cloth), `ClothWorld` (general particle+constraint solver for
+  colliders — plus **visual-only shaping metaballs** for bust/pecs, deltoids, chest/back depth, knees; it
+  exposes `anchors()` = torso/hip world frames garments pin to, and drives the GLB), `BodyMesh` (smooth
+  metaball body via MarchingCubes; shaped head/hand/foot caps), `GlbMannequin` (the **default** realistic
+  avatar — replace `assets/mannequin.glb`; renders its own skin when textured, else the studio material,
+  and **falls back** to the procedural body; plays the rig's **idle/walk** clips **in place**, and the
+  mannequin fits the capsules to its Mixamo bones each frame so cloth collides with the moving body),
+  `colliders` (capsule math). `?body=mesh` forces the procedural body.
+- `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
+  `bindPins`/`setAnchor` — so garments stay on the animated avatar), `ClothWorld` (general particle+constraint solver for
   sewn panels; seams are stitch constraints), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
   reused by the 2D pattern), `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`). Both
   solvers **sleep** (dead-stop) when windless + still, so at default settings garments hang perfectly
@@ -57,7 +61,8 @@ Renderer modules:
   folded into the tube/sleeve specs so the 3D silhouette + the 2D pattern both reflect it), `decor`
   (`pocketPlacements` — pure patch-pocket positions; the stack renders them as non-sim patch meshes).
   Adding a garment or a supported detail is a data change, not new code.
-- `garment/` — `GarmentController` (one garment's multi-piece sim, consumes the factory); `templates`
+- `garment/` — `GarmentController` (one garment's multi-piece sim, consumes the factory; **binds each
+  piece's pinned ring to the torso or hip body anchor** by pin height, so it follows the animated body); `templates`
   (shared `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh collision.
 - `studio/` — the **multi-garment layer stack**: `document` (`ProjectDoc` = body + scene + serialisable
   garment `layers[]`; `serializeDoc`/`parseDoc` — the `.dio` project + undo/redo snapshots + clipboard;
@@ -115,7 +120,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) ·
-`?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (procedural vs realistic-GLB avatar) ·
+`?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem=1` (construction detail) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` (per-panel fabric — the body/leg **back** panel) ·

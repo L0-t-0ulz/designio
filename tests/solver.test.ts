@@ -44,6 +44,48 @@ describe('XPBDSolver distance constraint', () => {
   })
 })
 
+describe('XPBDSolver body-pin', () => {
+  // A 3x2 grid; pin the top row (0,1,2). Rows at z=0 (top) and z=0.1.
+  const makeGrid = (): { positions: Float32Array; solver: XPBDSolver } => {
+    const nx = 3
+    const ny = 2
+    const positions = new Float32Array(nx * ny * 3)
+    for (let iy = 0; iy < ny; iy++)
+      for (let ix = 0; ix < nx; ix++) {
+        const k = (iy * nx + ix) * 3
+        positions[k] = ix * 0.1
+        positions[k + 1] = 1
+        positions[k + 2] = iy * 0.1
+      }
+    const solver = new XPBDSolver(nx, ny, positions, FABRICS.denim, { pinned: [0, 1, 2] })
+    return { positions, solver }
+  }
+
+  it('pinned particles follow a moving anchor', () => {
+    const { positions, solver } = makeGrid()
+    solver.gravity.set(0, 0, 0) // isolate the pin motion
+    solver.reset()
+    solver.bindPins(new THREE.Matrix4()) // bind at identity
+    solver.setAnchor(new THREE.Matrix4().makeTranslation(0, 0, 0.5)) // shift the body +0.5 z
+    solver.step(1 / 60)
+    for (let i = 0; i < 3; i++) {
+      expect(positions[i * 3 + 2]).toBeCloseTo(0.5, 5) // top row moved +0.5 in z
+      expect(positions[i * 3]).toBeCloseTo(i * 0.1, 5) // x unchanged
+      expect(positions[i * 3 + 1]).toBeCloseTo(1, 5) // y unchanged
+    }
+  })
+
+  it('with no anchor the pins stay fixed in space (unchanged behaviour)', () => {
+    const { positions, solver } = makeGrid()
+    solver.reset()
+    for (let i = 0; i < 30; i++) solver.step(1 / 60) // gravity pulls, pins hold
+    for (let i = 0; i < 3; i++) {
+      expect(positions[i * 3 + 1]).toBeCloseTo(1, 6) // top row never falls
+      expect(positions[i * 3 + 2]).toBeCloseTo(0, 6)
+    }
+  })
+})
+
 describe('XPBDSolver collision', () => {
   it('pushes a particle inside a sphere out to its surface', () => {
     const center = new THREE.Vector3(0, 0.95, 0)

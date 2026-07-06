@@ -7,7 +7,7 @@
  */
 import * as THREE from 'three'
 import type { Capsule } from '../avatar/colliders'
-import type { Measurements } from '../avatar/Mannequin'
+import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
 import { GarmentController } from '../garment/GarmentController'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
@@ -96,7 +96,8 @@ export class GarmentStack {
     private readonly scene: THREE.Scene,
     private readonly colliders: Capsule[],
     private readonly measurements: Measurements,
-    private readonly bodyCollider: BodyCollider | null
+    private readonly bodyCollider: BodyCollider | null,
+    private readonly anchors: () => BodyAnchors | null = () => null
   ) {}
 
   get active(): StackLayer {
@@ -298,7 +299,8 @@ export class GarmentStack {
       this.colliders,
       this.measurements,
       (name) => fabricToSolverParams(this.pieceFabric(layer, name)),
-      this.bodyCollider
+      this.bodyCollider,
+      this.anchors
     )
     const decor = new THREE.Group()
     this.scene.add(decor)

@@ -75,7 +75,7 @@ function initStudio(
   let editPart: PartId = 'body' // which garment part colour/fabric edits target
 
   // The multi-garment stack (each layer = its own material · controller · fabric).
-  const stack = new GarmentStack(viewport.scene, mannequin.colliders, mannequin.measurements, mannequin.bodyCollider)
+  const stack = new GarmentStack(viewport.scene, mannequin.colliders, mannequin.measurements, mannequin.bodyCollider, () => mannequin.anchors())
   let patternCtl: PatternController | null = null
 
   // Panel edit buffers — always mirror the ACTIVE layer.

@@ -51,6 +51,13 @@ export class XPBDSolver {
   private readonly constraints: Constraint[] = []
   private readonly lambda: Float32Array
   private readonly pinned: Set<number>
+  /** Pinned indices in order + their rest world positions, for pinning to a moving body. */
+  private readonly pinnedList: number[]
+  private pinRest: Float32Array | null = null
+  private pinBindInv: THREE.Matrix4 | null = null
+  private curAnchor: THREE.Matrix4 | null = null
+  private readonly _delta = new THREE.Matrix4()
+  private readonly _pin = new THREE.Vector3()
   /** Removed particles (e.g. a cut-out): no mass, no constraints. */
   private readonly dead: Set<number>
   /** Closed in X (last column wraps to the first) — a tube/garment. */
@@ -89,6 +96,7 @@ export class XPBDSolver {
     this.invMass = new Float32Array(this.count)
     this.params = params
     this.pinned = new Set(opts.pinned)
+    this.pinnedList = [...this.pinned]
     this.dead = new Set(opts.dead)
     this.wrapX = opts.wrapX ?? false
 
@@ -125,7 +133,52 @@ export class XPBDSolver {
     this.vel.fill(0)
     this.time = 0
     this.syncPrev()
+    this.pinBindInv = null // drop the body binding until re-bound (bindPins)
     this.wake()
+  }
+
+  /**
+   * Bind the pinned particles to a body **anchor**: record their current world
+   * positions relative to `anchor`. Then each `step` re-places them at
+   * `curAnchor · offset`, so the garment hangs from (and follows) the moving body.
+   * Call right after `reset()`/respawn, with the body at its draped pose.
+   */
+  bindPins(anchor: THREE.Matrix4): void {
+    if (this.pinnedList.length === 0) return
+    if (!this.pinRest || this.pinRest.length !== this.pinnedList.length * 3) {
+      this.pinRest = new Float32Array(this.pinnedList.length * 3)
+    }
+    for (let j = 0; j < this.pinnedList.length; j++) {
+      const i = this.pinnedList[j] * 3
+      this.pinRest[j * 3] = this.positions[i]
+      this.pinRest[j * 3 + 1] = this.positions[i + 1]
+      this.pinRest[j * 3 + 2] = this.positions[i + 2]
+    }
+    this.pinBindInv = anchor.clone().invert()
+    this.curAnchor = anchor
+  }
+
+  /** The body anchor to follow this frame (null → pins stay fixed in space). */
+  setAnchor(anchor: THREE.Matrix4 | null): void {
+    this.curAnchor = anchor
+  }
+
+  /** Re-place pinned particles at the current anchor; returns true if any moved. */
+  private applyPins(): boolean {
+    if (!this.pinBindInv || !this.curAnchor || !this.pinRest) return false
+    this._delta.multiplyMatrices(this.curAnchor, this.pinBindInv)
+    let moved = false
+    for (let j = 0; j < this.pinnedList.length; j++) {
+      this._pin.set(this.pinRest[j * 3], this.pinRest[j * 3 + 1], this.pinRest[j * 3 + 2]).applyMatrix4(this._delta)
+      const i = this.pinnedList[j] * 3
+      if (this._pin.x !== this.positions[i] || this._pin.y !== this.positions[i + 1] || this._pin.z !== this.positions[i + 2]) {
+        moved = true
+        this.positions[i] = this.prev[i] = this._pin.x
+        this.positions[i + 1] = this.prev[i + 1] = this._pin.y
+        this.positions[i + 2] = this.prev[i + 2] = this._pin.z
+      }
+    }
+    return moved
   }
 
   /** Re-activate the solver after any change (wind, gravity, fabric, respawn, body move). */
@@ -223,7 +276,9 @@ export class XPBDSolver {
 
   /** Advance the simulation by `dt` seconds using `substeps` internal steps. */
   step(dt: number): void {
-    // Wake if the body moved (animation / resize) — the garment must follow it.
+    // Follow the body: re-place pinned particles at the current anchor (the garment
+    // hangs from the moving shoulders/waist), and wake if the body moved.
+    if (this.applyPins()) this.wake()
     const sig = this.colliderSignature()
     if (sig !== this.colliderSig) {
       this.colliderSig = sig
