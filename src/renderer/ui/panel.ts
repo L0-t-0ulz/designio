@@ -23,6 +23,8 @@ export interface GarmentState {
   cuff?: boolean
   pleats?: boolean
   dart?: boolean
+  pocket?: boolean
+  hem?: boolean
 }
 
 export type DesignMode = 'templates' | 'pattern'
@@ -212,11 +214,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // construction detail toggles (collar · cuff · pleats · darts), shown per garment
-  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart'][] = [
+  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem'][] = [
     ['Collar', 'collar'],
     ['Cuff', 'cuff'],
     ['Pleats', 'pleats'],
-    ['Darts', 'dart']
+    ['Darts', 'dart'],
+    ['Pocket', 'pocket'],
+    ['Rolled hem', 'hem']
   ]
   const detailToggles = detailDefs.map(([label, key]) => ({
     key,

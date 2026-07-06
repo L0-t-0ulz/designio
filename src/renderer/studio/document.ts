@@ -31,7 +31,9 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     collar: l.collar,
     cuff: l.cuff,
     pleats: l.pleats,
-    dart: l.dart
+    dart: l.dart,
+    pocket: l.pocket,
+    hem: l.hem
   }
 }
 
@@ -50,6 +52,8 @@ export interface GarmentLayerData {
   cuff?: boolean
   pleats?: boolean
   dart?: boolean
+  pocket?: boolean
+  hem?: boolean
   fabricId: string
   color: number
   /** Printed text on the garment ('' = none). Uploaded PNGs are runtime-only. */
@@ -103,6 +107,8 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     cuff: c.cuff,
     pleats: c.pleats,
     dart: c.dart,
+    pocket: c.pocket,
+    hem: c.hem,
     fabricId: c.fabricId,
     color: c.color,
     text: c.text,
@@ -126,6 +132,8 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     cuff: d.cuff,
     pleats: d.pleats,
     dart: d.dart,
+    pocket: d.pocket,
+    hem: d.hem,
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',
     color: 0xc85a54,
     text: '',

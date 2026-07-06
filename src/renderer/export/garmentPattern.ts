@@ -12,6 +12,7 @@ import type { Measurements } from '../avatar/Mannequin'
 import type { GarmentParams } from '../garment/templates'
 import type { GarmentDefinition } from '../garments/schema'
 import { garmentPatternSpecs } from '../garments/factory'
+import { pocketPlacements } from '../garments/decor'
 import { radiusAt, topEdge, type AxisTubeSpec, type TubeSpec } from '../cloth/Garment'
 
 export interface Pt {
@@ -176,11 +177,29 @@ export function garmentToPanels(
   }
   if (specs.sleeves.length) panels.push(finishPanel('Sleeve', 2, unwrapSleeve(specs.sleeves[0])))
 
+  if (params.pocket) {
+    const places = pocketPlacements(def, m)
+    const w = (places[0]?.w ?? 0.11) * MM
+    const h = (places[0]?.h ?? 0.12) * MM
+    // a classic patch pocket: rectangle with a pointed bottom + a top fold notch
+    const outline: Pt[] = [
+      { x: 0, y: 0 },
+      { x: w, y: 0 },
+      { x: w, y: h * 0.72 },
+      { x: w / 2, y: h },
+      { x: 0, y: h * 0.72 }
+    ]
+    const notches: Pt[] = [{ x: 0, y: h * 0.14 }, { x: w, y: h * 0.14 }] // top-fold line
+    panels.push(finishPanel('Pocket', places.length || 1, { outline, notches }))
+  }
+
   const active = [
     params.collar && 'collar',
     params.cuff && 'cuffs',
     params.pleats && 'pleats',
-    params.dart && 'darts'
+    params.dart && 'darts',
+    params.pocket && 'pocket',
+    params.hem && 'rolled hem'
   ].filter(Boolean) as string[]
   return { panels, seam: seamMm, detail: active.length ? active.join(' · ') : undefined }
 }

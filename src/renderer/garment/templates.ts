@@ -24,6 +24,10 @@ export interface GarmentParams {
   pleats?: boolean
   /** Waist darts — a more fitted, shaped waist + dart wedges on the pattern. */
   dart?: boolean
+  /** Patch pocket(s) on the front (a pocket panel on the pattern + a 3D patch). */
+  pocket?: boolean
+  /** Rolled hem — a shorter, finished hem (turn-up). */
+  hem?: boolean
 }
 
 export const DEFAULT_PARAMS: GarmentParams = {

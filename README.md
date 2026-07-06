@@ -155,9 +155,11 @@ while the cloth simulates.
 
 ### Go deep on construction detail
 Beyond the silhouette, add real **construction detail** — a **collar** (raises/closes the neckline into a
-stand), fitted **cuffs**, **pleats** (a fuller, swishier hem), and **darts** (a nipped, tailored waist).
-Each one shows up **both** on the 3D garment and in the flat pattern (the panels reshape, and the pattern
-notes the detail), and each garment only offers the details it supports.
+stand), fitted **cuffs**, **pleats** (a fuller, swishier hem), **darts** (a nipped, tailored waist),
+**patch pockets** (a chest pocket on tops, hip pockets on skirts/trousers — with a topstitched outline in
+3D and a pocket panel on the pattern), and a **rolled hem**. Each shows up **both** on the 3D garment and
+in the flat pattern (the panels reshape, and the pattern notes the detail), and each garment only offers
+the details it supports.
 
 ![A collar + cuffs + darted long-sleeve top](docs/detail.png)
 

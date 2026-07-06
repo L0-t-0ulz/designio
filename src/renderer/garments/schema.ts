@@ -38,6 +38,8 @@ export interface ConstructionCaps {
   cuff?: boolean
   pleats?: boolean
   dart?: boolean
+  pocket?: boolean
+  hem?: boolean
 }
 
 export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece
