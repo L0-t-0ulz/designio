@@ -51,7 +51,9 @@ live 3D preview draped on the mannequin — then open it in the full studio.*
 
 ### Design your piece
 Start on the **"Design your piece"** page: choose a garment, colour it, **add your own graphic + text**,
-shape the mannequin, and set the fit — all with a **live, auto-rotating 3D preview**. Hit **Design in 3D →**
+pick the **neckline · sleeves · size**, shape the mannequin, and set the fit — with **Quick looks**
+(one-tap presets), a **Surprise me** randomiser, a **Spin** toggle, and an aurora that **tints to your
+colour**, all on a **live, auto-rotating 3D preview**. Hit **Design in 3D →**
 to open it in the full studio (and **← Start** to come back, keeping your design).
 
 ### A professional studio (CLO3D-style, but friendly)
@@ -121,10 +123,16 @@ Flip the central viewport to **2D Pattern** and you get the **actual flat patter
 designed** — the front/back bodice unwrapped with its **real neckline curve, armhole and side seams**,
 A-line skirt/dress panels, tapered trouser legs, and a shaped sleeve, each with **seam allowance, grainline
 and notches**. It's derived from the exact 3D construction, so 2D and 3D always agree. Export it as **SVG /
-DXF** for a cutter. (Or work the other way in **Pattern (sew)** mode: adjust FRONT/BACK panels and *Sew &
-simulate* to wrap them onto the body.)
+DXF** for a cutter.
 
-![Pattern mode — two panels sewn around the torso](docs/pattern.png)
+**2D and 3D are one design — edit either way.** The 2D pane isn't just a render: it carries live edit tools
+(**size · length · width · hem**) that drive the same garment, so you can design entirely in 2D and the 3D
+updates live (and vice-versa). If you don't want to touch 3D, you don't have to.
+
+![The editable 2D flat pattern — size / length / width / hem tools drive the 3D](docs/pattern-2d.png)
+
+(Or work the other way in **Pattern (sew)** mode: adjust FRONT/BACK panels and *Sew & simulate* to wrap
+them onto the body.)
 
 ### Layer many garments · save & reopen your project
 Dress the mannequin in a **whole outfit** — add as many garments as you like (a top *and* a skirt *and* a

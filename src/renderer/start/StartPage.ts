@@ -366,13 +366,20 @@ export function showStartPage(
   }
 
   // Segmented pickers (neckline / sleeve / size), refreshed when the garment changes.
-  function segRow<T extends string>(label: string, opts: [string, T][], get: () => T, onPick: (v: T) => void): HTMLElement {
+  function segRow<T extends string>(
+    label: string,
+    opts: [string, T][],
+    get: () => T,
+    onPick: (v: T) => void,
+    supported?: () => boolean
+  ): HTMLElement {
     const wrap = el('div', 'dio-start-seg')
     wrap.append(el('div', 'dio-start-seglabel', label))
     const row = el('div', 'dio-seg dio-seg-wrap')
     const btns = new Map<T, HTMLElement>()
     const sync = (): void => {
       for (const [v, n] of btns) n.classList.toggle('on', v === get())
+      if (supported) wrap.classList.toggle('dio-hidden', !supported()) // hide when the garment doesn't use it
     }
     for (const [text, v] of opts) {
       const b = el('button', 'dio-seg-btn', text)
@@ -394,13 +401,15 @@ export function showStartPage(
     'Neckline',
     [['Scoop', 'scoop'], ['Crew', 'crew'], ['V', 'v'], ['None', 'strapless']],
     () => config.neckline,
-    (v) => { config.neckline = v; preview?.rebuild(config) }
+    (v) => { config.neckline = v; preview?.rebuild(config) },
+    () => !!getGarment(config.garmentType).supports.neckline
   )
   const sleeveRow = segRow<SleeveStyle>(
     'Sleeves',
     [['None', 'none'], ['Short', 'short'], ['Long', 'long']],
     () => config.sleeve,
-    (v) => { config.sleeve = v; preview?.rebuild(config) }
+    (v) => { config.sleeve = v; preview?.rebuild(config) },
+    () => !!getGarment(config.garmentType).supports.sleeve
   )
   const sizeRow = segRow(
     'Size',
