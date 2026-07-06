@@ -85,13 +85,17 @@ The construction panel is **schema-driven**: each garment shows only the control
 Design on a clean, matte **studio mannequin** sculpted like a real dress form — **defined shoulders,
 bust/chest, nipped waist, hips, tapered limbs with knees, and shaped head / hands / feet**. Pick a
 **female** or **male** figure — both slim and elongated like runway models — then **shape the body**:
-height, overall build, and independent **bust / waist / hips** to create real body shapes. Prefer a
-**photoreal avatar**? Drop a CC0 human `mannequin.glb` into `src/renderer/assets/` and flip *Imported
-body (GLB)* — the capsule skeleton stays the cloth collider, so garments still drape correctly.
+height, overall build, and independent **bust / waist / hips** to create real body shapes.
 
-| Female model | Male model |
-| --- | --- |
-| ![Slim female model mannequin](docs/model-female.png) | ![Slim male model mannequin](docs/model-male.png) |
+**The default body is an imported GLB avatar.** Drop a CC0 photoreal human into
+`src/renderer/assets/mannequin.glb` and it renders with **its own skin** (a bare rig is painted with the
+studio mannequin material), standing arms-down from its idle pose. It **falls back** to the procedural
+metaball body if it can't load — or flip *Imported body (GLB)* off to sculpt on that instead. Either way
+the capsule skeleton stays the cloth collider, so garments drape correctly.
+
+| Female model | Male model | Imported GLB body (default) |
+| --- | --- | --- |
+| ![Slim female model mannequin](docs/model-female.png) | ![Slim male model mannequin](docs/model-male.png) | ![The default imported GLB avatar wearing a silk dress](docs/body-glb.png) |
 
 ### Real 3D drape with mesh-accurate collision
 Each garment **simulates** with an **XPBD** cloth solver and collides against the **true body surface**
@@ -152,7 +156,8 @@ design and a way home tie the whole app together: **Homepage → Your projects �
 ### Place your own logos + text — as many as you like
 Import **several logos/graphics** (PNG/JPG/WebP) and **text**, and place **each one exactly** — its own
 **position, size and rotation** — via the studio's **Prints** manager. Add a chest logo, a slogan, a sleeve
-badge… each print is independent and updates live while the cloth simulates.
+badge… each print is independent and updates live while the cloth simulates. Prints follow the garment — a
+logo dragged onto the **back** shows on the back panel even when that panel wears its own fabric.
 
 ![Two placed prints — a logo and a slogan, each positioned + rotated](docs/prints.png)
 
@@ -166,14 +171,18 @@ the details it supports.
 
 ![A collar + cuffs + darted long-sleeve top](docs/detail.png)
 
-### Design each part — different fabrics, contrast trim
-Real garments aren't one material. Pick a **part** — **Body · Sleeves · Legs** — and give it its own
-**fabric and colour** (leather sleeves on a polyester body, denim body with a satin yoke…), add a
-**contrast trim** on the collar / cuffs / pockets / hem, and set the **seam allowance** + **notches** for
-production. Every part's fabric, the trim and the seam allowance flow into the **manufacturing pack** so a
-maker knows exactly what to cut in what.
+### Design each part & panel — fabric, physics, contrast trim
+Real garments aren't one material. Pick a **part** — **Body · Sleeves · Legs** — or a **panel** —
+**front vs back** on the body and each leg — and give it its own **fabric and colour** (leather sleeves
+on a polyester body, a jersey dress with a **leather back**, denim legs with a contrast back panel…).
+Each part's fabric even drives its **physics**, not just its look — **leather drapes stiffer than
+jersey**, so a leather back hangs crisper than the fluid front. Add a **contrast trim** on the collar /
+cuffs / pockets / hem, and set the **seam allowance** + **notches** for production. Every part's fabric,
+the trim and the seam flow into the **manufacturing pack** so a maker knows exactly what to cut in what.
 
-![Leather sleeves on a denim body with a contrast trim](docs/parts.png)
+| ![Leather sleeves on a denim body with a contrast trim](docs/parts.png) | ![A dress with a jersey front and a leather back panel](docs/panels.png) |
+| --- | --- |
+| *Per-part fabric — leather sleeves, denim body, contrast trim.* | *Per-panel fabric — a jersey front, a leather back.* |
 
 ### Size it · see every measurement · pack it for the factory
 Pick a **size** (XS – XXL) and the garment **grades** to fit; the **Measurements** panel shows the real
@@ -249,11 +258,14 @@ is a data change, not new code.**
 
 Shipped: data-driven garment schema + factory · 24-fabric library by family · 16-garment catalog with a
 category picker + schema-driven construction UI · female/male slim models with bust/waist/hips shaping ·
-mesh-accurate BVH body collision · a production-grade, consistent UI.
+mesh-accurate BVH body collision · **per-part physics** (leather drapes stiffer than jersey) · **per-panel
+fabric** (front vs back on body + legs) · **prints on any panel** · **imported GLB avatar as the default
+body** · a production-grade, consistent UI.
 
-Planned (in phases): **4D** per-fabric secondary motion (lag/flutter vs near-rigid) + stability hardening ·
-cloth **self-collision + thickness** · **layering / full outfits** (garment↔garment collision) · **tailored
-outerwear** (lapels, collars, structured coats) · presets + export polish.
+Planned (in phases): **body-pinned garments** so the avatar can **walk / idle** with its clothes staying on
+(the GLB rig + bone-driven collider fit are in place; garments still pin to space today) · **4D** per-fabric
+secondary motion (lag/flutter vs near-rigid) · cloth **self-collision + thickness** · **layering / full
+outfits** (garment↔garment collision) · **tailored outerwear** (lapels, structured coats) · export polish.
 
 ---
 
