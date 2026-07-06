@@ -16,6 +16,11 @@ export interface DesignConfig {
   sleeve: SleeveStyle
   /** Manufacturing size (grades the garment girth). */
   size: SizeLabel
+  /** Construction detail (optional). */
+  collar?: boolean
+  cuff?: boolean
+  pleats?: boolean
+  dart?: boolean
   /** Mannequin figure — female or male (slim model proportions). */
   bodyType: BodyType
   /** Mannequin size — height scales Y, build scales overall girth; bust/waist/hips shape it. */

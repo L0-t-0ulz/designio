@@ -36,14 +36,17 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
   const hemY = Math.max(0.14, topY - hemDrop)
   const rTop = (pc.topR === 'chest' ? m.chestR : m.waistR) + p.ease
   const hipBase = pc.botR === 'hip90' ? m.hipR * 0.9 : m.hipR
-  const rBot = hipBase + p.ease + p.flare * (pc.flareScale ?? 1)
+  const pleatBoost = p.pleats ? 0.07 : 0 // fuller, pleated hem
+  const rBot = hipBase + p.ease + p.flare * (pc.flareScale ?? 1) + pleatBoost
   const spec = piece(topY, hemY, rTop, rBot)
   if (pc.neckline) {
-    spec.neckline = p.neckline ?? 'scoop'
+    spec.neckline = p.collar ? 'crew' : (p.neckline ?? 'scoop') // a collar closes/raises the neck
     spec.shoulderY = m.shoulderY
   }
-  if (pc.cinchWaist) {
-    spec.radiusWaist = m.waistR + p.ease * 0.6
+  // Waist shaping: cinch by construction, or add darts for a fitted waist.
+  if (pc.cinchWaist || p.dart) {
+    const nip = p.dart ? 0.86 : 1 // darts pull the waist in further
+    spec.radiusWaist = m.waistR * nip + p.ease * (p.dart ? 0.4 : 0.6)
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.7)
   }
   return spec
@@ -53,7 +56,7 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
 function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
   const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY)
   const rTop = m.thighR + p.ease
-  const rBot = m.thighR * 0.6 + p.ease * 0.6 + p.flare * 0.4
+  const rBot = m.thighR * 0.6 + p.ease * 0.6 + p.flare * 0.4 + (p.pleats ? 0.05 : 0)
   return [
     piece(m.hipY, hemY, rTop, rBot, -m.hipHalfX, 40),
     piece(m.hipY, hemY, rTop, rBot, m.hipHalfX, 40)
@@ -61,7 +64,7 @@ function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
 }
 
 /** Sleeve tubes along the arm capsules (indices 5/6 = left, 9/10 = right). */
-function sleeveSpecs(long: boolean, colliders: Capsule[]): AxisTubeSpec[] {
+function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false): AxisTubeSpec[] {
   const arms: [Capsule, Capsule][] = [
     [colliders[5], colliders[6]],
     [colliders[9], colliders[10]]
@@ -76,7 +79,7 @@ function sleeveSpecs(long: boolean, colliders: Capsule[]): AxisTubeSpec[] {
       a,
       b,
       radiusStart: 0.085,
-      radiusEnd: (long ? fore.radius : upper.radius) + 0.03
+      radiusEnd: (long ? fore.radius : upper.radius) + (cuff ? 0.004 : 0.03) // a cuff draws the hem in
     }
   })
 }
@@ -99,7 +102,7 @@ export function garmentSleeveSpecs(
 ): AxisTubeSpec[] {
   if (!def.pieces.some((pc) => pc.kind === 'sleeves')) return []
   const sleeve = params.sleeve ?? 'none'
-  return sleeve === 'none' ? [] : sleeveSpecs(sleeve === 'long', colliders)
+  return sleeve === 'none' ? [] : sleeveSpecs(sleeve === 'long', colliders, params.cuff)
 }
 
 /**
@@ -159,7 +162,7 @@ export function buildGarment(
     } else if (pc.kind === 'sleeves') {
       const sleeve = params.sleeve ?? 'none'
       if (sleeve !== 'none') {
-        sleeveSpecs(sleeve === 'long', colliders).forEach((spec, i) => {
+        sleeveSpecs(sleeve === 'long', colliders, params.cuff).forEach((spec, i) => {
           out.push({ build: buildAxisTube(spec), refill: (pos) => fillAxisTube(pos, spec), name: sleeveName[i] })
         })
       }

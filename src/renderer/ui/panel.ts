@@ -19,6 +19,10 @@ export interface GarmentState {
   neckline: NecklineStyle
   sleeve: SleeveStyle
   size: SizeLabel
+  collar?: boolean
+  cuff?: boolean
+  pleats?: boolean
+  dart?: boolean
 }
 
 export type DesignMode = 'templates' | 'pattern'
@@ -191,6 +195,10 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     lenS.row.classList.toggle('dio-hidden', !def.supports.length)
     easeS.row.classList.toggle('dio-hidden', !def.supports.ease)
     flareS.row.classList.toggle('dio-hidden', !def.supports.flare)
+    for (const d of detailToggles) {
+      d.t.row.classList.toggle('dio-hidden', !def.supports[d.key])
+      d.t.refresh()
+    }
     syncNeckSleeve()
     lenS.refresh()
     easeS.refresh()
@@ -203,8 +211,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     opts.onGarmentEdit()
   }
 
+  // construction detail toggles (collar · cuff · pleats · darts), shown per garment
+  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart'][] = [
+    ['Collar', 'collar'],
+    ['Cuff', 'cuff'],
+    ['Pleats', 'pleats'],
+    ['Darts', 'dart']
+  ]
+  const detailToggles = detailDefs.map(([label, key]) => ({
+    key,
+    t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; opts.onGarmentEdit() } })
+  }))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, neckRow, sleeveRow, lenS.row, easeS.row, flareS.row)
+  construction.body.append(sizeBlock, neckRow, sleeveRow, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row))
   syncGarment()
 
   // ---- pattern (sew) ----

@@ -15,6 +15,15 @@ export interface GarmentParams {
   neckline?: NecklineStyle
   /** Sleeves for tops/dresses. */
   sleeve?: SleeveStyle
+  // ---- construction detail (all optional) ----
+  /** Collar stand — raises/closes the neckline + a collar band on the pattern. */
+  collar?: boolean
+  /** Fitted cuff at the sleeve hem (+ a cuff turn-up line on the sleeve pattern). */
+  cuff?: boolean
+  /** Extra hem fullness (a fuller, pleated skirt/dress/leg) + pleat lines. */
+  pleats?: boolean
+  /** Waist darts — a more fitted, shaped waist + dart wedges on the pattern. */
+  dart?: boolean
 }
 
 export const DEFAULT_PARAMS: GarmentParams = {

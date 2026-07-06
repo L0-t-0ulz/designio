@@ -29,8 +29,8 @@ const skirtTube = {
   topR: 'waist' as const,
   botR: 'hip' as const
 }
-const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true }
-const lowerCaps = { length: true, ease: true, flare: true }
+const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true }
+const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true }
 
 /**
  * The garment catalog (data). Each entry composes parametric pieces; the factory

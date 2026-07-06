@@ -39,6 +39,8 @@ export interface PatternResult {
   panels: PatternPanel[]
   /** Seam allowance (mm). */
   seam: number
+  /** Active construction detail (collar · cuffs · pleats · darts), for the caption. */
+  detail?: string
 }
 
 const NCOL = 26 // samples across a panel (neckline/hem curve smoothness)
@@ -174,7 +176,13 @@ export function garmentToPanels(
   }
   if (specs.sleeves.length) panels.push(finishPanel('Sleeve', 2, unwrapSleeve(specs.sleeves[0])))
 
-  return { panels, seam: seamMm }
+  const active = [
+    params.collar && 'collar',
+    params.cuff && 'cuffs',
+    params.pleats && 'pleats',
+    params.dart && 'darts'
+  ].filter(Boolean) as string[]
+  return { panels, seam: seamMm, detail: active.length ? active.join(' · ') : undefined }
 }
 
 // ---- polygon offset (cut line = sew line + seam allowance) ----------------
@@ -269,7 +277,7 @@ export function panelsToSVG(res: PatternResult): string {
   viewBox="0 0 ${totalW.toFixed(0)} ${totalH.toFixed(0)}">
   <rect width="${totalW.toFixed(0)}" height="${totalH.toFixed(0)}" fill="#fff"/>
   <text x="${margin}" y="${(totalH - 10).toFixed(0)}" font-family="sans-serif" font-size="11" fill="#9aa0aa">
-    DesignIO pattern · solid = sew line · dashed = cut line (SA ${seam} mm) · arrow = grainline · ○ = notch</text>
+    DesignIO pattern · solid = sew line · dashed = cut line (SA ${seam} mm) · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
   ${parts.join('\n')}
 </svg>`
 }
