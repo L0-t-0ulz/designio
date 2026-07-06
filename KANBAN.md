@@ -34,6 +34,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Per-part fabric** — leather sleeves / polyester body — PR #49
 - [x] **Contrast trim** — collar/cuffs/pockets/hem — PR #49
 - [x] **Seam allowance + notches** (production) — PR #49
+- [x] **Multiple placeable prints** — logos + text, each positioned / sized / rotated — PR #51
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -49,7 +50,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 ## 🔄 In progress
 
-- [ ] **Multiple placeable prints** — import several logos/graphics (+ text), each with its own position · size · rotation (PR B)
+- _(nothing right now — pick the next card from the backlog)_
 
 ---
 
