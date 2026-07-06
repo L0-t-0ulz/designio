@@ -58,6 +58,8 @@ export class XPBDSolver {
   private curAnchors: (THREE.Matrix4 | null)[] = []
   private readonly _delta = new THREE.Matrix4()
   private readonly _pin = new THREE.Vector3()
+  /** Per-particle surface normals (recomputed once per frame) for aerodynamic drag. */
+  private readonly aeroN: Float32Array
   /** Removed particles (e.g. a cut-out): no mass, no constraints. */
   private readonly dead: Set<number>
   /** Closed in X (last column wraps to the first) — a tube/garment. */
@@ -94,6 +96,7 @@ export class XPBDSolver {
     this.prev = new Float32Array(this.count * 3)
     this.vel = new Float32Array(this.count * 3)
     this.invMass = new Float32Array(this.count)
+    this.aeroN = new Float32Array(this.count * 3)
     this.params = params
     this.pinned = new Set(opts.pinned)
     this.pinnedList = [...this.pinned]
@@ -313,10 +316,44 @@ export class XPBDSolver {
     }
     if (this.asleep) return // resting: hold the settled drape, spend no cycles
 
+    if (this.params.aero > 0) this.computeNormals() // once per frame, reused across substeps
     const sub = dt / this.substeps
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
     if (this.bodyCollider?.ready) this.solveBody()
     this.updateRest()
+  }
+
+  /** Per-particle unit surface normals from the grid neighbours (for aero drag). */
+  private computeNormals(): void {
+    const { positions: pos, nx, ny } = this
+    const n = this.aeroN
+    for (let iy = 0; iy < ny; iy++) {
+      for (let ix = 0; ix < nx; ix++) {
+        const rx = this.wrapX ? (ix + 1) % nx : Math.min(ix + 1, nx - 1)
+        const lx = this.wrapX ? (ix - 1 + nx) % nx : Math.max(ix - 1, 0)
+        const ri = (iy * nx + rx) * 3
+        const li = (iy * nx + lx) * 3
+        const di = (Math.min(iy + 1, ny - 1) * nx + ix) * 3
+        const ui = (Math.max(iy - 1, 0) * nx + ix) * 3
+        const tx0 = pos[ri] - pos[li]
+        const tx1 = pos[ri + 1] - pos[li + 1]
+        const tx2 = pos[ri + 2] - pos[li + 2]
+        const ty0 = pos[di] - pos[ui]
+        const ty1 = pos[di + 1] - pos[ui + 1]
+        const ty2 = pos[di + 2] - pos[ui + 2]
+        let a = tx1 * ty2 - tx2 * ty1
+        let b = tx2 * ty0 - tx0 * ty2
+        let c = tx0 * ty1 - tx1 * ty0
+        const l = Math.hypot(a, b, c) || 1
+        a /= l
+        b /= l
+        c /= l
+        const k = (iy * nx + ix) * 3
+        n[k] = a
+        n[k + 1] = b
+        n[k + 2] = c
+      }
+    }
   }
 
   /**
@@ -361,8 +398,9 @@ export class XPBDSolver {
   }
 
   private substep(dt: number): void {
-    const { positions: pos, prev, vel, invMass: im, count } = this
+    const { positions: pos, prev, vel, invMass: im, count, aeroN } = this
     this.time += dt
+    const aero = this.params.aero
 
     // Gravity is a pure (mass-independent) acceleration.
     const gx = this.gravity.x
@@ -388,6 +426,18 @@ export class XPBDSolver {
       vel[i] += (gx + wx * w) * dt
       vel[i + 1] += (gy + wy * w) * dt
       vel[i + 2] += (gz + wz * w) * dt
+      // Aerodynamic drag: air resists the sheet moving broadside — remove the
+      // velocity component along the surface normal (edge-on sway is untouched), so
+      // light/sheer fabrics float + billow + lag and heavy ones follow near-rigid.
+      if (aero > 0) {
+        const n0 = aeroN[i]
+        const n1 = aeroN[i + 1]
+        const n2 = aeroN[i + 2]
+        const f = aero * (vel[i] * n0 + vel[i + 1] * n1 + vel[i + 2] * n2) * dt
+        vel[i] -= f * n0
+        vel[i + 1] -= f * n1
+        vel[i + 2] -= f * n2
+      }
       prev[i] = pos[i]
       prev[i + 1] = pos[i + 1]
       prev[i + 2] = pos[i + 2]

@@ -48,8 +48,10 @@ Renderer modules:
   mannequin fits the capsules to its Mixamo bones each frame so cloth collides with the moving body),
   `colliders` (capsule math). `?body=mesh` forces the procedural body.
 - `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
-  `bindPins`/`setAnchor` — so garments stay on the animated avatar), `ClothWorld` (general particle+constraint solver for
-  sewn panels; seams are stitch constraints), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
+  `bindPins`/`setAnchor` — so garments stay on the animated avatar; per-fabric **aerodynamic drag** —
+  `FabricParams.aero` removes the broadside/normal velocity so light+sheer fabrics billow/float/lag and
+  heavy ones follow near-rigid — **4D secondary motion**), `ClothWorld` (general particle+constraint solver
+  for sewn panels; seams are stitch constraints), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
   reused by the 2D pattern), `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`). Both
   solvers **sleep** (dead-stop) when windless + still, so at default settings garments hang perfectly
   still (any wind/body-move/edit wakes them).

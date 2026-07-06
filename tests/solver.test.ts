@@ -100,6 +100,35 @@ describe('XPBDSolver body-pin', () => {
   })
 })
 
+describe('XPBDSolver aerodynamic drag', () => {
+  // A free, horizontal sheet (normal ≈ +y) falling under gravity — aero opposes the
+  // broadside (vertical) motion, so a high-aero fabric floats and stays higher.
+  const dropSheet = (aero: number): Float32Array => {
+    const nx = 4
+    const ny = 4
+    const positions = new Float32Array(nx * ny * 3)
+    for (let iy = 0; iy < ny; iy++)
+      for (let ix = 0; ix < nx; ix++) {
+        const k = (iy * nx + ix) * 3
+        positions[k] = ix * 0.1
+        positions[k + 1] = 1
+        positions[k + 2] = iy * 0.1
+      }
+    const solver = new XPBDSolver(nx, ny, positions, { ...FABRICS.silk, aero })
+    for (let i = 0; i < 30; i++) solver.step(1 / 60)
+    return positions
+  }
+  const avgY = (p: Float32Array): number => {
+    let y = 0
+    for (let k = 1; k < p.length; k += 3) y += p[k]
+    return y / (p.length / 3)
+  }
+
+  it('a high-aero (light) fabric floats — falls less than a low-aero one', () => {
+    expect(avgY(dropSheet(12))).toBeGreaterThan(avgY(dropSheet(0)) + 0.1)
+  })
+})
+
 describe('XPBDSolver collision', () => {
   it('pushes a particle inside a sphere out to its surface', () => {
     const center = new THREE.Vector3(0, 0.95, 0)

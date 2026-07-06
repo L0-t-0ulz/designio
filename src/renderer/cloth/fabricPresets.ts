@@ -14,6 +14,9 @@ export interface FabricParams {
   mass: number
   damping: number
   friction: number
+  /** Aerodynamic drag: air resistance on the sheet moving broadside — high for light,
+   *  sheer, fluid fabrics (they billow / float / lag), ~0 for heavy, crisp ones (near-rigid). */
+  aero: number
   color: number
 }
 
@@ -24,6 +27,7 @@ export const FABRICS = {
     mass: 0.55,
     damping: 1.4,
     friction: 0.5,
+    aero: 1,
     color: 0x3b5b82
   },
   cotton: {
@@ -32,6 +36,7 @@ export const FABRICS = {
     mass: 0.32,
     damping: 1.1,
     friction: 0.55,
+    aero: 3.5,
     color: 0xc85a54
   },
   silk: {
@@ -40,6 +45,7 @@ export const FABRICS = {
     mass: 0.16,
     damping: 0.7,
     friction: 0.3,
+    aero: 8,
     color: 0xd9c27e
   },
   knit: {
@@ -48,6 +54,7 @@ export const FABRICS = {
     mass: 0.24,
     damping: 0.9,
     friction: 0.5,
+    aero: 4.5,
     color: 0x5f8f6b
   }
 } satisfies Record<string, FabricParams>
