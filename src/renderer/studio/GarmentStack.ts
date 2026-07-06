@@ -20,7 +20,14 @@ import { gradeParams, type GarmentLayerData } from './document'
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
 
-const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [l.material, l.sleeveMaterial, l.legMaterial, l.trimMaterial]
+const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [
+  l.material,
+  l.sleeveMaterial,
+  l.legMaterial,
+  l.trimMaterial,
+  l.backMaterial,
+  l.legBackMaterial
+]
 const disposeMats = (l: StackLayer): void => {
   for (const m of layerMats(l)) m.dispose()
 }
@@ -34,6 +41,9 @@ export interface StackLayer {
   /** Per-part materials (used only when a part has its own fabric). */
   sleeveMaterial: THREE.MeshPhysicalMaterial
   legMaterial: THREE.MeshPhysicalMaterial
+  /** Back-panel materials (used only when a back panel has its own fabric). */
+  backMaterial: THREE.MeshPhysicalMaterial
+  legBackMaterial: THREE.MeshPhysicalMaterial
   /** Contrast-trim material (collar/cuff/pocket/hem bands) when `data.trim` is on. */
   trimMaterial: THREE.MeshPhysicalMaterial
   controller: GarmentController
@@ -52,14 +62,25 @@ export interface LayerSummary {
   pieces: number
 }
 
-/** Editable garment parts (piece groups + trim). */
-export type PartId = 'body' | 'sleeves' | 'legs' | 'trim'
+/** Editable garment parts (piece groups + back panels + trim). */
+export type PartId = 'body' | 'sleeves' | 'legs' | 'trim' | 'back' | 'legBack'
 
 /** Which part a simulated piece belongs to, keyed off its mesh name (drives its material + physics). */
 export function partForPiece(name: string): 'sleeves' | 'legs' | 'body' {
   if (/sleeve/i.test(name)) return 'sleeves'
   if (/leg/i.test(name)) return 'legs'
   return 'body'
+}
+
+/**
+ * The fabric id for a back panel, following its fallback chain: a body `back`
+ * panel falls back to the body fabric; a `legBack` panel to the `legs` fabric
+ * then the body fabric. (Front panels use the piece's own fabric.)
+ */
+export function panelFabricId(data: GarmentLayerData, panel: 'back' | 'legBack'): string {
+  const pf = data.partFabrics
+  if (panel === 'back') return pf?.back?.fabricId ?? data.fabricId
+  return pf?.legBack?.fabricId ?? pf?.legs?.fabricId ?? data.fabricId
 }
 
 export class GarmentStack {
@@ -99,11 +120,13 @@ export class GarmentStack {
     return part === 'body' ? l.fabric : this.partFabric(l, part)
   }
 
-  /** The current { fabricId, color } for a part (body/trim/sleeves/legs). */
+  /** The current { fabricId, color } for a part (body/trim/sleeves/legs/back/legBack). */
   partData(part: PartId): { fabricId: string; color: number } {
     const d = this.active.data
     if (part === 'body') return { fabricId: d.fabricId, color: d.color }
     if (part === 'trim') return { fabricId: d.trimFabricId ?? d.fabricId, color: d.trimColor ?? d.color }
+    // legBack falls back to the legs (front) fabric, then the body default.
+    if (part === 'legBack') return d.partFabrics?.legBack ?? d.partFabrics?.legs ?? { fabricId: d.fabricId, color: d.color }
     return d.partFabrics?.[part] ?? { fabricId: d.fabricId, color: d.color }
   }
   /** Assign a fabric and/or colour to a part of the active layer (visual). */
@@ -124,14 +147,31 @@ export class GarmentStack {
     }
     this.applyLook(l)
     this.buildDecor(l) // trim bands / pocket material depend on trim
-    // A fabric swap changes drape, so re-derive that part's piece physics (colour-only edits don't).
-    if (opts.fabricId && part !== 'trim') l.controller.setFabricPhysics()
+    // A piece fabric swap changes drape, so re-derive its physics. Back panels are
+    // visual-only (they share the piece's sim), and colour-only edits don't drape.
+    if (opts.fabricId && (part === 'body' || part === 'sleeves' || part === 'legs')) l.controller.setFabricPhysics()
   }
-  /** Assign each piece mesh its part material (Body / Sleeves / Legs) by piece name. */
+
+  /** The fabric for a back panel (its override, else the piece's front fabric). */
+  private panelFabric(l: StackLayer, panel: 'back' | 'legBack'): Fabric {
+    const ov = panel === 'back' ? l.data.partFabrics?.back : l.data.partFabrics?.legBack
+    if (ov) return { ...getFabric(ov.fabricId), color: ov.color }
+    return panel === 'back' ? l.fabric : this.partFabric(l, 'legs')
+  }
+  /**
+   * Assign each piece mesh its material by piece name. When a back panel has its
+   * own fabric, the body/leg mesh gets a `[front, back]` material array — the two
+   * geometry groups from `finishTube` (front = +z, back = −z). The front keeps the
+   * print. Otherwise a single material renders both groups.
+   */
   private applyPartMaterials(l: StackLayer): void {
+    const hasBack = !!l.data.partFabrics?.back
+    const hasLegBack = !!l.data.partFabrics?.legBack
     for (const { name, mesh } of l.controller.getPieces()) {
       const part = partForPiece(name)
-      mesh.material = part === 'sleeves' ? l.sleeveMaterial : part === 'legs' ? l.legMaterial : l.material
+      if (part === 'sleeves') mesh.material = l.sleeveMaterial
+      else if (part === 'legs') mesh.material = hasLegBack ? [l.legMaterial, l.legBackMaterial] : l.legMaterial
+      else mesh.material = hasBack ? [l.material, l.backMaterial] : l.material
     }
   }
 
@@ -140,6 +180,8 @@ export class GarmentStack {
     applyFabric(l.material, l.fabric) // body / default
     applyFabric(l.sleeveMaterial, this.partFabric(l, 'sleeves'))
     applyFabric(l.legMaterial, this.partFabric(l, 'legs'))
+    applyFabric(l.backMaterial, this.panelFabric(l, 'back'))
+    applyFabric(l.legBackMaterial, this.panelFabric(l, 'legBack'))
     const trimFab: Fabric = l.data.trimFabricId
       ? { ...getFabric(l.data.trimFabricId), color: l.data.trimColor ?? 0x1a1a22 }
       : { ...l.fabric, color: l.data.trimColor ?? 0x1a1a22 }
@@ -240,6 +282,8 @@ export class GarmentStack {
       material,
       sleeveMaterial: createFabricMaterial(fabric),
       legMaterial: createFabricMaterial(fabric),
+      backMaterial: createFabricMaterial(fabric),
+      legBackMaterial: createFabricMaterial(fabric),
       trimMaterial: createFabricMaterial(fabric),
       controller,
       design: null,

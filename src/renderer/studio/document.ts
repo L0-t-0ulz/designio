@@ -46,6 +46,19 @@ export interface PartFabric {
   color: number
 }
 
+/**
+ * Per-part / per-panel fabric overrides. `sleeves`/`legs` scope a whole piece;
+ * `back` (body) and `legBack` (legs) scope just that piece's back panel — the
+ * front panel uses the piece's own fabric (body default / `legs`). Body front
+ * uses the layer's `fabricId`/`color`.
+ */
+export interface PartFabrics {
+  sleeves?: PartFabric
+  legs?: PartFabric
+  back?: PartFabric
+  legBack?: PartFabric
+}
+
 /** One garment worn on the body (its own construction + fabric + print). */
 export interface GarmentLayerData {
   garmentType: GarmentType
@@ -70,8 +83,8 @@ export interface GarmentLayerData {
   trim?: boolean
   trimColor?: number
   trimFabricId?: string
-  /** Per-part fabric overrides (Body uses the default fabricId/color below). */
-  partFabrics?: { sleeves?: PartFabric; legs?: PartFabric }
+  /** Per-part / per-panel fabric overrides (Body front uses the default fabricId/color below). */
+  partFabrics?: PartFabrics
   fabricId: string
   color: number
   /** Placed prints (logos + text); uploaded PNGs are runtime-only (image dropped on save). */
@@ -185,7 +198,12 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
   return {
     ...l,
     partFabrics: l.partFabrics
-      ? { sleeves: l.partFabrics.sleeves && { ...l.partFabrics.sleeves }, legs: l.partFabrics.legs && { ...l.partFabrics.legs } }
+      ? {
+          sleeves: l.partFabrics.sleeves && { ...l.partFabrics.sleeves },
+          legs: l.partFabrics.legs && { ...l.partFabrics.legs },
+          back: l.partFabrics.back && { ...l.partFabrics.back },
+          legBack: l.partFabrics.legBack && { ...l.partFabrics.legBack }
+        }
       : undefined,
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined
   }

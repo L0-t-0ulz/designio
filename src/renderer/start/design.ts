@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import type { GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
-import type { SizeLabel, PartFabric } from '../studio/document'
+import type { SizeLabel, PartFabrics } from '../studio/document'
 
 /** Everything the start page lets you build before entering the 3D studio. */
 export interface DesignConfig {
@@ -28,7 +28,7 @@ export interface DesignConfig {
   trim?: boolean
   trimColor?: number
   trimFabricId?: string
-  partFabrics?: { sleeves?: PartFabric; legs?: PartFabric }
+  partFabrics?: PartFabrics
   /** Mannequin figure — female or male (slim model proportions). */
   bodyType: BodyType
   /** Mannequin size — height scales Y, build scales overall girth; bust/waist/hips shape it. */
