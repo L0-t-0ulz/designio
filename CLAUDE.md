@@ -72,12 +72,16 @@ Renderer modules:
   embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF), `techpack`, `save`.
 - `start/` — `Homepage` (launcher → New design · **Your projects** · templates), `ProjectsPage` (the
   **project gallery** — open · rename · delete · import/export `.dio`), `StartPage` (the "design your
-  piece" builder), `PreviewStudio` (live 3D preview), `design` (`DesignConfig`), `presets` (looks).
+  piece" builder — garment · colour/print · **neckline/sleeve/size** · quick-looks · surprise/spin ·
+  fit; aurora tints to the colour), `PreviewStudio` (live 3D preview; grades size, `setAutoRotate`),
+  `design` (`DesignConfig`), `presets` (looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
   (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar` (File: New · Open/Save
   `.dio` project · Exports; Edit: undo/redo · cut/copy/paste/duplicate/delete garment), `statusBar`,
   `library` (tabbed asset browser), `objectBrowser` (the **garment layers** worn on the body — select ·
-  visibility · add/duplicate/delete), `centerTabs` (3D · 2D-pattern dual viewport), `layoutStore`.
+  visibility · add/duplicate/delete), `centerTabs` (3D · 2D-pattern dual viewport — the **2D pane is an
+  editing surface**: size/length/width/hem tools run the same `applyGarmentEdit` path as the 3D panel,
+  so 2D↔3D stay in sync), `layoutStore`.
 - `ui/` — `panel` (the **context-sensitive Property Editor** — Garment/Avatar/Scene; returns `{panel, api}`
   the Library drives), `controls` (DOM helpers), `thumbnails` (shared swatch/silhouette), `patternSchematic`,
   `tokens.css` / `styles.css` / `shell.css`.

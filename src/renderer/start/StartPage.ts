@@ -7,6 +7,11 @@ import { GARMENT_SIL, fabricSwatchCanvas } from '../ui/thumbnails'
 import { el } from '../ui/controls'
 import { defaultConfig, type DesignConfig } from './design'
 import { PreviewStudio } from './PreviewStudio'
+import { SIZES } from '../studio/document'
+import { PRESETS } from './presets'
+import { configFromPreset } from './Homepage'
+import type { NecklineStyle } from '../cloth/Garment'
+import type { SleeveStyle } from '../garment/templates'
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -351,9 +356,120 @@ export function showStartPage(
   })
   textRow.append(textInput)
 
+  // Tint the aurora background toward the garment colour (subtle, alive).
+  const setAura = (color: number): void => {
+    const r = (color >> 16) & 255
+    const g = (color >> 8) & 255
+    const b = color & 255
+    overlay.style.setProperty('--dio-aura-1', `rgba(${r}, ${g}, ${b}, 0.30)`)
+    overlay.style.setProperty('--dio-aura-2', `rgba(${r}, ${g}, ${b}, 0.20)`)
+  }
+
+  // Segmented pickers (neckline / sleeve / size), refreshed when the garment changes.
+  function segRow<T extends string>(
+    label: string,
+    opts: [string, T][],
+    get: () => T,
+    onPick: (v: T) => void,
+    supported?: () => boolean
+  ): HTMLElement {
+    const wrap = el('div', 'dio-start-seg')
+    wrap.append(el('div', 'dio-start-seglabel', label))
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const btns = new Map<T, HTMLElement>()
+    const sync = (): void => {
+      for (const [v, n] of btns) n.classList.toggle('on', v === get())
+      if (supported) wrap.classList.toggle('dio-hidden', !supported()) // hide when the garment doesn't use it
+    }
+    for (const [text, v] of opts) {
+      const b = el('button', 'dio-seg-btn', text)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        onPick(v)
+        sync()
+        pop(b)
+      })
+      btns.set(v, b)
+      row.append(b)
+    }
+    sync()
+    fitSyncs.push(sync)
+    wrap.append(row)
+    return wrap
+  }
+  const necklineRow = segRow<NecklineStyle>(
+    'Neckline',
+    [['Scoop', 'scoop'], ['Crew', 'crew'], ['V', 'v'], ['None', 'strapless']],
+    () => config.neckline,
+    (v) => { config.neckline = v; preview?.rebuild(config) },
+    () => !!getGarment(config.garmentType).supports.neckline
+  )
+  const sleeveRow = segRow<SleeveStyle>(
+    'Sleeves',
+    [['None', 'none'], ['Short', 'short'], ['Long', 'long']],
+    () => config.sleeve,
+    (v) => { config.sleeve = v; preview?.rebuild(config) },
+    () => !!getGarment(config.garmentType).supports.sleeve
+  )
+  const sizeRow = segRow(
+    'Size',
+    SIZES.map((s) => [s, s] as [string, string]),
+    () => config.size,
+    (v) => { config.size = v as DesignConfig['size']; preview?.rebuild(config) }
+  )
+
+  // Quick looks — one-tap presets.
+  const looks = el('div', 'dio-start-looks')
+  const applyLook = (cfg: DesignConfig): void => {
+    Object.assign(config, cfg)
+    selectGarment(config.garmentType, false, false) // updates gallery + fit sliders + preview
+    for (const [id, n] of swatchEls) n.classList.toggle('selected', id === config.fabricId)
+    fitSyncs.forEach((s) => s())
+    setAura(config.color)
+    preview?.rebuild(config)
+  }
+  for (const p of PRESETS) {
+    const chip = el('button', 'dio-start-look', p.name)
+    chip.setAttribute('type', 'button')
+    chip.addEventListener('click', () => {
+      applyLook(configFromPreset(p))
+      pop(chip)
+    })
+    looks.append(chip)
+  }
+
+  // Toolbar: Surprise me + Spin toggle.
+  const toolbar = el('div', 'dio-start-toolbar')
+  const surprise = el('button', 'dio-start-tool', '🎲  Surprise me')
+  surprise.setAttribute('type', 'button')
+  const palette = [0xc85a54, 0x3b5b82, 0x1a1a22, 0xd9c27e, 0x5f8f6b, 0x8a6bd1, 0xd98cae, 0x2f9e8f]
+  const rand = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)]
+  surprise.addEventListener('click', () => {
+    const cfg = defaultConfig()
+    cfg.garmentType = rand(order)
+    Object.assign(cfg, getGarment(cfg.garmentType).defaults)
+    cfg.fabricId = rand(fabrics).id
+    cfg.color = rand(palette)
+    cfg.size = rand([...SIZES])
+    applyLook(cfg)
+    pop(surprise)
+  })
+  let spinning = true
+  const spinBtn = el('button', 'dio-start-tool', '◐  Spin: on')
+  spinBtn.setAttribute('type', 'button')
+  spinBtn.addEventListener('click', () => {
+    spinning = !spinning
+    spinBtn.textContent = `◐  Spin: ${spinning ? 'on' : 'off'}`
+    preview?.setAutoRotate(spinning)
+  })
+  toolbar.append(surprise, spinBtn)
+
   controls.append(
+    toolbar,
+    el('div', 'dio-start-section', 'Quick looks'),
+    looks,
     el('div', 'dio-start-section', 'Colour & fabric'),
-    startColor('Base colour', () => config.color, (v) => { config.color = v; preview?.applyLook(config) }),
+    startColor('Base colour', () => config.color, (v) => { config.color = v; setAura(v); preview?.applyLook(config) }),
     swatches,
     el('div', 'dio-start-section', 'Your design'),
     drop,
@@ -368,6 +484,10 @@ export function showStartPage(
     startSlider({ label: 'Bust', min: 0.82, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => config.bodyBust, set: (v) => { config.bodyBust = v; preview?.setBody(config) } }),
     startSlider({ label: 'Waist', min: 0.78, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => config.bodyWaist, set: (v) => { config.bodyWaist = v; preview?.setBody(config) } }),
     startSlider({ label: 'Hips', min: 0.82, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => config.bodyHips, set: (v) => { config.bodyHips = v; preview?.setBody(config) } }),
+    el('div', 'dio-start-section', 'Style'),
+    necklineRow,
+    sleeveRow,
+    sizeRow,
     el('div', 'dio-start-section', 'Fit'),
     startSlider({ label: 'Length', min: 0, max: 1, step: 0.01, ref: (s) => fitSyncs.push(s), get: () => config.length, set: (v) => { config.length = v; preview?.rebuild(config) } }),
     startSlider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, ref: (s) => fitSyncs.push(s), get: () => config.ease, set: (v) => { config.ease = v; preview?.rebuild(config) } }),
@@ -392,6 +512,7 @@ export function showStartPage(
 
   // ---- create the live 3D preview + first garment ----
   selectGarment(config.garmentType, false, false)
+  setAura(config.color)
   preview = new PreviewStudio(canvasHost, () => canvasHost.classList.remove('loading'))
   preview.rebuild(config)
 
