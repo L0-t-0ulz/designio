@@ -153,6 +153,14 @@ Beyond the start page, the studio's **Appearance** panel lets you **import a PNG
 **printed text** onto the garment live — with an adjustable graphic size — so you can iterate on prints
 while the cloth simulates.
 
+### Go deep on construction detail
+Beyond the silhouette, add real **construction detail** — a **collar** (raises/closes the neckline into a
+stand), fitted **cuffs**, **pleats** (a fuller, swishier hem), and **darts** (a nipped, tailored waist).
+Each one shows up **both** on the 3D garment and in the flat pattern (the panels reshape, and the pattern
+notes the detail), and each garment only offers the details it supports.
+
+![A collar + cuffs + darted long-sleeve top](docs/detail.png)
+
 ### Size it · see every measurement · pack it for the factory
 Pick a **size** (XS – XXL) and the garment **grades** to fit; the **Measurements** panel shows the real
 production spec **live** — chest, waist, hip, length, sleeve, inseam, hem sweep, plus estimated **fabric
