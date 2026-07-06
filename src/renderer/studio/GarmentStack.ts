@@ -48,6 +48,8 @@ export interface StackLayer {
   trimMaterial: THREE.MeshPhysicalMaterial
   controller: GarmentController
   design: DesignArt | null
+  /** The back panel's own albedo (back colour + prints) when a back fabric is set. */
+  backDesign: DesignArt | null
   /** Non-simulated decoration (patch pockets + trim bands) parented to the layer. */
   decor: THREE.Group
   /** Placed prints (logos + text) — runtime (images live here). */
@@ -145,6 +147,11 @@ export class GarmentStack {
     } else {
       ;(l.data.partFabrics ??= {})[part] = next
     }
+    // The back panel's base colour changed → rebuild its print canvas in applyLook.
+    if (part === 'back' && l.backDesign) {
+      l.backDesign.texture.dispose()
+      l.backDesign = null
+    }
     this.applyLook(l)
     this.buildDecor(l) // trim bands / pocket material depend on trim
     // A piece fabric swap changes drape, so re-derive its physics. Back panels are
@@ -197,13 +204,32 @@ export class GarmentStack {
       l.material.map = null
       l.design = null
     }
+    // When the back panel has its own fabric it's a separate material/geometry group,
+    // so give it its own albedo (back colour + the same prints, un-mirrored for the
+    // back face) — otherwise a print placed on the back (u>0.5) wouldn't show.
+    if (hasArt(input) && l.data.partFabrics?.back) {
+      const backInput = { color: this.panelFabric(l, 'back').color, prints: l.prints, mirror: false }
+      if (!l.backDesign) l.backDesign = buildDesignArt(backInput)
+      l.backMaterial.map = l.backDesign.texture
+      l.backMaterial.color.set(0xffffff)
+      l.backDesign.redraw()
+    } else if (l.backDesign) {
+      l.backMaterial.map = null
+      l.backDesign.texture.dispose()
+      l.backDesign = null
+    }
     l.material.needsUpdate = true
+    l.backMaterial.needsUpdate = true
     this.applyPartMaterials(l)
   }
 
   /** Rebuild a layer's print from scratch (image/text changed) + reapply. */
   refreshDesign(l: StackLayer): void {
     l.design = null
+    if (l.backDesign) {
+      l.backDesign.texture.dispose()
+      l.backDesign = null
+    }
     this.applyLook(l)
   }
 
@@ -287,6 +313,7 @@ export class GarmentStack {
       trimMaterial: createFabricMaterial(fabric),
       controller,
       design: null,
+      backDesign: null,
       decor,
       prints: (data.prints ?? []).map(printFromSpec)
     }
