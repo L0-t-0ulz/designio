@@ -79,7 +79,9 @@ export interface PanelOptions {
   onBack?: () => void
 }
 
-/** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
+/** A friendly custom control panel: design mode, garment/pattern, fabric, physics.
+ * Every slider readout is click-to-type (exact values); a quick-edit toolbar over
+ * the viewport mirrors the key controls in both 3D and 2D. */
 /** Selection hooks the Library uses so it drives the same state as the panel. */
 export interface PanelApi {
   selectGarment: (id: string) => void
