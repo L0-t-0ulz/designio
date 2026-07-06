@@ -62,7 +62,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Features**
 - [ ] **Drop in a real photoreal skin** — the GLB slot is now the default + renders own materials; add a CC0 photoreal human `.glb` at `assets/mannequin.glb` (current is a clean rigged mannequin)
-- [ ] **GLB animation + collider fit** — drive the GLB's own idle/walk/turn clips and fit the cloth colliders to the GLB mesh (today GLB is static + cloth uses the capsule skeleton)
+- [ ] **Body-pinned garments** — pin a garment's top ring to the body's shoulders so the avatar can **walk/idle with clothes on**. _(Prototyped the GLB's idle/walk clips + bone-driven collider fit; blocked because garments pin to **world space**, not the body — so any body motion walks out of them. This is the real prerequisite for GLB animation.)_
 - [ ] **More garments** — blazer · hoodie · cargo pants · coat · blouse (data-driven)
 - [ ] **Cloth self / inter-collision** — layered garments push off each other
 - [ ] **Topstitching + seam styles** on the 3D + pattern
