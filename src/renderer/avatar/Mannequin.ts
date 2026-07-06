@@ -92,6 +92,12 @@ export const DEFAULT_BODY: BodyParams = {
 
 export type AnimationMode = 'static' | 'idle' | 'walk' | 'turn'
 
+/** World-space frames garments pin to so they follow the moving body (torso = tops, hip = bottoms). */
+export interface BodyAnchors {
+  torso: THREE.Matrix4
+  hip: THREE.Matrix4
+}
+
 export interface Mannequin {
   group: THREE.Group
   colliders: Capsule[]
@@ -101,8 +107,10 @@ export interface Mannequin {
   update: (t: number, mode: AnimationMode, speed: number) => void
   /** Resize in place; mutates colliders + measurements so garments can refit. */
   resize: (body: Partial<BodyParams>) => void
-  /** true = realistic GLB (static), false = animatable metaball body. */
+  /** true = realistic GLB, false = procedural metaball body. */
   setBodyMode: (realistic: boolean) => void
+  /** Current body anchors — garments pin to these so they follow the animated body. */
+  anchors: () => BodyAnchors
 }
 
 type Part = 'root' | 'armL' | 'armR' | 'legL' | 'legR'
@@ -391,8 +399,75 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     }
   }
 
+  // Drive the cloth capsules from the GLB rig so garments follow the animated body.
+  // Capsule order (baseDefs): 0 head, 1 neck, 2 torso, 3 shoulder line, 4 hip line,
+  // 5/6 left arm, 7/8 left leg, 9/10 right arm, 11/12 right leg.
+  const wp = new THREE.Vector3()
+  const wp2 = new THREE.Vector3()
+  const setCap = (i: number, ba?: THREE.Object3D, bb?: THREE.Object3D): void => {
+    if (!ba || !bb) return
+    ba.getWorldPosition(wp)
+    bb.getWorldPosition(wp2)
+    colliders[i].a.copy(wp)
+    colliders[i].b.copy(wp2)
+  }
+  const fitCollidersToGlb = (): void => {
+    if (!glb) return
+    const b = glb.bones
+    setCap(2, b.hips, b.chest) // torso
+    setCap(1, b.chest, b.neck)
+    setCap(0, b.neck, b.head)
+    setCap(3, b.lArm, b.rArm) // shoulder line
+    setCap(4, b.lUpLeg, b.rUpLeg) // hip line
+    // Match the procedural left capsules (−x) to whichever GLB side is on −x.
+    let negS: 'l' | 'r' = 'l'
+    if (b.lArm && b.rArm) {
+      b.lArm.getWorldPosition(wp)
+      b.rArm.getWorldPosition(wp2)
+      negS = wp.x <= wp2.x ? 'l' : 'r'
+    }
+    const posS: 'l' | 'r' = negS === 'l' ? 'r' : 'l'
+    const bn = (s: 'l' | 'r', seg: string): THREE.Object3D | undefined => b[(s + seg) as keyof typeof b]
+    setCap(5, bn(negS, 'Arm'), bn(negS, 'Fore'))
+    setCap(6, bn(negS, 'Fore'), bn(negS, 'Hand'))
+    setCap(7, bn(negS, 'UpLeg'), bn(negS, 'Leg'))
+    setCap(8, bn(negS, 'Leg'), bn(negS, 'Foot'))
+    setCap(9, bn(posS, 'Arm'), bn(posS, 'Fore'))
+    setCap(10, bn(posS, 'Fore'), bn(posS, 'Hand'))
+    setCap(11, bn(posS, 'UpLeg'), bn(posS, 'Leg'))
+    setCap(12, bn(posS, 'Leg'), bn(posS, 'Foot'))
+  }
+
+  // Body anchors garments pin to. GLB → chest/hips bones (move with the animation);
+  // procedural → static frames at the chest/hip landmarks (the torso doesn't animate).
+  const torsoMat = new THREE.Matrix4()
+  const hipMat = new THREE.Matrix4()
+  const anchors = (): BodyAnchors => {
+    if (useGlb && glb?.bones.hips) {
+      const chest = glb.bones.chest ?? glb.bones.neck ?? glb.bones.hips
+      chest.updateWorldMatrix(true, false)
+      glb.bones.hips.updateWorldMatrix(true, false)
+      torsoMat.copy(chest.matrixWorld)
+      hipMat.copy(glb.bones.hips.matrixWorld)
+    } else {
+      torsoMat.makeTranslation(0, measurements.chestY, 0)
+      hipMat.makeTranslation(0, measurements.hipY, 0)
+    }
+    return { torso: torsoMat, hip: hipMat }
+  }
+
+  let lastT = 0
   const update = (t: number, mode: AnimationMode, speed: number): void => {
-    if (useGlb && glb) return // realistic GLB body is static
+    const dt = Math.min(0.05, Math.max(0, t - lastT))
+    lastT = t
+    if (useGlb && glb) {
+      // Play the rig's idle/walk clip (idle frozen when static) then snap the cloth
+      // capsules onto its bones; garments follow via their body anchors (see anchors()).
+      const animating = mode === 'idle' || mode === 'walk'
+      glb.update(animating ? dt * speed : 0, mode === 'walk')
+      fitCollidersToGlb()
+      return
+    }
     let legAmp = 0
     let armAmp = 0
     let freq = 0
@@ -453,5 +528,5 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   syncBodyBVH(false) // initial static body → build the collision surface
   lastKey = '0.0000,0.0000'
 
-  return { group, colliders, measurements, bodyCollider, update, resize, setBodyMode }
+  return { group, colliders, measurements, bodyCollider, update, resize, setBodyMode, anchors }
 }
