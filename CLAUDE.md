@@ -52,10 +52,11 @@ Renderer modules:
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape),
   `weaveTexture` (procedural weave normal maps; pure math is unit-tested).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
-  `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart** detail), `registry`
-  (the garments, as data), `factory` (`buildGarment` composes pieces; construction detail is folded into
-  the tube/sleeve specs so the 3D silhouette + the 2D pattern both reflect it). Adding a garment or a
-  supported detail is a data change, not new code.
+  `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem** detail),
+  `registry` (the garments, as data), `factory` (`buildGarment` composes pieces; construction detail is
+  folded into the tube/sleeve specs so the 3D silhouette + the 2D pattern both reflect it), `decor`
+  (`pocketPlacements` — pure patch-pocket positions; the stack renders them as non-sim patch meshes).
+  Adding a garment or a supported detail is a data change, not new code.
 - `garment/` — `GarmentController` (one garment's multi-piece sim, consumes the factory); `templates`
   (shared `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh collision.
 - `studio/` — the **multi-garment layer stack**: `document` (`ProjectDoc` = body + scene + serialisable
@@ -107,7 +108,7 @@ Renderer modules:
 its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>` ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (procedural vs realistic-GLB avatar) ·
-`?layers=<id>,<id>` (layer extra garments on the body) · `?collar/cuff/pleats/dart=1` (construction detail) ·
+`?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem=1` (construction detail) ·
 `?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable) · `?page=start` (deep-link the
 builder) · `?page=projects[&demo]` (the Projects gallery; `demo` seeds a few looks). Entry is the homepage
 launcher → start page / Projects → studio. Regenerate docs with `npm run capture`.
