@@ -464,7 +464,10 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       // Play the rig's idle/walk clip (idle frozen when static) then snap the cloth
       // capsules onto its bones; garments follow via their body anchors (see anchors()).
       const animating = mode === 'idle' || mode === 'walk'
-      glb.update(animating ? dt * speed : 0, mode === 'walk')
+      // Ease the walk to ~0.6× so the stride (and the cloth that hangs off it) reads
+      // graceful rather than frantic; idle plays at full rate.
+      const rate = mode === 'walk' ? 0.6 : 1
+      glb.update(animating ? dt * speed * rate : 0, mode === 'walk')
       fitCollidersToGlb()
       return
     }
