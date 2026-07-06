@@ -29,6 +29,17 @@ const skirtTube = {
   topR: 'waist' as const,
   botR: 'hip' as const
 }
+// A long outer layer (blazer/coat) hanging from the shoulders past the hip.
+const coatTube = {
+  kind: 'bodyTube' as const,
+  topAnchor: 'shoulder' as const,
+  hemDropHi: 0.5,
+  hemDropLo: 1.2,
+  topR: 'chest' as const,
+  botR: 'hip' as const,
+  flareScale: 0.7,
+  neckline: true
+}
 const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true }
 const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true }
 
@@ -93,6 +104,27 @@ export const GARMENTS: GarmentDefinition[] = [
     supports: upperCaps,
     defaults: { length: 0.88, ease: 0.03, flare: 0.09, neckline: 'v', sleeve: 'long' }
   },
+  {
+    id: 'blouse',
+    name: 'Blouse',
+    category: 'top',
+    icon: 'top',
+    pieces: [upperTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    defaults: { length: 0.66, ease: 0.03, flare: 0.12, neckline: 'v', sleeve: 'long' },
+    defaultFabric: 'silk-charmeuse'
+  },
+  {
+    id: 'hoodie',
+    name: 'Hoodie',
+    category: 'top',
+    icon: 'top',
+    pieces: [upperTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    // relaxed pullover: stand collar (neck) + a kangaroo patch pocket.
+    defaults: { length: 0.7, ease: 0.06, flare: 0.06, neckline: 'crew', sleeve: 'long', collar: true, pocket: true },
+    defaultFabric: 'french-terry'
+  },
 
   // ---- bottoms ----
   {
@@ -148,6 +180,16 @@ export const GARMENTS: GarmentDefinition[] = [
     pieces: [{ kind: 'legTubes' }],
     supports: lowerCaps,
     defaults: { length: 0.98, ease: 0.03, flare: 0.18 }
+  },
+  {
+    id: 'cargo',
+    name: 'Cargo pants',
+    category: 'bottom',
+    icon: 'pants',
+    pieces: [{ kind: 'legTubes' }],
+    supports: lowerCaps,
+    defaults: { length: 0.62, ease: 0.045, flare: 0.06, pocket: true },
+    defaultFabric: 'chino-twill'
   },
 
   // ---- dresses ----
@@ -211,6 +253,29 @@ export const GARMENTS: GarmentDefinition[] = [
     ],
     supports: upperCaps,
     defaults: { length: 0.92, ease: 0.02, flare: 0.05, neckline: 'scoop', sleeve: 'none' }
+  },
+
+  // ---- outerwear ----
+  {
+    id: 'blazer',
+    name: 'Blazer',
+    category: 'outerwear',
+    icon: 'top',
+    pieces: [upperTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    // structured: a collar (lapel stand) + welt-style patch pockets, roomy over a layer.
+    defaults: { length: 0.68, ease: 0.05, flare: 0.05, neckline: 'v', sleeve: 'long', collar: true, pocket: true },
+    defaultFabric: 'wool-flannel'
+  },
+  {
+    id: 'coat',
+    name: 'Coat',
+    category: 'outerwear',
+    icon: 'dress',
+    pieces: [coatTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, pocket: true },
+    defaultFabric: 'wool-flannel'
   }
 ]
 
