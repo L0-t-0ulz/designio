@@ -18,9 +18,10 @@ interface Piece {
   mesh: THREE.Mesh
   solver: XPBDSolver
   name: string
-  /** Top ring (shoulder/waist) + mid ring (elbow, for sleeves) + the top ring's average position. */
+  /** Top ring (shoulder/waist) + mid ring (elbow, for sleeves) + waist ring (bodices). */
   topRing: number[]
   midRing: number[]
+  waistRing: number[]
   pinnedX: number
   pinnedY: number
   /** The body anchors this piece's pin groups follow (recomputed on each bind). */
@@ -75,6 +76,23 @@ export class GarmentController {
     const topRing = [...pinnedTop]
     const midY = Math.floor((ny - 1) / 2)
     const midRing = Array.from({ length: nx }, (_, ix) => midY * nx + ix) // mid ring (a sleeve's elbow)
+    const ringY = (iy: number): number => {
+      let y = 0
+      for (let ix = 0; ix < nx; ix++) y += positions[(iy * nx + ix) * 3 + 1]
+      return y / nx
+    }
+    // Waist ring: the row nearest the anatomical waist (below the top ring), if the piece
+    // reaches it — a bodice/dress pins here too so it can't creep off the shoulders.
+    let bestIy = -1
+    let bestD = Infinity
+    for (let iy = 1; iy < ny; iy++) {
+      const d = Math.abs(ringY(iy) - this.measurements.waistY)
+      if (d < bestD) {
+        bestD = d
+        bestIy = iy
+      }
+    }
+    const waistRing = bestIy > 0 && bestD < 0.1 ? Array.from({ length: nx }, (_, ix) => bestIy * nx + ix) : []
     let pinnedY = 0
     let pinnedX = 0
     for (const idx of pinnedTop) {
@@ -82,7 +100,7 @@ export class GarmentController {
       pinnedY += positions[idx * 3 + 1]
     }
     const n = pinnedTop.length || 1
-    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions) })
+    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions) })
   }
 
   /** Bind each piece's pin groups to the body parts it hangs from — a sleeve pins its
@@ -121,7 +139,11 @@ export class GarmentController {
           if (dx * dx + dy * dy + dz * dz < 0.15 * 0.15) groups.push({ idx: p.midRing, kind: foreKind })
         }
       } else {
-        groups.push({ idx: p.topRing, kind: Math.abs(p.pinnedY - torsoY) <= Math.abs(p.pinnedY - hipY) ? 'torso' : 'hip' })
+        const kind: AnchorKey = Math.abs(p.pinnedY - torsoY) <= Math.abs(p.pinnedY - hipY) ? 'torso' : 'hip'
+        groups.push({ idx: p.topRing, kind })
+        // A top/dress bodice also clamps its waist to the pelvis, so it can't creep off
+        // the shoulders during a walk; the skirt below the waist stays free to swing.
+        if (kind === 'torso' && p.waistRing.length) groups.push({ idx: p.waistRing, kind: 'hip' })
       }
       p.pinGroups = groups
       p.solver.bindPinGroups(groups.map((g) => ({ idx: g.idx, anchor: a[g.kind] })))

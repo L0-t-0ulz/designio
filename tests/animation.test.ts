@@ -28,6 +28,20 @@ describe('poseable mannequin', () => {
   })
 })
 
+describe('body-change notification (garments re-pin on body swap)', () => {
+  it('setOnBodyChange fires whenever the body mode changes', () => {
+    // The walk-slide bug: garments bind their pins to the procedural body (before the
+    // async GLB loads) then follow the GLB — a stale bind that drifts them off. The
+    // mannequin must notify on every body swap so the studio re-drapes/re-pins.
+    const m = buildMannequin()
+    let calls = 0
+    m.setOnBodyChange(() => calls++)
+    m.setBodyMode(true) // request the GLB body
+    m.setBodyMode(false) // back to the procedural body
+    expect(calls).toBeGreaterThanOrEqual(2)
+  })
+})
+
 describe('slim seat (single source of truth)', () => {
   const SEAT = 0.52 // must match Mannequin.ts; both mesh + collider use hipR * SEAT
   it('the hip collider radius equals the mesh seat radius (no fat invisible capsule)', () => {

@@ -76,6 +76,9 @@ function initStudio(
 
   // The multi-garment stack (each layer = its own material · controller · fabric).
   const stack = new GarmentStack(viewport.scene, mannequin.colliders, mannequin.measurements, mannequin.bodyCollider, () => mannequin.anchors())
+  // When the body swaps (the async GLB avatar arrives, or the toggle), re-drape every
+  // garment so its pins re-bind to the new body's anchors instead of the old one's.
+  mannequin.setOnBodyChange(() => stack.redrapeAll())
   let patternCtl: PatternController | null = null
 
   // Panel edit buffers — always mirror the ACTIVE layer.
