@@ -55,6 +55,13 @@ export interface LayerSummary {
 /** Editable garment parts (piece groups + trim). */
 export type PartId = 'body' | 'sleeves' | 'legs' | 'trim'
 
+/** Which part a simulated piece belongs to, keyed off its mesh name (drives its material + physics). */
+export function partForPiece(name: string): 'sleeves' | 'legs' | 'body' {
+  if (/sleeve/i.test(name)) return 'sleeves'
+  if (/leg/i.test(name)) return 'legs'
+  return 'body'
+}
+
 export class GarmentStack {
   readonly layers: StackLayer[] = []
   activeIndex = 0
@@ -86,6 +93,12 @@ export class GarmentStack {
     return pf ? { ...getFabric(pf.fabricId), color: pf.color } : l.fabric
   }
 
+  /** The fabric that drives a piece's cloth physics, by piece name (part override, or body). */
+  private pieceFabric(l: StackLayer, name: string): Fabric {
+    const part = partForPiece(name)
+    return part === 'body' ? l.fabric : this.partFabric(l, part)
+  }
+
   /** The current { fabricId, color } for a part (body/trim/sleeves/legs). */
   partData(part: PartId): { fabricId: string; color: number } {
     const d = this.active.data
@@ -111,11 +124,14 @@ export class GarmentStack {
     }
     this.applyLook(l)
     this.buildDecor(l) // trim bands / pocket material depend on trim
+    // A fabric swap changes drape, so re-derive that part's piece physics (colour-only edits don't).
+    if (opts.fabricId && part !== 'trim') l.controller.setFabricPhysics()
   }
   /** Assign each piece mesh its part material (Body / Sleeves / Legs) by piece name. */
   private applyPartMaterials(l: StackLayer): void {
     for (const { name, mesh } of l.controller.getPieces()) {
-      mesh.material = /sleeve/i.test(name) ? l.sleeveMaterial : /leg/i.test(name) ? l.legMaterial : l.material
+      const part = partForPiece(name)
+      mesh.material = part === 'sleeves' ? l.sleeveMaterial : part === 'legs' ? l.legMaterial : l.material
     }
   }
 
@@ -213,7 +229,7 @@ export class GarmentStack {
       material,
       this.colliders,
       this.measurements,
-      () => fabricToSolverParams(fabric),
+      (name) => fabricToSolverParams(this.pieceFabric(layer, name)),
       this.bodyCollider
     )
     const decor = new THREE.Group()

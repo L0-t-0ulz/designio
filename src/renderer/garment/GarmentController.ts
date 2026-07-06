@@ -34,7 +34,7 @@ export class GarmentController {
     private readonly material: THREE.Material,
     private readonly colliders: Capsule[],
     private readonly measurements: Measurements,
-    private readonly params: () => FabricParams,
+    private readonly params: (pieceName: string) => FabricParams,
     private readonly bodyCollider: BodyCollider | null = null
   ) {}
 
@@ -55,7 +55,7 @@ export class GarmentController {
     mesh.frustumCulled = false
     this.scene.add(mesh)
 
-    const solver = new XPBDSolver(nx, ny, positions, this.params(), { pinned: pinnedTop, wrapX: true })
+    const solver = new XPBDSolver(nx, ny, positions, this.params(name), { pinned: pinnedTop, wrapX: true })
     solver.colliders = this.colliders
     solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)
@@ -111,7 +111,7 @@ export class GarmentController {
   }
 
   setFabricPhysics(): void {
-    for (const p of this.pieces) p.solver.setFabric(this.params())
+    for (const p of this.pieces) p.solver.setFabric(this.params(p.name))
     this.redrape()
   }
 

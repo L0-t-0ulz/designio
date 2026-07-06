@@ -7,6 +7,9 @@ import { docFromConfig, defaultLayer, cloneLayer, serializeDoc, parseDoc, gradeP
 import { garmentToPanels } from '../src/renderer/export/garmentPattern'
 import { garmentMetrics } from '../src/renderer/export/garmentMetrics'
 import { manufactureHTML, manufactureJSON, type ManufactureBundle } from '../src/renderer/export/manufacture'
+import { fabricToSolverParams, getFabric } from '../src/renderer/fabric/FabricLibrary'
+import { partForPiece } from '../src/renderer/studio/GarmentStack'
+import type { GarmentLayerData } from '../src/renderer/studio/document'
 
 const mann = buildMannequin()
 
@@ -78,5 +81,43 @@ describe('per-part fabric · trim · seam allowance', () => {
     const json = JSON.parse(manufactureJSON(bundle))
     expect(json.garments[0].part_fabrics[0]).toEqual({ part: 'sleeves', fabric: 'Leather' })
     expect(json.garments[0].seam_allowance_mm).toBe(12)
+  })
+})
+
+describe('per-part physics · per-piece solver params', () => {
+  // Mirrors GarmentStack.pieceFabric: a part uses its override, else the body fabric.
+  const pieceFabricId = (l: GarmentLayerData, name: string): string => {
+    const part = partForPiece(name)
+    return part === 'body' ? l.fabricId : (l.partFabrics?.[part]?.fabricId ?? l.fabricId)
+  }
+
+  it('partForPiece maps a piece mesh name to its part (case-insensitive)', () => {
+    expect(partForPiece('Left sleeve')).toBe('sleeves')
+    expect(partForPiece('Right sleeve')).toBe('sleeves')
+    expect(partForPiece('Left leg')).toBe('legs')
+    expect(partForPiece('Right leg')).toBe('legs')
+    expect(partForPiece('Body')).toBe('body')
+    expect(partForPiece('BODY')).toBe('body')
+  })
+
+  it('a part with no override falls back to the body fabric', () => {
+    const l = defaultLayer('long-sleeve')
+    l.fabricId = 'jersey-knit'
+    expect(pieceFabricId(l, 'Right leg')).toBe('jersey-knit') // no legs override
+    expect(pieceFabricId(l, 'Body')).toBe('jersey-knit')
+  })
+
+  it('a leather sleeve on a jersey body derives stiffer solver params for the sleeve', () => {
+    const l = defaultLayer('long-sleeve')
+    l.fabricId = 'jersey-knit'
+    l.partFabrics = { sleeves: { fabricId: 'leather', color: 0x442200 } }
+
+    const sleeve = fabricToSolverParams(getFabric(pieceFabricId(l, 'Left sleeve')))
+    const body = fabricToSolverParams(getFabric(pieceFabricId(l, 'Body')))
+
+    // leather drapes stiffer + heavier than jersey (the point of the feature)
+    expect(sleeve.bendCompliance).toBeLessThan(body.bendCompliance)
+    expect(sleeve.stretchCompliance).toBeLessThan(body.stretchCompliance)
+    expect(sleeve.mass).toBeGreaterThan(body.mass)
   })
 })
