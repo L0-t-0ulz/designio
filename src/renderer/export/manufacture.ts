@@ -13,6 +13,12 @@ export interface ManufactureLayer {
   fabricName: string
   gsm: number
   color: number
+  /** Per-part fabric overrides (e.g. leather sleeves) for the BOM. */
+  parts?: { part: string; fabric: string }[]
+  /** Contrast trim fabric/colour, if any. */
+  trim?: string
+  /** Seam allowance (mm). */
+  seam?: number
   metrics: GarmentMetrics
   patternSVG: string
 }
@@ -49,7 +55,10 @@ function layerSection(l: ManufactureLayer): string {
         <h3>Bill of materials</h3>
         <table>
           <tbody>
-            <tr><td>Fabric</td><td colspan="2">${esc(l.fabricName)} · ${l.gsm} gsm</td></tr>
+            <tr><td>Fabric (body)</td><td colspan="2">${esc(l.fabricName)} · ${l.gsm} gsm</td></tr>
+            ${(l.parts ?? []).map((p) => `<tr><td>Fabric (${esc(p.part)})</td><td colspan="2">${esc(p.fabric)}</td></tr>`).join('')}
+            ${l.trim ? `<tr><td>Trim</td><td colspan="2">${esc(l.trim)}</td></tr>` : ''}
+            <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
             <tr><td>Cloth area</td><td colspan="2">${l.metrics.fabricM2.toFixed(2)} m²</td></tr>
             <tr><td>Yardage (@ ${FABRIC_WIDTH_M * 100} cm)</td><td colspan="2">${lengthM.toFixed(2)} m · ${(lengthM * 1.094).toFixed(2)} yd</td></tr>
             <tr><td>Total seam length</td><td colspan="2">${l.metrics.seamCm.toFixed(0)} cm</td></tr>
@@ -108,6 +117,9 @@ export function manufactureJSON(b: ManufactureBundle): string {
         name: l.name,
         size: l.size,
         fabric: { name: l.fabricName, gsm: l.gsm },
+        part_fabrics: l.parts ?? [],
+        trim: l.trim ?? null,
+        seam_allowance_mm: l.seam ?? 10,
         color: hex(l.color),
         measurements_cm: Object.fromEntries(l.metrics.rows.map((r) => [r.label, r.cm])),
         fabric_area_m2: l.metrics.fabricM2,

@@ -13,6 +13,7 @@ import { GarmentController } from '../garment/GarmentController'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
+import { garmentPatternSpecs } from '../garments/factory'
 import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, type DesignArt } from '../start/design'
 import { gradeParams, type GarmentLayerData } from './document'
@@ -20,13 +21,25 @@ import { gradeParams, type GarmentLayerData } from './document'
 const TEXT_COLOR = 0x1a1a22
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
 
+const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [l.material, l.sleeveMaterial, l.legMaterial, l.trimMaterial]
+const disposeMats = (l: StackLayer): void => {
+  for (const m of layerMats(l)) m.dispose()
+}
+
 export interface StackLayer {
   data: GarmentLayerData
+  /** The body/default fabric (parts fall back to it). */
   fabric: Fabric
+  /** Body material (the print/logo lives here). */
   material: THREE.MeshPhysicalMaterial
+  /** Per-part materials (used only when a part has its own fabric). */
+  sleeveMaterial: THREE.MeshPhysicalMaterial
+  legMaterial: THREE.MeshPhysicalMaterial
+  /** Contrast-trim material (collar/cuff/pocket/hem bands) when `data.trim` is on. */
+  trimMaterial: THREE.MeshPhysicalMaterial
   controller: GarmentController
   design: DesignArt | null
-  /** Non-simulated decoration (patch pockets) parented to the layer. */
+  /** Non-simulated decoration (patch pockets + trim bands) parented to the layer. */
   decor: THREE.Group
   /** Uploaded PNG (runtime-only; not serialised into `.dio`). */
   image: HTMLImageElement | null
@@ -40,6 +53,9 @@ export interface LayerSummary {
   active: boolean
   pieces: number
 }
+
+/** Editable garment parts (piece groups + trim). */
+export type PartId = 'body' | 'sleeves' | 'legs' | 'trim'
 
 export class GarmentStack {
   readonly layers: StackLayer[] = []
@@ -72,9 +88,55 @@ export class GarmentStack {
     return { color: l.data.color, image: l.image, imageScale: l.data.imageScale, text: l.data.text, textColor: TEXT_COLOR }
   }
 
-  /** (Re)apply a layer's fabric look + optional print to its material. */
+  /** The fabric for a garment part (its override, or the body default). */
+  private partFabric(l: StackLayer, part: 'sleeves' | 'legs'): Fabric {
+    const pf = l.data.partFabrics?.[part]
+    return pf ? { ...getFabric(pf.fabricId), color: pf.color } : l.fabric
+  }
+
+  /** The current { fabricId, color } for a part (body/trim/sleeves/legs). */
+  partData(part: PartId): { fabricId: string; color: number } {
+    const d = this.active.data
+    if (part === 'body') return { fabricId: d.fabricId, color: d.color }
+    if (part === 'trim') return { fabricId: d.trimFabricId ?? d.fabricId, color: d.trimColor ?? d.color }
+    return d.partFabrics?.[part] ?? { fabricId: d.fabricId, color: d.color }
+  }
+  /** Assign a fabric and/or colour to a part of the active layer (visual). */
+  setPart(part: PartId, opts: { fabricId?: string; color?: number }): void {
+    const l = this.active
+    const cur = this.partData(part)
+    const next = { fabricId: opts.fabricId ?? cur.fabricId, color: opts.color ?? cur.color }
+    if (part === 'body') {
+      l.data.fabricId = next.fabricId
+      l.data.color = next.color
+      l.fabric = { ...getFabric(next.fabricId), color: next.color }
+    } else if (part === 'trim') {
+      l.data.trim = true
+      l.data.trimFabricId = next.fabricId
+      l.data.trimColor = next.color
+    } else {
+      ;(l.data.partFabrics ??= {})[part] = next
+    }
+    this.applyLook(l)
+    this.buildDecor(l) // trim bands / pocket material depend on trim
+  }
+  /** Assign each piece mesh its part material (Body / Sleeves / Legs) by piece name. */
+  private applyPartMaterials(l: StackLayer): void {
+    for (const { name, mesh } of l.controller.getPieces()) {
+      mesh.material = /sleeve/i.test(name) ? l.sleeveMaterial : /leg/i.test(name) ? l.legMaterial : l.material
+    }
+  }
+
+  /** (Re)apply a layer's per-part fabric looks + trim + the print to its materials. */
   applyLook(l: StackLayer): void {
-    applyFabric(l.material, l.fabric)
+    applyFabric(l.material, l.fabric) // body / default
+    applyFabric(l.sleeveMaterial, this.partFabric(l, 'sleeves'))
+    applyFabric(l.legMaterial, this.partFabric(l, 'legs'))
+    const trimFab: Fabric = l.data.trimFabricId
+      ? { ...getFabric(l.data.trimFabricId), color: l.data.trimColor ?? 0x1a1a22 }
+      : { ...l.fabric, color: l.data.trimColor ?? 0x1a1a22 }
+    applyFabric(l.trimMaterial, trimFab)
+
     const input = this.artInput(l)
     if (hasArt(input)) {
       if (!l.design) l.design = buildDesignArt(input)
@@ -86,6 +148,7 @@ export class GarmentStack {
       l.design = null
     }
     l.material.needsUpdate = true
+    this.applyPartMaterials(l)
   }
 
   /** Rebuild a layer's print from scratch (image/text changed) + reapply. */
@@ -99,28 +162,50 @@ export class GarmentStack {
     l.decor.visible = l.data.visible
   }
 
-  /** Rebuild a layer's non-sim decoration (patch pockets) from its data. */
+  /** Rebuild a layer's non-sim decoration (patch pockets + contrast-trim bands). */
   private buildDecor(l: StackLayer): void {
     for (const c of l.decor.children) {
       const anyc = c as THREE.Mesh | THREE.LineSegments
       anyc.geometry?.dispose()
     }
     l.decor.clear()
-    if (!l.data.pocket) return
-    for (const p of pocketPlacements(getGarment(l.data.garmentType), this.measurements)) {
-      const geo = new THREE.PlaneGeometry(p.w, p.h)
-      const plane = new THREE.Mesh(geo, l.material)
-      plane.position.set(p.x, p.y, p.z)
-      plane.castShadow = true
-      plane.receiveShadow = true
-      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), POCKET_LINE)
-      edges.position.set(p.x, p.y, p.z + 0.0015)
-      l.decor.add(plane, edges)
+    const trimOn = !!l.data.trim
+    const pocketMat = trimOn ? l.trimMaterial : l.material
+
+    if (l.data.pocket) {
+      for (const p of pocketPlacements(getGarment(l.data.garmentType), this.measurements)) {
+        const geo = new THREE.PlaneGeometry(p.w, p.h)
+        const plane = new THREE.Mesh(geo, pocketMat)
+        plane.position.set(p.x, p.y, p.z)
+        plane.castShadow = true
+        plane.receiveShadow = true
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), POCKET_LINE)
+        edges.position.set(p.x, p.y, p.z + 0.0015)
+        l.decor.add(plane, edges)
+      }
+    }
+
+    // contrast-trim bands at the hem + neckline (thin rings in the trim material)
+    if (trimOn) {
+      const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
+      const band = (radius: number, y: number): void => {
+        const geo = new THREE.TorusGeometry(Math.max(0.03, radius + 0.006), 0.014, 8, 48)
+        const ring = new THREE.Mesh(geo, l.trimMaterial)
+        ring.rotation.x = Math.PI / 2
+        ring.position.set(0, y, 0)
+        ring.castShadow = true
+        l.decor.add(ring)
+      }
+      if (spec) {
+        band(spec.radiusBottom, spec.bottomY) // hem band
+        if (spec.neckline) band(spec.radiusTop * 0.62, (spec.shoulderY ?? spec.topY) - 0.04) // neck band
+      }
     }
   }
 
   rebuild(l: StackLayer): void {
     l.controller.build(l.data.garmentType, gradeParams(l.data))
+    this.applyPartMaterials(l)
     this.buildDecor(l)
     this.applyVisibility(l)
   }
@@ -141,7 +226,19 @@ export class GarmentStack {
     )
     const decor = new THREE.Group()
     this.scene.add(decor)
-    const layer: StackLayer = { data, fabric, material, controller, design: null, decor, image: null, imageName: null }
+    const layer: StackLayer = {
+      data,
+      fabric,
+      material,
+      sleeveMaterial: createFabricMaterial(fabric),
+      legMaterial: createFabricMaterial(fabric),
+      trimMaterial: createFabricMaterial(fabric),
+      controller,
+      design: null,
+      decor,
+      image: null,
+      imageName: null
+    }
     this.layers.push(layer)
     if (makeActive) this.activeIndex = this.layers.length - 1
     controller.setGravity(this.gravityY)
@@ -165,7 +262,7 @@ export class GarmentStack {
     if (this.layers.length <= 1) return // always keep at least one garment
     const [l] = this.layers.splice(this.activeIndex, 1)
     l.controller.clear()
-    l.material.dispose()
+    disposeMats(l)
     this.disposeDecor(l)
     this.activeIndex = Math.min(this.activeIndex, this.layers.length - 1)
   }
@@ -210,7 +307,7 @@ export class GarmentStack {
     this.active.controller.setFabricPhysics()
   }
   setWireframe(on: boolean): void {
-    for (const l of this.layers) l.material.wireframe = on
+    for (const l of this.layers) for (const m of layerMats(l)) m.wireframe = on
   }
   get wireframe(): boolean {
     return this.layers.some((l) => l.material.wireframe)
@@ -234,7 +331,7 @@ export class GarmentStack {
   clear(): void {
     for (const l of this.layers) {
       l.controller.clear()
-      l.material.dispose()
+      disposeMats(l)
       this.disposeDecor(l)
     }
     this.layers.length = 0

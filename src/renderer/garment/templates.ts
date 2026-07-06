@@ -28,6 +28,10 @@ export interface GarmentParams {
   pocket?: boolean
   /** Rolled hem — a shorter, finished hem (turn-up). */
   hem?: boolean
+  /** Seam allowance in mm for the flat pattern's cut line (default 10). */
+  seam?: number
+  /** Draw matching notches on the pattern (default true). */
+  notches?: boolean
 }
 
 export const DEFAULT_PARAMS: GarmentParams = {

@@ -163,6 +163,7 @@ export function garmentToPanels(
   colliders: Capsule[],
   seamMm = 10
 ): PatternResult {
+  const seam = params.seam ?? seamMm // per-garment seam allowance (mm)
   const specs = garmentPatternSpecs(def, params, m, colliders)
   const panels: PatternPanel[] = []
 
@@ -193,6 +194,7 @@ export function garmentToPanels(
     panels.push(finishPanel('Pocket', places.length || 1, { outline, notches }))
   }
 
+  if (params.notches === false) for (const p of panels) p.notches = [] // notches off
   const active = [
     params.collar && 'collar',
     params.cuff && 'cuffs',
@@ -201,7 +203,7 @@ export function garmentToPanels(
     params.pocket && 'pocket',
     params.hem && 'rolled hem'
   ].filter(Boolean) as string[]
-  return { panels, seam: seamMm, detail: active.length ? active.join(' · ') : undefined }
+  return { panels, seam, detail: active.length ? active.join(' · ') : undefined }
 }
 
 // ---- polygon offset (cut line = sew line + seam allowance) ----------------
