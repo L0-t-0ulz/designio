@@ -107,6 +107,9 @@ export interface DesignArt {
 export interface DesignArtInput {
   color: number
   prints: Print[]
+  /** Front faces sample the canvas mirrored (default true un-flips them); the
+   *  back face samples it the opposite way, so a back panel passes `false`. */
+  mirror?: boolean
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
@@ -140,7 +143,7 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
       ctx.save()
       ctx.translate(p.x * size, p.y * size)
       ctx.rotate((p.rotation * Math.PI) / 180)
-      ctx.scale(-1, 1) // the garment's front face samples the canvas mirrored — un-flip
+      ctx.scale(input.mirror === false ? 1 : -1, 1) // front samples mirrored (un-flip); back samples the opposite way
       if (p.kind === 'image' && p.image) {
         const w = p.scale * size
         const h = w * (p.image.height / p.image.width)
