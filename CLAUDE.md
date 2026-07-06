@@ -62,8 +62,10 @@ Renderer modules:
 - `studio/` — the **multi-garment layer stack**: `document` (`ProjectDoc` = body + scene + serialisable
   garment `layers[]`; `serializeDoc`/`parseDoc` — the `.dio` project + undo/redo snapshots + clipboard;
   `SizeLabel`/`gradeParams` grade a layer's girth by size),
-  `GarmentStack` (the live layers: each its own material · fabric · print · `GarmentController`; many
-  garments simulate on one mannequin). Adding a garment is `stack.addLayer`; the active layer is edited.
+  `GarmentStack` (the live layers: each its own materials · fabric · print · `GarmentController`; many
+  garments simulate on one mannequin). **Per-part fabric**: a material per part (body / sleeves / legs)
+  assigned to each piece mesh by name, + a **trim** material with contrast decor bands (hem/neckline) and
+  trim-coloured pockets — `stack.setPart(part, {fabricId?, color?})`. Adding a garment is `stack.addLayer`.
   `projectStore` (the **in-app project library** — localStorage list/save/load/delete/rename of saved
   `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested).
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
@@ -109,6 +111,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>` ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?body=mesh|glb` (procedural vs realistic-GLB avatar) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem=1` (construction detail) ·
+`?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable) · `?page=start` (deep-link the
 builder) · `?page=projects[&demo]` (the Projects gallery; `demo` seeds a few looks). Entry is the homepage
 launcher → start page / Projects → studio. Regenerate docs with `npm run capture`.

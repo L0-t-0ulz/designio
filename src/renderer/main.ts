@@ -32,7 +32,7 @@ import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord } from './studio/projectStore'
 import { defaultConfig, type DesignConfig } from './start/design'
-import { GarmentStack } from './studio/GarmentStack'
+import { GarmentStack, type PartId } from './studio/GarmentStack'
 import {
   docFromConfig,
   defaultLayer,
@@ -72,6 +72,7 @@ function initStudio(
   let windZ = doc0.scene.windZ
   const patternParams = { ...DEFAULT_PATTERN }
   let mode: DesignMode = 'templates'
+  let editPart: PartId = 'body' // which garment part colour/fabric edits target
 
   // The multi-garment stack (each layer = its own material · controller · fabric).
   const stack = new GarmentStack(viewport.scene, mannequin.colliders, mannequin.measurements, mannequin.bodyCollider)
@@ -91,7 +92,10 @@ function initStudio(
     pleats: l0.pleats,
     dart: l0.dart,
     pocket: l0.pocket,
-    hem: l0.hem
+    hem: l0.hem,
+    seam: l0.seam,
+    notches: l0.notches,
+    trim: l0.trim
   }
   const current: Fabric = { ...getFabric(l0.fabricId), color: l0.color }
 
@@ -179,6 +183,9 @@ function initStudio(
     garment.dart = l.data.dart
     garment.pocket = l.data.pocket
     garment.hem = l.data.hem
+    garment.seam = l.data.seam
+    garment.notches = l.data.notches
+    garment.trim = l.data.trim
     Object.assign(current, l.fabric)
     api.refresh()
   }
@@ -359,6 +366,9 @@ function initStudio(
     l.data.dart = garment.dart
     l.data.pocket = garment.pocket
     l.data.hem = garment.hem
+    l.data.seam = garment.seam
+    l.data.notches = garment.notches
+    l.data.trim = garment.trim
     stack.rebuild(l)
     centerTabs.refresh()
     api.refreshMetrics()
@@ -494,12 +504,18 @@ function initStudio(
       body: { ...bodySize },
       layers: stack.layers.map((l) => {
         const def = getGarment(l.data.garmentType)
+        const parts: { part: string; fabric: string }[] = []
+        if (l.data.partFabrics?.sleeves) parts.push({ part: 'sleeves', fabric: getFabric(l.data.partFabrics.sleeves.fabricId).name })
+        if (l.data.partFabrics?.legs) parts.push({ part: 'legs', fabric: getFabric(l.data.partFabrics.legs.fabricId).name })
         return {
           name: def.name,
           size: l.data.size,
           fabricName: l.fabric.name,
           gsm: l.fabric.gsm,
           color: l.data.color,
+          parts: parts.length ? parts : undefined,
+          trim: l.data.trim ? getFabric(l.data.trimFabricId ?? l.data.fabricId).name : undefined,
+          seam: l.data.seam ?? 10,
           metrics: activeMetrics(l),
           patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders)
         }
@@ -606,7 +622,17 @@ function initStudio(
       setMode(m)
       centerTabs.refresh()
     },
+    onSelectPart: (p) => {
+      editPart = p
+      current.color = stack.partData(p).color // show the part's colour in the picker
+      api.refresh()
+    },
     onSelectFabric: (id) => {
+      if (editPart !== 'body') {
+        stack.setPart(editPart, { fabricId: id })
+        syncBrowsers()
+        return
+      }
       const base = current.color
       Object.assign(current, getFabric(id))
       current.color = base // keep the colour across a fabric swap
@@ -654,6 +680,11 @@ function initStudio(
     },
     onColor: (h) => {
       current.color = h
+      if (editPart !== 'body') {
+        stack.setPart(editPart, { color: h })
+        syncBrowsers()
+        return
+      }
       stack.active.fabric.color = h
       stack.active.data.color = h
       stack.applyLook(stack.active)
@@ -835,6 +866,13 @@ if (skipStart) {
   if (entryParams.get('dart')) cfg.dart = true
   if (entryParams.get('pocket')) cfg.pocket = true
   if (entryParams.get('hem')) cfg.hem = true
+  if (entryParams.get('trim')) cfg.trim = true
+  const tc = entryParams.get('trimColor')
+  if (tc) cfg.trimColor = parseInt(tc, 16)
+  const sf = entryParams.get('sleeveFabric')
+  if (sf) (cfg.partFabrics ??= {}).sleeves = { fabricId: sf, color: getFabric(sf).color }
+  const lf = entryParams.get('legFabric')
+  if (lf) (cfg.partFabrics ??= {}).legs = { fabricId: lf, color: getFabric(lf).color }
   initStudio(cfg)
 } else if (entryParams.get('page') === 'start') {
   showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome) // deep-link to the builder

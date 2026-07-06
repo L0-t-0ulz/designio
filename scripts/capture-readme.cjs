@@ -23,7 +23,8 @@ const shots = [
   ['docs/closeup.png', 6000, 'garment=top&fabric=satin&closeup=1&start=0'],
   ['docs/pattern.png', 6000, 'mode=pattern&fabric=cotton-poplin&start=0'],
   ['docs/pattern-2d.png', 4000, 'garment=dress&fabric=satin&start=0&view=pattern'],
-  ['docs/detail.png', 6000, 'garment=long-sleeve&fabric=oxford&start=0&collar=1&cuff=1&dart=1&pocket=1']
+  ['docs/detail.png', 6000, 'garment=long-sleeve&fabric=oxford&start=0&collar=1&cuff=1&dart=1&pocket=1'],
+  ['docs/parts.png', 6000, 'garment=long-sleeve&fabric=denim&start=0&sleeveFabric=leather&trim=1&trimColor=d9c27e']
 ]
 
 let failed = 0

@@ -9,6 +9,7 @@ import { getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, textField, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
 import { SIZES, type SizeLabel } from '../studio/document'
+import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 
 export interface GarmentState {
@@ -25,6 +26,9 @@ export interface GarmentState {
   dart?: boolean
   pocket?: boolean
   hem?: boolean
+  seam?: number
+  notches?: boolean
+  trim?: boolean
 }
 
 export type DesignMode = 'templates' | 'pattern'
@@ -66,6 +70,8 @@ export interface PanelOptions {
   onSetAnimMode: (m: AnimationMode) => void
   onAnimSpeed: (v: number) => void
   onColor: (hex: number) => void
+  /** Which garment part the colour/fabric edits target (Body/Sleeves/Legs/Trim). */
+  onSelectPart?: (part: PartId) => void
   /** Add / adjust a printed graphic (PNG) + text on the garment (optional). */
   graphic?: GraphicControls
   /** Live measurements of the active garment (for the Measurements readout). */
@@ -190,9 +196,34 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     for (const [s, node] of sleeveBtns) node.classList.toggle('primary', s === garment.sleeve)
     for (const [s, node] of sizeBtns) node.classList.toggle('primary', s === garment.size)
   }
+  // Part selector (Body / Sleeves / Legs / Trim) — scopes colour + fabric to a part.
+  let currentPart: PartId = 'body'
+  const partRow = el('div', 'dio-seg dio-seg-wrap')
+  function rebuildPartRow(): void {
+    partRow.replaceChildren()
+    const def = getGarment(garment.type)
+    const parts: [string, PartId][] = [['Body', 'body']]
+    if (def.supports.sleeve) parts.push(['Sleeves', 'sleeves'])
+    if (def.pieces.some((p) => p.kind === 'legTubes')) parts.push(['Legs', 'legs'])
+    parts.push(['Trim', 'trim'])
+    if (!parts.some(([, p]) => p === currentPart)) currentPart = 'body'
+    for (const [label, p] of parts) {
+      const b = el('button', 'dio-seg-btn' + (p === currentPart ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        currentPart = p
+        for (const n of Array.from(partRow.children)) n.classList.remove('on')
+        b.classList.add('on')
+        opts.onSelectPart?.(p)
+      })
+      partRow.append(b)
+    }
+  }
+
   /** Reflect the selected garment: button primaries, supported controls, slider values. */
   function syncGarment(): void {
     const def = getGarment(garment.type)
+    rebuildPartRow()
     for (const [id, node] of garmentBtns) node.classList.toggle('primary', id === garment.type)
     neckRow.classList.toggle('dio-hidden', !def.supports.neckline)
     sleeveRow.classList.toggle('dio-hidden', !def.supports.sleeve)
@@ -322,8 +353,12 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  const partBlock = el('div')
+  partBlock.append(el('div', 'dio-field-label', 'Apply colour / fabric to'), partRow)
   const look = section('Appearance')
   look.body.append(
+    partBlock,
+    track(toggle({ label: 'Contrast trim', get: () => !!garment.trim, set: (v) => { garment.trim = v; opts.onGarmentEdit() } })),
     track(colorField({ label: 'Colour', get: () => current.color, set: (v) => opts.onColor(v) })),
     track(slider({ label: 'Roughness', min: 0, max: 1, step: 0.01, get: () => current.roughness, set: (v) => { current.roughness = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheen', min: 0, max: 1, step: 0.01, get: () => current.sheen, set: (v) => { current.sheen = v; opts.onVisualEdit() } })),
@@ -370,6 +405,12 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.getMetrics) renderMetrics()
 
   // ---- fabric physics ----
+  // ---- production (seam allowance + notches → the flat pattern) ----
+  const production = section('Production', true)
+  production.body.append(
+    track(slider({ label: 'Seam allowance', min: 0, max: 25, step: 1, fine: 0.5, format: (v) => `${v | 0} mm`, get: () => garment.seam ?? 10, set: (v) => { garment.seam = v; opts.onGarmentEdit() } })),
+    track(toggle({ label: 'Pattern notches', get: () => garment.notches !== false, set: (v) => { garment.notches = v; opts.onGarmentEdit() } }))
+  )
   const cloth = section('Fabric physics', true)
   cloth.body.append(
     track(slider({ label: 'Weight', min: 30, max: 500, step: 1, format: (v) => `${v | 0} gsm`, get: () => current.gsm, set: (v) => { current.gsm = v; opts.onPhysicsEdit() } })),
@@ -446,7 +487,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
 
   // ---- context groups + tabs (Garment / Avatar / Scene) ----
   const garmentGroup = el('div')
-  garmentGroup.append(modeRow, construction.root, patternSec.root, look.root, metricsSec.root, cloth.root)
+  garmentGroup.append(modeRow, construction.root, patternSec.root, look.root, production.root, metricsSec.root, cloth.root)
   const avatarGroup = el('div', 'dio-hidden')
   avatarGroup.append(bodySec.root)
   const sceneGroup = el('div')

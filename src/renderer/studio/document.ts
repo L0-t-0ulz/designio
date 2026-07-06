@@ -33,8 +33,17 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     pleats: l.pleats,
     dart: l.dart,
     pocket: l.pocket,
-    hem: l.hem
+    hem: l.hem,
+    seam: l.seam,
+    notches: l.notches
   }
+}
+// (gradeParams above carries seam/notches so the flat pattern reflects them.)
+
+/** A fabric assignment for one garment part. */
+export interface PartFabric {
+  fabricId: string
+  color: number
 }
 
 /** One garment worn on the body (its own construction + fabric + print). */
@@ -54,6 +63,15 @@ export interface GarmentLayerData {
   dart?: boolean
   pocket?: boolean
   hem?: boolean
+  /** Seam allowance (mm) + notches — pattern/production. */
+  seam?: number
+  notches?: boolean
+  /** Contrast trim (collar/cuffs/pockets/hem) — its own fabric + colour. */
+  trim?: boolean
+  trimColor?: number
+  trimFabricId?: string
+  /** Per-part fabric overrides (Body uses the default fabricId/color below). */
+  partFabrics?: { sleeves?: PartFabric; legs?: PartFabric }
   fabricId: string
   color: number
   /** Printed text on the garment ('' = none). Uploaded PNGs are runtime-only. */
@@ -109,6 +127,12 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     dart: c.dart,
     pocket: c.pocket,
     hem: c.hem,
+    seam: c.seam,
+    notches: c.notches,
+    trim: c.trim,
+    trimColor: c.trimColor,
+    trimFabricId: c.trimFabricId,
+    partFabrics: c.partFabrics ? { ...c.partFabrics } : undefined,
     fabricId: c.fabricId,
     color: c.color,
     text: c.text,
@@ -161,7 +185,12 @@ export function docFromConfig(c: DesignConfig, scene: SceneData = defaultScene()
 }
 
 export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
-  return { ...l }
+  return {
+    ...l,
+    partFabrics: l.partFabrics
+      ? { sleeves: l.partFabrics.sleeves && { ...l.partFabrics.sleeves }, legs: l.partFabrics.legs && { ...l.partFabrics.legs } }
+      : undefined
+  }
 }
 
 export function serializeDoc(doc: ProjectDoc): string {
