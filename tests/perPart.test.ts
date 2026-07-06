@@ -8,7 +8,7 @@ import { garmentToPanels } from '../src/renderer/export/garmentPattern'
 import { garmentMetrics } from '../src/renderer/export/garmentMetrics'
 import { manufactureHTML, manufactureJSON, type ManufactureBundle } from '../src/renderer/export/manufacture'
 import { fabricToSolverParams, getFabric } from '../src/renderer/fabric/FabricLibrary'
-import { partForPiece } from '../src/renderer/studio/GarmentStack'
+import { partForPiece, panelFabricId } from '../src/renderer/studio/GarmentStack'
 import type { GarmentLayerData } from '../src/renderer/studio/document'
 
 const mann = buildMannequin()
@@ -119,5 +119,39 @@ describe('per-part physics · per-piece solver params', () => {
     expect(sleeve.bendCompliance).toBeLessThan(body.bendCompliance)
     expect(sleeve.stretchCompliance).toBeLessThan(body.stretchCompliance)
     expect(sleeve.mass).toBeGreaterThan(body.mass)
+  })
+})
+
+describe('per-panel fabric · front vs back', () => {
+  it('back + legBack panels round-trip through save/parse', () => {
+    const c = defaultConfig()
+    c.partFabrics = { back: { fabricId: 'leather', color: 0x222222 }, legBack: { fabricId: 'denim', color: 0x3b5b82 } }
+    const l = parseDoc(serializeDoc(docFromConfig(c))).layers[0]
+    expect(l.partFabrics?.back).toEqual({ fabricId: 'leather', color: 0x222222 })
+    expect(l.partFabrics?.legBack).toEqual({ fabricId: 'denim', color: 0x3b5b82 })
+  })
+
+  it('cloneLayer deep-copies back + legBack (duplicate is independent)', () => {
+    const base = defaultLayer('pants')
+    base.partFabrics = { back: { fabricId: 'leather', color: 0x111111 }, legBack: { fabricId: 'denim', color: 0x222222 } }
+    const copy = cloneLayer(base)
+    copy.partFabrics!.back!.color = 0x999999
+    copy.partFabrics!.legBack!.color = 0x888888
+    expect(base.partFabrics!.back!.color).toBe(0x111111) // originals untouched
+    expect(base.partFabrics!.legBack!.color).toBe(0x222222)
+  })
+
+  it('panelFabricId follows the fallback chain (back→body, legBack→legs→body)', () => {
+    const l = defaultLayer('pants')
+    l.fabricId = 'jersey-knit'
+    expect(panelFabricId(l, 'back')).toBe('jersey-knit') // no override → body
+    expect(panelFabricId(l, 'legBack')).toBe('jersey-knit') // no legs → body
+
+    l.partFabrics = { legs: { fabricId: 'denim', color: 0 } }
+    expect(panelFabricId(l, 'legBack')).toBe('denim') // legBack falls back to legs
+
+    l.partFabrics = { back: { fabricId: 'leather', color: 0 }, legBack: { fabricId: 'denim', color: 0 } }
+    expect(panelFabricId(l, 'back')).toBe('leather') // explicit overrides win
+    expect(panelFabricId(l, 'legBack')).toBe('denim')
   })
 })

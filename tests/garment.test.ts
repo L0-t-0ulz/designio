@@ -4,7 +4,7 @@ import { MEASUREMENTS } from '../src/renderer/avatar/Mannequin'
 import { DEFAULT_PARAMS, type GarmentType } from '../src/renderer/garment/templates'
 import { getGarment, GARMENTS, GARMENT_IDS } from '../src/renderer/garments/registry'
 import { garmentTubeSpecs } from '../src/renderer/garments/factory'
-import { fillTube, fillAxisTube } from '../src/renderer/cloth/Garment'
+import { fillTube, fillAxisTube, buildTubeGarment } from '../src/renderer/cloth/Garment'
 import type { GarmentParams } from '../src/renderer/garment/templates'
 
 const specs = (t: GarmentType, p: GarmentParams = DEFAULT_PARAMS): ReturnType<typeof garmentTubeSpecs> =>
@@ -37,6 +37,21 @@ describe('garment construction (schema + factory)', () => {
     const sideY = pos[0 * 3 + 1] // ix=0 → a=0 (side / shoulder)
     const frontY = pos[Math.round(radial / 4) * 3 + 1] // a≈π/2 (centre-front)
     expect(sideY).toBeGreaterThan(frontY + 0.02)
+  })
+
+  it('a built tube splits into two material groups (front +z, back −z panels)', () => {
+    const radial = 40
+    const rings = 16
+    const build = buildTubeGarment({ rings, radial, topY: 1.4, bottomY: 0.7, radiusTop: 0.16, radiusBottom: 0.2 })
+    const groups = build.geometry.groups
+    const idxCount = build.geometry.getIndex()!.count
+    expect(groups).toHaveLength(2)
+    expect(groups[0]).toMatchObject({ start: 0, materialIndex: 0 })
+    expect(groups[1]).toMatchObject({ start: groups[0].count, materialIndex: 1 })
+    expect(groups[0].count + groups[1].count).toBe(idxCount) // tile the whole index
+    const half = Math.floor(radial / 2)
+    expect(groups[0].count).toBe(half * (rings - 1) * 6) // front = first half of columns
+    expect(groups[1].count).toBe((radial - half) * (rings - 1) * 6)
   })
 
   it('a sleeve (axis tube) builds rings perpendicular to the arm axis', () => {
