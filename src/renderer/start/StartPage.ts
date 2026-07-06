@@ -5,7 +5,7 @@ import { FABRIC_FAMILIES, type Fabric } from '../fabric/FabricLibrary'
 import { GARMENT_CATEGORIES, garmentsByCategory, getGarment } from '../garments/registry'
 import { GARMENT_SIL, fabricSwatchCanvas } from '../ui/thumbnails'
 import { el } from '../ui/controls'
-import { defaultConfig, type DesignConfig } from './design'
+import { defaultConfig, newImagePrint, newTextPrint, type DesignConfig, type Print } from './design'
 import { PreviewStudio } from './PreviewStudio'
 import { SIZES } from '../studio/document'
 import { PRESETS } from './presets'
@@ -281,18 +281,21 @@ export function showStartPage(
   fileInput.type = 'file'
   fileInput.accept = 'image/*'
   fileInput.style.display = 'none'
+  const imagePrint = (): Print | undefined => config.prints.find((p) => p.kind === 'image')
+  const textPrint = (): Print | undefined => config.prints.find((p) => p.kind === 'text')
   const loadImage = (file: File): void => {
     if (!file.type.startsWith('image/') || file.size > 8_000_000) return
     const img = new Image()
     img.onload = () => {
-      config.image = img
+      config.prints = config.prints.filter((p) => p.kind !== 'image')
+      config.prints.push(newImagePrint(img, file.name.slice(0, 16)))
       const thumb = el('div', 'dio-start-drop-preview')
       const im = el('img') as HTMLImageElement
       im.src = img.src
       const rm = el('span', 'dio-start-drop-remove', 'remove')
       rm.addEventListener('click', (e) => {
         e.stopPropagation()
-        config.image = null
+        config.prints = config.prints.filter((p) => p.kind !== 'image')
         resetDrop()
         preview?.applyLook(config)
       })
@@ -348,10 +351,17 @@ export function showStartPage(
   textInput.type = 'text'
   textInput.placeholder = 'Add a slogan…'
   textInput.maxLength = 24
-  textInput.value = config.text
+  textInput.value = textPrint()?.text ?? ''
   textInput.setAttribute('aria-label', 'Text on garment')
   textInput.addEventListener('input', () => {
-    config.text = textInput.value
+    const v = textInput.value
+    let tp = textPrint()
+    if (v.trim()) {
+      if (!tp) config.prints.push((tp = newTextPrint(v)))
+      else tp.text = v
+    } else if (tp) {
+      config.prints = config.prints.filter((p) => p !== tp)
+    }
     preview?.applyLook(config)
   })
   textRow.append(textInput)
@@ -500,9 +510,9 @@ export function showStartPage(
     el('div', 'dio-start-section', 'Your design'),
     drop,
     fileInput,
-    startSlider({ label: 'Graphic size', min: 0.15, max: 0.8, step: 0.01, get: () => config.imageScale, set: (v) => { config.imageScale = v; preview?.applyLook(config) } }),
+    startSlider({ label: 'Graphic size', min: 0.15, max: 0.8, step: 0.01, get: () => imagePrint()?.scale ?? 0.4, set: (v) => { const ip = imagePrint(); if (ip) { ip.scale = v; preview?.applyLook(config) } } }),
     textRow,
-    startColor('Text colour', () => config.textColor, (v) => { config.textColor = v; preview?.applyLook(config) }),
+    startColor('Text colour', () => textPrint()?.color ?? 0x1a1a22, (v) => { const tp = textPrint(); if (tp) { tp.color = v; preview?.applyLook(config) } }),
     el('div', 'dio-start-section', 'Mannequin'),
     figureToggle(),
     startSlider({ label: 'Height', min: 0.9, max: 1.12, step: 0.005, format: (v) => `${Math.round(v * 170)} cm`, get: () => config.bodyHeight, set: (v) => { config.bodyHeight = v; preview?.setBody(config) } }),

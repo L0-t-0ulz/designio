@@ -37,12 +37,45 @@ export interface DesignConfig {
   bodyBust: number
   bodyWaist: number
   bodyHips: number
-  /** Your uploaded graphic/print (optional). */
-  image: HTMLImageElement | null
-  imageScale: number
-  text: string
-  textColor: number
+  /** Placed prints (logos + text), each positioned / sized / rotated. */
+  prints: Print[]
 }
+
+/** A logo/graphic or text placed on the garment. `x/y` are 0…1 across the front. */
+export interface Print {
+  id: string
+  kind: 'image' | 'text'
+  /** Uploaded image (runtime-only; not serialised). */
+  image: HTMLImageElement | null
+  imageName?: string
+  text: string
+  color: number
+  x: number
+  y: number
+  /** Size as a fraction of the print canvas (image width / text size). */
+  scale: number
+  /** Rotation in degrees. */
+  rotation: number
+}
+
+/** The serialisable part of a print (no runtime image) for `.dio` projects. */
+export type PrintSpec = Omit<Print, 'image'>
+
+let pid = 0
+export const newPrintId = (): string => `pr${++pid}_${Math.random().toString(36).slice(2, 6)}`
+// Default placement: centred on the front-facing chest (x≈0.25 is the +z face).
+export function newImagePrint(image: HTMLImageElement, name: string): Print {
+  return { id: newPrintId(), kind: 'image', image, imageName: name, text: '', color: 0xffffff, x: 0.25, y: 0.32, scale: 0.4, rotation: 0 }
+}
+export function newTextPrint(text = ''): Print {
+  return { id: newPrintId(), kind: 'text', image: null, text, color: 0x1a1a22, x: 0.25, y: 0.5, scale: 0.5, rotation: 0 }
+}
+export const printHasContent = (p: Print): boolean => (p.kind === 'image' ? p.image != null : p.text.trim().length > 0)
+export function printToSpec(p: Print): PrintSpec {
+  const { image: _drop, ...spec } = p
+  return spec
+}
+export const printFromSpec = (s: PrintSpec): Print => ({ ...s, image: null })
 
 export function defaultConfig(): DesignConfig {
   return {
@@ -61,10 +94,7 @@ export function defaultConfig(): DesignConfig {
     bodyBust: 1,
     bodyWaist: 1,
     bodyHips: 1,
-    image: null,
-    imageScale: 0.4,
-    text: '',
-    textColor: 0x1a1a22
+    prints: []
   }
 }
 
@@ -73,28 +103,26 @@ export interface DesignArt {
   redraw: () => void
 }
 
-/** The minimal fields the albedo canvas needs — a `DesignConfig` or a garment layer. */
+/** The minimal input the albedo canvas needs — a base colour + placed prints. */
 export interface DesignArtInput {
   color: number
-  image: HTMLImageElement | null
-  imageScale: number
-  text: string
-  textColor: number
+  prints: Print[]
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 
-/** Whether the design carries any user art (graphic or text) vs a plain colour. */
-export function hasArt(c: { image: HTMLImageElement | null; text: string }): boolean {
-  return c.image != null || c.text.trim().length > 0
+/** Whether the design carries any user art (a print with content) vs a plain colour. */
+export function hasArt(c: { prints: Print[] }): boolean {
+  return c.prints.some(printHasContent)
 }
 
 /**
  * Paint the design onto a canvas → a CanvasTexture used as the garment's albedo
- * `map`. Base colour fills it; your graphic + text sit on the chest area. The
- * procedural weave normal map still layers on top for fabric detail.
+ * `map`. Base colour fills it; each **print** (logo or text) is drawn at its own
+ * position · size · rotation, layered in order. The procedural weave normal map
+ * still layers on top for fabric detail.
  */
-export function buildDesignArt(config: DesignArtInput): DesignArt {
+export function buildDesignArt(input: DesignArtInput): DesignArt {
   const size = 1024
   const canvas = document.createElement('canvas')
   canvas.width = size
@@ -105,19 +133,26 @@ export function buildDesignArt(config: DesignArtInput): DesignArt {
   texture.anisotropy = 4
 
   const redraw = (): void => {
-    ctx.fillStyle = hex(config.color)
+    ctx.fillStyle = hex(input.color)
     ctx.fillRect(0, 0, size, size)
-    if (config.image) {
-      const w = config.imageScale * size
-      const h = w * (config.image.height / config.image.width)
-      ctx.drawImage(config.image, (size - w) / 2, size * 0.28 - h / 2, w, h)
-    }
-    if (config.text.trim()) {
-      ctx.fillStyle = hex(config.textColor)
-      ctx.font = `700 ${Math.round(size * 0.06)}px system-ui, sans-serif`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(config.text.slice(0, 24), size / 2, size * 0.52)
+    for (const p of input.prints) {
+      if (!printHasContent(p)) continue
+      ctx.save()
+      ctx.translate(p.x * size, p.y * size)
+      ctx.rotate((p.rotation * Math.PI) / 180)
+      ctx.scale(-1, 1) // the garment's front face samples the canvas mirrored — un-flip
+      if (p.kind === 'image' && p.image) {
+        const w = p.scale * size
+        const h = w * (p.image.height / p.image.width)
+        ctx.drawImage(p.image, -w / 2, -h / 2, w, h)
+      } else if (p.kind === 'text') {
+        ctx.fillStyle = hex(p.color)
+        ctx.font = `700 ${Math.round(size * 0.12 * p.scale)}px system-ui, sans-serif`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(p.text.slice(0, 24), 0, 0)
+      }
+      ctx.restore()
     }
     texture.needsUpdate = true
   }

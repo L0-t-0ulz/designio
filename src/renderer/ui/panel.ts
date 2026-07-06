@@ -34,14 +34,28 @@ export interface GarmentState {
 export type DesignMode = 'templates' | 'pattern'
 export type ExportFormat = 'glb' | 'obj' | 'svg' | 'dxf' | 'techpack' | 'json' | 'manufacture'
 
-/** Live control over the garment's printed graphic (PNG) + text, from the studio. */
-export interface GraphicControls {
-  imageName: () => string | null
-  scale: () => number
-  text: () => string
-  setImage: (img: HTMLImageElement | null, name: string | null) => void
-  setScale: (v: number) => void
-  setText: (t: string) => void
+/** A placed print (logo/text) as shown in the Prints manager. */
+export interface PrintItem {
+  id: string
+  kind: 'image' | 'text'
+  label: string
+}
+export interface PrintPatch {
+  x?: number
+  y?: number
+  scale?: number
+  rotation?: number
+  text?: string
+  color?: number
+}
+/** Manage the garment's placed prints (multiple logos + text) from the studio. */
+export interface PrintControls {
+  list: () => PrintItem[]
+  get: (id: string) => (PrintPatch & { kind: 'image' | 'text' }) | null
+  addImage: (image: HTMLImageElement, name: string) => string
+  addText: () => string
+  update: (id: string, patch: PrintPatch) => void
+  remove: (id: string) => void
 }
 
 export interface PanelOptions {
@@ -73,7 +87,7 @@ export interface PanelOptions {
   /** Which garment part the colour/fabric edits target (Body/Sleeves/Legs/Trim). */
   onSelectPart?: (part: PartId) => void
   /** Add / adjust a printed graphic (PNG) + text on the garment (optional). */
-  graphic?: GraphicControls
+  prints?: PrintControls
   /** Live measurements of the active garment (for the Measurements readout). */
   getMetrics?: () => GarmentMetrics
   bodySize: BodyParams
@@ -322,34 +336,90 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // ---- appearance ----
-  // A PNG graphic + printed text applied to the garment, adjustable live.
-  function graphicControls(g: GraphicControls): HTMLElement {
+  // Multiple placed prints (logos + text) — add, select, place (X/Y/size/rotation), remove.
+  function printsControls(p: PrintControls): HTMLElement {
     const wrap = el('div', 'dio-graphic')
+    let selectedId: string | null = null
+    const listEl = el('div', 'dio-prints-list')
+    const editor = el('div')
     const fileInput = el('input') as HTMLInputElement
     fileInput.type = 'file'
     fileInput.accept = 'image/png,image/jpeg,image/webp,image/*'
     fileInput.style.display = 'none'
-    const row = el('div', 'dio-actions')
-    const render = (): void => {
-      row.replaceChildren()
-      const name = g.imageName()
-      row.append(button(name ? `🖼 ${name}` : '＋ Add graphic (PNG)', () => fileInput.click()))
-      if (name) row.append(button('Remove', () => { g.setImage(null, null); render() }))
+
+    const renderEditor = (): void => {
+      editor.replaceChildren()
+      if (!selectedId) return
+      const d = p.get(selectedId)
+      if (!d) {
+        selectedId = null
+        return
+      }
+      const id = selectedId
+      editor.append(
+        slider({ label: 'Across (X)', min: 0, max: 1, step: 0.01, get: () => p.get(id)?.x ?? 0.5, set: (v) => p.update(id, { x: v }) }).row,
+        slider({ label: 'Down (Y)', min: 0, max: 1, step: 0.01, get: () => p.get(id)?.y ?? 0.5, set: (v) => p.update(id, { y: v }) }).row,
+        slider({ label: 'Size', min: 0.05, max: 0.9, step: 0.01, get: () => p.get(id)?.scale ?? 0.4, set: (v) => p.update(id, { scale: v }) }).row,
+        slider({ label: 'Rotation', min: -180, max: 180, step: 1, format: (v) => `${v | 0}°`, get: () => p.get(id)?.rotation ?? 0, set: (v) => p.update(id, { rotation: v }) }).row
+      )
+      if (d.kind === 'text') {
+        editor.append(
+          textField({ label: 'Text', maxLength: 24, get: () => p.get(id)?.text ?? '', set: (v) => p.update(id, { text: v }) }).row,
+          colorField({ label: 'Text colour', get: () => p.get(id)?.color ?? 0, set: (v) => p.update(id, { color: v }) }).row
+        )
+      }
+    }
+    const renderList = (): void => {
+      listEl.replaceChildren()
+      const items = p.list()
+      if (!items.length) listEl.append(el('div', 'dio-lib-empty', 'No prints yet — add a logo or text'))
+      for (const it of items) {
+        const chip = el('div', 'dio-print-chip' + (it.id === selectedId ? ' on' : ''))
+        const lbl = el('span', undefined, (it.kind === 'image' ? '🖼 ' : '🅣 ') + it.label)
+        lbl.style.cursor = 'pointer'
+        lbl.addEventListener('click', () => {
+          selectedId = it.id
+          renderList()
+          renderEditor()
+        })
+        const rm = el('button', 'dio-print-rm', '×')
+        rm.title = 'Remove'
+        rm.addEventListener('click', (e) => {
+          e.stopPropagation()
+          p.remove(it.id)
+          if (selectedId === it.id) selectedId = null
+          renderList()
+          renderEditor()
+        })
+        chip.append(lbl, rm)
+        listEl.append(chip)
+      }
     }
     const loadImage = (file: File): void => {
       if (!file.type.startsWith('image/') || file.size > 8_000_000) return
       const img = new Image()
-      img.onload = () => { g.setImage(img, file.name.slice(0, 18)); render() }
+      img.onload = () => {
+        selectedId = p.addImage(img, file.name.slice(0, 16))
+        renderList()
+        renderEditor()
+      }
       img.src = URL.createObjectURL(file)
     }
     fileInput.addEventListener('change', () => {
       const f = fileInput.files?.[0]
       if (f) loadImage(f)
     })
-    render()
-    wrap.append(row, fileInput)
-    wrap.append(track(textField({ label: 'Print text', placeholder: 'e.g. LOGO', maxLength: 24, get: () => g.text(), set: (v) => g.setText(v) })))
-    wrap.append(track(slider({ label: 'Graphic size', min: 0.15, max: 0.8, step: 0.01, get: () => g.scale(), set: (v) => g.setScale(v) })))
+    const addRow = el('div', 'dio-actions')
+    addRow.append(
+      button('＋ Add graphic (PNG)', () => fileInput.click()),
+      button('＋ Add text', () => {
+        selectedId = p.addText()
+        renderList()
+        renderEditor()
+      })
+    )
+    renderList()
+    wrap.append(el('div', 'dio-field-label', 'Prints (logos + text)'), listEl, addRow, fileInput, editor)
     return wrap
   }
 
@@ -367,7 +437,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheen streak', min: 0, max: 1, step: 0.01, get: () => current.anisotropy, set: (v) => { current.anisotropy = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
-  if (opts.graphic) look.body.append(graphicControls(opts.graphic))
+  if (opts.prints) look.body.append(printsControls(opts.prints))
 
   // ---- measurements (live production spec) ----
   const metricsSec = section('Measurements')

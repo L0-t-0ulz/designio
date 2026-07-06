@@ -79,7 +79,8 @@ Renderer modules:
   **project gallery** — open · rename · delete · import/export `.dio`), `StartPage` (the "design your
   piece" builder — garment · colour/print · **neckline/sleeve/size** · quick-looks · surprise/spin ·
   fit; aurora tints to the colour), `PreviewStudio` (live 3D preview; grades size, `setAutoRotate`),
-  `design` (`DesignConfig`), `presets` (looks).
+  `design` (`DesignConfig` + **`Print[]`** — multiple placed logos/text with x/y/scale/rotation;
+  `buildDesignArt` layers them onto the albedo), `presets` (looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
   (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar` (File: New · Open/Save
   `.dio` project · Exports; Edit: undo/redo · cut/copy/paste/duplicate/delete garment), `statusBar`,

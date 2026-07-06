@@ -149,10 +149,12 @@ design and a way home tie the whole app together: **Homepage → Your projects �
 
 ![The Projects gallery — saved designs with thumbnails, open / rename / delete](docs/projects.png)
 
-### Add your own graphic + text, right in the studio
-Beyond the start page, the studio's **Appearance** panel lets you **import a PNG** (or JP/WebP) and add
-**printed text** onto the garment live — with an adjustable graphic size — so you can iterate on prints
-while the cloth simulates.
+### Place your own logos + text — as many as you like
+Import **several logos/graphics** (PNG/JPG/WebP) and **text**, and place **each one exactly** — its own
+**position, size and rotation** — via the studio's **Prints** manager. Add a chest logo, a slogan, a sleeve
+badge… each print is independent and updates live while the cloth simulates.
+
+![Two placed prints — a logo and a slogan, each positioned + rotated](docs/prints.png)
 
 ### Go deep on construction detail
 Beyond the silhouette, add real **construction detail** — a **collar** (raises/closes the neckline into a

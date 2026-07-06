@@ -9,7 +9,7 @@
 import type { GarmentParams, GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
-import type { DesignConfig } from '../start/design'
+import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
 import { getGarment } from '../garments/registry'
 
 /** Manufacturing sizes. `M` is the drafted block; each step grades the girth. */
@@ -74,9 +74,8 @@ export interface GarmentLayerData {
   partFabrics?: { sleeves?: PartFabric; legs?: PartFabric }
   fabricId: string
   color: number
-  /** Printed text on the garment ('' = none). Uploaded PNGs are runtime-only. */
-  text: string
-  imageScale: number
+  /** Placed prints (logos + text); uploaded PNGs are runtime-only (image dropped on save). */
+  prints?: PrintSpec[]
   visible: boolean
 }
 
@@ -135,8 +134,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     partFabrics: c.partFabrics ? { ...c.partFabrics } : undefined,
     fabricId: c.fabricId,
     color: c.color,
-    text: c.text,
-    imageScale: c.imageScale,
+    prints: c.prints.map(printToSpec),
     visible: true
   }
 }
@@ -160,8 +158,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     hem: d.hem,
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',
     color: 0xc85a54,
-    text: '',
-    imageScale: 0.4,
+    prints: [],
     visible: true
   }
 }
@@ -189,7 +186,8 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     ...l,
     partFabrics: l.partFabrics
       ? { sleeves: l.partFabrics.sleeves && { ...l.partFabrics.sleeves }, legs: l.partFabrics.legs && { ...l.partFabrics.legs } }
-      : undefined
+      : undefined,
+    prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined
   }
 }
 
