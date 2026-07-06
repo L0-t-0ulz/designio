@@ -79,7 +79,9 @@ export interface PanelOptions {
   onBack?: () => void
 }
 
-/** A friendly custom control panel: design mode, garment/pattern, fabric, physics. */
+/** A friendly custom control panel: design mode, garment/pattern, fabric, physics.
+ * Every slider readout is click-to-type (exact values); a quick-edit toolbar over
+ * the viewport mirrors the key controls in both 3D and 2D. */
 /** Selection hooks the Library uses so it drives the same state as the panel. */
 export interface PanelApi {
   selectGarment: (id: string) => void
@@ -162,9 +164,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     sleeveRow.append(b)
   }
 
-  const lenS = slider({ label: 'Length', min: 0, max: 1, step: 0.01, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } })
-  const easeS = slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
-  const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
+  const lenS = slider({ label: 'Length', min: 0, max: 1, step: 0.01, fine: 0.005, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } })
+  const easeS = slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
+  const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
 
   // size grade (XS…XXL) — grades the garment girth
   const sizeRow = el('div', 'dio-actions')

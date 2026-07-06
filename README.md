@@ -125,9 +125,10 @@ A-line skirt/dress panels, tapered trouser legs, and a shaped sleeve, each with 
 and notches**. It's derived from the exact 3D construction, so 2D and 3D always agree. Export it as **SVG /
 DXF** for a cutter.
 
-**2D and 3D are one design — edit either way.** The 2D pane isn't just a render: it carries live edit tools
-(**size · length · width · hem**) that drive the same garment, so you can design entirely in 2D and the 3D
-updates live (and vice-versa). If you don't want to touch 3D, you don't have to.
+**2D and 3D are one design — edit either way.** A quick-edit toolbar floats over **both** the 3D and 2D
+views (**size · neckline · sleeve · length · width · hem**), driving the same garment — so you can design
+entirely in 2D *or* 3D and the other updates live. Every slider value is **click-to-type** for exact,
+artist-grade numbers. If you don't want to touch 3D, you don't have to.
 
 ![The editable 2D flat pattern — size / length / width / hem tools drive the 3D](docs/pattern-2d.png)
 

@@ -24,13 +24,16 @@ export interface SliderOpts {
   get: () => number
   set: (v: number) => void
   format?: (v: number) => string
+  /** Finer step for typed entry (defaults to `step`) — precise, artist-grade values. */
+  fine?: number
 }
 
-/** A labelled range slider with a live value readout. */
+/** A labelled range slider with a **click-to-type** value readout (exact entry). */
 export function slider(o: SliderOpts): Refreshable {
   const row = el('div', 'dio-row')
   const label = el('label', undefined, o.label)
-  const val = el('span', 'dio-val')
+  const val = el('span', 'dio-val dio-val-edit')
+  val.title = 'Click to type an exact value'
   const input = el('input')
   input.type = 'range'
   input.min = String(o.min)
@@ -46,6 +49,35 @@ export function slider(o: SliderOpts): Refreshable {
   input.addEventListener('input', () => {
     o.set(parseFloat(input.value))
     val.textContent = fmt(parseFloat(input.value))
+  })
+
+  // Click the readout → type an exact number (clamped), then revert to the label.
+  val.addEventListener('click', () => {
+    const box = el('input', 'dio-val-input') as HTMLInputElement
+    box.type = 'number'
+    box.min = String(o.min)
+    box.max = String(o.max)
+    box.step = String(o.fine ?? o.step)
+    box.value = String(o.get())
+    val.replaceWith(box)
+    box.focus()
+    box.select()
+    let done = false
+    const commit = (apply: boolean): void => {
+      if (done) return
+      done = true
+      if (apply) {
+        const v = parseFloat(box.value)
+        if (Number.isFinite(v)) o.set(Math.max(o.min, Math.min(o.max, v)))
+      }
+      box.replaceWith(val)
+      sync()
+    }
+    box.addEventListener('blur', () => commit(true))
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') commit(true)
+      else if (e.key === 'Escape') commit(false)
+    })
   })
 
   row.append(label, val, input)

@@ -82,9 +82,9 @@ Renderer modules:
   (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar` (File: New · Open/Save
   `.dio` project · Exports; Edit: undo/redo · cut/copy/paste/duplicate/delete garment), `statusBar`,
   `library` (tabbed asset browser), `objectBrowser` (the **garment layers** worn on the body — select ·
-  visibility · add/duplicate/delete), `centerTabs` (3D · 2D-pattern dual viewport — the **2D pane is an
-  editing surface**: size/length/width/hem tools run the same `applyGarmentEdit` path as the 3D panel,
-  so 2D↔3D stay in sync), `layoutStore`.
+  visibility · add/duplicate/delete), `centerTabs` (3D · 2D-pattern dual viewport + a **persistent
+  quick-edit toolbar over both** — size/neckline/sleeve/length/width/hem `PatternEditor` steppers that run
+  the same `applyGarmentEdit` path, so 2D↔3D stay in sync), `layoutStore`.
 - `ui/` — `panel` (the **context-sensitive Property Editor** — Garment/Avatar/Scene; returns `{panel, api}`
   the Library drives), `controls` (DOM helpers), `thumbnails` (shared swatch/silhouette), `patternSchematic`,
   `tokens.css` / `styles.css` / `shell.css`.

@@ -516,6 +516,17 @@
 .dio-pattern-tools:empty {
   display: none;
 }
+/* the persistent quick toolbar floating over the viewport (below the tab bar) */
+.dio-center-tools {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  max-width: calc(100% - 24px);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+}
 .dio-pat-step {
   display: flex;
   align-items: center;

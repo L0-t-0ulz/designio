@@ -1,30 +1,34 @@
 import { el } from '../ui/controls'
 
-/** Live edits made from the 2D pane — the *same* garment they drive in 3D. */
+/** Live edits from the quick toolbar — the *same* garment they drive in 3D + 2D. */
 export interface PatternEditor {
   length: () => number // 0…1 proportion
   ease: () => number // metres
   flare: () => number // metres
   size: () => string
-  supports: () => { length: boolean; ease: boolean; flare: boolean }
+  neckline: () => string
+  sleeve: () => string
+  supports: () => { length: boolean; ease: boolean; flare: boolean; neckline: boolean; sleeve: boolean }
   nudgeLength: (d: number) => void
   nudgeEase: (d: number) => void
   nudgeFlare: (d: number) => void
   nudgeSize: (d: number) => void
+  nudgeNeckline: (d: number) => void
+  nudgeSleeve: (d: number) => void
 }
 
 export interface CenterTabsHandle {
-  /** Re-render the 2D pattern + its edit tools if the pane is showing. */
+  /** Re-render the quick tools (+ the 2D pattern if it's showing). */
   refresh: () => void
   /** Programmatically switch tab (used by the `?view=pattern` deep-link). */
   show: (which: '3d' | 'pattern') => void
 }
 
 /**
- * The central dual viewport: a floating tab bar (3D · 2D Pattern) over the
- * viewport. **2D and 3D are one design** — the 2D pane isn't just a render, it
- * carries live edit tools (size · length · width · hem) that drive the same
- * garment, so you can design entirely in 2D and the 3D stays in sync (and back).
+ * The central dual viewport: a floating tab bar (3D · 2D Pattern) plus a
+ * **persistent quick-edit toolbar over the viewport**, shown in *both* 3D and 2D.
+ * Size · neckline · sleeve · length · width · hem are one click away either way —
+ * 2D and 3D are one design, always in sync.
  */
 export function buildCenterTabs(
   center: HTMLElement,
@@ -36,13 +40,15 @@ export function buildCenterTabs(
   const tabPat = el('button', 'dio-view-tab', '2D Pattern')
   tabs.append(tab3d, tabPat)
 
-  const pane = el('div', 'dio-pattern-pane dio-hidden')
-  const tools = el('div', 'dio-pattern-tools')
-  const inner = el('div', 'dio-pattern-inner')
-  const caption = el('div', 'dio-pattern-cap', 'Edit here — the 3D updates live · export as SVG / DXF from the File menu.')
-  pane.append(tools, inner, caption)
+  // The quick toolbar floats over the viewport (visible in both 3D and 2D).
+  const tools = el('div', 'dio-pattern-tools dio-center-tools')
 
-  center.append(tabs, pane)
+  const pane = el('div', 'dio-pattern-pane dio-hidden')
+  const inner = el('div', 'dio-pattern-inner')
+  const caption = el('div', 'dio-pattern-cap', 'Edit above — 3D + 2D update live · export SVG / DXF from the File menu.')
+  pane.append(inner, caption)
+
+  center.append(tabs, tools, pane)
 
   const stepper = (
     label: string,
@@ -71,13 +77,19 @@ export function buildCenterTabs(
     return wrap
   }
 
+  const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
+
   const renderTools = (): void => {
     tools.replaceChildren()
     if (!edit) return
     const sup = edit.supports()
-    tools.append(
-      stepper('Size', () => edit.size(), () => edit.nudgeSize(-1), () => edit.nudgeSize(1), '◀', '▶')
-    )
+    tools.append(stepper('Size', () => edit.size(), () => edit.nudgeSize(-1), () => edit.nudgeSize(1), '◀', '▶'))
+    if (sup.neckline) {
+      tools.append(stepper('Neck', () => cap(edit.neckline()), () => edit.nudgeNeckline(-1), () => edit.nudgeNeckline(1), '◀', '▶'))
+    }
+    if (sup.sleeve) {
+      tools.append(stepper('Sleeve', () => cap(edit.sleeve()), () => edit.nudgeSleeve(-1), () => edit.nudgeSleeve(1), '◀', '▶'))
+    }
     if (sup.length) {
       tools.append(stepper('Length', () => edit.length().toFixed(2), () => edit.nudgeLength(-0.05), () => edit.nudgeLength(0.05)))
     }
@@ -102,9 +114,12 @@ export function buildCenterTabs(
   tab3d.addEventListener('click', () => show('3d'))
   tabPat.addEventListener('click', () => show('pattern'))
 
+  renderTools() // shown from the start (over the 3D view)
+
   return {
     refresh: () => {
-      if (!pane.classList.contains('dio-hidden')) render()
+      renderTools()
+      if (!pane.classList.contains('dio-hidden')) inner.innerHTML = patternSvg()
     },
     show
   }
