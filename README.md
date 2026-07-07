@@ -177,7 +177,9 @@ stand), fitted **cuffs**, **pleats** (a fuller, swishier hem), **darts** (a nipp
 **patch pockets** (a chest pocket on tops, hip pockets on skirts/trousers — with a topstitched outline in
 3D and a pocket panel on the pattern), and a **rolled hem**. Each shows up **both** on the 3D garment and
 in the flat pattern (the panels reshape, and the pattern notes the detail), and each garment only offers
-the details it supports.
+the details it supports. Front-opening pieces (blouse · blazer · coat · hoodie …) also get a **front
+closure** — a centre-front placket with a **button column** or a **zip + metal pull** (the hoodie zips),
+hugging the garment front in 3D and drawn as a CF placket guide on the flat pattern.
 
 Every garment is also **topstitched**: drape-following dashed contrast stitch lines trace the hems,
 necklines, waistbands and cuffs in 3D (a lighter thread on dark cloth, darker on light — the classic

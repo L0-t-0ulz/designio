@@ -48,6 +48,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Fabric thickness** — every garment gets an inner lining shell (offset inward along normals by the fabric's physical thickness) so hems/edges read solid, not paper-thin — PR #72
 - [x] **Topstitching + seam styles** — drape-following dashed contrast stitch lines along hems/necklines/cuffs in 3D, + a gold topstitch guide on the 2D flat pattern — PR #73
 - [x] **A real Render tab** — a third viewport tab that supersamples the current view (HD / 2K / 4K) to a crisp PNG and saves it — PR #74
+- [x] **Closures — buttons · plackets · zippers** — a centre-front placket with a button column or a zip + pull (3D), + a CF placket guide on the 2D pattern — PR #81
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -76,7 +77,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Prints on the 2D flat pattern** — show placed logos/text on the exported panels + manufacturing pack
 - [ ] **Per-panel physics** — front vs back drape stiffness (deferred from per-panel fabric; needs per-constraint region params in the XPBD solver)
 - [ ] **Split sleeves front/back** — per-panel fabric splits the body + legs; sleeves are still a single panel
-- [ ] **Closures — buttons · plackets · zippers** — real front closures on the 3D garment + the pattern (button-up shirt, zip-up)
 - [ ] **Textile patterns as fabrics** — repeating prints (stripe · plaid · check · floral · camo) that tile across the whole garment, beyond placed logos
 - [ ] **Made-to-measure** — type real body measurements (cm/in) to drive the mannequin + garment fit, not just sliders
 - [ ] **Pose the mannequin** — a small pose library (contrapposto · hands-on-hips · seated) for lookbook stills
