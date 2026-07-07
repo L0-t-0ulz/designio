@@ -66,6 +66,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Sequins, beading & metallic foil** — a sparkle finish for eveningwear: faceted normal maps + a metallic recipe so hundreds of facets glint (foil = mirror + anisotropic streak · beading = glassy beads · sequins = metallic discs) — PR #118
 - [x] **Quilting — channel · diamond · box loft** — a quilting finish for puffers/jackets: the fabric lofts between stitch lines via a baked pillow-normal map (channel tubes · diamond cross-hatch · box grid) — PR #120
 - [x] **Per-panel physics** — the front vs back of a garment drape with their own stiffness + mass (per-constraint region params in the XPBD solver), driven by the per-panel fabric — a stiff back holds an A-line while a soft front clings — PR #121
+- [x] **Colorways** — save colour/fabric variants of a design (appearance only, not shape) + compare them side-by-side in a swatch grid; click a swatch to apply, saved with the `.dio` project — PR #124
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -98,7 +99,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Studio lighting + backdrop presets** — softbox · runway · sunset · seamless colour, swappable per shot
 - [ ] **Turntable / clip + AR export** — record a spin to MP4/GIF, and export a USDZ/GLB to view the piece on a phone / in AR
 - [ ] **Draw-your-own panel** — sketch a custom 2D panel (freeform + mirror symmetry), then sew it onto the body
-- [ ] **Colorways** — save several colour/fabric variants of one design and compare them side by side
 
 **Polish / tech-debt** _(found while building the above)_
 - [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67

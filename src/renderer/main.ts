@@ -817,6 +817,31 @@ function initStudio(
         stack.applyLook(stack.active)
       }
     },
+    colorways: {
+      list: () =>
+        stack.colorways().map((cw) => ({
+          id: cw.id,
+          name: cw.name,
+          color: cw.color,
+          tag: [cw.textile, cw.sparkle, cw.quilt, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
+        })),
+      add: () => {
+        pushUndo()
+        stack.saveColorway(getFabric(stack.active.data.fabricId).name)
+      },
+      apply: (id) => {
+        pushUndo()
+        stack.useColorway(id)
+        loadActive() // reflect the new colour/fabric/finishes across the panel
+        centerTabs.refresh()
+        api.refreshMetrics()
+        syncBrowsers()
+      },
+      remove: (id) => {
+        pushUndo()
+        stack.deleteColorway(id)
+      }
+    },
     getMetrics: () => activeMetrics(),
     bodySize,
     onBodySize: (b) => {

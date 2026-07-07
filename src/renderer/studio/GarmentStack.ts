@@ -22,7 +22,7 @@ import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabr
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import type { FabricParams } from '../cloth/fabricPresets'
-import { gradeParams, type GarmentLayerData } from './document'
+import { gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
 const EMPTY_ART: DesignArtInput = { color: 0xffffff, prints: [] }
@@ -370,6 +370,35 @@ export class GarmentStack {
     this.applyPartMaterials(l)
     this.updateLining(l)
     l.controller.setStitchColor(this.stitchColor(l))
+  }
+
+  // ---- colorways (saved colour/fabric variants of the active design) ----
+  /** The active layer's saved colorways. */
+  colorways(): Colorway[] {
+    return this.active.data.colorways ?? []
+  }
+  /** Snapshot the active layer's current look as a new colorway. */
+  saveColorway(name: string): Colorway {
+    const l = this.active
+    const cw = captureColorway(l.data, name)
+    ;(l.data.colorways ??= []).push(cw)
+    return cw
+  }
+  /** Apply a saved colorway to the active layer — appearance + drape, not construction. */
+  useColorway(id: string): void {
+    const l = this.active
+    const cw = l.data.colorways?.find((c) => c.id === id)
+    if (!cw) return
+    applyColorway(l.data, cw)
+    l.fabric = { ...getFabric(l.data.fabricId), color: l.data.color }
+    this.applyLook(l)
+    this.buildDecor(l) // trim bands depend on trim
+    l.controller.setFabricPhysics() // fabric / per-panel change → re-derive drape
+  }
+  /** Delete a saved colorway from the active layer. */
+  deleteColorway(id: string): void {
+    const l = this.active
+    if (l.data.colorways) l.data.colorways = l.data.colorways.filter((c) => c.id !== id)
   }
 
   /** Apply an imported fabric-photo swatch to the active layer (seamless PBR). */
