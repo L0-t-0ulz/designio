@@ -40,7 +40,7 @@ const coatTube = {
   flareScale: 0.7,
   neckline: true
 }
-const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true }
+const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true, closure: true }
 const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true }
 
 /**
@@ -111,7 +111,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     pieces: [upperTube, { kind: 'sleeves' }],
     supports: upperCaps,
-    defaults: { length: 0.66, ease: 0.03, flare: 0.12, neckline: 'v', sleeve: 'long' },
+    defaults: { length: 0.66, ease: 0.03, flare: 0.12, neckline: 'v', sleeve: 'long', closure: true },
     defaultFabric: 'silk-charmeuse'
   },
   {
@@ -122,8 +122,9 @@ export const GARMENTS: GarmentDefinition[] = [
     pieces: [upperTube, { kind: 'sleeves' }],
     supports: upperCaps,
     hood: true,
-    // relaxed pullover: a real draped hood (neck treatment) + a kangaroo patch pocket.
-    defaults: { length: 0.7, ease: 0.06, flare: 0.06, neckline: 'crew', sleeve: 'long', pocket: true },
+    closureStyle: 'zip',
+    // relaxed zip-up pullover: a real draped hood + a front zip + a kangaroo patch pocket.
+    defaults: { length: 0.7, ease: 0.06, flare: 0.06, neckline: 'crew', sleeve: 'long', pocket: true, closure: true },
     defaultFabric: 'french-terry'
   },
 
@@ -264,8 +265,8 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     pieces: [upperTube, { kind: 'sleeves' }],
     supports: upperCaps,
-    // structured: a collar (lapel stand) + welt-style patch pockets, roomy over a layer.
-    defaults: { length: 0.68, ease: 0.05, flare: 0.05, neckline: 'v', sleeve: 'long', collar: true, pocket: true },
+    // structured: a collar (lapel stand) + a button front + welt-style patch pockets.
+    defaults: { length: 0.68, ease: 0.05, flare: 0.05, neckline: 'v', sleeve: 'long', collar: true, pocket: true, closure: true },
     defaultFabric: 'wool-flannel'
   },
   {
@@ -275,7 +276,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'dress',
     pieces: [coatTube, { kind: 'sleeves' }],
     supports: upperCaps,
-    defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, pocket: true },
+    defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, pocket: true, closure: true },
     defaultFabric: 'wool-flannel'
   }
 ]

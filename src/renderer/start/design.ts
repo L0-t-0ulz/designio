@@ -23,6 +23,7 @@ export interface DesignConfig {
   dart?: boolean
   pocket?: boolean
   hem?: boolean
+  closure?: boolean
   seam?: number
   notches?: boolean
   trim?: boolean

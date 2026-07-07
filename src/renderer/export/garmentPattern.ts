@@ -42,6 +42,8 @@ export interface PatternResult {
   seam: number
   /** Active construction detail (collar · cuffs · pleats · darts), for the caption. */
   detail?: string
+  /** Front closure to draw on the Front panel(s): a button placket or a zip. */
+  closure?: 'button' | 'zip'
 }
 
 const NCOL = 26 // samples across a panel (neckline/hem curve smoothness)
@@ -195,15 +197,17 @@ export function garmentToPanels(
   }
 
   if (params.notches === false) for (const p of panels) p.notches = [] // notches off
+  const closure = params.closure ? (def.closureStyle ?? 'button') : undefined
   const active = [
     params.collar && 'collar',
     params.cuff && 'cuffs',
     params.pleats && 'pleats',
     params.dart && 'darts',
     params.pocket && 'pocket',
-    params.hem && 'rolled hem'
+    params.hem && 'rolled hem',
+    closure && `${closure} closure`
   ].filter(Boolean) as string[]
-  return { panels, seam, detail: active.length ? active.join(' · ') : undefined }
+  return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure }
 }
 
 // ---- polygon offset (cut line = sew line + seam allowance) ----------------
@@ -264,6 +268,21 @@ export function panelsToSVG(res: PatternResult): string {
   const totalH = margin * 2 + maxH + 30
 
   const TS = 6 // topstitch inset from the sew line (mm)
+  // Centre-front placket guide (Front panel is unwrapped centred on CF, so it's the panel's mid-x).
+  const placket = (p: PatternPanel, dx: number, dy: number, style: 'button' | 'zip'): string => {
+    const cx = p.wmm / 2 + dx
+    const y0 = dy + 10
+    const y1 = dy + p.hmm - 10
+    const line = `<line x1="${cx.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="#6b5bd6" stroke-width="1.3"${style === 'zip' ? '' : ' stroke-dasharray="6 4"'}/>`
+    if (style === 'zip') return line
+    const n = Math.max(3, Math.round((y1 - y0) / 45))
+    let dots = ''
+    for (let i = 0; i < n; i++) {
+      const y = y0 + ((y1 - y0) * (i + 0.5)) / n
+      dots += `<circle cx="${cx.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="none" stroke="#6b5bd6" stroke-width="1.2"/>`
+    }
+    return line + dots
+  }
   let x = margin
   const parts: string[] = []
   for (const p of panels) {
@@ -273,11 +292,13 @@ export function panelsToSVG(res: PatternResult): string {
     const dy = margin - cb.minY
     // Topstitch guide: a dashed line inset from the sew line (skip panels too small to inset).
     const stitch = Math.min(p.wmm, p.hmm) > 4 * TS ? offsetPolygon(p.outline, -TS) : null
+    const plk = res.closure && p.name.startsWith('Front') ? placket(p, dx, dy, res.closure) : ''
     parts.push(`
       <g>
         <path d="${path(cut, dx, dy)}" fill="none" stroke="#9aa0aa" stroke-width="1.4" stroke-dasharray="7 4"/>
         <path d="${path(p.outline, dx, dy)}" fill="#f4f2ee" stroke="#222" stroke-width="1.6"/>
         ${stitch ? `<path d="${path(stitch, dx, dy)}" fill="none" stroke="#b8863b" stroke-width="1" stroke-dasharray="4 3"/>` : ''}
+        ${plk}
         <line x1="${(p.grain[0].x + dx).toFixed(1)}" y1="${(p.grain[0].y + dy).toFixed(1)}"
           x2="${(p.grain[1].x + dx).toFixed(1)}" y2="${(p.grain[1].y + dy).toFixed(1)}"
           stroke="#5b6472" stroke-width="1.2"/>
@@ -302,7 +323,7 @@ export function panelsToSVG(res: PatternResult): string {
   viewBox="0 0 ${totalW.toFixed(0)} ${totalH.toFixed(0)}">
   <rect width="${totalW.toFixed(0)}" height="${totalH.toFixed(0)}" fill="#fff"/>
   <text x="${margin}" y="${(totalH - 10).toFixed(0)}" font-family="sans-serif" font-size="11" fill="#9aa0aa">
-    DesignIO pattern · solid = sew line · grey dashed = cut line (SA ${seam} mm) · gold dashed = topstitch · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
+    DesignIO pattern · solid = sew line · grey dashed = cut line (SA ${seam} mm) · gold dashed = topstitch · purple = CF closure · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
   ${parts.join('\n')}
 </svg>`
 }

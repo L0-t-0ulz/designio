@@ -23,6 +23,8 @@ export interface GarmentDefinition {
   icon?: GarmentIcon
   /** Draw a hood (a draped cowl behind the neck) — e.g. a hoodie. */
   hood?: boolean
+  /** How the front closure reads when enabled: a button placket (default) or a zip. */
+  closureStyle?: 'button' | 'zip'
 }
 
 /** The four base silhouette icons the picker can draw. */
@@ -42,6 +44,7 @@ export interface ConstructionCaps {
   dart?: boolean
   pocket?: boolean
   hem?: boolean
+  closure?: boolean
 }
 
 export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece

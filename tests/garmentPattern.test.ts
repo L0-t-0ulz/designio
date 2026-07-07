@@ -85,6 +85,24 @@ describe('real per-garment 2D pattern', () => {
     expect(dxf).toContain('CUT')
   })
 
+  it('draws a centre-front closure on the pattern (button placket vs zip)', () => {
+    const blazer = garmentToPanels(getGarment('blazer'), paramsFor('blazer'), M, C)
+    expect(blazer.closure).toBe('button')
+    const svg = panelsToSVG(blazer)
+    expect(svg).toContain('#6b5bd6') // purple CF closure stroke
+    expect(svg).toContain('button closure') // legend detail note
+    expect(svg).toContain('<circle') // buttons drawn as circles
+
+    const hoodie = garmentToPanels(getGarment('hoodie'), paramsFor('hoodie'), M, C)
+    expect(hoodie.closure).toBe('zip')
+    expect(panelsToSVG(hoodie)).toContain('zip closure')
+
+    // no closure → no placket / note
+    const skirt = garmentToPanels(getGarment('skirt'), paramsFor('skirt'), M, C)
+    expect(skirt.closure).toBeUndefined()
+    expect(panelsToSVG(skirt)).not.toContain('#6b5bd6')
+  })
+
   it('annotates a topstitch guide line inset inside the sew line', () => {
     const res = garmentToPanels(getGarment('dress'), paramsFor('dress'), M, C)
     const svg = panelsToSVG(res)
