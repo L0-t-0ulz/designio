@@ -39,6 +39,8 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     pocketStyle: l.pocketStyle,
     hem: l.hem,
     closure: l.closure,
+    lined: l.lined,
+    interfaced: l.interfaced,
     seam: l.seam,
     notches: l.notches
   }
@@ -87,6 +89,8 @@ export interface GarmentLayerData {
   hem?: boolean
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
+  lined?: boolean
+  interfaced?: boolean
   /** Seam allowance (mm) + notches — pattern/production. */
   seam?: number
   notches?: boolean
@@ -155,6 +159,8 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     pocketStyle: c.pocketStyle,
     hem: c.hem,
     closure: c.closure,
+    lined: c.lined,
+    interfaced: c.interfaced,
     seam: c.seam,
     notches: c.notches,
     trim: c.trim,
@@ -190,6 +196,8 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     pocketStyle: d.pocketStyle,
     hem: d.hem,
     closure: d.closure,
+    lined: d.lined,
+    interfaced: d.interfaced,
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',
     color: 0xc85a54,
     prints: [],

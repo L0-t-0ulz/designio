@@ -28,6 +28,8 @@ export interface DesignConfig {
   pocketStyle?: PocketStyle
   hem?: boolean
   closure?: boolean
+  lined?: boolean
+  interfaced?: boolean
   seam?: number
   notches?: boolean
   trim?: boolean

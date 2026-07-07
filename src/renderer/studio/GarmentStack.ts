@@ -12,7 +12,7 @@ import type { BodyCollider } from '../cloth/BodyCollider'
 import { GarmentController } from '../garment/GarmentController'
 import { ClothCollision } from '../cloth/ClothCollision'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
-import { getFabric, fabricToSolverParams, fabricThickness, type Fabric } from '../fabric/FabricLibrary'
+import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs } from '../garments/factory'
 import { pocketPlacements } from '../garments/decor'
@@ -561,15 +561,30 @@ export class GarmentStack {
       }
       return
     }
-    const thickness = fabricThickness(l.fabric)
+    // A real lining reads thicker at the openings (so the contrast layer shows).
+    const lined = !!l.data.lined
+    const thickness = fabricThickness(l.fabric) * (lined ? 1.7 : 1)
     if (!l.lining) l.lining = this.makeLiningMaterial(thickness)
     const lm = l.lining
-    lm.color.copy(l.material.color).multiplyScalar(0.8) // darker "inside"
-    lm.roughness = Math.min(1, l.material.roughness + 0.06)
-    lm.sheen = l.material.sheen * 0.6
-    lm.sheenRoughness = l.material.sheenRoughness
-    lm.normalMap = l.material.normalMap
-    lm.normalScale.copy(l.material.normalScale)
+    if (lined) {
+      // a satiny contrast lining fabric (complementary hue, lighter) shown inside
+      const hsl = { h: 0, s: 0, l: 0 }
+      new THREE.Color(l.fabric.color).getHSL(hsl)
+      lm.color.setHSL((hsl.h + 0.5) % 1, Math.min(1, hsl.s + 0.12), Math.min(0.82, hsl.l + 0.22))
+      lm.roughness = 0.26
+      lm.sheen = 0.95
+      lm.sheenRoughness = 0.34
+      lm.sheenColor = new THREE.Color(0xffffff)
+      lm.normalMap = null
+    } else {
+      lm.color.copy(l.material.color).multiplyScalar(0.8) // darker "inside" (plain thickness)
+      lm.roughness = Math.min(1, l.material.roughness + 0.06)
+      lm.sheen = l.material.sheen * 0.6
+      lm.sheenRoughness = l.material.sheenRoughness
+      lm.normalMap = l.material.normalMap
+      lm.normalScale.copy(l.material.normalScale)
+    }
+    lm.needsUpdate = true
     ;(lm.userData.uThickness as { value: number }).value = thickness
     for (const { mesh } of l.controller.getPieces()) {
       if (mesh.children.some((c) => c.userData.lining)) continue
@@ -600,7 +615,10 @@ export class GarmentStack {
       material,
       this.colliders,
       this.measurements,
-      (name) => fabricToSolverParams(this.pieceFabric(layer, name)),
+      (name) => {
+        const p = fabricToSolverParams(this.pieceFabric(layer, name))
+        return layer.data.interfaced ? interfaceParams(p) : p
+      },
       this.bodyCollider,
       this.anchors
     )

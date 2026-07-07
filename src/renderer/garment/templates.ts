@@ -49,6 +49,10 @@ export interface GarmentParams {
   hem?: boolean
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
+  /** Real inner lining — a satiny contrast layer inside, shown at the openings. */
+  lined?: boolean
+  /** Interfacing — a structured, crisper drape that holds its shape. */
+  interfaced?: boolean
   /** Seam allowance in mm for the flat pattern's cut line (default 10). */
   seam?: number
   /** Draw matching notches on the pattern (default true). */

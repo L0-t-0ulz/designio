@@ -72,6 +72,15 @@ export function fabricToSolverParams(fabric: Fabric): FabricParams {
 }
 
 /**
+ * Stiffen the solver params for an **interfaced** (structured) garment — much
+ * lower bending compliance + more damping, so collars/fronts hold their shape and
+ * the whole piece drapes crisp/tailored instead of soft. Pure, so it's unit tested.
+ */
+export function interfaceParams(p: FabricParams): FabricParams {
+  return { ...p, bendCompliance: p.bendCompliance * 0.3, damping: p.damping + 0.6 }
+}
+
+/**
  * Physical fabric thickness in metres, from areal weight — feeds the render-side
  * thickness shell so hems/edges aren't paper-thin. A light chiffon reads ~0.6 mm,
  * a heavy wool coat ~3.2 mm. Slightly exaggerated over reality so the depth reads
