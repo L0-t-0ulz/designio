@@ -236,6 +236,8 @@ export function garmentToPanels(
     params.pocket && `${params.pocketStyle ?? 'patch'} pocket`,
     params.hem && 'rolled hem',
     closure && `${closure} closure`,
+    params.lined && 'lined',
+    params.interfaced && 'interfaced',
     specs.sleeves.length > 0 && (params.sleeveShape ?? 'set-in') !== 'set-in' && `${params.sleeveShape} sleeve`
   ].filter(Boolean) as string[]
   return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure }

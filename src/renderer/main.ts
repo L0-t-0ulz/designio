@@ -102,6 +102,8 @@ function initStudio(
     pocketStyle: l0.pocketStyle,
     hem: l0.hem,
     closure: l0.closure,
+    lined: l0.lined,
+    interfaced: l0.interfaced,
     seam: l0.seam,
     notches: l0.notches,
     trim: l0.trim
@@ -195,6 +197,8 @@ function initStudio(
     garment.pocketStyle = l.data.pocketStyle
     garment.hem = l.data.hem
     garment.closure = l.data.closure
+    garment.lined = l.data.lined
+    garment.interfaced = l.data.interfaced
     garment.seam = l.data.seam
     garment.notches = l.data.notches
     garment.trim = l.data.trim
@@ -383,6 +387,8 @@ function initStudio(
     l.data.pocketStyle = garment.pocketStyle
     l.data.hem = garment.hem
     l.data.closure = garment.closure
+    l.data.lined = garment.lined
+    l.data.interfaced = garment.interfaced
     l.data.seam = garment.seam
     l.data.notches = garment.notches
     l.data.trim = garment.trim
@@ -936,6 +942,8 @@ if (skipStart) {
   }
   if (entryParams.get('hem')) cfg.hem = true
   if (entryParams.get('closure')) cfg.closure = true
+  if (entryParams.get('lined')) cfg.lined = true
+  if (entryParams.get('interfaced')) cfg.interfaced = true
   if (entryParams.get('trim')) cfg.trim = true
   const tc = entryParams.get('trimColor')
   if (tc) cfg.trimColor = parseInt(tc, 16)

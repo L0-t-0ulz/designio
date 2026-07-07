@@ -32,6 +32,8 @@ export interface GarmentState {
   pocketStyle?: PocketStyle
   hem?: boolean
   closure?: boolean
+  lined?: boolean
+  interfaced?: boolean
   seam?: number
   notches?: boolean
   trim?: boolean
@@ -335,14 +337,16 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // construction detail toggles (collar · cuff · pleats · darts), shown per garment
-  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem' | 'closure'][] = [
+  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem' | 'closure' | 'lined' | 'interfaced'][] = [
     ['Collar', 'collar'],
     ['Cuff', 'cuff'],
     ['Pleats', 'pleats'],
     ['Darts', 'dart'],
     ['Pocket', 'pocket'],
     ['Rolled hem', 'hem'],
-    ['Closure', 'closure']
+    ['Closure', 'closure'],
+    ['Lining', 'lined'],
+    ['Interfacing', 'interfaced']
   ]
   const detailToggles = detailDefs.map(([label, key]) => ({
     key,

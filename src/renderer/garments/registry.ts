@@ -40,7 +40,7 @@ const coatTube = {
   flareScale: 0.7,
   neckline: true
 }
-const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true, closure: true }
+const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true, closure: true, lined: true, interfaced: true }
 const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true }
 
 /**
@@ -266,7 +266,7 @@ export const GARMENTS: GarmentDefinition[] = [
     pieces: [upperTube, { kind: 'sleeves' }],
     supports: upperCaps,
     // structured: notch lapels + a button front + welt breast/hip pockets.
-    defaults: { length: 0.68, ease: 0.05, flare: 0.05, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'welt', closure: true },
+    defaults: { length: 0.68, ease: 0.05, flare: 0.05, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'welt', closure: true, lined: true, interfaced: true },
     defaultFabric: 'wool-flannel'
   },
   {
@@ -276,7 +276,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'dress',
     pieces: [coatTube, { kind: 'sleeves' }],
     supports: upperCaps,
-    defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'flap', closure: true },
+    defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'flap', closure: true, lined: true, interfaced: true },
     defaultFabric: 'wool-flannel'
   }
 ]
