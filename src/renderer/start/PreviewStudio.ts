@@ -136,7 +136,11 @@ export class PreviewStudio {
       this.mannequin.colliders,
       this.mannequin.measurements,
       () => fabricToSolverParams(this.current),
-      this.mannequin.bodyCollider
+      this.mannequin.bodyCollider,
+      // Pin garments to the body's torso/hip anchors (as the studio does) so loose,
+      // heavy pieces (hoodie/coat) hang from the shoulders + waist instead of sagging
+      // forward off the body while they settle.
+      () => this.mannequin.anchors()
     )
     // The preview never runs the per-frame mannequin.update() that fits the capsules to
     // the GLB rig, so use the **procedural body** — it keeps an accurate mesh-BVH collider,
