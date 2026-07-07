@@ -12,7 +12,7 @@ import type { BodyCollider } from '../cloth/BodyCollider'
 import { GarmentController } from '../garment/GarmentController'
 import { ClothCollision } from '../cloth/ClothCollision'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
-import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, type Fabric } from '../fabric/FabricLibrary'
+import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, corsetParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs } from '../garments/factory'
 import { pocketPlacements } from '../garments/decor'
@@ -30,6 +30,8 @@ const CLOSURE_METAL = new THREE.MeshStandardMaterial({ color: 0xc2c2ca, metalnes
 // Drawstring cord + metal aglet tip (shared; geometry is per-mesh).
 const CORD_MAT = new THREE.MeshStandardMaterial({ color: 0xece7db, roughness: 0.75 })
 const AGLET_MAT = new THREE.MeshStandardMaterial({ color: 0xb8b8c0, metalness: 0.8, roughness: 0.35 })
+const CORD_LINE = new THREE.LineBasicMaterial({ color: 0xece7db }) // lacing cord
+const BONING_LINE = new THREE.LineBasicMaterial({ color: 0x8a8a92 }) // boning channel stitch
 // A button profile lathed once + shared: a slightly domed disc with a rounded rim + a
 // recessed centre well (where the holes sit) — reads far more like a real button than a flat disc.
 const BUTTON_PROFILE = (() => {
@@ -324,6 +326,63 @@ export class GarmentStack {
     if (l.data.drawstring) this.buildDrawstring(l)
     if (l.data.facing) this.buildFacing(l)
     if (l.data.ruffles) this.buildFrill(l)
+    if (l.data.boning) this.buildBoning(l)
+  }
+
+  /**
+   * A structured/corseted bodice: vertical **boning channels** running the bust →
+   * waist around the piece (a gap left at centre-back), plus **criss-cross lacing**
+   * up the centre back. Rendered as topstitch-style lines + a cord.
+   */
+  private buildBoning(l: StackLayer): void {
+    const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
+    if (!spec) return
+    const yTop = (spec.shoulderY ?? spec.topY) - 0.03
+    const yWaist = this.measurements.waistY
+    const H = yTop - yWaist
+    if (H < 0.08) return
+    const rw = spec.radiusWaist ?? spec.radiusTop * 0.8
+    const rAt = (t: number): number => spec.radiusTop + (rw - spec.radiusTop) * t + 0.004 // bust→waist, proud
+
+    // vertical boning channels (skip a ~40° gap at centre-back for the lacing)
+    const N = 12
+    const backGap = 0.35
+    const chan: THREE.Vector3[] = []
+    const SEG = 6
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2
+      let da = a - (3 * Math.PI) / 2
+      da = Math.atan2(Math.sin(da), Math.cos(da))
+      if (Math.abs(da) < backGap) continue // leave the centre-back open for lacing
+      for (let s = 0; s < SEG; s++) {
+        const t0 = s / SEG
+        const t1 = (s + 1) / SEG
+        chan.push(new THREE.Vector3(Math.cos(a) * rAt(t0), yTop - H * t0, Math.sin(a) * rAt(t0)))
+        chan.push(new THREE.Vector3(Math.cos(a) * rAt(t1), yTop - H * t1, Math.sin(a) * rAt(t1)))
+      }
+    }
+    l.decor.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(chan), BONING_LINE))
+
+    // criss-cross lacing up the centre back (-z), two rows of eyelets + a zig-zag cord
+    const rows = 7
+    const dx = 0.02
+    const lace: THREE.Vector3[] = []
+    const eye = (side: number, i: number): THREE.Vector3 => {
+      const t = i / (rows - 1)
+      const r = rAt(t) + 0.006
+      return new THREE.Vector3(side * dx, yTop - H * t, -r)
+    }
+    for (let i = 0; i < rows; i++) {
+      for (const side of [-1, 1]) {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.004, 0.0015, 6, 12), AGLET_MAT)
+        ring.position.copy(eye(side, i))
+        l.decor.add(ring)
+      }
+      if (i < rows - 1) {
+        lace.push(eye(-1, i), eye(1, i + 1), eye(1, i), eye(-1, i + 1)) // the X
+      }
+    }
+    l.decor.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lace), CORD_LINE))
   }
 
   /**
@@ -741,6 +800,7 @@ export class GarmentStack {
       this.measurements,
       (name) => {
         const p = fabricToSolverParams(this.pieceFabric(layer, name))
+        if (layer.data.boning && !/sleeve|leg/i.test(name)) return corsetParams(p) // rigid bodice only
         return layer.data.interfaced ? interfaceParams(p) : p
       },
       this.bodyCollider,

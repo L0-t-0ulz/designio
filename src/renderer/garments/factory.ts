@@ -50,6 +50,11 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.7)
   }
   if (p.pleats) spec.pleat = p.pleatStyle ?? 'knife'
+  // Boning cinches the waist hard (corset silhouette) — overrides any softer cinch.
+  if (p.boning) {
+    spec.radiusWaist = m.waistR * 0.8 + p.ease * 0.25
+    spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.72)
+  }
   return spec
 }
 

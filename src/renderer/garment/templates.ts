@@ -64,6 +64,9 @@ export interface GarmentParams {
   drawstring?: boolean
   /** Hem frill — a ruffle/flounce/godet flare at the hem. */
   ruffles?: boolean
+  /** Boning / corsetry — a structured bodice that cinches + holds its shape, with
+   * visible boning channels + back lacing. */
+  boning?: boolean
   /** Which hem frill to draw when `ruffles` is on (ruffle / flounce / godet). */
   frillStyle?: FrillStyle
   /** Seam allowance in mm for the flat pattern's cut line (default 10). */

@@ -35,6 +35,7 @@ export interface DesignConfig {
   drawstring?: boolean
   ruffles?: boolean
   frillStyle?: FrillStyle
+  boning?: boolean
   seam?: number
   notches?: boolean
   trim?: boolean

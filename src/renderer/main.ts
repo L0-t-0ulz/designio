@@ -109,6 +109,7 @@ function initStudio(
     drawstring: l0.drawstring,
     ruffles: l0.ruffles,
     frillStyle: l0.frillStyle,
+    boning: l0.boning,
     seam: l0.seam,
     notches: l0.notches,
     trim: l0.trim
@@ -209,6 +210,7 @@ function initStudio(
     garment.drawstring = l.data.drawstring
     garment.ruffles = l.data.ruffles
     garment.frillStyle = l.data.frillStyle
+    garment.boning = l.data.boning
     garment.seam = l.data.seam
     garment.notches = l.data.notches
     garment.trim = l.data.trim
@@ -404,6 +406,7 @@ function initStudio(
     l.data.drawstring = garment.drawstring
     l.data.ruffles = garment.ruffles
     l.data.frillStyle = garment.frillStyle
+    l.data.boning = garment.boning
     l.data.seam = garment.seam
     l.data.notches = garment.notches
     l.data.trim = garment.trim
@@ -963,6 +966,7 @@ if (skipStart) {
   if (entryParams.get('facing')) cfg.facing = true
   if (entryParams.get('drawstring')) cfg.drawstring = true
   if (entryParams.get('ruffles')) cfg.ruffles = true
+  if (entryParams.get('boning')) cfg.boning = true
   const fr = entryParams.get('frillStyle')
   if (fr && (FRILL_STYLES as string[]).includes(fr)) { cfg.ruffles = true; cfg.frillStyle = fr as FrillStyle }
   if (entryParams.get('trim')) cfg.trim = true

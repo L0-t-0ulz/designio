@@ -81,6 +81,15 @@ export function interfaceParams(p: FabricParams): FabricParams {
 }
 
 /**
+ * Solver params for a **boned / corseted** bodice — near-rigid: very low bending
+ * *and* low stretch (boning holds the shape against the body) + heavy damping.
+ * Stiffer than plain interfacing. Pure, so it's unit tested.
+ */
+export function corsetParams(p: FabricParams): FabricParams {
+  return { ...p, bendCompliance: p.bendCompliance * 0.12, stretchCompliance: p.stretchCompliance * 0.3, damping: p.damping + 1.0 }
+}
+
+/**
  * Physical fabric thickness in metres, from areal weight — feeds the render-side
  * thickness shell so hems/edges aren't paper-thin. A light chiffon reads ~0.6 mm,
  * a heavy wool coat ~3.2 mm. Slightly exaggerated over reality so the depth reads
