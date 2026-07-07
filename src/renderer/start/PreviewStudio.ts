@@ -138,6 +138,12 @@ export class PreviewStudio {
       () => fabricToSolverParams(this.current),
       this.mannequin.bodyCollider
     )
+    // The preview never runs the per-frame mannequin.update() that fits the capsules to
+    // the GLB rig, so use the **procedural body** — it keeps an accurate mesh-BVH collider,
+    // so garments render cleanly on it instead of the real body punching through the crude
+    // capsules of an un-fitted GLB.
+    this.mannequin.setOnBodyChange(() => this.ctl.redrape())
+    this.mannequin.setBodyMode(false)
 
     // ---- post-processing (studio-proven chain; grounding comes from the
     // reflective floor + shadow-catcher in setupEnvironment) ----
