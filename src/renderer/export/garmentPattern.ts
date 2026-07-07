@@ -270,6 +270,7 @@ export function garmentToPanels(
     params.facing && 'facing',
     params.drawstring && 'drawstring',
     params.ruffles && `${params.frillStyle ?? 'ruffle'} frill`,
+    params.boning && 'boning + lacing',
     specs.sleeves.length > 0 && (params.sleeveShape ?? 'set-in') !== 'set-in' && `${params.sleeveShape} sleeve`
   ].filter(Boolean) as string[]
   return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure }
