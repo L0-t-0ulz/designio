@@ -59,7 +59,9 @@ Renderer modules:
   solvers **sleep** (dead-stop) when windless + still, so at default settings garments hang perfectly
   still (any wind/body-move/edit wakes them).
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape),
-  `weaveTexture` (procedural weave normal maps; pure math is unit-tested).
+  `weaveTexture` (procedural weave normal maps; pure math is unit-tested), `textile` (repeating textile
+  **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
+  `paintTextile` tiles it across the albedo).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
   `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem** detail),
   `registry` (the garments, as data), `factory` (`buildGarment` composes pieces; construction detail is
@@ -93,8 +95,9 @@ Renderer modules:
   **project gallery** — open · rename · delete · import/export `.dio`), `StartPage` (the "design your
   piece" builder — garment · colour/print · **neckline/sleeve/size** · quick-looks · surprise/spin ·
   fit; aurora tints to the colour), `PreviewStudio` (live 3D preview; grades size, `setAutoRotate`),
-  `design` (`DesignConfig` + **`Print[]`** — multiple placed logos/text with x/y/scale/rotation;
-  `buildDesignArt` layers them onto the albedo), `presets` (looks).
+  `design` (`DesignConfig` + **`Print[]`** — multiple placed logos/text with x/y/scale/rotation, + an
+  optional **`textile`** pattern tiled behind them; `buildDesignArt` layers them onto the albedo),
+  `presets` (looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
   (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar` (File: New · Open/Save
   `.dio` project · Exports; Edit: undo/redo · cut/copy/paste/duplicate/delete garment), `statusBar`,
@@ -125,7 +128,8 @@ Renderer modules:
 its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
-back-fabric panel) ·
+back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
+the garment, behind the prints) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·

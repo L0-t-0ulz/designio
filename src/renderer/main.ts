@@ -29,6 +29,7 @@ import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
+import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord } from './studio/projectStore'
@@ -785,6 +786,13 @@ function initStudio(
         stack.refreshDesign(stack.active)
       }
     },
+    textile: {
+      get: () => stack.active.data.textile,
+      set: (t) => {
+        stack.active.data.textile = t
+        stack.refreshDesign(stack.active)
+      }
+    },
     getMetrics: () => activeMetrics(),
     bodySize,
     onBodySize: (b) => {
@@ -979,6 +987,8 @@ if (skipStart) {
   if (entryParams.get('ribbing')) cfg.ribbing = true
   if (entryParams.get('yoke')) cfg.yoke = true
   if (entryParams.get('princess')) cfg.princess = true
+  const tx = entryParams.get('textile')
+  if (tx && (TEXTILE_PATTERNS as string[]).includes(tx)) cfg.textile = tx as TextilePattern
   const fr = entryParams.get('frillStyle')
   if (fr && (FRILL_STYLES as string[]).includes(fr)) { cfg.ruffles = true; cfg.frillStyle = fr as FrillStyle }
   if (entryParams.get('trim')) cfg.trim = true

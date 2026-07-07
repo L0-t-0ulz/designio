@@ -18,6 +18,7 @@ import { garmentPatternSpecs, garmentSleeveSpecs } from '../garments/factory'
 import { radiusAt } from '../cloth/Garment'
 import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type Print } from '../start/design'
+import type { TextilePattern } from '../fabric/textile'
 import { gradeParams, type GarmentLayerData } from './document'
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
@@ -145,8 +146,8 @@ export class GarmentStack {
     return this.layers.length
   }
 
-  private artInput(l: StackLayer): { color: number; prints: Print[] } {
-    return { color: l.data.color, prints: l.prints }
+  private artInput(l: StackLayer): { color: number; prints: Print[]; textile?: TextilePattern } {
+    return { color: l.data.color, prints: l.prints, textile: l.data.textile }
   }
 
   /** The fabric for a garment part (its override, or the body default). */
@@ -824,8 +825,11 @@ export class GarmentStack {
 
   /**
    * A material for the inner "lining" shell: a darkened copy of the fabric look,
-   * pushed **inward along the normal** by the fabric's physical thickness in the
-   * vertex shader. Paired with the (double-sided) outer surface, this gives every
+   * pushed **inward** by the fabric's physical thickness in the vertex shader.
+   * The garment tube geometry's normals point **inward** (toward the body axis),
+   * so we add along `objectNormal` to move the shell inside the outer surface —
+   * otherwise the map-less shell would sit *outside* and hide the albedo (prints /
+   * textiles). Paired with the (double-sided) outer surface, this gives every
    * garment real thickness so hems/necklines/openings don't read paper-thin. The
    * push distance is a uniform kept on `userData` so it can be re-tuned in place.
    */
@@ -836,7 +840,7 @@ export class GarmentStack {
       shader.uniforms.uThickness = uThickness
       shader.vertexShader = 'uniform float uThickness;\n' + shader.vertexShader.replace(
         '#include <begin_vertex>',
-        '#include <begin_vertex>\n  transformed -= objectNormal * uThickness;'
+        '#include <begin_vertex>\n  transformed += objectNormal * uThickness;'
       )
     }
     mat.userData.uThickness = uThickness

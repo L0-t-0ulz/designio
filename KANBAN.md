@@ -58,6 +58,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Structured bodices — boning & corsetry** — a `boning` detail: near-rigid corset physics + a cinched waist, with visible vertical boning channels + criss-cross back lacing — PR #102
 - [x] **Knit ribbing trims** — ribbed knit bands at the hem, collar + sleeve cuffs (finely fluted geometry — the sweatshirt look) — PR #104
 - [x] **Yokes & princess seams** — a shoulder/back yoke seam + curved princess shaping seams (3D seam lines + a yoke pattern piece + princess seams drawn on the panels) — PR #106
+- [x] **Textile patterns as fabrics** — a repeating pattern (stripe · plaid · check · gingham · polka · camo) that tiles across the whole garment behind any placed prints, from the Appearance panel or `?textile=` — PR #108
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -88,7 +89,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Prints on the 2D flat pattern** — show placed logos/text on the exported panels + manufacturing pack
 - [ ] **Per-panel physics** — front vs back drape stiffness (deferred from per-panel fabric; needs per-constraint region params in the XPBD solver)
 - [ ] **Split sleeves front/back** — per-panel fabric splits the body + legs; sleeves are still a single panel
-- [ ] **Textile patterns as fabrics** — repeating prints (stripe · plaid · check · floral · camo) that tile across the whole garment, beyond placed logos
 - [ ] **Made-to-measure** — type real body measurements (cm/in) to drive the mannequin + garment fit, not just sliders
 - [ ] **Pose the mannequin** — a small pose library (contrapposto · hands-on-hips · seated) for lookbook stills
 - [ ] **Studio lighting + backdrop presets** — softbox · runway · sunset · seamless colour, swappable per shot
@@ -100,6 +100,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67
 - [ ] **Trim the renderer bundle** — code-split Three.js/addons; the renderer chunk is ~2.2 MB (Vite warns >500 KB)
 - [x] **Free print textures on delete** — dispose the print `CanvasTexture`s on print removal / layer delete — PR #67
+- [x] **Fix blank prints/textiles in the studio** — the fabric-thickness lining shell was pushed *outward* over the printed surface (tube normals point inward); push it inward so the albedo map shows — PR #108
 - [ ] **Wire the library search + filters** — filter the garment/fabric browser as you type (by family, weight, stretch)
 - [ ] **Autosave + crash recovery** — periodically snapshot the working project so a crash doesn't lose work
 - [ ] **Golden-image snapshot tests in CI** — capture a few key looks and diff them each PR to catch visual regressions

@@ -3,6 +3,7 @@ import type { CollarStyle, GarmentType, SleeveStyle, SleeveShape, PocketStyle, P
 import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
+import { paintTextile, type TextilePattern } from '../fabric/textile'
 
 /** Everything the start page lets you build before entering the 3D studio. */
 export interface DesignConfig {
@@ -55,6 +56,8 @@ export interface DesignConfig {
   bodyHips: number
   /** Placed prints (logos + text), each positioned / sized / rotated. */
   prints: Print[]
+  /** A repeating textile pattern tiled across the whole garment (behind prints). */
+  textile?: TextilePattern
 }
 
 /** A logo/graphic or text placed on the garment. `x/y` are 0…1 across the front. */
@@ -120,17 +123,19 @@ export interface DesignArt {
   redraw: (input: DesignArtInput) => void
 }
 
-/** The minimal input the albedo canvas needs — a base colour + placed prints. */
+/** The minimal input the albedo canvas needs — a base colour + placed prints + an
+ * optional repeating textile pattern behind them. */
 export interface DesignArtInput {
   color: number
   prints: Print[]
+  textile?: TextilePattern
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 
-/** Whether the design carries any user art (a print with content) vs a plain colour. */
-export function hasArt(c: { prints: Print[] }): boolean {
-  return c.prints.some(printHasContent)
+/** Whether the design needs an albedo map — any print with content, or a textile pattern. */
+export function hasArt(c: { prints: Print[]; textile?: TextilePattern }): boolean {
+  return !!c.textile || c.prints.some(printHasContent)
 }
 
 /**
@@ -145,13 +150,12 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
   canvas.width = size
   canvas.height = size
   const ctx = canvas.getContext('2d')!
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 4
+  let texture: THREE.CanvasTexture | null = null
 
   const redraw = (inp: DesignArtInput): void => {
     ctx.fillStyle = hex(inp.color)
     ctx.fillRect(0, 0, size, size)
+    if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color) // tiling pattern behind the prints
     for (const p of inp.prints) {
       if (!printHasContent(p)) continue
       ctx.save()
@@ -171,8 +175,11 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
       }
       ctx.restore()
     }
-    texture.needsUpdate = true
+    if (texture) texture.needsUpdate = true
   }
-  redraw(input)
+  redraw(input) // paint the canvas *before* creating the texture, so its first GPU upload isn't blank
+  texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 4
   return { texture, redraw }
 }
