@@ -89,7 +89,9 @@ Renderer modules:
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
-  A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF), `garmentMetrics` (**live
+  A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF; pure `placePrints` maps
+  placed logos/text onto their panel to scale — a dashed placement box + label in SVG, a PRINT layer in
+  DXF), `garmentMetrics` (**live
   production spec**: real chest/waist/hip/length/sleeve/inseam + fabric area + seam length from the same
   construction), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM +
   embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF), `techpack`, `save`.
