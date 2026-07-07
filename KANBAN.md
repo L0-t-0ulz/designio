@@ -45,6 +45,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Cloth self / inter-collision** — garments push off each other + don't pass through themselves (spatial-hash particle repulsion) — PR #69
 - [x] **More garments** — blouse · hoodie · cargo pants · blazer · coat (+ Outerwear category), all data-driven — PR #70
 - [x] **Real hood on the hoodie** — a draped cowl behind the neck (data-driven `hood` flag; fits any figure/size) — PR #71
+- [x] **Fabric thickness** — every garment gets an inner lining shell (offset inward along normals by the fabric's physical thickness) so hems/edges read solid, not paper-thin — PR #72
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -88,7 +89,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67
 - [ ] **Trim the renderer bundle** — code-split Three.js/addons; the renderer chunk is ~2.2 MB (Vite warns >500 KB)
 - [x] **Free print textures on delete** — dispose the print `CanvasTexture`s on print removal / layer delete — PR #67
-- [ ] **Fabric thickness** — garments already render two-sided (insides show fabric); give edges/hems a thin inset shell so they don't read paper-thin
 - [ ] **Wire the library search + filters** — filter the garment/fabric browser as you type (by family, weight, stretch)
 - [ ] **Autosave + crash recovery** — periodically snapshot the working project so a crash doesn't lose work
 - [ ] **Golden-image snapshot tests in CI** — capture a few key looks and diff them each PR to catch visual regressions

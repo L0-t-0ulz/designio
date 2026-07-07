@@ -110,7 +110,10 @@ rather than interpenetrating. Cloth normals are recomputed every frame for smoot
 ### A comprehensive fabric library — 24 fabrics by family
 Every fabric carries **physical** properties (weight, stretch, bendiness, friction) that drive the
 **drape**, and **visual** properties (weave, sheen, anisotropy, sheerness, roughness) that drive the
-**material** — so the *same garment drapes differently* on stiff denim vs fluid chiffon.
+**material** — so the *same garment drapes differently* on stiff denim vs fluid chiffon. Weight also
+drives **fabric thickness**: every garment carries an inner lining shell (pushed inward along the surface
+normal by the fabric's real thickness), so hems, necklines and openings read solid instead of paper-thin —
+a heavy wool coat sits visibly thicker than a light poplin.
 
 - **Wovens** — poplin, oxford, chino twill, denim, canvas, corduroy, linen, wool flannel, tweed
 - **Silks & smooth** — charmeuse, satin, crepe, organza, chiffon

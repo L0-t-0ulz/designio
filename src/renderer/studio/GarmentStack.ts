@@ -12,7 +12,7 @@ import type { BodyCollider } from '../cloth/BodyCollider'
 import { GarmentController } from '../garment/GarmentController'
 import { ClothCollision } from '../cloth/ClothCollision'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
-import { getFabric, fabricToSolverParams, type Fabric } from '../fabric/FabricLibrary'
+import { getFabric, fabricToSolverParams, fabricThickness, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs } from '../garments/factory'
 import { pocketPlacements } from '../garments/decor'
@@ -31,6 +31,7 @@ const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [
 ]
 const disposeMats = (l: StackLayer): void => {
   for (const m of layerMats(l)) m.dispose()
+  l.lining?.dispose()
 }
 /** Free the print/design canvas textures (front + back) so they don't leak. */
 const disposeDesigns = (l: StackLayer): void => {
@@ -52,6 +53,8 @@ export interface StackLayer {
   legBackMaterial: THREE.MeshPhysicalMaterial
   /** Contrast-trim material (collar/cuff/pocket/hem bands) when `data.trim` is on. */
   trimMaterial: THREE.MeshPhysicalMaterial
+  /** Inner "lining" material — a darkened shell offset inward for fabric thickness. */
+  lining: THREE.MeshPhysicalMaterial | null
   controller: GarmentController
   design: DesignArt | null
   /** The back panel's own albedo (back colour + prints) when a back fabric is set. */
@@ -229,6 +232,7 @@ export class GarmentStack {
     l.material.needsUpdate = true
     l.backMaterial.needsUpdate = true
     this.applyPartMaterials(l)
+    this.updateLining(l)
   }
 
   /** Rebuild a layer's print from scratch (image/text changed) + reapply. */
@@ -305,10 +309,68 @@ export class GarmentStack {
     l.decor.add(hood)
   }
 
+  /**
+   * A material for the inner "lining" shell: a darkened copy of the fabric look,
+   * pushed **inward along the normal** by the fabric's physical thickness in the
+   * vertex shader. Paired with the (double-sided) outer surface, this gives every
+   * garment real thickness so hems/necklines/openings don't read paper-thin. The
+   * push distance is a uniform kept on `userData` so it can be re-tuned in place.
+   */
+  private makeLiningMaterial(thickness: number): THREE.MeshPhysicalMaterial {
+    const mat = new THREE.MeshPhysicalMaterial({ metalness: 0, side: THREE.DoubleSide, envMapIntensity: 1.0 })
+    const uThickness = { value: thickness }
+    mat.onBeforeCompile = (shader) => {
+      shader.uniforms.uThickness = uThickness
+      shader.vertexShader = 'uniform float uThickness;\n' + shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\n  transformed -= objectNormal * uThickness;'
+      )
+    }
+    mat.userData.uThickness = uThickness
+    return mat
+  }
+
+  /**
+   * (Re)build the fabric-thickness lining: keep one lining material per layer whose
+   * look tracks the body fabric (darkened for an inside shadow), and attach it as a
+   * child shell to every simulated piece mesh (sharing the live geometry, so it
+   * follows the sim for free). Idempotent — pieces created by `rebuild` get a shell;
+   * `applyLook` just re-syncs the material in place (no shader recompile).
+   */
+  private updateLining(l: StackLayer): void {
+    // Sheer fabrics (chiffon/organza) stay see-through — an opaque inner shell would
+    // kill the translucency, and they're thin + floaty anyway. Drop any lining shells.
+    if (l.fabric.transmission > 0.25) {
+      for (const { mesh } of l.controller.getPieces()) {
+        for (const c of mesh.children.filter((ch) => ch.userData.lining)) mesh.remove(c)
+      }
+      return
+    }
+    const thickness = fabricThickness(l.fabric)
+    if (!l.lining) l.lining = this.makeLiningMaterial(thickness)
+    const lm = l.lining
+    lm.color.copy(l.material.color).multiplyScalar(0.8) // darker "inside"
+    lm.roughness = Math.min(1, l.material.roughness + 0.06)
+    lm.sheen = l.material.sheen * 0.6
+    lm.sheenRoughness = l.material.sheenRoughness
+    lm.normalMap = l.material.normalMap
+    lm.normalScale.copy(l.material.normalScale)
+    ;(lm.userData.uThickness as { value: number }).value = thickness
+    for (const { mesh } of l.controller.getPieces()) {
+      if (mesh.children.some((c) => c.userData.lining)) continue
+      const shell = new THREE.Mesh(mesh.geometry, lm)
+      shell.userData.lining = true
+      shell.castShadow = false
+      shell.receiveShadow = true
+      mesh.add(shell)
+    }
+  }
+
   rebuild(l: StackLayer): void {
     l.controller.build(l.data.garmentType, gradeParams(l.data))
     this.applyPartMaterials(l)
     this.buildDecor(l)
+    this.updateLining(l)
     this.applyVisibility(l)
   }
   rebuildAll(): void {
@@ -338,6 +400,7 @@ export class GarmentStack {
       backMaterial: createFabricMaterial(fabric),
       legBackMaterial: createFabricMaterial(fabric),
       trimMaterial: createFabricMaterial(fabric),
+      lining: null,
       controller,
       design: null,
       backDesign: null,
