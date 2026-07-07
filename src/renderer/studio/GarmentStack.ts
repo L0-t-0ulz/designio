@@ -21,9 +21,27 @@ import { gradeParams, type GarmentLayerData } from './document'
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
 // Shared closure materials (buttons · zip tape · metal pull) — geometry is per-mesh.
-const CLOSURE_BUTTON = new THREE.MeshStandardMaterial({ color: 0x2b2b31, metalness: 0.15, roughness: 0.5 })
+// A shell/plastic button — a clearcoat gives the subtle glossy highlight real buttons have.
+const CLOSURE_BUTTON = new THREE.MeshPhysicalMaterial({ color: 0x26262c, metalness: 0, roughness: 0.42, clearcoat: 0.7, clearcoatRoughness: 0.32, sheen: 0.2 })
+const CLOSURE_HOLE = new THREE.MeshStandardMaterial({ color: 0x0d0d10, roughness: 0.85 }) // sew holes
+const CLOSURE_THREAD = new THREE.LineBasicMaterial({ color: 0xdedad0 }) // cross-stitch thread
 const CLOSURE_ZIP = new THREE.MeshStandardMaterial({ color: 0x1d1d21, metalness: 0.5, roughness: 0.45, side: THREE.DoubleSide })
 const CLOSURE_METAL = new THREE.MeshStandardMaterial({ color: 0xc2c2ca, metalness: 0.85, roughness: 0.3 })
+// A button profile lathed once + shared: a slightly domed disc with a rounded rim + a
+// recessed centre well (where the holes sit) — reads far more like a real button than a flat disc.
+const BUTTON_PROFILE = (() => {
+  const R = 0.0088
+  const pts = [
+    new THREE.Vector2(0, 0.0016), // centre, recessed
+    new THREE.Vector2(R * 0.34, 0.0015),
+    new THREE.Vector2(R * 0.42, 0.0024), // inner well wall
+    new THREE.Vector2(R * 0.82, 0.0028), // domed face
+    new THREE.Vector2(R * 0.97, 0.0022), // rounded rim
+    new THREE.Vector2(R, 0.001),
+    new THREE.Vector2(R, 0) // edge → back
+  ]
+  return new THREE.LatheGeometry(pts, 28)
+})()
 
 const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [
   l.material,
@@ -461,11 +479,29 @@ export class GarmentStack {
       const n = Math.max(3, Math.round((yTop - yBot) / 0.085))
       for (let i = 0; i < n; i++) {
         const y = yBot + ((yTop - yBot) * (i + 0.5)) / n
-        const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.0085, 0.004, 16), CLOSURE_BUTTON)
-        btn.rotation.x = Math.PI / 2 // round face toward the front (+z)
-        btn.position.set(0, y, frontZ(y) + 0.006)
+        const faceZ = frontZ(y) + 0.006
+        // domed shell button body (clone the shared lathe so per-rebuild disposal is safe)
+        const btn = new THREE.Mesh(BUTTON_PROFILE.clone(), CLOSURE_BUTTON)
+        btn.rotation.x = Math.PI / 2 // domed face toward the front (+z)
+        btn.position.set(0, y, faceZ)
         btn.castShadow = true
+        btn.receiveShadow = true
         l.decor.add(btn)
+        // four sew holes in the recessed centre well + a cross-stitch thread
+        const off = 0.0024
+        const holeZ = faceZ + 0.0016
+        for (const [hx, hy] of [[-off, off], [off, off], [-off, -off], [off, -off]] as [number, number][]) {
+          const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.001, 0.001, 0.0012, 8), CLOSURE_HOLE)
+          hole.rotation.x = Math.PI / 2
+          hole.position.set(hx, y + hy, holeZ)
+          l.decor.add(hole)
+        }
+        const tz = holeZ + 0.0007
+        const thread = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(-off, y + off, tz), new THREE.Vector3(off, y - off, tz),
+          new THREE.Vector3(off, y + off, tz), new THREE.Vector3(-off, y - off, tz)
+        ])
+        l.decor.add(new THREE.LineSegments(thread, CLOSURE_THREAD))
       }
     }
   }
