@@ -44,7 +44,7 @@ export class XPBDSolver {
    * per-substep broadphase, this is a once-per-frame corrective. Null → capsules only. */
   bodyCollider: BodyCollider | null = null
   /** Garment thickness: cloth rests this far off the body surface. */
-  bodySkin = 0.008
+  bodySkin = 0.011
   groundY = 0.001
   params: FabricParams
 

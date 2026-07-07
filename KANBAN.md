@@ -58,6 +58,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Stability**
 - [x] **Clothes never fly away / explode** — NaN guard + velocity/position stability net; the gown is fixed — PR #47
+- [x] **Cleaner fit on the body** — cloth rests further off the surface (less body poke-through), decor (collar/lapel/buttons/hood) sits proud, short sleeves are true mid-bicep caps (less flare) — PR #84
 - [x] **Static at default** — garments freeze to rest until you change something — PR #47
 
 ---
