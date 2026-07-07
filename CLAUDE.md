@@ -61,7 +61,9 @@ Renderer modules:
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape),
   `weaveTexture` (procedural weave normal maps; pure math is unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
-  `paintTextile` tiles it across the albedo).
+  `paintTextile` tiles it across the albedo), `swatch` (**import a fabric photo → seamless tiling PBR**:
+  pure `makeSeamless`/`normalFromLuma`/`estimateRoughness` pixel math is unit-tested; `buildSwatchTextures`
+  bakes an albedo + derived normal + roughness that clothe the whole garment).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
   `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem** detail),
   `registry` (the garments, as data), `factory` (`buildGarment` composes pieces; construction detail is
@@ -129,7 +131,8 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
-the garment, behind the prints) ·
+the garment, behind the prints) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
+procedural swatch) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
