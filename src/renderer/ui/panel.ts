@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
-import type { GarmentType, SleeveStyle, CollarStyle } from '../garment/templates'
-import { COLLAR_STYLES } from '../garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape } from '../garment/templates'
+import { COLLAR_STYLES, SLEEVE_SHAPES } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
@@ -20,6 +20,7 @@ export interface GarmentState {
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
+  sleeveShape?: SleeveShape
   size: SizeLabel
   collar?: boolean
   collarStyle?: CollarStyle
@@ -182,10 +183,23 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   ]
   const sleeveBtns = new Map<SleeveStyle, HTMLButtonElement>()
   for (const [name, s] of sleeves) {
-    const b = button(name, () => { garment.sleeve = s; syncNeckSleeve(); opts.onGarmentEdit() }, garment.sleeve === s)
+    const b = button(name, () => { garment.sleeve = s; syncGarment(); opts.onGarmentEdit() }, garment.sleeve === s)
     sleeveBtns.set(s, b)
     sleeveRow.append(b)
   }
+
+  // sleeve-shape picker (the sleeve library; shown when the garment has sleeves)
+  const sleeveShapeLabels: Record<SleeveShape, string> = { 'set-in': 'Set-in', raglan: 'Raglan', dolman: 'Dolman', bishop: 'Bishop', puff: 'Puff', bell: 'Bell' }
+  const sleeveShapeRow = el('div', 'dio-actions')
+  sleeveShapeRow.style.flexWrap = 'wrap'
+  const sleeveShapeBtns = new Map<SleeveShape, HTMLButtonElement>()
+  for (const sh of SLEEVE_SHAPES) {
+    const b = button(sleeveShapeLabels[sh], () => { garment.sleeveShape = sh; syncGarment(); opts.onGarmentEdit() }, (garment.sleeveShape ?? 'set-in') === sh)
+    sleeveShapeBtns.set(sh, b)
+    sleeveShapeRow.append(b)
+  }
+  const sleeveShapeBlock = el('div')
+  sleeveShapeBlock.append(el('div', 'dio-field-label', 'Sleeve shape'), sleeveShapeRow)
 
   // collar / lapel picker (shown when the Collar detail is on)
   const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel' }
@@ -271,6 +285,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     // the collar/lapel library shows only when the Collar detail is supported + on
     collarBlock.classList.toggle('dio-hidden', !def.supports.collar || !garment.collar)
     for (const [cstyle, node] of collarBtns) node.classList.toggle('primary', (garment.collarStyle ?? 'band') === cstyle)
+    // the sleeve library shows only when the garment has sleeves selected
+    sleeveShapeBlock.classList.toggle('dio-hidden', !def.supports.sleeve || garment.sleeve === 'none')
+    for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
     syncNeckSleeve()
     lenS.refresh()
     easeS.refresh()
@@ -298,7 +315,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; syncGarment(); opts.onGarmentEdit() } })
   }))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, neckRow, sleeveRow, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock)
+  construction.body.append(sizeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

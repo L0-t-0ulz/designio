@@ -1,6 +1,6 @@
 import type { Capsule } from '../avatar/colliders'
 import type { Measurements } from '../avatar/Mannequin'
-import type { GarmentParams } from '../garment/templates'
+import type { GarmentParams, SleeveShape } from '../garment/templates'
 import {
   buildAxisTube,
   buildTubeGarment,
@@ -63,28 +63,53 @@ function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
   ]
 }
 
+/**
+ * The sleeve **library** — maps a shape to its radius endpoints + an optional
+ * non-linear profile along the sleeve (t = shoulder … cuff). Pure so it's unit
+ * tested. `armR` = the arm radius at the hem (forearm for long, upper for short).
+ */
+export function sleeveShapeSpec(
+  shape: SleeveShape,
+  armR: number,
+  cuff: boolean
+): { radiusStart: number; radiusEnd: number; profile?: (t: number) => number } {
+  const base = armR + (cuff ? 0.004 : 0.02) // set-in cuff/hem radius
+  const lerp = (s: number, e: number, t: number): number => s + (e - s) * t
+  switch (shape) {
+    case 'raglan': // seam runs to the neck → a wider top over the shoulder
+      return { radiusStart: 0.09, radiusEnd: base }
+    case 'dolman': // batwing — very wide, deep armhole tapering to the wrist
+      return { radiusStart: 0.15, radiusEnd: base, profile: (t) => 0.15 + (base - 0.15) * Math.pow(t, 1.5) }
+    case 'bishop': { // full sleeve, gathered into a tight cuff
+      const end = armR + 0.004
+      return { radiusStart: 0.072, radiusEnd: end, profile: (t) => lerp(0.072, end, t) + 0.05 * Math.sin(Math.PI * Math.min(t / 0.94, 1)) }
+    }
+    case 'puff': // gathered puff at the shoulder, normal below
+      return { radiusStart: 0.078, radiusEnd: base, profile: (t) => lerp(0.078, base, t) + 0.06 * Math.pow(Math.max(0, 1 - t / 0.34), 1.6) }
+    case 'bell': { // narrow upper arm, flaring out at the cuff
+      const end = armR + 0.085
+      return { radiusStart: 0.062, radiusEnd: end, profile: (t) => 0.062 + (end - 0.062) * Math.pow(t, 2.5) }
+    }
+    default: // set-in — hugs the shoulder/arm, tapers to the hem
+      return { radiusStart: 0.072, radiusEnd: base }
+  }
+}
+
 /** Sleeve tubes along the arm capsules (indices 5/6 = left, 9/10 = right). */
-function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false): AxisTubeSpec[] {
+function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: SleeveShape = 'set-in'): AxisTubeSpec[] {
   const arms: [Capsule, Capsule][] = [
     [colliders[5], colliders[6]],
     [colliders[9], colliders[10]]
   ]
   return arms.map(([upper, fore]) => {
     const a = upper.a.clone() // shoulder
-    // wrist (long) or a true short sleeve at mid-bicep (was the full upper arm to the
-    // elbow, which read as elbow-length + flared off the shoulder).
-    const b = long ? fore.b.clone() : upper.a.clone().lerp(upper.b, 0.62)
+    // wrist (long) or a true short sleeve at mid-bicep. Dolman/bishop/bell read as
+    // full-length even when "short" (they're statement sleeves) → run to the wrist.
+    const fullLen = long || shape === 'dolman' || shape === 'bishop' || shape === 'bell'
+    const b = fullLen ? fore.b.clone() : upper.a.clone().lerp(upper.b, 0.62)
     const len = a.distanceTo(b)
-    return {
-      rings: Math.max(6, Math.min(28, Math.round(len / 0.03))),
-      radial: 26,
-      a,
-      b,
-      // Hug the shoulder/arm more (was a wide, barely-tapering tube that flared off the
-      // deltoid); still clears the deltoid at the top, tapers toward the arm at the hem.
-      radiusStart: 0.072,
-      radiusEnd: (long ? fore.radius : upper.radius) + (cuff ? 0.004 : 0.02) // a cuff draws the hem in
-    }
+    const { radiusStart, radiusEnd, profile } = sleeveShapeSpec(shape, fullLen ? fore.radius : upper.radius, cuff)
+    return { rings: Math.max(6, Math.min(28, Math.round(len / 0.03))), radial: 26, a, b, radiusStart, radiusEnd, profile }
   })
 }
 
@@ -106,7 +131,7 @@ export function garmentSleeveSpecs(
 ): AxisTubeSpec[] {
   if (!def.pieces.some((pc) => pc.kind === 'sleeves')) return []
   const sleeve = params.sleeve ?? 'none'
-  return sleeve === 'none' ? [] : sleeveSpecs(sleeve === 'long', colliders, params.cuff)
+  return sleeve === 'none' ? [] : sleeveSpecs(sleeve === 'long', colliders, params.cuff, params.sleeveShape)
 }
 
 /**
@@ -166,7 +191,7 @@ export function buildGarment(
     } else if (pc.kind === 'sleeves') {
       const sleeve = params.sleeve ?? 'none'
       if (sleeve !== 'none') {
-        sleeveSpecs(sleeve === 'long', colliders, params.cuff).forEach((spec, i) => {
+        sleeveSpecs(sleeve === 'long', colliders, params.cuff, params.sleeveShape).forEach((spec, i) => {
           out.push({ build: buildAxisTube(spec), refill: (pos) => fillAxisTube(pos, spec), name: sleeveName[i] })
         })
       }

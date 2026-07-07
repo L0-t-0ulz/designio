@@ -13,8 +13,8 @@ import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
-import type { GarmentType, SleeveStyle, CollarStyle } from './garment/templates'
-import { COLLAR_STYLES } from './garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape } from './garment/templates'
+import { COLLAR_STYLES, SLEEVE_SHAPES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
@@ -90,6 +90,7 @@ function initStudio(
     flare: l0.flare,
     neckline: l0.neckline,
     sleeve: l0.sleeve,
+    sleeveShape: l0.sleeveShape,
     size: l0.size,
     collar: l0.collar,
     collarStyle: l0.collarStyle,
@@ -180,6 +181,7 @@ function initStudio(
     garment.flare = l.data.flare
     garment.neckline = l.data.neckline
     garment.sleeve = l.data.sleeve
+    garment.sleeveShape = l.data.sleeveShape
     garment.size = l.data.size
     garment.collar = l.data.collar
     garment.collarStyle = l.data.collarStyle
@@ -365,6 +367,7 @@ function initStudio(
     l.data.flare = garment.flare
     l.data.neckline = garment.neckline
     l.data.sleeve = garment.sleeve
+    l.data.sleeveShape = garment.sleeveShape
     l.data.size = garment.size
     l.data.collar = garment.collar
     l.data.collarStyle = garment.collarStyle
@@ -912,6 +915,8 @@ if (skipStart) {
     cfg.collar = true
     cfg.collarStyle = cs as CollarStyle
   }
+  const ss = entryParams.get('sleeveShape')
+  if (ss && (SLEEVE_SHAPES as string[]).includes(ss)) cfg.sleeveShape = ss as SleeveShape
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
   if (entryParams.get('dart')) cfg.dart = true
