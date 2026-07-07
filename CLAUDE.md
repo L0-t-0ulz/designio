@@ -65,7 +65,9 @@ Renderer modules:
   pure `makeSeamless`/`normalFromLuma`/`estimateRoughness` pixel math is unit-tested; `buildSwatchTextures`
   bakes an albedo + derived normal + roughness that clothe the whole garment), `sparkle` (**sequins /
   beading / metallic foil** eveningwear finishes — pure `sparkleNormal` facet field + `sparkleParams`
-  metallic recipe are unit-tested; `makeSparkleNormalMap` bakes the tiling glint normal map).
+  metallic recipe are unit-tested; `makeSparkleNormalMap` bakes the tiling glint normal map), `quilt`
+  (**channel / diamond / box quilting** — pure `quiltHeight` pillow-loft field + `quiltNormal` are
+  unit-tested; `makeQuiltNormalMap` bakes the tiling loft normal map for puffers/jackets).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
   `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem** detail),
   `registry` (the garments, as data), `factory` (`buildGarment` composes pieces; construction detail is
@@ -138,7 +140,8 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
 the garment, behind the prints) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
-procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) · `?prints=demo`
+procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
+`?quilt=<channel|diamond|box>` (a quilted-loft finish) · `?prints=demo`
 (two body prints) · `?prints=parts` (a print on the body + sleeves + legs — each print sits on its own
 piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
