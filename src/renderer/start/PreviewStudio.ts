@@ -22,6 +22,21 @@ const VignetteShader = {
     void main(){ vec4 t = texture2D(tDiffuse, vUv); vec2 uv = (vUv - 0.5) * offset; float v = clamp(1.0 - dot(uv, uv) * darkness, 0.0, 1.0); gl_FragColor = vec4(t.rgb * v, t.a); }`
 }
 
+/** Subtle holographic sheen: faint scanlines + a cool screen-edge glow. */
+const HologramShader = {
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uAmt: { value: 1 } },
+  vertexShader: /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+  fragmentShader: /* glsl */ `uniform sampler2D tDiffuse; uniform float uTime; uniform float uAmt; varying vec2 vUv;
+    void main(){
+      vec4 c = texture2D(tDiffuse, vUv);
+      float scan = 1.0 - 0.035 * uAmt * (0.5 + 0.5 * sin(vUv.y * 850.0 - uTime * 3.0));
+      vec2 d = vUv - 0.5;
+      float edge = smoothstep(0.34, 0.72, length(d));
+      vec3 glow = vec3(0.42, 0.5, 1.0) * edge * 0.09 * uAmt;
+      gl_FragColor = vec4(c.rgb * scan + glow, c.a);
+    }`
+}
+
 /**
  * A compact live 3D preview of the piece you're designing — a **photographic
  * studio render** (reuses the studio environment: IBL, rim rig, reflective floor,
@@ -35,6 +50,11 @@ export class PreviewStudio {
   private readonly controls: OrbitControls
   private readonly composer: EffectComposer
   private readonly bloom: UnrealBloomPass
+  private readonly holo: ShaderPass
+  private readonly ring: THREE.Mesh
+  private readonly colorLight: THREE.PointLight
+  private readonly particles: THREE.Points
+  private time = 0
   private readonly material: THREE.MeshPhysicalMaterial
   private readonly ctl: GarmentController
   private readonly loop: Loop
@@ -82,6 +102,33 @@ export class PreviewStudio {
     this.controls.update()
 
     this.scene.add(this.mannequin.group)
+
+    // ---- holographic stage: a glowing pedestal ring, a colour-reactive wash light,
+    // and faint drifting particles (all additive, so they read as light, not geometry) ----
+    this.ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.5, 0.011, 12, 96),
+      new THREE.MeshBasicMaterial({ color: 0x8a7bff, transparent: true, opacity: 0.42, blending: THREE.AdditiveBlending, depthWrite: false })
+    )
+    this.ring.rotation.x = Math.PI / 2
+    this.ring.position.y = 0.014
+    this.scene.add(this.ring)
+
+    this.colorLight = new THREE.PointLight(0xffffff, 0, 4, 2)
+    this.colorLight.position.set(0.7, 1.5, 1.4)
+    this.scene.add(this.colorLight)
+
+    const N = 90
+    const pp = new Float32Array(N * 3)
+    for (let i = 0; i < N; i++) {
+      pp[i * 3] = (Math.random() - 0.5) * 3.2
+      pp[i * 3 + 1] = Math.random() * 2.3
+      pp[i * 3 + 2] = (Math.random() - 0.5) * 3.2
+    }
+    const pgeo = new THREE.BufferGeometry()
+    pgeo.setAttribute('position', new THREE.BufferAttribute(pp, 3))
+    this.particles = new THREE.Points(pgeo, new THREE.PointsMaterial({ color: 0xaab0ff, size: 0.013, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }))
+    this.scene.add(this.particles)
+
     this.material = createFabricMaterial(this.current)
     this.ctl = new GarmentController(
       this.scene,
@@ -96,9 +143,12 @@ export class PreviewStudio {
     // reflective floor + shadow-catcher in setupEnvironment) ----
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.camera))
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.16, 0.55, 1.9)
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.18, 0.55, 1.85) // ~default; only true speculars bloom (no haze)
     this.composer.addPass(this.bloom)
     this.composer.addPass(new ShaderPass(VignetteShader))
+    this.holo = new ShaderPass(HologramShader)
+    this.holo.uniforms.uAmt.value = this.reducedMotion ? 0.4 : 1 // calmer when reduced-motion
+    this.composer.addPass(this.holo)
     this.composer.addPass(new OutputPass())
     this.composer.addPass(new SMAAPass())
 
@@ -120,6 +170,16 @@ export class PreviewStudio {
         if (this.paused) return
         this.ctl.updateMeshes()
         this.controls.update()
+        // living stage: breathe the pedestal ring, drift the particles, animate the sheen
+        if (!this.reducedMotion) {
+          this.time += 1 / 60
+          this.holo.uniforms.uTime.value = this.time
+          const rm = this.ring.material as THREE.MeshBasicMaterial
+          rm.opacity = 0.32 + 0.14 * Math.sin(this.time * 1.6)
+          this.ring.scale.setScalar(1 + 0.015 * Math.sin(this.time * 1.6))
+          this.particles.rotation.y = this.time * 0.05
+          this.particles.position.y = 0.05 * Math.sin(this.time * 0.4)
+        }
         this.composer.render()
         if (this.firstFrame) {
           this.firstFrame = false
@@ -181,6 +241,10 @@ export class PreviewStudio {
     Object.assign(this.current, getFabric(config.fabricId))
     this.current.color = config.color
     applyFabric(this.material, this.current)
+    // wash the piece + pedestal ring in the chosen colour (dopamine: it glows your colour)
+    this.colorLight.color.setHex(config.color)
+    this.colorLight.intensity = 3.2
+    ;(this.ring.material as THREE.MeshBasicMaterial).color.setHex(config.color).lerp(new THREE.Color(0x9a8cff), 0.4)
     if (hasArt(config)) {
       this.design = buildDesignArt(config)
       this.material.map = this.design.texture
@@ -235,6 +299,10 @@ export class PreviewStudio {
     window.removeEventListener('focus', this.onShow)
     document.removeEventListener('visibilitychange', this.onVisibility)
     window.removeEventListener('resize', this.onResize)
+    this.ring.geometry.dispose()
+    ;(this.ring.material as THREE.Material).dispose()
+    this.particles.geometry.dispose()
+    ;(this.particles.material as THREE.Material).dispose()
     this.env.dispose()
     this.renderer.dispose()
     dom.remove()
