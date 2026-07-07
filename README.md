@@ -76,7 +76,7 @@ pieces), so breadth comes from data, not bespoke code. Grouped by category:
 - **Outerwear** — blazer, coat
 
 The construction panel is **schema-driven**: each garment shows only the controls it supports —
-**neckline** (scoop / crew / V / strapless), **sleeves** (short / long), **length**, **looseness**, and
+**neckline** (scoop / crew / V / strapless), **sleeves** (short / long) with a **sleeve library** of shapes (set-in · raglan · dolman · bishop · puff · bell), **length**, **looseness**, and
 **flare**. Tops & dresses get shoulder coverage + cinched waists; the jumpsuit is a torso + two legs.
 
 | Gown (strapless satin) | Jumpsuit (denim, one-piece) | Coat (outerwear, to the knee) |

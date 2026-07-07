@@ -143,6 +143,9 @@ export interface AxisTubeSpec {
   b: THREE.Vector3
   radiusStart: number
   radiusEnd: number
+  /** Optional non-linear radius along the sleeve (t = 0 at `a` … 1 at `b`) for
+   * shaped sleeves (puff/bishop/bell/…). Falls back to the start→end lerp. */
+  profile?: (t: number) => number
 }
 
 /** Writes rings perpendicular to the a→b axis, radius lerping start→end. */
@@ -158,7 +161,7 @@ export function fillAxisTube(positions: Float32Array, spec: AxisTubeSpec): void 
     const cx = a.x + (b.x - a.x) * t
     const cy = a.y + (b.y - a.y) * t
     const cz = a.z + (b.z - a.z) * t
-    const r = radiusStart + (radiusEnd - radiusStart) * t
+    const r = spec.profile ? spec.profile(t) : radiusStart + (radiusEnd - radiusStart) * t
     for (let ix = 0; ix < radial; ix++) {
       const ang = (ix / radial) * Math.PI * 2
       const c = Math.cos(ang) * r

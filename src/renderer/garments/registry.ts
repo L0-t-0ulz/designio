@@ -111,7 +111,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     pieces: [upperTube, { kind: 'sleeves' }],
     supports: upperCaps,
-    defaults: { length: 0.66, ease: 0.03, flare: 0.12, neckline: 'v', sleeve: 'long', closure: true },
+    defaults: { length: 0.66, ease: 0.03, flare: 0.12, neckline: 'v', sleeve: 'long', sleeveShape: 'bishop', closure: true },
     defaultFabric: 'silk-charmeuse'
   },
   {

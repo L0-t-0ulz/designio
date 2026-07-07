@@ -178,7 +178,11 @@ export function garmentToPanels(
     panels.push(finishPanel('Leg front', 2, unwrapTube(spec, Math.PI / 2)))
     panels.push(finishPanel('Leg back', 2, unwrapTube(spec, (3 * Math.PI) / 2)))
   }
-  if (specs.sleeves.length) panels.push(finishPanel('Sleeve', 2, unwrapSleeve(specs.sleeves[0])))
+  if (specs.sleeves.length) {
+    const shape = params.sleeveShape ?? 'set-in'
+    const sname = shape === 'set-in' ? 'Sleeve' : `Sleeve (${shape})`
+    panels.push(finishPanel(sname, 2, unwrapSleeve(specs.sleeves[0])))
+  }
 
   if (params.pocket) {
     const places = pocketPlacements(def, m)
@@ -222,7 +226,8 @@ export function garmentToPanels(
     params.dart && 'darts',
     params.pocket && 'pocket',
     params.hem && 'rolled hem',
-    closure && `${closure} closure`
+    closure && `${closure} closure`,
+    specs.sleeves.length > 0 && (params.sleeveShape ?? 'set-in') !== 'set-in' && `${params.sleeveShape} sleeve`
   ].filter(Boolean) as string[]
   return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure }
 }

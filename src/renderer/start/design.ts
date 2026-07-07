@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { CollarStyle, GarmentType, SleeveStyle } from '../garment/templates'
+import type { CollarStyle, GarmentType, SleeveStyle, SleeveShape } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
@@ -14,6 +14,7 @@ export interface DesignConfig {
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
+  sleeveShape?: SleeveShape
   /** Manufacturing size (grades the garment girth). */
   size: SizeLabel
   /** Construction detail (optional). */

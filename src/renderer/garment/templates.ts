@@ -3,6 +3,9 @@ import type { NecklineStyle } from '../cloth/Garment'
 /** A garment id from the registry (see garments/registry.ts). */
 export type GarmentType = string
 export type SleeveStyle = 'none' | 'short' | 'long'
+/** Sleeve shapes (the sleeve library). Active when the sleeve isn't 'none'. */
+export type SleeveShape = 'set-in' | 'raglan' | 'dolman' | 'bishop' | 'puff' | 'bell'
+export const SLEEVE_SHAPES: SleeveShape[] = ['set-in', 'raglan', 'dolman', 'bishop', 'puff', 'bell']
 /** Collar / lapel styles (active when the `collar` detail is on). */
 export type CollarStyle = 'band' | 'shirt' | 'mandarin' | 'peterpan' | 'notch'
 export const COLLAR_STYLES: CollarStyle[] = ['band', 'shirt', 'mandarin', 'peterpan', 'notch']
@@ -18,6 +21,8 @@ export interface GarmentParams {
   neckline?: NecklineStyle
   /** Sleeves for tops/dresses. */
   sleeve?: SleeveStyle
+  /** Sleeve shape (set-in / raglan / dolman / bishop / puff / bell). */
+  sleeveShape?: SleeveShape
   // ---- construction detail (all optional) ----
   /** Collar stand — raises/closes the neckline + a collar band on the pattern. */
   collar?: boolean

@@ -6,7 +6,7 @@
  * of a `.dio` project. Pure + unit-tested; the runtime (main.ts) builds live
  * meshes/solvers from it and reads them back into it.
  */
-import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle } from '../garment/templates'
+import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle, SleeveShape } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
@@ -28,6 +28,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     flare: l.flare,
     neckline: l.neckline,
     sleeve: l.sleeve,
+    sleeveShape: l.sleeveShape,
     collar: l.collar,
     collarStyle: l.collarStyle,
     cuff: l.cuff,
@@ -69,6 +70,7 @@ export interface GarmentLayerData {
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
+  sleeveShape?: SleeveShape
   /** Manufacturing size (grades the girth). */
   size: SizeLabel
   // construction detail (optional)
@@ -137,6 +139,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     flare: c.flare,
     neckline: c.neckline,
     sleeve: c.sleeve,
+    sleeveShape: c.sleeveShape,
     size: c.size,
     collar: c.collar,
     collarStyle: c.collarStyle,
@@ -169,6 +172,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     flare: d.flare ?? 0.05,
     neckline: d.neckline ?? 'scoop',
     sleeve: d.sleeve ?? 'short',
+    sleeveShape: d.sleeveShape,
     size: 'M',
     collar: d.collar,
     collarStyle: d.collarStyle,
