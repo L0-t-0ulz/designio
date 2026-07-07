@@ -309,6 +309,67 @@ export class GarmentStack {
     }
 
     if (l.data.closure) this.buildClosure(l)
+    if (l.data.collar) this.buildCollar(l)
+  }
+
+  /**
+   * The collar / lapel library: a shaped collar around the neckline whose form
+   * depends on `collarStyle` — a stand (band / mandarin), a folded shirt collar,
+   * a flat rounded Peter-Pan, or fold-back notch lapels down a V front. Non-sim
+   * decoration in the garment's (or trim) fabric, sized from the neck spec.
+   */
+  private buildCollar(l: StackLayer): void {
+    const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
+    if (!spec) return
+    const style = l.data.collarStyle ?? 'band'
+    const neckR = Math.max(0.05, spec.radiusTop * 0.6)
+    const neckY = (spec.shoulderY ?? spec.topY) - 0.02
+    const mat = l.data.trim ? l.trimMaterial : l.material
+    const add = (geo: THREE.BufferGeometry, y: number, rotX = 0): void => {
+      const m = new THREE.Mesh(geo, mat)
+      m.position.set(0, y, 0)
+      m.rotation.x = rotX
+      m.castShadow = true
+      m.receiveShadow = true
+      l.decor.add(m)
+    }
+    if (style === 'band' || style === 'mandarin') {
+      const h = style === 'mandarin' ? 0.06 : 0.038
+      const topR = style === 'mandarin' ? neckR * 0.96 : neckR * 1.02
+      add(new THREE.CylinderGeometry(topR, neckR * 1.04, h, 40, 1, true), neckY + h / 2)
+    } else if (style === 'shirt') {
+      const sh = 0.026 // stand height
+      add(new THREE.CylinderGeometry(neckR * 1.03, neckR * 1.05, sh, 40, 1, true), neckY + sh / 2)
+      add(new THREE.CylinderGeometry(neckR * 1.05, neckR * 1.55, 0.055, 40, 1, true), neckY + sh + 0.018) // flared fold-down
+    } else if (style === 'peterpan') {
+      add(new THREE.RingGeometry(neckR * 1.02, neckR * 1.95, 44, 1), neckY - 0.005, -Math.PI / 2 + 0.28) // flat, front dips
+    } else {
+      // notch: fold-back lapels down the V front + a small back stand
+      this.buildLapels(l, neckY, mat)
+      add(new THREE.CylinderGeometry(neckR * 1.02, neckR * 1.04, 0.03, 40, 1, true, Math.PI * 0.72, Math.PI * 1.56), neckY + 0.015) // back-only stand
+    }
+  }
+
+  /** Two flat fold-back lapels forming a V/notch down the chest (jacket front). */
+  private buildLapels(l: StackLayer, neckY: number, mat: THREE.Material): void {
+    const m = this.measurements
+    const fz = m.chestR + 0.006
+    for (const s of [-1, 1]) {
+      const p = [
+        s * 0.02, neckY + 0.02, fz, // top inner (near centre-front neck)
+        s * m.chestR * 0.95, neckY - 0.01, fz - 0.012, // top outer (shoulder side)
+        s * m.chestR * 0.72, m.chestY, fz, // bottom outer
+        s * 0.03, m.chestY + 0.04, fz + 0.008 // bottom inner (toward centre front)
+      ]
+      const geo = new THREE.BufferGeometry()
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3))
+      geo.setIndex([0, 1, 2, 0, 2, 3])
+      geo.computeVertexNormals()
+      const lapel = new THREE.Mesh(geo, mat)
+      lapel.castShadow = true
+      lapel.receiveShadow = true
+      l.decor.add(lapel)
+    }
   }
 
   /**

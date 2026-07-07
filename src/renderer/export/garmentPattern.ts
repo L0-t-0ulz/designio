@@ -196,10 +196,27 @@ export function garmentToPanels(
     panels.push(finishPanel('Pocket', places.length || 1, { outline, notches }))
   }
 
+  if (params.collar) {
+    const style = params.collarStyle ?? 'band'
+    const neckR = specs.body[0] ? specs.body[0].radiusTop * 0.6 : 0.11
+    const w = Math.max(200, Math.PI * neckR * MM) // half neck circumference band (cut on the fold)
+    const h = { band: 40, mandarin: 60, shirt: 80, peterpan: 95, notch: 105 }[style]
+    let outline: Pt[]
+    if (style === 'peterpan') {
+      outline = [{ x: 0, y: h * 0.2 }, { x: w * 0.15, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: w * 0.1, y: h }] // curved flat collar half
+    } else if (style === 'notch') {
+      outline = [{ x: 0, y: 0 }, { x: w * 0.62, y: 0 }, { x: w, y: h * 0.7 }, { x: w, y: h }, { x: w * 0.28, y: h }] // slanted lapel with a notch
+    } else {
+      outline = [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }] // stand band
+    }
+    const name = style === 'notch' ? 'Lapel' : style === 'peterpan' ? 'Collar (flat)' : style === 'shirt' ? 'Collar + stand' : 'Collar'
+    panels.push(finishPanel(name, style === 'peterpan' || style === 'notch' ? 2 : 1, { outline, notches: [] }))
+  }
+
   if (params.notches === false) for (const p of panels) p.notches = [] // notches off
   const closure = params.closure ? (def.closureStyle ?? 'button') : undefined
   const active = [
-    params.collar && 'collar',
+    params.collar && `${params.collarStyle ?? 'band'} collar`,
     params.cuff && 'cuffs',
     params.pleats && 'pleats',
     params.dart && 'darts',

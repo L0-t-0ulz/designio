@@ -13,7 +13,8 @@ import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
-import type { GarmentType, SleeveStyle } from './garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle } from './garment/templates'
+import { COLLAR_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
@@ -91,6 +92,7 @@ function initStudio(
     sleeve: l0.sleeve,
     size: l0.size,
     collar: l0.collar,
+    collarStyle: l0.collarStyle,
     cuff: l0.cuff,
     pleats: l0.pleats,
     dart: l0.dart,
@@ -180,6 +182,7 @@ function initStudio(
     garment.sleeve = l.data.sleeve
     garment.size = l.data.size
     garment.collar = l.data.collar
+    garment.collarStyle = l.data.collarStyle
     garment.cuff = l.data.cuff
     garment.pleats = l.data.pleats
     garment.dart = l.data.dart
@@ -364,6 +367,7 @@ function initStudio(
     l.data.sleeve = garment.sleeve
     l.data.size = garment.size
     l.data.collar = garment.collar
+    l.data.collarStyle = garment.collarStyle
     l.data.cuff = garment.cuff
     l.data.pleats = garment.pleats
     l.data.dart = garment.dart
@@ -903,6 +907,11 @@ if (skipStart) {
     cfg.prints.push({ ...newTextPrint('2026'), x: 0.25, y: 0.52, scale: 0.3, rotation: -8, color: 0xffffff })
   }
   if (entryParams.get('collar')) cfg.collar = true
+  const cs = entryParams.get('collarStyle')
+  if (cs && (COLLAR_STYLES as string[]).includes(cs)) {
+    cfg.collar = true
+    cfg.collarStyle = cs as CollarStyle
+  }
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
   if (entryParams.get('dart')) cfg.dart = true

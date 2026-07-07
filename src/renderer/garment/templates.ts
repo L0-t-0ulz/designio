@@ -3,6 +3,9 @@ import type { NecklineStyle } from '../cloth/Garment'
 /** A garment id from the registry (see garments/registry.ts). */
 export type GarmentType = string
 export type SleeveStyle = 'none' | 'short' | 'long'
+/** Collar / lapel styles (active when the `collar` detail is on). */
+export type CollarStyle = 'band' | 'shirt' | 'mandarin' | 'peterpan' | 'notch'
+export const COLLAR_STYLES: CollarStyle[] = ['band', 'shirt', 'mandarin', 'peterpan', 'notch']
 
 export interface GarmentParams {
   /** Overall length, 0 (short) … 1 (long). */
@@ -18,6 +21,8 @@ export interface GarmentParams {
   // ---- construction detail (all optional) ----
   /** Collar stand — raises/closes the neckline + a collar band on the pattern. */
   collar?: boolean
+  /** Which collar/lapel shape to draw when `collar` is on (default 'band'). */
+  collarStyle?: CollarStyle
   /** Fitted cuff at the sleeve hem (+ a cuff turn-up line on the sleeve pattern). */
   cuff?: boolean
   /** Extra hem fullness (a fuller, pleated skirt/dress/leg) + pleat lines. */

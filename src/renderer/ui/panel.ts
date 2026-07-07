@@ -1,7 +1,8 @@
 import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
-import type { GarmentType, SleeveStyle } from '../garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle } from '../garment/templates'
+import { COLLAR_STYLES } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
@@ -21,6 +22,7 @@ export interface GarmentState {
   sleeve: SleeveStyle
   size: SizeLabel
   collar?: boolean
+  collarStyle?: CollarStyle
   cuff?: boolean
   pleats?: boolean
   dart?: boolean
@@ -185,6 +187,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     sleeveRow.append(b)
   }
 
+  // collar / lapel picker (shown when the Collar detail is on)
+  const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel' }
+  const collarRow = el('div', 'dio-actions')
+  collarRow.style.flexWrap = 'wrap'
+  const collarBtns = new Map<CollarStyle, HTMLButtonElement>()
+  for (const cstyle of COLLAR_STYLES) {
+    const b = button(collarLabels[cstyle], () => { garment.collarStyle = cstyle; syncGarment(); opts.onGarmentEdit() }, (garment.collarStyle ?? 'band') === cstyle)
+    collarBtns.set(cstyle, b)
+    collarRow.append(b)
+  }
+  const collarBlock = el('div')
+  collarBlock.append(el('div', 'dio-field-label', 'Collar / lapel'), collarRow)
+
   const lenS = slider({ label: 'Length', min: 0, max: 1, step: 0.01, fine: 0.005, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } })
   const easeS = slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
   const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
@@ -253,6 +268,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       d.t.row.classList.toggle('dio-hidden', !def.supports[d.key])
       d.t.refresh()
     }
+    // the collar/lapel library shows only when the Collar detail is supported + on
+    collarBlock.classList.toggle('dio-hidden', !def.supports.collar || !garment.collar)
+    for (const [cstyle, node] of collarBtns) node.classList.toggle('primary', (garment.collarStyle ?? 'band') === cstyle)
     syncNeckSleeve()
     lenS.refresh()
     easeS.refresh()
@@ -277,10 +295,10 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   ]
   const detailToggles = detailDefs.map(([label, key]) => ({
     key,
-    t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; opts.onGarmentEdit() } })
+    t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; syncGarment(); opts.onGarmentEdit() } })
   }))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, neckRow, sleeveRow, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row))
+  construction.body.append(sizeBlock, neckRow, sleeveRow, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock)
   syncGarment()
 
   // ---- pattern (sew) ----
