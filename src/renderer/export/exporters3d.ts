@@ -5,7 +5,14 @@ import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js'
 /** Clone the given objects into a fresh group (so we don't reparent the scene). */
 function group(objects: THREE.Object3D[]): THREE.Group {
   const g = new THREE.Group()
-  for (const o of objects) g.add(o.clone())
+  for (const o of objects) {
+    const c = o.clone()
+    // Drop the render-only inner "lining" shells — export the garment surface only.
+    const lining: THREE.Object3D[] = []
+    c.traverse((n) => { if (n.userData.lining) lining.push(n) })
+    for (const n of lining) n.parent?.remove(n)
+    g.add(c)
+  }
   return g
 }
 

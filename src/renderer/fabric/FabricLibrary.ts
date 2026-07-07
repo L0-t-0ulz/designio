@@ -71,6 +71,19 @@ export function fabricToSolverParams(fabric: Fabric): FabricParams {
   }
 }
 
+/**
+ * Physical fabric thickness in metres, from areal weight — feeds the render-side
+ * thickness shell so hems/edges aren't paper-thin. A light chiffon reads ~0.6 mm,
+ * a heavy wool coat ~3.2 mm. Slightly exaggerated over reality so the depth reads
+ * at garment framing. Monotonic in `gsm`, clamped to a sane band.
+ */
+export function fabricThickness(fabric: Fabric): number {
+  const MIN = 0.0006
+  const MAX = 0.0032
+  const t = MIN + (MAX - MIN) * ((fabric.gsm - 40) / (500 - 40))
+  return Math.max(MIN, Math.min(MAX, t))
+}
+
 export const FABRIC_LIBRARY: Fabric[] = [
   // ---- wovens (crisp → structured) ----
   { id: 'cotton-poplin', name: 'Cotton poplin', family: 'woven', gsm: 130, stretch: 0.04, bendiness: 0.42, friction: 0.5, color: 0xc85a54, roughness: 0.78, sheen: 0.7, sheenRoughness: 0.5, weave: 'plain', weaveScale: 220, normalStrength: 0.5, anisotropy: 0, transmission: 0 },
