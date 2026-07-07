@@ -1347,3 +1347,128 @@ canvas {
   color: var(--fg-1);
   margin-bottom: 6px;
 }
+
+/* ============================================================
+   Preview page glow-up — neon glass · shimmer · ripple · sparkle
+   ============================================================ */
+
+/* punchier, more alive aurora */
+.dio-start::before { opacity: 0.62; filter: blur(64px) saturate(1.3); }
+.dio-start::after { opacity: 0.52; filter: blur(64px) saturate(1.3); }
+
+/* kinetic title — add a soft glow behind the shimmer */
+.dio-start-header .dio-title { filter: drop-shadow(0 0 10px rgba(124, 111, 240, 0.35)); }
+
+/* "looks styled" counter pill in the header */
+.dio-start-counter {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-0);
+  padding: 6px 13px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)), var(--glass);
+  border: 1px solid var(--accent-line);
+  box-shadow: 0 0 18px rgba(124, 111, 240, 0.22), inset 0 1px 0 var(--inner-hi);
+  backdrop-filter: blur(12px);
+}
+.dio-start-counter b { color: var(--accent-hi); font-variant-numeric: tabular-nums; }
+.dio-start-header .dio-back { margin-left: 10px !important; }
+
+/* neon-glass preview bezel with a breathing glow ring */
+.dio-start-preview {
+  border-color: var(--accent-line);
+  box-shadow: var(--shadow-3), inset 0 1px 0 var(--inner-hi), 0 0 46px rgba(124, 111, 240, 0.14);
+}
+.dio-start-canvas {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 0 60px rgba(124, 111, 240, 0.1);
+}
+.dio-start-preview-note {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 16px rgba(124, 111, 240, 0.16);
+}
+
+/* garment cards — cursor-tilt parallax + neon selected glow */
+.dio-start-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.dio-start-card.selected {
+  border-color: var(--accent-hi);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 24px var(--accent-glow), inset 0 0 26px var(--accent-soft);
+}
+.dio-start-card.selected svg path { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+
+/* fabric swatches — sweeping shimmer on hover + neon selected ring */
+.dio-start-swatch { position: relative; overflow: hidden; }
+.dio-start-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.28) 50%, transparent 68%);
+  transform: translateX(-130%);
+  transition: transform 0.6s var(--ease-out, ease);
+  pointer-events: none;
+}
+.dio-start-swatch:hover::after { transform: translateX(130%); }
+.dio-start-swatch.selected {
+  box-shadow: 0 0 0 2px var(--accent), 0 0 18px var(--accent-glow);
+}
+
+/* quick-look + detail chips — neon on state */
+.dio-start-look.on { box-shadow: 0 0 16px var(--accent-glow); }
+
+/* Surprise / Design-in-3D — gradient neon buttons */
+.dio-start-tool { position: relative; overflow: hidden; }
+.dio-start-tool.spinning { animation: dio-tool-buzz 0.5s ease; }
+@keyframes dio-tool-buzz {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px) rotate(-0.6deg); }
+  60% { transform: translateX(2px) rotate(0.6deg); }
+}
+.dio-start-go {
+  box-shadow: 0 10px 30px var(--accent-glow), 0 0 0 1px var(--accent-line), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* click glow ripple (spawned in JS at the pointer) */
+.dio-ripple {
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 60;
+  background: radial-gradient(circle, var(--accent-hi), transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0.65;
+  animation: dio-ripple 0.55s ease-out forwards;
+}
+@keyframes dio-ripple {
+  to { transform: translate(-50%, -50%) scale(7); opacity: 0; }
+}
+
+/* sparkle burst (Surprise me) */
+.dio-spark {
+  position: fixed;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 61;
+  background: radial-gradient(circle, #fff 20%, var(--accent-hi) 55%, transparent 72%);
+  animation: dio-spark 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes dio-spark {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dio-start-swatch::after,
+  .dio-ripple,
+  .dio-spark,
+  .dio-start-tool.spinning { animation: none; transition: none; }
+}
