@@ -17,10 +17,12 @@ import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs, garmentSleeveSpecs } from '../garments/factory'
 import { radiusAt } from '../cloth/Garment'
 import { pocketPlacements } from '../garments/decor'
-import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type Print } from '../start/design'
-import type { TextilePattern } from '../fabric/textile'
+import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type DesignArtInput, type Print, type PrintPart } from '../start/design'
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { gradeParams, type GarmentLayerData } from './document'
+
+/** A no-art input — drops a part's design map (no prints, no textile). */
+const EMPTY_ART: DesignArtInput = { color: 0xffffff, prints: [] }
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
 // Shared closure materials (buttons · zip tape · metal pull) — geometry is per-mesh.
@@ -64,11 +66,10 @@ const disposeMats = (l: StackLayer): void => {
   for (const m of layerMats(l)) m.dispose()
   l.lining?.dispose()
 }
-/** Free the print/design canvas textures (front + back) so they don't leak.
+/** Free the print/design canvas textures (every part panel) so they don't leak.
  *  The swatch is *kept* (re-applied after a redraw); dispose it at layer teardown. */
 const disposeDesigns = (l: StackLayer): void => {
-  l.design?.texture.dispose()
-  l.backDesign?.texture.dispose()
+  for (const d of [l.design, l.sleeveDesign, l.legDesign, l.backDesign, l.legBackDesign]) d?.texture.dispose()
 }
 
 export interface StackLayer {
@@ -89,8 +90,13 @@ export interface StackLayer {
   lining: THREE.MeshPhysicalMaterial | null
   controller: GarmentController
   design: DesignArt | null
+  /** Per-part albedo maps — sleeve/leg prints + textile (built only when that part exists). */
+  sleeveDesign: DesignArt | null
+  legDesign: DesignArt | null
   /** The back panel's own albedo (back colour + prints) when a back fabric is set. */
   backDesign: DesignArt | null
+  /** The leg-back panel's own albedo when a leg-back fabric is set. */
+  legBackDesign: DesignArt | null
   /** An imported fabric-photo swatch → seamless tiling PBR (overrides the body look). */
   swatch: SwatchTextures | null
   /** Non-simulated decoration (patch pockets + trim bands) parented to the layer. */
@@ -150,8 +156,40 @@ export class GarmentStack {
     return this.layers.length
   }
 
-  private artInput(l: StackLayer): { color: number; prints: Print[]; textile?: TextilePattern } {
-    return { color: l.data.color, prints: l.prints, textile: l.data.textile }
+  /** The albedo input for a garment part — its base colour + only the prints
+   * placed on *that* part + the (whole-garment) textile pattern. */
+  private artInputFor(l: StackLayer, part: PrintPart): DesignArtInput {
+    const color = part === 'body' ? l.data.color : this.partFabric(l, part).color
+    return { color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile }
+  }
+  /** The albedo input for a back panel — its own colour + the owning part's prints. */
+  private artInputForBack(l: StackLayer, panel: 'back' | 'legBack'): DesignArtInput {
+    const part: PrintPart = panel === 'back' ? 'body' : 'legs'
+    return { color: this.panelFabric(l, panel).color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile }
+  }
+  /** Whether the live garment actually has pieces for a part (skip building unused maps). */
+  private hasPart(l: StackLayer, part: 'sleeves' | 'legs'): boolean {
+    return l.controller.getPieces().some((p) => partForPiece(p.name) === part)
+  }
+  /**
+   * Apply a design map (prints + textile) to one material: build/redraw it when
+   * there's art, else drop it. Returns the (kept or nulled) design to store back.
+   */
+  private applyPartDesign(mat: THREE.MeshPhysicalMaterial, current: DesignArt | null, input: DesignArtInput): DesignArt | null {
+    if (hasArt(input)) {
+      const d = current ?? buildDesignArt(input)
+      mat.map = d.texture
+      mat.color.set(0xffffff) // the design canvas owns the base colour
+      d.redraw(input) // fresh input → the base colour tracks a recolour (not stale)
+      mat.needsUpdate = true
+      return d
+    }
+    if (current) {
+      mat.map = null
+      current.texture.dispose()
+      mat.needsUpdate = true
+    }
+    return null
   }
 
   /** The fabric for a garment part (its override, or the body default). */
@@ -191,11 +229,8 @@ export class GarmentStack {
     } else {
       ;(l.data.partFabrics ??= {})[part] = next
     }
-    // The back panel's base colour changed → rebuild its print canvas in applyLook.
-    if (part === 'back' && l.backDesign) {
-      l.backDesign.texture.dispose()
-      l.backDesign = null
-    }
+    // applyLook redraws every part's design canvas with the fresh colour (incl. any
+    // recoloured back / sleeve / leg panel), so no design rebuild is needed here.
     this.applyLook(l)
     this.buildDecor(l) // trim bands / pocket material depend on trim
     // A piece fabric swap changes drape, so re-derive its physics. Back panels are
@@ -238,31 +273,23 @@ export class GarmentStack {
       : { ...l.fabric, color: l.data.trimColor ?? 0x1a1a22 }
     applyFabric(l.trimMaterial, trimFab)
 
-    const input = this.artInput(l)
-    if (hasArt(input)) {
-      if (!l.design) l.design = buildDesignArt(input)
-      l.material.map = l.design.texture
-      l.material.color.set(0xffffff) // the print canvas owns the base colour
-      l.design.redraw(input) // fresh input → the base colour tracks a recolour (not stale)
-    } else if (l.design) {
-      l.material.map = null
-      l.design.texture.dispose()
-      l.design = null
-    }
-    // When the back panel has its own fabric it's a separate material/geometry group,
-    // so give it its own albedo (the back colour + the same prints) — otherwise a
-    // print placed on the back (u>0.5) wouldn't show on the back material.
-    if (hasArt(input) && l.data.partFabrics?.back) {
-      const backInput = { color: this.panelFabric(l, 'back').color, prints: l.prints }
-      if (!l.backDesign) l.backDesign = buildDesignArt(backInput)
-      l.backMaterial.map = l.backDesign.texture
-      l.backMaterial.color.set(0xffffff)
-      l.backDesign.redraw(backInput)
-    } else if (l.backDesign) {
-      l.backMaterial.map = null
-      l.backDesign.texture.dispose()
-      l.backDesign = null
-    }
+    // Per-part albedo: prints (and the textile pattern) render on the piece they're
+    // placed on — the body, the sleeves, or the legs — each with its own base colour.
+    l.design = this.applyPartDesign(l.material, l.design, this.artInputFor(l, 'body'))
+    l.sleeveDesign = this.hasPart(l, 'sleeves')
+      ? this.applyPartDesign(l.sleeveMaterial, l.sleeveDesign, this.artInputFor(l, 'sleeves'))
+      : this.applyPartDesign(l.sleeveMaterial, l.sleeveDesign, EMPTY_ART)
+    l.legDesign = this.hasPart(l, 'legs')
+      ? this.applyPartDesign(l.legMaterial, l.legDesign, this.artInputFor(l, 'legs'))
+      : this.applyPartDesign(l.legMaterial, l.legDesign, EMPTY_ART)
+    // A back panel only needs its own albedo when it has its own fabric (a separate
+    // material/geometry group); otherwise the front material renders both groups.
+    l.backDesign = l.data.partFabrics?.back
+      ? this.applyPartDesign(l.backMaterial, l.backDesign, this.artInputForBack(l, 'back'))
+      : this.applyPartDesign(l.backMaterial, l.backDesign, EMPTY_ART)
+    l.legBackDesign = l.data.partFabrics?.legBack
+      ? this.applyPartDesign(l.legBackMaterial, l.legBackDesign, this.artInputForBack(l, 'legBack'))
+      : this.applyPartDesign(l.legBackMaterial, l.legBackDesign, EMPTY_ART)
     // An imported fabric-photo swatch clothes the *whole* garment — its seamless
     // tiling albedo + derived normal + roughness override the procedural fabric
     // on every part (and any print/textile map, which tiles at a different rate).
@@ -315,7 +342,10 @@ export class GarmentStack {
   refreshDesign(l: StackLayer): void {
     disposeDesigns(l)
     l.design = null
+    l.sleeveDesign = null
+    l.legDesign = null
     l.backDesign = null
+    l.legBackDesign = null
     this.applyLook(l)
   }
 
@@ -971,7 +1001,10 @@ export class GarmentStack {
       lining: null,
       controller,
       design: null,
+      sleeveDesign: null,
+      legDesign: null,
       backDesign: null,
+      legBackDesign: null,
       swatch: null,
       decor,
       prints: (data.prints ?? []).map(printFromSpec)
