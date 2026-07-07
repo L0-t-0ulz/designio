@@ -20,9 +20,23 @@ export interface PatternEditor {
 export interface CenterTabsHandle {
   /** Re-render the quick tools (+ the 2D pattern if it's showing). */
   refresh: () => void
-  /** Programmatically switch tab (used by the `?view=pattern` deep-link). */
-  show: (which: '3d' | 'pattern') => void
+  /** Programmatically switch tab (used by the `?view=pattern` / `?view=render` deep-links). */
+  show: (which: '3d' | 'pattern' | 'render') => void
 }
+
+/** Drives the Render tab: capture a high-res still + save it as a PNG. */
+export interface RenderApi {
+  /** A PNG data URL of the current view, supersampled to `width` px wide. */
+  capture: (width: number) => string
+  /** Save a PNG data URL to disk. */
+  save: (dataUrl: string) => void | Promise<void>
+}
+
+const RES: { label: string; width: number }[] = [
+  { label: 'HD', width: 1280 },
+  { label: '2K', width: 2048 },
+  { label: '4K', width: 3840 }
+]
 
 /**
  * The central dual viewport: a floating tab bar (3D · 2D Pattern) plus a
@@ -33,12 +47,15 @@ export interface CenterTabsHandle {
 export function buildCenterTabs(
   center: HTMLElement,
   patternSvg: () => string,
-  edit?: PatternEditor
+  edit?: PatternEditor,
+  render?: RenderApi
 ): CenterTabsHandle {
   const tabs = el('div', 'dio-view-tabs')
   const tab3d = el('button', 'dio-view-tab on', '3D')
   const tabPat = el('button', 'dio-view-tab', '2D Pattern')
   tabs.append(tab3d, tabPat)
+  const tabRender = el('button', 'dio-view-tab', 'Render')
+  if (render) tabs.append(tabRender)
 
   // The quick toolbar floats over the viewport (visible in both 3D and 2D).
   const tools = el('div', 'dio-pattern-tools dio-center-tools')
@@ -48,7 +65,42 @@ export function buildCenterTabs(
   const caption = el('div', 'dio-pattern-cap', 'Edit above — 3D + 2D update live · export SVG / DXF from the File menu.')
   pane.append(inner, caption)
 
-  center.append(tabs, tools, pane)
+  // ---- Render pane: a high-res still of the current view + resolution + save ----
+  const rpane = el('div', 'dio-render-pane dio-hidden')
+  const rbar = el('div', 'dio-render-bar')
+  const rres = el('div', 'dio-render-res')
+  const rimg = el('img', 'dio-render-img') as HTMLImageElement
+  const rstage = el('div', 'dio-render-stage')
+  rstage.append(rimg)
+  const rsave = el('button', 'dio-render-save', 'Save PNG')
+  let curUrl = ''
+  let curWidth = RES[1].width
+  const capture = (): void => {
+    if (!render) return
+    rpane.classList.add('dio-render-busy')
+    // let the "Rendering…" state paint before the (blocking) supersample
+    requestAnimationFrame(() => {
+      curUrl = render.capture(curWidth)
+      rimg.src = curUrl
+      rpane.classList.remove('dio-render-busy')
+    })
+  }
+  const resButtons: HTMLButtonElement[] = RES.map((r) => {
+    const b = el('button', 'dio-render-resbtn' + (r.width === curWidth ? ' on' : ''), `${r.label} · ${r.width}px`) as HTMLButtonElement
+    b.addEventListener('click', () => {
+      curWidth = r.width
+      resButtons.forEach((x, i) => x.classList.toggle('on', RES[i].width === curWidth))
+      capture()
+    })
+    return b
+  })
+  rres.append(...resButtons)
+  rsave.addEventListener('click', () => curUrl && render?.save(curUrl))
+  const rhint = el('span', 'dio-render-hint', 'Orbit the 3D view to frame your shot, then Render.')
+  rbar.append(rres, rhint, rsave)
+  rpane.append(rbar, rstage)
+
+  center.append(tabs, tools, pane, rpane)
 
   const stepper = (
     label: string,
@@ -101,18 +153,23 @@ export function buildCenterTabs(
     }
   }
 
-  const render = (): void => {
+  const renderPattern = (): void => {
     inner.innerHTML = patternSvg()
     renderTools()
   }
-  const show = (which: '3d' | 'pattern'): void => {
+  const show = (which: '3d' | 'pattern' | 'render'): void => {
     tab3d.classList.toggle('on', which === '3d')
     tabPat.classList.toggle('on', which === 'pattern')
+    tabRender.classList.toggle('on', which === 'render')
     pane.classList.toggle('dio-hidden', which !== 'pattern')
-    if (which === 'pattern') render()
+    rpane.classList.toggle('dio-hidden', which !== 'render')
+    tools.classList.toggle('dio-hidden', which === 'render') // hide edit tools over a render
+    if (which === 'pattern') renderPattern()
+    if (which === 'render') capture()
   }
   tab3d.addEventListener('click', () => show('3d'))
   tabPat.addEventListener('click', () => show('pattern'))
+  tabRender.addEventListener('click', () => show('render'))
 
   renderTools() // shown from the start (over the 3D view)
 

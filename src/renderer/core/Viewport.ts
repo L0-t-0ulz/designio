@@ -88,4 +88,30 @@ export class Viewport {
     this.controls.update()
     this.composer.render()
   }
+
+  /**
+   * Render a **high-resolution still** of the current view (WYSIWYG — same camera,
+   * lighting and post-processing as the live viewport, just supersampled to `width`
+   * for crisp anti-aliasing). Returns a PNG data URL, then restores the live size.
+   */
+  renderStill(width = 2048): string {
+    const ratio = this.renderer.getPixelRatio()
+    const W = Math.round(width)
+    const H = Math.max(1, Math.round(width / this.camera.aspect))
+    this.renderer.setPixelRatio(1)
+    this.renderer.setSize(W, H, false) // grow the backing buffer, leave the CSS size (no flash)
+    this.composer.setSize(W, H)
+    this.bloom.setSize(W, H)
+    this.controls.update()
+    this.composer.render()
+    const out = document.createElement('canvas')
+    out.width = W
+    out.height = H
+    out.getContext('2d')?.drawImage(this.renderer.domElement, 0, 0)
+    const url = out.toDataURL('image/png')
+    this.renderer.setPixelRatio(ratio)
+    this.resize() // restore size + composer/bloom to the container
+    this.render()
+    return url
+  }
 }

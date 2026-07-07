@@ -8,7 +8,7 @@ import { buildMenuBar } from './shell/menuBar'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { buildLibrary } from './shell/library'
 import { buildObjectBrowser } from './shell/objectBrowser'
-import { buildCenterTabs, type PatternEditor } from './shell/centerTabs'
+import { buildCenterTabs, type PatternEditor, type RenderApi } from './shell/centerTabs'
 import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
@@ -403,7 +403,19 @@ function initStudio(
     nudgeNeckline: (d) => editFrom2D(() => (garment.neckline = cycle(NECKS, garment.neckline, d))),
     nudgeSleeve: (d) => editFrom2D(() => (garment.sleeve = cycle(SLEEVES, garment.sleeve, d)))
   }
-  const centerTabs = buildCenterTabs(shell.center, patternSVG, patternEditor)
+  // Render tab: supersample the current view to a PNG + save it to disk.
+  const renderApi: RenderApi = {
+    capture: (width) => viewport.renderStill(width),
+    save: async (dataUrl) => {
+      const b64 = dataUrl.split(',')[1] ?? ''
+      const bin = atob(b64)
+      const bytes = new Uint8Array(bin.length)
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+      const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'render'
+      await saveFile(`${safe}.png`, bytes, [{ name: 'PNG image', extensions: ['png'] }])
+    }
+  }
+  const centerTabs = buildCenterTabs(shell.center, patternSVG, patternEditor, renderApi)
 
   // ---- deep-links (snapshots) ----
   const params = new URLSearchParams(location.search)
@@ -432,6 +444,7 @@ function initStudio(
   }
   if (bodyChanged) setBody(bodySize)
   if (params.get('view') === 'pattern') centerTabs.show('pattern')
+  if (params.get('view') === 'render') centerTabs.show('render')
   const bodyRender = params.get('body')
   if (bodyRender === 'mesh') mannequin.setBodyMode(false)
   else if (bodyRender === 'glb') mannequin.setBodyMode(true)
