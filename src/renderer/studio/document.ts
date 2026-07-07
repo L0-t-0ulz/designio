@@ -11,6 +11,7 @@ import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
 import type { TextilePattern } from '../fabric/textile'
+import type { SparkleKind } from '../fabric/sparkle'
 import { getGarment } from '../garments/registry'
 
 /** Manufacturing sizes. `M` is the drafted block; each step grades the girth. */
@@ -124,6 +125,8 @@ export interface GarmentLayerData {
   /** Placed prints (logos + text); uploaded PNGs are runtime-only (image dropped on save). */
   prints?: PrintSpec[]
   textile?: TextilePattern
+  /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
+  sparkle?: SparkleKind
   visible: boolean
 }
 
@@ -200,6 +203,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     color: c.color,
     prints: c.prints.map(printToSpec),
     textile: c.textile,
+    sparkle: c.sparkle,
     visible: true
   }
 }
@@ -241,6 +245,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     color: 0xc85a54,
     prints: [],
     textile: undefined,
+    sparkle: undefined,
     visible: true
   }
 }
@@ -275,7 +280,8 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
         }
       : undefined,
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined,
-    textile: l.textile
+    textile: l.textile,
+    sparkle: l.sparkle
   }
 }
 

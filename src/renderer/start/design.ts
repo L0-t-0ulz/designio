@@ -4,6 +4,7 @@ import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
 import { paintTextile, type TextilePattern } from '../fabric/textile'
+import type { SparkleKind } from '../fabric/sparkle'
 
 /** Everything the start page lets you build before entering the 3D studio. */
 export interface DesignConfig {
@@ -58,6 +59,8 @@ export interface DesignConfig {
   prints: Print[]
   /** A repeating textile pattern tiled across the whole garment (behind prints). */
   textile?: TextilePattern
+  /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
+  sparkle?: SparkleKind
 }
 
 /** Which garment piece a print sits on — its `x/y` are across that piece's panel. */

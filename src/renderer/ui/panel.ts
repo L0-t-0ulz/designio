@@ -13,6 +13,7 @@ import { SIZES, type SizeLabel } from '../studio/document'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
+import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
 import type { PrintPart, PrintStyle } from '../start/design'
 
 export interface GarmentState {
@@ -113,6 +114,8 @@ export interface PanelOptions {
   textile?: { get: () => TextilePattern | undefined; set: (t: TextilePattern | undefined) => void }
   /** Import a fabric-swatch photo → a seamless tiling PBR material (optional). */
   swatch?: { active: () => boolean; set: (img: HTMLImageElement) => void; clear: () => void }
+  /** A sparkle finish — sequins / beading / metallic foil (optional). */
+  sparkle?: { get: () => SparkleKind | undefined; set: (k: SparkleKind | undefined) => void }
   /** Live measurements of the active garment (for the Measurements readout). */
   getMetrics?: () => GarmentMetrics
   bodySize: BodyParams
@@ -478,6 +481,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A sparkle finish for eveningwear — sequins / beading / metallic foil.
+  const SPARKLE_LABELS: Record<SparkleKind, string> = { sequins: 'Sequins', beading: 'Beading', foil: 'Foil' }
+  function sparkleControls(sp: NonNullable<PanelOptions['sparkle']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, SparkleKind | undefined][] = [['None', undefined], ...SPARKLE_KINDS.map((k) => [SPARKLE_LABELS[k], k] as [string, SparkleKind])]
+    for (const [label, kind] of choices) {
+      const b = el('button', 'dio-seg-btn' + (sp.get() === kind ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        sp.set(kind)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Sparkle finish'), row)
+    return wrap
+  }
+
   // Import a fabric-swatch photo → a seamless tiling PBR material for the garment.
   function swatchControls(s: NonNullable<PanelOptions['swatch']>): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -640,6 +663,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
   if (opts.textile) look.body.append(textileControls(opts.textile))
+  if (opts.sparkle) look.body.append(sparkleControls(opts.sparkle))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.prints) look.body.append(printsControls(opts.prints))
 

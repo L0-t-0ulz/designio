@@ -19,12 +19,15 @@ import { radiusAt } from '../cloth/Garment'
 import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type DesignArtInput, type Print, type PrintPart } from '../start/design'
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
+import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { gradeParams, type GarmentLayerData } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
 const EMPTY_ART: DesignArtInput = { color: 0xffffff, prints: [] }
 /** Bump strength for raised embroidery / appliqué relief. */
 const RAISED_BUMP_SCALE = 6
+/** Default garment envMapIntensity (matches `createFabricMaterial`) — restored when a sparkle finish is cleared. */
+const FABRIC_ENV_INTENSITY = 1.1
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
 // Shared closure materials (buttons · zip tape · metal pull) — geometry is per-mesh.
@@ -313,6 +316,30 @@ export class GarmentStack {
         m.color.set(0xffffff)
         m.needsUpdate = true
       }
+    }
+    // Sparkle finish (sequins / beading / metallic foil): a faceted normal map +
+    // a metallic recipe over every part so the whole garment glints — keeps the
+    // albedo (prints/textile) but overrides the surface shading. Cleared → matte.
+    const sp = l.data.sparkle ? sparkleParams(l.data.sparkle) : null
+    const sparkleNormalMap = l.data.sparkle ? makeSparkleNormalMap(l.data.sparkle) : null
+    for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial]) {
+      if (sp && sparkleNormalMap) {
+        m.normalMap = sparkleNormalMap
+        m.normalScale.set(sp.normalStrength, sp.normalStrength)
+        m.metalness = sp.metalness
+        m.roughness = sp.roughness
+        m.envMapIntensity = sp.envMapIntensity
+        m.anisotropy = sp.anisotropy
+        m.clearcoat = sp.clearcoat
+        m.clearcoatRoughness = sp.clearcoatRoughness
+      } else {
+        // reset the metallic props applyFabric doesn't touch (normal/roughness/anisotropy already restored)
+        m.metalness = 0
+        m.clearcoat = 0
+        m.clearcoatRoughness = 0
+        m.envMapIntensity = FABRIC_ENV_INTENSITY
+      }
+      m.needsUpdate = true
     }
     l.material.needsUpdate = true
     l.backMaterial.needsUpdate = true

@@ -31,6 +31,7 @@ import { createControlPanel, type DesignMode, type ExportFormat, type GarmentSta
 import { showStartPage } from './start/StartPage'
 import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
 import { demoSwatchCanvas } from './fabric/swatch'
+import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord } from './studio/projectStore'
@@ -801,6 +802,13 @@ function initStudio(
       set: (img) => stack.setSwatch(stack.active, img),
       clear: () => stack.clearSwatch(stack.active)
     },
+    sparkle: {
+      get: () => stack.active.data.sparkle,
+      set: (k) => {
+        stack.active.data.sparkle = k
+        stack.applyLook(stack.active)
+      }
+    },
     getMetrics: () => activeMetrics(),
     bodySize,
     onBodySize: (b) => {
@@ -1009,6 +1017,8 @@ if (skipStart) {
   if (entryParams.get('princess')) cfg.princess = true
   const tx = entryParams.get('textile')
   if (tx && (TEXTILE_PATTERNS as string[]).includes(tx)) cfg.textile = tx as TextilePattern
+  const spk = entryParams.get('sparkle')
+  if (spk && (SPARKLE_KINDS as string[]).includes(spk)) cfg.sparkle = spk as SparkleKind
   const fr = entryParams.get('frillStyle')
   if (fr && (FRILL_STYLES as string[]).includes(fr)) { cfg.ruffles = true; cfg.frillStyle = fr as FrillStyle }
   if (entryParams.get('trim')) cfg.trim = true
