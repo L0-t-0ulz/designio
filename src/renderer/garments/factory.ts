@@ -49,6 +49,7 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
     spec.radiusWaist = m.waistR * nip + p.ease * (p.dart ? 0.4 : 0.6)
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.7)
   }
+  if (p.pleats) spec.pleat = p.pleatStyle ?? 'knife'
   return spec
 }
 
@@ -57,10 +58,12 @@ function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
   const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY) + (p.hem ? 0.03 : 0) // rolled hem = shorter leg
   const rTop = m.thighR + p.ease
   const rBot = m.thighR * 0.6 + p.ease * 0.6 + p.flare * 0.4 + (p.pleats ? 0.05 : 0)
-  return [
+  const legs = [
     piece(m.hipY, hemY, rTop, rBot, -m.hipHalfX, 40),
     piece(m.hipY, hemY, rTop, rBot, m.hipHalfX, 40)
   ]
+  if (p.pleats) for (const l of legs) l.pleat = p.pleatStyle ?? 'knife'
+  return legs
 }
 
 /**

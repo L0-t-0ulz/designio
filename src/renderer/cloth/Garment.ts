@@ -1,6 +1,32 @@
 import * as THREE from 'three'
 
 export type NecklineStyle = 'strapless' | 'scoop' | 'crew' | 'v'
+/** Pleat / gather styles (the pleats library; active when the `pleats` detail is on). */
+export type PleatStyle = 'knife' | 'box' | 'accordion' | 'cartridge' | 'gather'
+
+/**
+ * The radial fold modulation for a pleat style at circumferential angle `a` — a
+ * periodic wave in ≈[-1, 1] baked into the tube's rest shape, so the cloth solver
+ * holds the folds (they're the rest state). `N` folds are chosen to stay crisp at
+ * RADIAL = 60 (≥ 4 samples/fold). Pure, so it's unit tested.
+ */
+export function pleatWave(a: number, style: PleatStyle): number {
+  const N = { knife: 12, box: 8, accordion: 15, cartridge: 15, gather: 12 }[style]
+  const u = (a / (2 * Math.PI)) * N
+  const f = u - Math.floor(u) // 0..1 within a fold
+  switch (style) {
+    case 'knife': // pressed one direction → a sawtooth
+      return f * 2 - 1
+    case 'box': // alternating flat out / flat in
+      return f < 0.5 ? 1 : -1
+    case 'accordion': // symmetric zig-zag
+      return 1 - 4 * Math.abs(f - 0.5)
+    case 'cartridge': // rounded gathered tubes
+      return Math.sin(f * Math.PI * 2)
+    default: // gather — irregular rounded gathering
+      return Math.sin(f * Math.PI * 2) * (0.7 + 0.3 * Math.sin(a * 7))
+  }
+}
 
 export interface TubeSpec {
   /** Number of rings top→bottom (=> ny). */
@@ -21,6 +47,8 @@ export interface TubeSpec {
   radiusWaist?: number
   /** Fraction of the height where the waist sits (0 top … 1 hem). */
   waistT?: number
+  /** Pleat/gather fold pattern baked into the rest shape (opens toward the hem). */
+  pleat?: PleatStyle
 }
 
 /** Per-angle top-edge height: straps at the sides (shoulders), a dip for the neck. */
@@ -66,9 +94,12 @@ export function fillTube(positions: Float32Array, spec: TubeSpec): void {
   const cz = spec.centerZ ?? 0
   for (let iy = 0; iy < rings; iy++) {
     const t = rings > 1 ? iy / (rings - 1) : 0
-    const r = radiusAt(spec, t)
+    const r0 = radiusAt(spec, t)
+    // pleats: fold the cross-section radially, opening toward the hem (cinched up top)
+    const amp = spec.pleat ? 0.14 * t : 0
     for (let ix = 0; ix < radial; ix++) {
       const a = (ix / radial) * Math.PI * 2
+      const r = spec.pleat ? r0 * (1 + amp * pleatWave(a, spec.pleat)) : r0
       const top = topEdge(spec, a) // per-column top so the neckline is shaped
       const y = top + (bottomY - top) * t
       const k = (iy * radial + ix) * 3

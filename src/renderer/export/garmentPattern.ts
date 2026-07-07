@@ -231,7 +231,7 @@ export function garmentToPanels(
   const active = [
     params.collar && `${params.collarStyle ?? 'band'} collar`,
     params.cuff && 'cuffs',
-    params.pleats && 'pleats',
+    params.pleats && `${params.pleatStyle ?? 'knife'} pleats`,
     params.dart && 'darts',
     params.pocket && `${params.pocketStyle ?? 'patch'} pocket`,
     params.hem && 'rolled hem',

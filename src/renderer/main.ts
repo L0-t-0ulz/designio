@@ -13,8 +13,8 @@ import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
-import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle } from './garment/templates'
-import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES } from './garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle } from './garment/templates'
+import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
@@ -96,6 +96,7 @@ function initStudio(
     collarStyle: l0.collarStyle,
     cuff: l0.cuff,
     pleats: l0.pleats,
+    pleatStyle: l0.pleatStyle,
     dart: l0.dart,
     pocket: l0.pocket,
     pocketStyle: l0.pocketStyle,
@@ -188,6 +189,7 @@ function initStudio(
     garment.collarStyle = l.data.collarStyle
     garment.cuff = l.data.cuff
     garment.pleats = l.data.pleats
+    garment.pleatStyle = l.data.pleatStyle
     garment.dart = l.data.dart
     garment.pocket = l.data.pocket
     garment.pocketStyle = l.data.pocketStyle
@@ -375,6 +377,7 @@ function initStudio(
     l.data.collarStyle = garment.collarStyle
     l.data.cuff = garment.cuff
     l.data.pleats = garment.pleats
+    l.data.pleatStyle = garment.pleatStyle
     l.data.dart = garment.dart
     l.data.pocket = garment.pocket
     l.data.pocketStyle = garment.pocketStyle
@@ -922,6 +925,8 @@ if (skipStart) {
   if (ss && (SLEEVE_SHAPES as string[]).includes(ss)) cfg.sleeveShape = ss as SleeveShape
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
+  const pl = entryParams.get('pleatStyle')
+  if (pl && (PLEAT_STYLES as string[]).includes(pl)) { cfg.pleats = true; cfg.pleatStyle = pl as PleatStyle }
   if (entryParams.get('dart')) cfg.dart = true
   if (entryParams.get('pocket')) cfg.pocket = true
   const ps = entryParams.get('pocketStyle')

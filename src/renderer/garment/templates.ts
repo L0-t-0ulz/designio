@@ -1,4 +1,6 @@
-import type { NecklineStyle } from '../cloth/Garment'
+import type { NecklineStyle, PleatStyle } from '../cloth/Garment'
+export type { PleatStyle } from '../cloth/Garment'
+export const PLEAT_STYLES: PleatStyle[] = ['knife', 'box', 'accordion', 'cartridge', 'gather']
 
 /** A garment id from the registry (see garments/registry.ts). */
 export type GarmentType = string
@@ -35,6 +37,8 @@ export interface GarmentParams {
   cuff?: boolean
   /** Extra hem fullness (a fuller, pleated skirt/dress/leg) + pleat lines. */
   pleats?: boolean
+  /** Pleat/gather fold style when `pleats` is on (knife / box / accordion / cartridge / gather). */
+  pleatStyle?: PleatStyle
   /** Waist darts — a more fitted, shaped waist + dart wedges on the pattern. */
   dart?: boolean
   /** Patch pocket(s) on the front (a pocket panel on the pattern + a 3D patch). */
