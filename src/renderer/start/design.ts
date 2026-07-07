@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { GarmentType, SleeveStyle } from '../garment/templates'
+import type { CollarStyle, GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
@@ -18,6 +18,7 @@ export interface DesignConfig {
   size: SizeLabel
   /** Construction detail (optional). */
   collar?: boolean
+  collarStyle?: CollarStyle
   cuff?: boolean
   pleats?: boolean
   dart?: boolean

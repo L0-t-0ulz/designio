@@ -6,7 +6,7 @@
  * of a `.dio` project. Pure + unit-tested; the runtime (main.ts) builds live
  * meshes/solvers from it and reads them back into it.
  */
-import type { GarmentParams, GarmentType, SleeveStyle } from '../garment/templates'
+import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
@@ -29,6 +29,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     neckline: l.neckline,
     sleeve: l.sleeve,
     collar: l.collar,
+    collarStyle: l.collarStyle,
     cuff: l.cuff,
     pleats: l.pleats,
     dart: l.dart,
@@ -72,6 +73,7 @@ export interface GarmentLayerData {
   size: SizeLabel
   // construction detail (optional)
   collar?: boolean
+  collarStyle?: CollarStyle
   cuff?: boolean
   pleats?: boolean
   dart?: boolean
@@ -137,6 +139,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     sleeve: c.sleeve,
     size: c.size,
     collar: c.collar,
+    collarStyle: c.collarStyle,
     cuff: c.cuff,
     pleats: c.pleats,
     dart: c.dart,
@@ -168,6 +171,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     sleeve: d.sleeve ?? 'short',
     size: 'M',
     collar: d.collar,
+    collarStyle: d.collarStyle,
     cuff: d.cuff,
     pleats: d.pleats,
     dart: d.dart,

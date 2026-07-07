@@ -85,6 +85,19 @@ describe('real per-garment 2D pattern', () => {
     expect(dxf).toContain('CUT')
   })
 
+  it('adds a collar/lapel pattern piece per collar style', () => {
+    // blazer defaults to a notch lapel → a "Lapel" piece + a styled note
+    const blazer = garmentToPanels(getGarment('blazer'), paramsFor('blazer'), M, C)
+    expect(blazer.panels.some((p) => p.name === 'Lapel')).toBe(true)
+    expect(blazer.detail).toContain('notch collar')
+    // style drives the piece name
+    expect(panels('long-sleeve', { collar: true, collarStyle: 'shirt' }).some((p) => p.name === 'Collar + stand')).toBe(true)
+    expect(panels('long-sleeve', { collar: true, collarStyle: 'peterpan' }).some((p) => p.name === 'Collar (flat)')).toBe(true)
+    expect(panels('long-sleeve', { collar: true, collarStyle: 'band' }).some((p) => p.name === 'Collar')).toBe(true)
+    // no collar → no collar piece
+    expect(panels('long-sleeve', { collar: false }).some((p) => /Collar|Lapel/.test(p.name))).toBe(false)
+  })
+
   it('draws a centre-front closure on the pattern (button placket vs zip)', () => {
     const blazer = garmentToPanels(getGarment('blazer'), paramsFor('blazer'), M, C)
     expect(blazer.closure).toBe('button')
