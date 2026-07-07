@@ -12,6 +12,7 @@ import { patternSchematic } from './patternSchematic'
 import { SIZES, type SizeLabel } from '../studio/document'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
+import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
 
 export interface GarmentState {
   type: GarmentType
@@ -105,6 +106,8 @@ export interface PanelOptions {
   onSelectPart?: (part: PartId) => void
   /** Add / adjust a printed graphic (PNG) + text on the garment (optional). */
   prints?: PrintControls
+  /** The repeating textile pattern tiled across the whole garment (optional). */
+  textile?: { get: () => TextilePattern | undefined; set: (t: TextilePattern | undefined) => void }
   /** Live measurements of the active garment (for the Measurements readout). */
   getMetrics?: () => GarmentMetrics
   bodySize: BodyParams
@@ -448,6 +451,28 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // ---- appearance ----
+  // A repeating textile pattern (stripe/plaid/check/…) tiled across the whole garment.
+  const TEXTILE_LABELS: Record<TextilePattern, string> = {
+    stripe: 'Stripe', plaid: 'Plaid', check: 'Check', gingham: 'Gingham', polka: 'Polka', camo: 'Camo'
+  }
+  function textileControls(t: NonNullable<PanelOptions['textile']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, TextilePattern | undefined][] = [['None', undefined], ...TEXTILE_PATTERNS.map((p) => [TEXTILE_LABELS[p], p] as [string, TextilePattern])]
+    for (const [label, pat] of choices) {
+      const b = el('button', 'dio-seg-btn' + (t.get() === pat ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        t.set(pat)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Textile pattern'), row)
+    return wrap
+  }
+
   // Multiple placed prints (logos + text) — add, select, place (X/Y/size/rotation), remove.
   function printsControls(p: PrintControls): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -549,6 +574,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheen streak', min: 0, max: 1, step: 0.01, get: () => current.anisotropy, set: (v) => { current.anisotropy = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
+  if (opts.textile) look.body.append(textileControls(opts.textile))
   if (opts.prints) look.body.append(printsControls(opts.prints))
 
   // ---- measurements (live production spec) ----
