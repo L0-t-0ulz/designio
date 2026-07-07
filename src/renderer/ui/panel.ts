@@ -14,6 +14,7 @@ import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
 import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
+import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
 import type { PrintPart, PrintStyle } from '../start/design'
 
 export interface GarmentState {
@@ -116,6 +117,8 @@ export interface PanelOptions {
   swatch?: { active: () => boolean; set: (img: HTMLImageElement) => void; clear: () => void }
   /** A sparkle finish — sequins / beading / metallic foil (optional). */
   sparkle?: { get: () => SparkleKind | undefined; set: (k: SparkleKind | undefined) => void }
+  /** A quilting finish — channel / diamond / box loft (optional). */
+  quilt?: { get: () => QuiltPattern | undefined; set: (p: QuiltPattern | undefined) => void }
   /** Live measurements of the active garment (for the Measurements readout). */
   getMetrics?: () => GarmentMetrics
   bodySize: BodyParams
@@ -501,6 +504,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A quilting finish — padded loft between stitch lines (channel / diamond / box).
+  const QUILT_LABELS: Record<QuiltPattern, string> = { channel: 'Channel', diamond: 'Diamond', box: 'Box' }
+  function quiltControls(q: NonNullable<PanelOptions['quilt']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, QuiltPattern | undefined][] = [['None', undefined], ...QUILT_PATTERNS.map((p) => [QUILT_LABELS[p], p] as [string, QuiltPattern])]
+    for (const [label, pat] of choices) {
+      const b = el('button', 'dio-seg-btn' + (q.get() === pat ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        q.set(pat)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Quilting'), row)
+    return wrap
+  }
+
   // Import a fabric-swatch photo → a seamless tiling PBR material for the garment.
   function swatchControls(s: NonNullable<PanelOptions['swatch']>): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -664,6 +687,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   )
   if (opts.textile) look.body.append(textileControls(opts.textile))
   if (opts.sparkle) look.body.append(sparkleControls(opts.sparkle))
+  if (opts.quilt) look.body.append(quiltControls(opts.quilt))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.prints) look.body.append(printsControls(opts.prints))
 
