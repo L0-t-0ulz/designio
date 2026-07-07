@@ -178,6 +178,11 @@ stand), fitted **cuffs**, **pleats** (a fuller, swishier hem), **darts** (a nipp
 in the flat pattern (the panels reshape, and the pattern notes the detail), and each garment only offers
 the details it supports.
 
+Every garment is also **topstitched**: drape-following dashed contrast stitch lines trace the hems,
+necklines, waistbands and cuffs in 3D (a lighter thread on dark cloth, darker on light — the classic
+visible topstitch, or the trim colour when contrast trim is on), and the 2D flat pattern draws a matching
+gold topstitch guide inset from each panel's sew line.
+
 ![A collar + cuffs + darted long-sleeve top](docs/detail.png)
 
 ### Design each part & panel — fabric, physics, contrast trim

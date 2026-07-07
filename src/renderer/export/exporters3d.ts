@@ -7,10 +7,10 @@ function group(objects: THREE.Object3D[]): THREE.Group {
   const g = new THREE.Group()
   for (const o of objects) {
     const c = o.clone()
-    // Drop the render-only inner "lining" shells — export the garment surface only.
-    const lining: THREE.Object3D[] = []
-    c.traverse((n) => { if (n.userData.lining) lining.push(n) })
-    for (const n of lining) n.parent?.remove(n)
+    // Drop render-only extras (inner lining shells + topstitch lines) — export the surface only.
+    const extra: THREE.Object3D[] = []
+    c.traverse((n) => { if (n.userData.lining || n.userData.topstitch) extra.push(n) })
+    for (const n of extra) n.parent?.remove(n)
     g.add(c)
   }
   return g
