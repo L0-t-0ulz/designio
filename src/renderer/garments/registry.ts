@@ -190,7 +190,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'pants',
     pieces: [{ kind: 'legTubes' }],
     supports: lowerCaps,
-    defaults: { length: 0.62, ease: 0.045, flare: 0.06, pocket: true },
+    defaults: { length: 0.62, ease: 0.045, flare: 0.06, pocket: true, pocketStyle: 'bellows' },
     defaultFabric: 'chino-twill'
   },
 
@@ -265,8 +265,8 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     pieces: [upperTube, { kind: 'sleeves' }],
     supports: upperCaps,
-    // structured: notch lapels + a button front + welt-style patch pockets.
-    defaults: { length: 0.68, ease: 0.05, flare: 0.05, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, closure: true },
+    // structured: notch lapels + a button front + welt breast/hip pockets.
+    defaults: { length: 0.68, ease: 0.05, flare: 0.05, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'welt', closure: true },
     defaultFabric: 'wool-flannel'
   },
   {
@@ -276,7 +276,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'dress',
     pieces: [coatTube, { kind: 'sleeves' }],
     supports: upperCaps,
-    defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, closure: true },
+    defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'flap', closure: true },
     defaultFabric: 'wool-flannel'
   }
 ]
