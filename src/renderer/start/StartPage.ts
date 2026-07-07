@@ -23,6 +23,44 @@ function pop(node: HTMLElement): void {
   window.setTimeout(() => (node.style.transform = ''), 380)
 }
 
+/** A glow ripple at the pointer — dopamine feedback on any pick. */
+function ripple(x: number, y: number): void {
+  if (reduced) return
+  const r = el('div', 'dio-ripple')
+  r.style.left = `${x}px`
+  r.style.top = `${y}px`
+  document.body.append(r)
+  window.setTimeout(() => r.remove(), 600)
+}
+
+/** A radial sparkle burst (Surprise me settle). */
+function sparkle(x: number, y: number, n = 16): void {
+  if (reduced) return
+  for (let i = 0; i < n; i++) {
+    const s = el('div', 'dio-spark')
+    const a = (i / n) * Math.PI * 2 + Math.random() * 0.6
+    const d = 28 + Math.random() * 52
+    s.style.left = `${x}px`
+    s.style.top = `${y}px`
+    s.style.setProperty('--dx', `${Math.cos(a) * d}px`)
+    s.style.setProperty('--dy', `${Math.sin(a) * d}px`)
+    document.body.append(s)
+    window.setTimeout(() => s.remove(), 720)
+  }
+}
+
+/** Cursor-tilt parallax — the card leans toward the pointer for 3D depth. */
+function tiltable(node: HTMLElement): void {
+  if (reduced) return
+  node.addEventListener('pointermove', (e) => {
+    const r = node.getBoundingClientRect()
+    const px = (e.clientX - r.left) / r.width - 0.5
+    const py = (e.clientY - r.top) / r.height - 0.5
+    node.style.transform = `perspective(520px) rotateY(${px * 10}deg) rotateX(${-py * 10}deg) translateY(-3px)`
+  })
+  node.addEventListener('pointerleave', () => (node.style.transform = ''))
+}
+
 interface SliderOpts {
   label: string
   min: number
@@ -152,6 +190,18 @@ export function showStartPage(
   const title = el('div')
   title.append(el('div', 'dio-title', 'DesignIO'), el('div', 'dio-subtitle', 'Design your piece'))
   header.append(title)
+
+  // live "looks styled" counter — ticks up as you explore (a little dopamine loop).
+  let styled = 0
+  const counter = el('div', 'dio-start-counter')
+  const bumpCounter = (): void => {
+    styled++
+    counter.innerHTML = `<span>✨</span> <b>${styled}</b> looks styled`
+    if (!reduced) animate(counter, { scale: [1, 1.09, 1] }, { duration: 0.3, ease: [0.34, 1.56, 0.64, 1] })
+  }
+  counter.innerHTML = `<span>✨</span> <b>0</b> looks styled`
+  header.append(counter)
+
   if (onHome) {
     const home = el('button', 'dio-back')
     home.type = 'button'
@@ -217,6 +267,7 @@ export function showStartPage(
           nav(-1)
         }
       })
+      tiltable(card)
       cards.set(def.id, card)
       grid.append(card)
     }
@@ -480,15 +531,44 @@ export function showStartPage(
   surprise.setAttribute('type', 'button')
   const palette = [0xc85a54, 0x3b5b82, 0x1a1a22, 0xd9c27e, 0x5f8f6b, 0x8a6bd1, 0xd98cae, 0x2f9e8f]
   const rand = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)]
-  surprise.addEventListener('click', () => {
+  const rollConfig = (): DesignConfig => {
     const cfg = defaultConfig()
     cfg.garmentType = rand(order)
     Object.assign(cfg, getGarment(cfg.garmentType).defaults)
     cfg.fabricId = rand(fabrics).id
     cfg.color = rand(palette)
     cfg.size = rand([...SIZES])
-    applyLook(cfg)
+    return cfg
+  }
+  const burst = (): void => {
+    const r = surprise.getBoundingClientRect()
+    sparkle(r.left + r.width / 2, r.top + r.height / 2)
     pop(surprise)
+  }
+  surprise.addEventListener('click', () => {
+    if (reduced) {
+      applyLook(rollConfig())
+      burst()
+      return
+    }
+    // slot-machine: flash colours/fabrics (cheap) while decelerating, then settle on a full look.
+    surprise.classList.add('spinning')
+    let ticks = 0
+    const reel = (): void => {
+      config.color = rand(palette)
+      config.fabricId = rand(fabrics).id
+      setAura(config.color)
+      for (const [id, n] of swatchEls) n.classList.toggle('selected', id === config.fabricId)
+      preview?.applyLook(config)
+      if (++ticks < 6) {
+        window.setTimeout(reel, 55 + ticks * ticks * 6) // ease-out deceleration
+      } else {
+        applyLook(rollConfig()) // final full look (garment + fit + colour)
+        surprise.classList.remove('spinning')
+        burst()
+      }
+    }
+    reel()
   })
   let spinning = true
   const spinBtn = el('button', 'dio-start-tool', '◐  Spin: on')
@@ -546,6 +626,15 @@ export function showStartPage(
 
   body.append(controls)
   overlay.append(body)
+
+  // one delegated listener: a glow ripple + a counter tick on every meaningful style tap.
+  overlay.addEventListener('pointerdown', (e) => {
+    const t = (e.target as HTMLElement).closest('.dio-start-card, .dio-start-swatch, .dio-start-look, .dio-start-tool, .dio-seg-btn')
+    if (!t || t.classList.contains('dio-hidden')) return
+    ripple((e as PointerEvent).clientX, (e as PointerEvent).clientY)
+    bumpCounter()
+  })
+
   document.body.append(overlay)
 
   // ---- create the live 3D preview + first garment ----
