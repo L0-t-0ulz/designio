@@ -53,6 +53,12 @@ export interface GarmentParams {
   lined?: boolean
   /** Interfacing — a structured, crisper drape that holds its shape. */
   interfaced?: boolean
+  /** Constructed waistband at the top of a skirt/trouser. */
+  waistband?: boolean
+  /** Neckline facing — a clean inner finish at the neck. */
+  facing?: boolean
+  /** Functional drawstring — a cord at the waist/hood with two aglet-tipped ends. */
+  drawstring?: boolean
   /** Seam allowance in mm for the flat pattern's cut line (default 10). */
   seam?: number
   /** Draw matching notches on the pattern (default true). */

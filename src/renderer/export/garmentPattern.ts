@@ -226,6 +226,24 @@ export function garmentToPanels(
     panels.push(finishPanel(name, style === 'peterpan' || style === 'notch' ? 2 : 1, { outline, notches: [] }))
   }
 
+  // Waistband — a straight band the width of the waist (cut on the fold), finished
+  // ~50 mm deep; a drawstring adds a casing fold-line on it.
+  if (params.waistband) {
+    const spec0 = specs.body[0]
+    const waistR = spec0 ? (spec0.radiusWaist ?? spec0.radiusTop) : m.waistR + params.ease
+    const w = Math.max(200, Math.PI * waistR * MM)
+    const h = 52
+    const notches: Pt[] = params.drawstring ? [{ x: 0, y: h / 2 }, { x: w, y: h / 2 }] : [] // casing line
+    panels.push(finishPanel('Waistband', 1, { outline: [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }], notches }))
+  }
+  // Neckline facing — a shaped band that finishes the neck edge on the inside.
+  if (params.facing && specs.body[0]?.neckline) {
+    const neckR = specs.body[0].radiusTop * 0.6
+    const w = Math.max(160, Math.PI * neckR * MM)
+    const h = 45
+    panels.push(finishPanel('Neck facing', 2, { outline: [{ x: 0, y: h * 0.25 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }], notches: [] }))
+  }
+
   if (params.notches === false) for (const p of panels) p.notches = [] // notches off
   const closure = params.closure ? (def.closureStyle ?? 'button') : undefined
   const active = [
@@ -238,6 +256,9 @@ export function garmentToPanels(
     closure && `${closure} closure`,
     params.lined && 'lined',
     params.interfaced && 'interfaced',
+    params.waistband && 'waistband',
+    params.facing && 'facing',
+    params.drawstring && 'drawstring',
     specs.sleeves.length > 0 && (params.sleeveShape ?? 'set-in') !== 'set-in' && `${params.sleeveShape} sleeve`
   ].filter(Boolean) as string[]
   return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure }

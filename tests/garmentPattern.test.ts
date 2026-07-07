@@ -85,6 +85,21 @@ describe('real per-garment 2D pattern', () => {
     expect(dxf).toContain('CUT')
   })
 
+  it('adds waistband / facing pieces + notes for waistbands, facings & drawstrings', () => {
+    // wide-leg defaults to a waistband + drawstring
+    const wl = garmentToPanels(getGarment('wide-leg'), paramsFor('wide-leg'), M, C)
+    expect(wl.panels.some((p) => p.name === 'Waistband')).toBe(true)
+    expect(wl.detail).toContain('waistband')
+    expect(wl.detail).toContain('drawstring')
+    // a facing adds a neck facing piece (garment with a neckline)
+    const dress = garmentToPanels(getGarment('dress'), { ...paramsFor('dress'), facing: true }, M, C)
+    expect(dress.panels.some((p) => p.name === 'Neck facing')).toBe(true)
+    expect(dress.detail).toContain('facing')
+    // none of these on a plain skirt
+    const skirt = garmentToPanels(getGarment('skirt'), paramsFor('skirt'), M, C)
+    expect(skirt.panels.some((p) => /Waistband|facing/.test(p.name))).toBe(false)
+  })
+
   it('adds pocket pattern pieces per pocket style', () => {
     // cargo defaults to a bellows pocket → a cargo pocket + a flap piece
     const cargo = garmentToPanels(getGarment('cargo'), paramsFor('cargo'), M, C)

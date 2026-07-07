@@ -41,6 +41,9 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     closure: l.closure,
     lined: l.lined,
     interfaced: l.interfaced,
+    waistband: l.waistband,
+    facing: l.facing,
+    drawstring: l.drawstring,
     seam: l.seam,
     notches: l.notches
   }
@@ -91,6 +94,9 @@ export interface GarmentLayerData {
   closure?: boolean
   lined?: boolean
   interfaced?: boolean
+  waistband?: boolean
+  facing?: boolean
+  drawstring?: boolean
   /** Seam allowance (mm) + notches — pattern/production. */
   seam?: number
   notches?: boolean
@@ -161,6 +167,9 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     closure: c.closure,
     lined: c.lined,
     interfaced: c.interfaced,
+    waistband: c.waistband,
+    facing: c.facing,
+    drawstring: c.drawstring,
     seam: c.seam,
     notches: c.notches,
     trim: c.trim,
@@ -198,6 +207,9 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     closure: d.closure,
     lined: d.lined,
     interfaced: d.interfaced,
+    waistband: d.waistband,
+    facing: d.facing,
+    drawstring: d.drawstring,
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',
     color: 0xc85a54,
     prints: [],

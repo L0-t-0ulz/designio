@@ -104,6 +104,9 @@ function initStudio(
     closure: l0.closure,
     lined: l0.lined,
     interfaced: l0.interfaced,
+    waistband: l0.waistband,
+    facing: l0.facing,
+    drawstring: l0.drawstring,
     seam: l0.seam,
     notches: l0.notches,
     trim: l0.trim
@@ -199,6 +202,9 @@ function initStudio(
     garment.closure = l.data.closure
     garment.lined = l.data.lined
     garment.interfaced = l.data.interfaced
+    garment.waistband = l.data.waistband
+    garment.facing = l.data.facing
+    garment.drawstring = l.data.drawstring
     garment.seam = l.data.seam
     garment.notches = l.data.notches
     garment.trim = l.data.trim
@@ -389,6 +395,9 @@ function initStudio(
     l.data.closure = garment.closure
     l.data.lined = garment.lined
     l.data.interfaced = garment.interfaced
+    l.data.waistband = garment.waistband
+    l.data.facing = garment.facing
+    l.data.drawstring = garment.drawstring
     l.data.seam = garment.seam
     l.data.notches = garment.notches
     l.data.trim = garment.trim
@@ -944,6 +953,9 @@ if (skipStart) {
   if (entryParams.get('closure')) cfg.closure = true
   if (entryParams.get('lined')) cfg.lined = true
   if (entryParams.get('interfaced')) cfg.interfaced = true
+  if (entryParams.get('waistband')) cfg.waistband = true
+  if (entryParams.get('facing')) cfg.facing = true
+  if (entryParams.get('drawstring')) cfg.drawstring = true
   if (entryParams.get('trim')) cfg.trim = true
   const tc = entryParams.get('trimColor')
   if (tc) cfg.trimColor = parseInt(tc, 16)
