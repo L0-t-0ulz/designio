@@ -154,7 +154,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'skirt',
     pieces: [skirtTube],
     supports: lowerCaps,
-    defaults: { length: 0.95, ease: 0.02, flare: 0.12 }
+    defaults: { length: 0.95, ease: 0.02, flare: 0.12, pleats: true, pleatStyle: 'knife' }
   },
   {
     id: 'pants',

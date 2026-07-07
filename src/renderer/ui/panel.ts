@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
-import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle } from '../garment/templates'
-import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES } from '../garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle } from '../garment/templates'
+import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
@@ -26,6 +26,7 @@ export interface GarmentState {
   collarStyle?: CollarStyle
   cuff?: boolean
   pleats?: boolean
+  pleatStyle?: PleatStyle
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle
@@ -202,6 +203,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sleeveShapeBlock = el('div')
   sleeveShapeBlock.append(el('div', 'dio-field-label', 'Sleeve shape'), sleeveShapeRow)
 
+  // pleat picker (the pleats & gathers library; shown when the Pleats detail is on)
+  const pleatLabels: Record<PleatStyle, string> = { knife: 'Knife', box: 'Box', accordion: 'Accordion', cartridge: 'Cartridge', gather: 'Gather' }
+  const pleatRow = el('div', 'dio-actions')
+  pleatRow.style.flexWrap = 'wrap'
+  const pleatBtns = new Map<PleatStyle, HTMLButtonElement>()
+  for (const pl of PLEAT_STYLES) {
+    const b = button(pleatLabels[pl], () => { garment.pleatStyle = pl; syncGarment(); opts.onGarmentEdit() }, (garment.pleatStyle ?? 'knife') === pl)
+    pleatBtns.set(pl, b)
+    pleatRow.append(b)
+  }
+  const pleatBlock = el('div')
+  pleatBlock.append(el('div', 'dio-field-label', 'Pleat style'), pleatRow)
+
   // pocket picker (the pocket library; shown when the Pocket detail is on)
   const pocketLabels: Record<PocketStyle, string> = { patch: 'Patch', welt: 'Welt', jetted: 'Jetted', flap: 'Flap', bellows: 'Bellows' }
   const pocketRow = el('div', 'dio-actions')
@@ -305,6 +319,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     // the pocket library shows only when the Pocket detail is supported + on
     pocketBlock.classList.toggle('dio-hidden', !def.supports.pocket || !garment.pocket)
     for (const [ps, node] of pocketBtns) node.classList.toggle('primary', (garment.pocketStyle ?? 'patch') === ps)
+    // the pleats library shows only when the Pleats detail is supported + on
+    pleatBlock.classList.toggle('dio-hidden', !def.supports.pleats || !garment.pleats)
+    for (const [pl, node] of pleatBtns) node.classList.toggle('primary', (garment.pleatStyle ?? 'knife') === pl)
     syncNeckSleeve()
     lenS.refresh()
     easeS.refresh()
@@ -332,7 +349,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; syncGarment(); opts.onGarmentEdit() } })
   }))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock, pocketBlock)
+  construction.body.append(sizeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock, pocketBlock, pleatBlock)
   syncGarment()
 
   // ---- pattern (sew) ----
