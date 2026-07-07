@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { CollarStyle, GarmentType, SleeveStyle, SleeveShape, PocketStyle, PleatStyle } from '../garment/templates'
+import type { CollarStyle, GarmentType, SleeveStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
@@ -33,6 +33,8 @@ export interface DesignConfig {
   waistband?: boolean
   facing?: boolean
   drawstring?: boolean
+  ruffles?: boolean
+  frillStyle?: FrillStyle
   seam?: number
   notches?: boolean
   trim?: boolean

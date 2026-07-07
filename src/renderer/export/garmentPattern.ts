@@ -243,6 +243,16 @@ export function garmentToPanels(
     const h = 45
     panels.push(finishPanel('Neck facing', 2, { outline: [{ x: 0, y: h * 0.25 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }], notches: [] }))
   }
+  // Hem frill — a long strip gathered/flared onto the hem (ruffle = fullest).
+  if (params.ruffles && specs.body[0]) {
+    const style = params.frillStyle ?? 'ruffle'
+    const fullness = { ruffle: 2.6, flounce: 1.9, godet: 1.6 }[style]
+    const hemHalf = Math.PI * specs.body[0].radiusBottom * MM
+    const w = Math.min(1400, hemHalf * fullness) // strip length (cut on the fold)
+    const h = { ruffle: 90, flounce: 150, godet: 130 }[style]
+    const name = style === 'godet' ? 'Godet' : style === 'flounce' ? 'Flounce' : 'Ruffle'
+    panels.push(finishPanel(name, 1, { outline: [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }], notches: [] }))
+  }
 
   if (params.notches === false) for (const p of panels) p.notches = [] // notches off
   const closure = params.closure ? (def.closureStyle ?? 'button') : undefined
@@ -259,6 +269,7 @@ export function garmentToPanels(
     params.waistband && 'waistband',
     params.facing && 'facing',
     params.drawstring && 'drawstring',
+    params.ruffles && `${params.frillStyle ?? 'ruffle'} frill`,
     specs.sleeves.length > 0 && (params.sleeveShape ?? 'set-in') !== 'set-in' && `${params.sleeveShape} sleeve`
   ].filter(Boolean) as string[]
   return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure }

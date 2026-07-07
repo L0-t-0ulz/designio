@@ -6,7 +6,7 @@
  * of a `.dio` project. Pure + unit-tested; the runtime (main.ts) builds live
  * meshes/solvers from it and reads them back into it.
  */
-import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle, SleeveShape, PocketStyle, PleatStyle } from '../garment/templates'
+import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
@@ -44,6 +44,8 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     waistband: l.waistband,
     facing: l.facing,
     drawstring: l.drawstring,
+    ruffles: l.ruffles,
+    frillStyle: l.frillStyle,
     seam: l.seam,
     notches: l.notches
   }
@@ -97,6 +99,8 @@ export interface GarmentLayerData {
   waistband?: boolean
   facing?: boolean
   drawstring?: boolean
+  ruffles?: boolean
+  frillStyle?: FrillStyle
   /** Seam allowance (mm) + notches — pattern/production. */
   seam?: number
   notches?: boolean
@@ -170,6 +174,8 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     waistband: c.waistband,
     facing: c.facing,
     drawstring: c.drawstring,
+    ruffles: c.ruffles,
+    frillStyle: c.frillStyle,
     seam: c.seam,
     notches: c.notches,
     trim: c.trim,
@@ -210,6 +216,8 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     waistband: d.waistband,
     facing: d.facing,
     drawstring: d.drawstring,
+    ruffles: d.ruffles,
+    frillStyle: d.frillStyle,
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',
     color: 0xc85a54,
     prints: [],

@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
-import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle } from '../garment/templates'
-import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES } from '../garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from '../garment/templates'
+import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
@@ -37,6 +37,8 @@ export interface GarmentState {
   waistband?: boolean
   facing?: boolean
   drawstring?: boolean
+  ruffles?: boolean
+  frillStyle?: FrillStyle
   seam?: number
   notches?: boolean
   trim?: boolean
@@ -208,6 +210,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sleeveShapeBlock = el('div')
   sleeveShapeBlock.append(el('div', 'dio-field-label', 'Sleeve shape'), sleeveShapeRow)
 
+  // frill picker (ruffles/flounces/godets; shown when the Ruffles detail is on)
+  const frillLabels: Record<FrillStyle, string> = { ruffle: 'Ruffle', flounce: 'Flounce', godet: 'Godet' }
+  const frillRow = el('div', 'dio-actions')
+  frillRow.style.flexWrap = 'wrap'
+  const frillBtns = new Map<FrillStyle, HTMLButtonElement>()
+  for (const fr of FRILL_STYLES) {
+    const b = button(frillLabels[fr], () => { garment.frillStyle = fr; syncGarment(); opts.onGarmentEdit() }, (garment.frillStyle ?? 'ruffle') === fr)
+    frillBtns.set(fr, b)
+    frillRow.append(b)
+  }
+  const frillBlock = el('div')
+  frillBlock.append(el('div', 'dio-field-label', 'Frill style'), frillRow)
+
   // pleat picker (the pleats & gathers library; shown when the Pleats detail is on)
   const pleatLabels: Record<PleatStyle, string> = { knife: 'Knife', box: 'Box', accordion: 'Accordion', cartridge: 'Cartridge', gather: 'Gather' }
   const pleatRow = el('div', 'dio-actions')
@@ -327,6 +342,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     // the pleats library shows only when the Pleats detail is supported + on
     pleatBlock.classList.toggle('dio-hidden', !def.supports.pleats || !garment.pleats)
     for (const [pl, node] of pleatBtns) node.classList.toggle('primary', (garment.pleatStyle ?? 'knife') === pl)
+    // the ruffles library shows only when the Ruffles detail is supported + on
+    frillBlock.classList.toggle('dio-hidden', !def.supports.ruffles || !garment.ruffles)
+    for (const [fr, node] of frillBtns) node.classList.toggle('primary', (garment.frillStyle ?? 'ruffle') === fr)
     syncNeckSleeve()
     lenS.refresh()
     easeS.refresh()
@@ -340,7 +358,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // construction detail toggles (collar · cuff · pleats · darts), shown per garment
-  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem' | 'closure' | 'lined' | 'interfaced' | 'waistband' | 'facing' | 'drawstring'][] = [
+  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem' | 'closure' | 'lined' | 'interfaced' | 'waistband' | 'facing' | 'drawstring' | 'ruffles'][] = [
     ['Collar', 'collar'],
     ['Cuff', 'cuff'],
     ['Pleats', 'pleats'],
@@ -352,14 +370,15 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     ['Interfacing', 'interfaced'],
     ['Waistband', 'waistband'],
     ['Facing', 'facing'],
-    ['Drawstring', 'drawstring']
+    ['Drawstring', 'drawstring'],
+    ['Ruffles', 'ruffles']
   ]
   const detailToggles = detailDefs.map(([label, key]) => ({
     key,
     t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; syncGarment(); opts.onGarmentEdit() } })
   }))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock, pocketBlock, pleatBlock)
+  construction.body.append(sizeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock, pocketBlock, pleatBlock, frillBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

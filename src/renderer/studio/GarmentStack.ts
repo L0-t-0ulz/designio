@@ -323,6 +323,63 @@ export class GarmentStack {
     if (l.data.waistband) this.buildWaistband(l)
     if (l.data.drawstring) this.buildDrawstring(l)
     if (l.data.facing) this.buildFacing(l)
+    if (l.data.ruffles) this.buildFrill(l)
+  }
+
+  /**
+   * A hem frill — a flared, scalloped band attached at the hem that ruffles out
+   * and down. `frillStyle` sets it: a gathered **ruffle** (many small waves), a
+   * flared **flounce** (deeper, fewer waves), or fluted **godet** (big godet
+   * points). Built as a wrapped 2-ring band in the garment's own fabric.
+   */
+  private buildFrill(l: StackLayer): void {
+    const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
+    if (!spec) return
+    const style = l.data.frillStyle ?? 'ruffle'
+    const p = {
+      ruffle: { drop: 0.085, flare: 1.28, waves: 26, ampR: 0.03, ampY: 0.012 },
+      flounce: { drop: 0.15, flare: 1.7, waves: 13, ampR: 0.05, ampY: 0.03 },
+      godet: { drop: 0.13, flare: 1.85, waves: 8, ampR: 0.07, ampY: 0.05 }
+    }[style]
+    const hemR = spec.radiusBottom
+    const hemY = spec.bottomY
+    const RAD = 96
+    const ROWS = 4
+    const pos: number[] = []
+    const uv: number[] = []
+    const idx: number[] = []
+    for (let iy = 0; iy < ROWS; iy++) {
+      const t = iy / (ROWS - 1) // 0 = hem, 1 = frill edge
+      const flare = 1 + (p.flare - 1) * t
+      for (let ix = 0; ix < RAD; ix++) {
+        const a = (ix / RAD) * Math.PI * 2
+        const r = hemR * flare + t * p.ampR * Math.sin(a * p.waves)
+        const y = hemY - p.drop * t + t * p.ampY * Math.cos(a * p.waves)
+        pos.push(Math.cos(a) * r, y, Math.sin(a) * r)
+        uv.push(ix / RAD, t)
+      }
+    }
+    for (let iy = 0; iy < ROWS - 1; iy++) {
+      for (let ix = 0; ix < RAD; ix++) {
+        const ixr = (ix + 1) % RAD
+        const a = iy * RAD + ix
+        const b = iy * RAD + ixr
+        const c = (iy + 1) * RAD + ix
+        const d = (iy + 1) * RAD + ixr
+        idx.push(a, c, b, b, c, d)
+      }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2))
+    geo.setIndex(idx)
+    geo.computeVertexNormals()
+    geo.computeBoundingSphere()
+    const frill = new THREE.Mesh(geo, l.data.trim ? l.trimMaterial : l.material)
+    frill.frustumCulled = false
+    frill.castShadow = true
+    frill.receiveShadow = true
+    l.decor.add(frill)
   }
 
   /** Where a bottom's waist sits + its radius (hips for trousers, waist for skirts). */
