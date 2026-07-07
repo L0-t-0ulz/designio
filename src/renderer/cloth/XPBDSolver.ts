@@ -533,7 +533,10 @@ export class XPBDSolver {
         let ny = this._p.y - this._c.y
         let nz = this._p.z - this._c.z
         let dist = Math.sqrt(nx * nx + ny * ny + nz * nz)
-        if (dist >= cap.radius) continue
+        // keep cloth a garment-thickness off the capsule too (broadphase in GLB/animation
+        // mode, where the mesh collider is off) so the body doesn't poke through.
+        const R = cap.radius + this.bodySkin
+        if (dist >= R) continue
 
         if (dist < 1e-6) {
           nx = 0
@@ -547,7 +550,7 @@ export class XPBDSolver {
         nz *= inv
 
         // push out to the surface
-        const pen = cap.radius - dist
+        const pen = R - dist
         pos[i] += nx * pen
         pos[i + 1] += ny * pen
         pos[i + 2] += nz * pen

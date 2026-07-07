@@ -130,7 +130,7 @@ describe('XPBDSolver aerodynamic drag', () => {
 })
 
 describe('XPBDSolver collision', () => {
-  it('pushes a particle inside a sphere out to its surface', () => {
+  it('pushes a particle inside a sphere out to its surface (+ a garment-thickness skin)', () => {
     const center = new THREE.Vector3(0, 0.95, 0)
     const sphere: Capsule = { a: center.clone(), b: center.clone(), radius: 0.1 }
     const positions = new Float32Array([0, 1.0, 0]) // 0.05 above center => inside
@@ -140,9 +140,11 @@ describe('XPBDSolver collision', () => {
 
     solver.step(1 / 60)
 
+    // cloth rests a garment-thickness (bodySkin) off the capsule surface, not on it
+    const R = 0.1 + solver.bodySkin
     const p = new THREE.Vector3(positions[0], positions[1], positions[2])
-    expect(p.distanceTo(center)).toBeCloseTo(0.1, 4)
-    expect(positions[1]).toBeCloseTo(1.05, 4) // pushed straight up
+    expect(p.distanceTo(center)).toBeCloseTo(R, 4)
+    expect(positions[1]).toBeCloseTo(0.95 + R, 4) // pushed straight up
   })
 })
 
