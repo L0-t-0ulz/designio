@@ -13,6 +13,7 @@ import { SIZES, type SizeLabel } from '../studio/document'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
+import type { PrintPart } from '../start/design'
 
 export interface GarmentState {
   type: GarmentType
@@ -65,6 +66,7 @@ export interface PrintPatch {
   rotation?: number
   text?: string
   color?: number
+  part?: PrintPart
 }
 /** Manage the garment's placed prints (multiple logos + text) from the studio. */
 export interface PrintControls {
@@ -501,6 +503,15 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // The garment pieces a print can be placed on (body always; sleeves/legs if present).
+  function printPartsFor(): [string, PrintPart][] {
+    const def = getGarment(garment.type)
+    const parts: [string, PrintPart][] = [['Body', 'body']]
+    if (def.supports.sleeve) parts.push(['Sleeves', 'sleeves'])
+    if (def.pieces.some((pc) => pc.kind === 'legTubes')) parts.push(['Legs', 'legs'])
+    return parts
+  }
+
   // Multiple placed prints (logos + text) — add, select, place (X/Y/size/rotation), remove.
   function printsControls(p: PrintControls): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -521,6 +532,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         return
       }
       const id = selectedId
+      // Which garment piece this print sits on (only offered when there's a choice).
+      const parts = printPartsFor()
+      if (parts.length > 1) {
+        const cur = p.get(id)?.part ?? 'body'
+        const row = el('div', 'dio-seg dio-seg-wrap')
+        for (const [label, pt] of parts) {
+          const b = el('button', 'dio-seg-btn' + (cur === pt ? ' on' : ''), label)
+          b.setAttribute('type', 'button')
+          b.addEventListener('click', () => { p.update(id, { part: pt }); renderEditor() })
+          row.append(b)
+        }
+        editor.append(el('div', 'dio-field-label', 'On part'), row)
+      }
       editor.append(
         slider({ label: 'Across (X)', min: 0, max: 1, step: 0.01, get: () => p.get(id)?.x ?? 0.5, set: (v) => p.update(id, { x: v }) }).row,
         slider({ label: 'Down (Y)', min: 0, max: 1, step: 0.01, get: () => p.get(id)?.y ?? 0.5, set: (v) => p.update(id, { y: v }) }).row,

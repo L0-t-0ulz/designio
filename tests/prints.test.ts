@@ -59,4 +59,29 @@ describe('placed prints (multiple logos + text)', () => {
     expect(prints.find((p) => p.kind === 'text')?.text).toBe('TEAM')
     expect(prints.find((p) => p.kind === 'image')?.x).toBe(0.3) // placement kept
   })
+
+  it('a print carries the garment part it sits on (body by default)', () => {
+    expect(newTextPrint('X').part).toBe('body')
+    expect(newImagePrint(fakeImg, 'a').part).toBe('body')
+    const sleeve = { ...newTextPrint('ARM'), part: 'sleeves' as const }
+    expect(printToSpec(sleeve).part).toBe('sleeves') // survives the spec round-trip
+    expect(printFromSpec(printToSpec(sleeve)).part).toBe('sleeves')
+  })
+
+  it('legacy specs (no part) default to the body panel on load', () => {
+    const legacy = { id: 'x', kind: 'text' as const, text: 'HI', color: 0, x: 0.25, y: 0.5, scale: 0.5, rotation: 0 }
+    expect(printFromSpec(legacy as never).part).toBe('body')
+  })
+
+  it('prints on the sleeves/legs survive save → reopen', () => {
+    const c = defaultConfig()
+    c.prints = [
+      { ...newTextPrint('ARM'), part: 'sleeves' },
+      { ...newTextPrint('LEG'), part: 'legs' }
+    ]
+    const back = parseDoc(serializeDoc(docFromConfig(c)))
+    const prints = back.layers[0].prints ?? []
+    expect(prints.find((p) => p.text === 'ARM')?.part).toBe('sleeves')
+    expect(prints.find((p) => p.text === 'LEG')?.part).toBe('legs')
+  })
 })

@@ -60,6 +60,9 @@ export interface DesignConfig {
   textile?: TextilePattern
 }
 
+/** Which garment piece a print sits on — its `x/y` are across that piece's panel. */
+export type PrintPart = 'body' | 'sleeves' | 'legs'
+
 /** A logo/graphic or text placed on the garment. `x/y` are 0…1 across the front. */
 export interface Print {
   id: string
@@ -75,6 +78,8 @@ export interface Print {
   scale: number
   /** Rotation in degrees. */
   rotation: number
+  /** The garment part this print is placed on (body / sleeves / legs). */
+  part: PrintPart
 }
 
 /** The serialisable part of a print (no runtime image) for `.dio` projects. */
@@ -84,17 +89,17 @@ let pid = 0
 export const newPrintId = (): string => `pr${++pid}_${Math.random().toString(36).slice(2, 6)}`
 // Default placement: centred on the front-facing chest (x≈0.25 is the +z face).
 export function newImagePrint(image: HTMLImageElement, name: string): Print {
-  return { id: newPrintId(), kind: 'image', image, imageName: name, text: '', color: 0xffffff, x: 0.25, y: 0.32, scale: 0.4, rotation: 0 }
+  return { id: newPrintId(), kind: 'image', image, imageName: name, text: '', color: 0xffffff, x: 0.25, y: 0.32, scale: 0.4, rotation: 0, part: 'body' }
 }
 export function newTextPrint(text = ''): Print {
-  return { id: newPrintId(), kind: 'text', image: null, text, color: 0x1a1a22, x: 0.25, y: 0.5, scale: 0.5, rotation: 0 }
+  return { id: newPrintId(), kind: 'text', image: null, text, color: 0x1a1a22, x: 0.25, y: 0.5, scale: 0.5, rotation: 0, part: 'body' }
 }
 export const printHasContent = (p: Print): boolean => (p.kind === 'image' ? p.image != null : p.text.trim().length > 0)
 export function printToSpec(p: Print): PrintSpec {
   const { image: _drop, ...spec } = p
   return spec
 }
-export const printFromSpec = (s: PrintSpec): Print => ({ ...s, image: null })
+export const printFromSpec = (s: PrintSpec): Print => ({ ...s, image: null, part: s.part ?? 'body' })
 
 export function defaultConfig(): DesignConfig {
   return {
