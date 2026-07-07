@@ -6,6 +6,8 @@ import {
   printHasContent,
   printToSpec,
   printFromSpec,
+  printIsRaised,
+  anyRaised,
   hasArt,
   type Print
 } from '../src/renderer/start/design'
@@ -83,5 +85,30 @@ describe('placed prints (multiple logos + text)', () => {
     const prints = back.layers[0].prints ?? []
     expect(prints.find((p) => p.text === 'ARM')?.part).toBe('sleeves')
     expect(prints.find((p) => p.text === 'LEG')?.part).toBe('legs')
+  })
+
+  it('a print has a finish style (flat by default) that flags a raised motif', () => {
+    expect(newTextPrint('X').style).toBe('flat')
+    expect(printIsRaised(newTextPrint('X'))).toBe(false)
+    expect(printIsRaised({ ...newTextPrint('X'), style: 'embroidery' })).toBe(true)
+    expect(printIsRaised({ ...newTextPrint('X'), style: 'applique' })).toBe(true)
+  })
+
+  it('anyRaised: true only when a *content-bearing* motif is embroidery/appliqué', () => {
+    expect(anyRaised([newTextPrint('LOGO')])).toBe(false) // flat
+    expect(anyRaised([{ ...newTextPrint('LOGO'), style: 'embroidery' }])).toBe(true)
+    expect(anyRaised([{ ...newTextPrint('   '), style: 'embroidery' }])).toBe(false) // empty text
+    expect(anyRaised([{ ...newTextPrint('A'), style: 'flat' }, { ...newTextPrint('B'), style: 'applique' }])).toBe(true)
+  })
+
+  it('legacy specs (no style) default to flat; style survives save → reopen', () => {
+    const legacy = { id: 'x', kind: 'text' as const, text: 'HI', color: 0, x: 0.25, y: 0.5, scale: 0.5, rotation: 0, part: 'body' as const }
+    expect(printFromSpec(legacy as never).style).toBe('flat')
+    const emb = { ...newTextPrint('LUXE'), style: 'embroidery' as const }
+    expect(printFromSpec(printToSpec(emb)).style).toBe('embroidery')
+    const c = defaultConfig()
+    c.prints = [emb]
+    const back = parseDoc(serializeDoc(docFromConfig(c)))
+    expect(back.layers[0].prints?.[0].style).toBe('embroidery')
   })
 })

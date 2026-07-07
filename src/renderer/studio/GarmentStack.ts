@@ -17,12 +17,14 @@ import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs, garmentSleeveSpecs } from '../garments/factory'
 import { radiusAt } from '../cloth/Garment'
 import { pocketPlacements } from '../garments/decor'
-import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type DesignArtInput, type Print, type PrintPart } from '../start/design'
+import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type DesignArtInput, type Print, type PrintPart } from '../start/design'
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { gradeParams, type GarmentLayerData } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
 const EMPTY_ART: DesignArtInput = { color: 0xffffff, prints: [] }
+/** Bump strength for raised embroidery / appliqué relief. */
+const RAISED_BUMP_SCALE = 6
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
 // Shared closure materials (buttons · zip tape · metal pull) — geometry is per-mesh.
@@ -69,7 +71,10 @@ const disposeMats = (l: StackLayer): void => {
 /** Free the print/design canvas textures (every part panel) so they don't leak.
  *  The swatch is *kept* (re-applied after a redraw); dispose it at layer teardown. */
 const disposeDesigns = (l: StackLayer): void => {
-  for (const d of [l.design, l.sleeveDesign, l.legDesign, l.backDesign, l.legBackDesign]) d?.texture.dispose()
+  for (const d of [l.design, l.sleeveDesign, l.legDesign, l.backDesign, l.legBackDesign]) {
+    d?.texture.dispose()
+    d?.bump?.dispose()
+  }
 }
 
 export interface StackLayer {
@@ -181,12 +186,17 @@ export class GarmentStack {
       mat.map = d.texture
       mat.color.set(0xffffff) // the design canvas owns the base colour
       d.redraw(input) // fresh input → the base colour tracks a recolour (not stale)
+      // raised motifs (embroidery / appliqué) → a bump relief that catches the light
+      mat.bumpMap = anyRaised(input.prints) ? d.bump : null
+      mat.bumpScale = RAISED_BUMP_SCALE
       mat.needsUpdate = true
       return d
     }
     if (current) {
       mat.map = null
+      mat.bumpMap = null
       current.texture.dispose()
+      current.bump?.dispose()
       mat.needsUpdate = true
     }
     return null
@@ -299,6 +309,7 @@ export class GarmentStack {
         m.normalMap = l.swatch.normal
         m.normalScale.set(1, 1)
         m.roughness = l.swatch.roughness
+        m.bumpMap = null // the swatch owns the whole surface (no raised-motif relief under it)
         m.color.set(0xffffff)
         m.needsUpdate = true
       }
