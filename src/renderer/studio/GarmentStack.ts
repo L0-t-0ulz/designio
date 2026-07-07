@@ -14,7 +14,7 @@ import { ClothCollision } from '../cloth/ClothCollision'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, corsetParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
-import { garmentPatternSpecs } from '../garments/factory'
+import { garmentPatternSpecs, garmentSleeveSpecs } from '../garments/factory'
 import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type Print } from '../start/design'
 import { gradeParams, type GarmentLayerData } from './document'
@@ -327,6 +327,81 @@ export class GarmentStack {
     if (l.data.facing) this.buildFacing(l)
     if (l.data.ruffles) this.buildFrill(l)
     if (l.data.boning) this.buildBoning(l)
+    if (l.data.ribbing) this.buildRibbing(l)
+  }
+
+  /** A ribbed knit band (sweatshirt trim) from `a`→`b` — a short tube whose cross
+   * section is finely fluted so it reads as knit ribbing. */
+  private ribbedBand(l: StackLayer, a: THREE.Vector3, b: THREE.Vector3, radius: number, mat: THREE.Material): void {
+    const axis = new THREE.Vector3().subVectors(b, a)
+    axis.multiplyScalar(1 / (axis.length() || 1))
+    const up = Math.abs(axis.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0)
+    const u = new THREE.Vector3().crossVectors(up, axis).normalize()
+    const v = new THREE.Vector3().crossVectors(axis, u).normalize()
+    const ribN = 32
+    const RAD = 128
+    const RINGS = 3
+    const ribAmp = 0.05
+    const pos: number[] = []
+    const uv: number[] = []
+    const idx: number[] = []
+    for (let iy = 0; iy < RINGS; iy++) {
+      const t = iy / (RINGS - 1)
+      const cx = a.x + (b.x - a.x) * t
+      const cy = a.y + (b.y - a.y) * t
+      const cz = a.z + (b.z - a.z) * t
+      for (let ix = 0; ix < RAD; ix++) {
+        const ang = (ix / RAD) * Math.PI * 2
+        const r = radius * (1 + ribAmp * (0.5 - 0.5 * Math.cos(ang * ribN))) // fine rib flutes
+        const c = Math.cos(ang) * r
+        const s = Math.sin(ang) * r
+        pos.push(cx + u.x * c + v.x * s, cy + u.y * c + v.y * s, cz + u.z * c + v.z * s)
+        uv.push(ix / RAD, t)
+      }
+    }
+    for (let iy = 0; iy < RINGS - 1; iy++) {
+      for (let ix = 0; ix < RAD; ix++) {
+        const ixr = (ix + 1) % RAD
+        const aI = iy * RAD + ix
+        const bI = iy * RAD + ixr
+        const cI = (iy + 1) * RAD + ix
+        const dI = (iy + 1) * RAD + ixr
+        idx.push(aI, cI, bI, bI, cI, dI)
+      }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2))
+    geo.setIndex(idx)
+    geo.computeVertexNormals()
+    geo.computeBoundingSphere()
+    const mesh = new THREE.Mesh(geo, mat)
+    mesh.frustumCulled = false
+    mesh.castShadow = true
+    mesh.receiveShadow = true
+    l.decor.add(mesh)
+  }
+
+  /** Knit ribbing trims — ribbed bands at the hem, the collar (crew), and the sleeve cuffs. */
+  private buildRibbing(l: StackLayer): void {
+    const def = getGarment(l.data.garmentType)
+    const graded = gradeParams(l.data)
+    const specs = garmentPatternSpecs(def, graded, this.measurements, this.colliders)
+    const mat = l.data.trim ? l.trimMaterial : l.material
+    const V = THREE.Vector3
+    const body = specs.body[0]
+    if (body) {
+      this.ribbedBand(l, new V(0, body.bottomY + 0.05, 0), new V(0, body.bottomY - 0.002, 0), body.radiusBottom, mat) // hem band
+      if (body.neckline) {
+        const nY = (body.shoulderY ?? body.topY) - 0.02
+        this.ribbedBand(l, new V(0, nY + 0.03, 0), new V(0, nY - 0.02, 0), body.radiusTop * 0.6, mat) // collar band
+      }
+    }
+    for (const sv of garmentSleeveSpecs(def, graded, this.colliders)) {
+      const axis = new V().subVectors(sv.b, sv.a).normalize()
+      const inner = new V().copy(sv.b).addScaledVector(axis, -0.05) // 5 cm up from the cuff
+      this.ribbedBand(l, sv.b.clone(), inner, sv.radiusEnd, mat) // cuff band
+    }
   }
 
   /**
