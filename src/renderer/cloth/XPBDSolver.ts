@@ -10,6 +10,8 @@ interface Constraint {
   compliance: number
   /** true = bending constraint (uses bendCompliance), false = stretch/shear. */
   bend: boolean
+  /** 0 = front panel, 1 = back panel (per-panel physics; front unless both ends are back). */
+  region: 0 | 1
 }
 
 /**
@@ -64,6 +66,9 @@ export class XPBDSolver {
   private readonly dead: Set<number>
   /** Closed in X (last column wraps to the first) — a tube/garment. */
   private readonly wrapX: boolean
+  /** Per-particle panel: 0 = front (columns [0,½nx)), 1 = back — mirrors `finishTube`'s
+   *  visual front/back split, so per-panel physics lines up with per-panel fabric. */
+  private readonly panel: Uint8Array
   /** Normalises wind so the slider reads as "wind on a ~0.3 kg reference fabric". */
   private readonly windScale: number
   private time = 0
@@ -103,6 +108,13 @@ export class XPBDSolver {
     this.dead = new Set(opts.dead)
     this.wrapX = opts.wrapX ?? false
 
+    // Tag each particle's panel (front/back) by column, matching `finishTube`.
+    this.panel = new Uint8Array(this.count)
+    if (this.wrapX) {
+      const half = Math.floor(nx / 2)
+      for (let k = 0; k < this.count; k++) this.panel[k] = k % nx >= half ? 1 : 0
+    }
+
     this.applyMass()
     this.buildConstraints(nx, ny)
     this.lambda = new Float32Array(this.constraints.length)
@@ -129,6 +141,47 @@ export class XPBDSolver {
       con.compliance = con.bend ? params.bendCompliance : params.stretchCompliance
     }
     this.wake()
+  }
+
+  /**
+   * Per-panel drape: the **front** and **back** halves of the tube get their own
+   * fabric (mass + stretch/bend compliance) so a stiff-front / soft-back garment
+   * really drapes differently. Front params drive the aero/wind reference. Falls
+   * back to `setFabric(front)` behaviour when the two are equal.
+   */
+  setPanelFabric(front: FabricParams, back: FabricParams): void {
+    this.params = front
+    const invFront = front.mass > 0 ? this.count / front.mass : 0
+    const invBack = back.mass > 0 ? this.count / back.mass : 0
+    for (let k = 0; k < this.count; k++) {
+      if (this.pinned.has(k) || this.dead.has(k)) this.invMass[k] = 0
+      else this.invMass[k] = this.panel[k] === 1 ? invBack : invFront
+    }
+    for (const con of this.constraints) {
+      const p = con.region === 1 ? back : front
+      con.compliance = con.bend ? p.bendCompliance : p.stretchCompliance
+    }
+    this.wake()
+  }
+
+  /** Mean stretch compliance of the front vs back panel constraints, and how many
+   *  of each — for diagnostics + per-panel-physics tests. */
+  panelCompliance(): { front: number; back: number; frontCount: number; backCount: number } {
+    let fs = 0
+    let fn = 0
+    let bs = 0
+    let bn = 0
+    for (const con of this.constraints) {
+      if (con.bend) continue
+      if (con.region === 1) {
+        bs += con.compliance
+        bn++
+      } else {
+        fs += con.compliance
+        fn++
+      }
+    }
+    return { front: fn ? fs / fn : 0, back: bn ? bs / bn : 0, frontCount: fn, backCount: bn }
   }
 
   /** Copy positions -> prev and clear velocities (call after respawning). */
@@ -301,7 +354,9 @@ export class XPBDSolver {
   private addConstraint(i: number, j: number, rest: number, compliance: number, bend: boolean): void {
     // Skip constraints touching a removed particle.
     if (this.dead.has(i) || this.dead.has(j)) return
-    this.constraints.push({ i, j, rest, compliance, bend })
+    // Back panel only when *both* ends are back — side-seam constraints stay front.
+    const region: 0 | 1 = this.panel[i] === 1 && this.panel[j] === 1 ? 1 : 0
+    this.constraints.push({ i, j, rest, compliance, bend, region })
   }
 
   /** Advance the simulation by `dt` seconds using `substeps` internal steps. */

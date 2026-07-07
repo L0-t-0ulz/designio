@@ -50,7 +50,9 @@ Renderer modules:
 - `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
   `bindPins`/`setAnchor` — so garments stay on the animated avatar; per-fabric **aerodynamic drag** —
   `FabricParams.aero` removes the broadside/normal velocity so light+sheer fabrics billow/float/lag and
-  heavy ones follow near-rigid — **4D secondary motion**), `ClothCollision` (a global **spatial-hash
+  heavy ones follow near-rigid — **4D secondary motion**; **per-panel physics** — each particle/constraint
+  is tagged front/back by column (matching `finishTube`), so `setPanelFabric(front, back)` drapes the two
+  halves with their own stiffness + mass), `ClothCollision` (a global **spatial-hash
   particle repulsion** run by `GarmentStack.step` after the solvers — keeps every visible garment particle
   a thickness apart, skipping same-piece grid-adjacent pairs, so layered garments push off each other +
   a garment doesn't pass through itself), `ClothWorld` (general particle+constraint solver

@@ -21,6 +21,7 @@ import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type 
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
+import type { FabricParams } from '../cloth/fabricPresets'
 import { gradeParams, type GarmentLayerData } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
@@ -218,6 +219,26 @@ export class GarmentStack {
     return part === 'body' ? l.fabric : this.partFabric(l, part)
   }
 
+  /** Fold garment-wide stiffeners (boning bodice · interfacing) into solver params. */
+  private solverModifiers(l: StackLayer, name: string, base: FabricParams): FabricParams {
+    if (l.data.boning && !/sleeve|leg/i.test(name)) return corsetParams(base) // rigid bodice only
+    return l.data.interfaced ? interfaceParams(base) : base
+  }
+  /** Front/body solver params for a piece. */
+  private pieceSolverParams(l: StackLayer, name: string): FabricParams {
+    return this.solverModifiers(l, name, fabricToSolverParams(this.pieceFabric(l, name)))
+  }
+  /** Back-panel solver params for a piece — its own `back`/`legBack` fabric, or `null`
+   *  (no override → the whole tube drapes with the front fabric). */
+  private panelSolverParams(l: StackLayer, name: string): FabricParams | null {
+    const part = partForPiece(name)
+    const panel = part === 'body' ? 'back' : part === 'legs' ? 'legBack' : null
+    if (!panel) return null
+    const ov = l.data.partFabrics?.[panel]
+    if (!ov) return null
+    return this.solverModifiers(l, name, fabricToSolverParams({ ...getFabric(ov.fabricId), color: ov.color }))
+  }
+
   /** The current { fabricId, color } for a part (body/trim/sleeves/legs/back/legBack). */
   partData(part: PartId): { fabricId: string; color: number } {
     const d = this.active.data
@@ -247,9 +268,9 @@ export class GarmentStack {
     // recoloured back / sleeve / leg panel), so no design rebuild is needed here.
     this.applyLook(l)
     this.buildDecor(l) // trim bands / pocket material depend on trim
-    // A piece fabric swap changes drape, so re-derive its physics. Back panels are
-    // visual-only (they share the piece's sim), and colour-only edits don't drape.
-    if (opts.fabricId && (part === 'body' || part === 'sleeves' || part === 'legs')) l.controller.setFabricPhysics()
+    // A fabric swap changes drape, so re-derive physics. A back/leg-back swap now
+    // drives that panel's own stiffness (per-panel physics); colour-only edits don't drape.
+    if (opts.fabricId && part !== 'trim') l.controller.setFabricPhysics()
   }
 
   /** The fabric for a back panel (its override, else the piece's front fabric). */
@@ -1020,13 +1041,10 @@ export class GarmentStack {
       material,
       this.colliders,
       this.measurements,
-      (name) => {
-        const p = fabricToSolverParams(this.pieceFabric(layer, name))
-        if (layer.data.boning && !/sleeve|leg/i.test(name)) return corsetParams(p) // rigid bodice only
-        return layer.data.interfaced ? interfaceParams(p) : p
-      },
+      (name) => this.pieceSolverParams(layer, name),
       this.bodyCollider,
-      this.anchors
+      this.anchors,
+      (name) => this.panelSolverParams(layer, name) // per-panel: the back's own drape
     )
     const decor = new THREE.Group()
     this.scene.add(decor)

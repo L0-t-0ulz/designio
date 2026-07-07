@@ -53,7 +53,9 @@ export class GarmentController {
     private readonly measurements: Measurements,
     private readonly params: (pieceName: string) => FabricParams,
     private readonly bodyCollider: BodyCollider | null = null,
-    private readonly anchors: () => BodyAnchors | null = () => null
+    private readonly anchors: () => BodyAnchors | null = () => null,
+    /** Optional back-panel fabric per piece → per-panel drape (null = same as front). */
+    private readonly backParams: (pieceName: string) => FabricParams | null = () => null
   ) {}
 
   /** (Re)build the garment from its data definition + fit params via the factory. */
@@ -63,6 +65,7 @@ export class GarmentController {
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
       this.addPiece(p.build, p.refill, p.name)
     }
+    this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
   }
 
@@ -231,8 +234,18 @@ export class GarmentController {
     this.bindPinsToBody() // re-hang from the body at the fresh drape
   }
 
+  /** Apply each piece's fabric physics (front + optional back panel) in place. */
+  private applyPieceFabrics(): void {
+    for (const p of this.pieces) {
+      const front = this.params(p.name)
+      const back = this.backParams(p.name)
+      if (back) p.solver.setPanelFabric(front, back)
+      else p.solver.setFabric(front)
+    }
+  }
+
   setFabricPhysics(): void {
-    for (const p of this.pieces) p.solver.setFabric(this.params(p.name))
+    this.applyPieceFabrics()
     this.redrape()
   }
 
