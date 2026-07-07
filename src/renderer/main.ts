@@ -30,6 +30,7 @@ import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
 import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
+import { demoSwatchCanvas } from './fabric/swatch'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord } from './studio/projectStore'
@@ -125,6 +126,8 @@ function initStudio(
   stack.addLayer({ ...l0 })
   if (!opened) stack.active.prints = config.prints.map((p) => ({ ...p })) // carry start-page prints (with images)
   stack.applyLook(stack.active)
+  // ?swatch=demo — exercise the fabric-photo → tiling-PBR pipeline with a procedural swatch
+  if (new URLSearchParams(location.search).get('swatch') === 'demo') stack.setSwatch(stack.active, demoSwatchCanvas())
 
   // ---- undo / redo (coarse: whole-document snapshots) ----
   const undoStack: string[] = []
@@ -792,6 +795,11 @@ function initStudio(
         stack.active.data.textile = t
         stack.refreshDesign(stack.active)
       }
+    },
+    swatch: {
+      active: () => stack.active.swatch != null,
+      set: (img) => stack.setSwatch(stack.active, img),
+      clear: () => stack.clearSwatch(stack.active)
     },
     getMetrics: () => activeMetrics(),
     bodySize,
