@@ -82,7 +82,8 @@ Renderer modules:
   (shared `GarmentParams`/types only). `avatar/BodyCollider` uses `three-mesh-bvh` for mesh collision.
 - `studio/` — the **multi-garment layer stack**: `document` (`ProjectDoc` = body + scene + serialisable
   garment `layers[]`; `serializeDoc`/`parseDoc` — the `.dio` project + undo/redo snapshots + clipboard;
-  `SizeLabel`/`gradeParams` grade a layer's girth by size),
+  `SizeLabel`/`gradeParams` grade a layer's girth by size; **`Colorway`** + `captureColorway`/`applyColorway`
+  save & apply appearance-only colour/fabric variants of a design),
   `GarmentStack` (the live layers: each its own materials · fabric · print · `GarmentController`; many
   garments simulate on one mannequin). **Per-part fabric**: a material per part (body / sleeves / legs)
   assigned to each piece mesh by name, + a **trim** material with contrast decor bands (hem/neckline) and
