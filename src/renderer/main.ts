@@ -32,6 +32,7 @@ import { showStartPage } from './start/StartPage'
 import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
 import { demoSwatchCanvas } from './fabric/swatch'
 import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
+import { QUILT_PATTERNS, type QuiltPattern } from './fabric/quilt'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord } from './studio/projectStore'
@@ -809,6 +810,13 @@ function initStudio(
         stack.applyLook(stack.active)
       }
     },
+    quilt: {
+      get: () => stack.active.data.quilt,
+      set: (p) => {
+        stack.active.data.quilt = p
+        stack.applyLook(stack.active)
+      }
+    },
     getMetrics: () => activeMetrics(),
     bodySize,
     onBodySize: (b) => {
@@ -1019,6 +1027,8 @@ if (skipStart) {
   if (tx && (TEXTILE_PATTERNS as string[]).includes(tx)) cfg.textile = tx as TextilePattern
   const spk = entryParams.get('sparkle')
   if (spk && (SPARKLE_KINDS as string[]).includes(spk)) cfg.sparkle = spk as SparkleKind
+  const qlt = entryParams.get('quilt')
+  if (qlt && (QUILT_PATTERNS as string[]).includes(qlt)) cfg.quilt = qlt as QuiltPattern
   const fr = entryParams.get('frillStyle')
   if (fr && (FRILL_STYLES as string[]).includes(fr)) { cfg.ruffles = true; cfg.frillStyle = fr as FrillStyle }
   if (entryParams.get('trim')) cfg.trim = true

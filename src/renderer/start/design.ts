@@ -5,6 +5,7 @@ import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
 import { paintTextile, type TextilePattern } from '../fabric/textile'
 import type { SparkleKind } from '../fabric/sparkle'
+import type { QuiltPattern } from '../fabric/quilt'
 
 /** Everything the start page lets you build before entering the 3D studio. */
 export interface DesignConfig {
@@ -61,6 +62,8 @@ export interface DesignConfig {
   textile?: TextilePattern
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
+  /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
+  quilt?: QuiltPattern
 }
 
 /** Which garment piece a print sits on — its `x/y` are across that piece's panel. */

@@ -12,6 +12,7 @@ import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
 import type { TextilePattern } from '../fabric/textile'
 import type { SparkleKind } from '../fabric/sparkle'
+import type { QuiltPattern } from '../fabric/quilt'
 import { getGarment } from '../garments/registry'
 
 /** Manufacturing sizes. `M` is the drafted block; each step grades the girth. */
@@ -127,6 +128,8 @@ export interface GarmentLayerData {
   textile?: TextilePattern
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
+  /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
+  quilt?: QuiltPattern
   visible: boolean
 }
 
@@ -204,6 +207,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     prints: c.prints.map(printToSpec),
     textile: c.textile,
     sparkle: c.sparkle,
+    quilt: c.quilt,
     visible: true
   }
 }
@@ -246,6 +250,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     prints: [],
     textile: undefined,
     sparkle: undefined,
+    quilt: undefined,
     visible: true
   }
 }
@@ -281,7 +286,8 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
       : undefined,
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined,
     textile: l.textile,
-    sparkle: l.sparkle
+    sparkle: l.sparkle,
+    quilt: l.quilt
   }
 }
 

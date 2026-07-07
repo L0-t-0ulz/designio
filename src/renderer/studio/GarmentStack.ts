@@ -20,6 +20,7 @@ import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type DesignArtInput, type Print, type PrintPart } from '../start/design'
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
+import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { gradeParams, type GarmentLayerData } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
@@ -317,27 +318,29 @@ export class GarmentStack {
         m.needsUpdate = true
       }
     }
-    // Sparkle finish (sequins / beading / metallic foil): a faceted normal map +
-    // a metallic recipe over every part so the whole garment glints — keeps the
-    // albedo (prints/textile) but overrides the surface shading. Cleared → matte.
+    // Surface finish over every part material — keeps the albedo (prints/textile)
+    // but overrides the shading. Sparkle (sequins/beading/foil) = a faceted normal
+    // + metallic glints; else quilting (channel/diamond/box) = a pillow-loft normal;
+    // else the plain matte fabric (weave normal already set by applyFabric).
     const sp = l.data.sparkle ? sparkleParams(l.data.sparkle) : null
     const sparkleNormalMap = l.data.sparkle ? makeSparkleNormalMap(l.data.sparkle) : null
+    const ql = !l.data.sparkle && l.data.quilt ? quiltParams(l.data.quilt) : null
+    const quiltNormalMap = ql && l.data.quilt ? makeQuiltNormalMap(l.data.quilt) : null
     for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial]) {
+      // metallic props applyFabric doesn't touch — default matte unless sparkle sets them
+      m.metalness = sp ? sp.metalness : 0
+      m.clearcoat = sp ? sp.clearcoat : 0
+      m.clearcoatRoughness = sp ? sp.clearcoatRoughness : 0
+      m.envMapIntensity = sp ? sp.envMapIntensity : FABRIC_ENV_INTENSITY
       if (sp && sparkleNormalMap) {
         m.normalMap = sparkleNormalMap
         m.normalScale.set(sp.normalStrength, sp.normalStrength)
-        m.metalness = sp.metalness
         m.roughness = sp.roughness
-        m.envMapIntensity = sp.envMapIntensity
         m.anisotropy = sp.anisotropy
-        m.clearcoat = sp.clearcoat
-        m.clearcoatRoughness = sp.clearcoatRoughness
-      } else {
-        // reset the metallic props applyFabric doesn't touch (normal/roughness/anisotropy already restored)
-        m.metalness = 0
-        m.clearcoat = 0
-        m.clearcoatRoughness = 0
-        m.envMapIntensity = FABRIC_ENV_INTENSITY
+      } else if (ql && quiltNormalMap) {
+        m.normalMap = quiltNormalMap
+        m.normalScale.set(ql.normalStrength, ql.normalStrength)
+        m.roughness = ql.roughness
       }
       m.needsUpdate = true
     }
