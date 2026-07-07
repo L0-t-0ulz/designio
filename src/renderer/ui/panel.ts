@@ -41,6 +41,8 @@ export interface GarmentState {
   frillStyle?: FrillStyle
   boning?: boolean
   ribbing?: boolean
+  yoke?: boolean
+  princess?: boolean
   seam?: number
   notches?: boolean
   trim?: boolean
@@ -360,7 +362,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // construction detail toggles (collar · cuff · pleats · darts), shown per garment
-  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem' | 'closure' | 'lined' | 'interfaced' | 'waistband' | 'facing' | 'drawstring' | 'ruffles' | 'boning' | 'ribbing'][] = [
+  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem' | 'closure' | 'lined' | 'interfaced' | 'waistband' | 'facing' | 'drawstring' | 'ruffles' | 'boning' | 'ribbing' | 'yoke' | 'princess'][] = [
     ['Collar', 'collar'],
     ['Cuff', 'cuff'],
     ['Pleats', 'pleats'],
@@ -375,7 +377,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     ['Drawstring', 'drawstring'],
     ['Ruffles', 'ruffles'],
     ['Boning', 'boning'],
-    ['Ribbing', 'ribbing']
+    ['Ribbing', 'ribbing'],
+    ['Yoke', 'yoke'],
+    ['Princess', 'princess']
   ]
   const detailToggles = detailDefs.map(([label, key]) => ({
     key,

@@ -69,6 +69,10 @@ export interface GarmentParams {
   boning?: boolean
   /** Knit ribbing trims — ribbed bands at the hem, cuffs + collar (sweatshirt look). */
   ribbing?: boolean
+  /** Shoulder/back yoke — a horizontal yoke seam + a yoke pattern piece. */
+  yoke?: boolean
+  /** Princess seams — curved vertical shaping seams (front + back) instead of darts. */
+  princess?: boolean
   /** Which hem frill to draw when `ruffles` is on (ruffle / flounce / godet). */
   frillStyle?: FrillStyle
   /** Seam allowance in mm for the flat pattern's cut line (default 10). */

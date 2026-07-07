@@ -44,6 +44,8 @@ export interface PatternResult {
   detail?: string
   /** Front closure to draw on the Front panel(s): a button placket or a zip. */
   closure?: 'button' | 'zip'
+  /** Draw princess shaping seams on the Front/Back panels. */
+  princess?: boolean
 }
 
 const NCOL = 26 // samples across a panel (neckline/hem curve smoothness)
@@ -254,6 +256,12 @@ export function garmentToPanels(
     panels.push(finishPanel(name, 1, { outline: [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }], notches: [] }))
   }
 
+  // Yoke — a shoulder/upper-back panel (the bodice's top edge splits off as a yoke).
+  if (params.yoke && specs.body[0]) {
+    const w = Math.max(200, Math.PI * specs.body[0].radiusTop * MM)
+    panels.push(finishPanel('Yoke', 1, { outline: [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: 90 }, { x: 0, y: 90 }], notches: [] }))
+  }
+
   if (params.notches === false) for (const p of panels) p.notches = [] // notches off
   const closure = params.closure ? (def.closureStyle ?? 'button') : undefined
   const active = [
@@ -272,9 +280,11 @@ export function garmentToPanels(
     params.ruffles && `${params.frillStyle ?? 'ruffle'} frill`,
     params.boning && 'boning + lacing',
     params.ribbing && 'knit ribbing',
+    params.yoke && 'yoke',
+    params.princess && 'princess seams',
     specs.sleeves.length > 0 && (params.sleeveShape ?? 'set-in') !== 'set-in' && `${params.sleeveShape} sleeve`
   ].filter(Boolean) as string[]
-  return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure }
+  return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure, princess: params.princess }
 }
 
 // ---- polygon offset (cut line = sew line + seam allowance) ----------------
@@ -360,12 +370,17 @@ export function panelsToSVG(res: PatternResult): string {
     // Topstitch guide: a dashed line inset from the sew line (skip panels too small to inset).
     const stitch = Math.min(p.wmm, p.hmm) > 4 * TS ? offsetPolygon(p.outline, -TS) : null
     const plk = res.closure && p.name.startsWith('Front') ? placket(p, dx, dy, res.closure) : ''
+    // princess shaping seams: two curved-ish vertical lines on a Front/Back bodice panel
+    const princess = res.princess && (p.name.startsWith('Front') || p.name.startsWith('Back'))
+      ? [0.32, 0.68].map((f) => `<line x1="${(p.wmm * f + dx).toFixed(1)}" y1="${(dy + 6).toFixed(1)}" x2="${(p.wmm * f + dx).toFixed(1)}" y2="${(dy + p.hmm - 6).toFixed(1)}" stroke="#c0392b" stroke-width="1" stroke-dasharray="3 3"/>`).join('')
+      : ''
     parts.push(`
       <g>
         <path d="${path(cut, dx, dy)}" fill="none" stroke="#9aa0aa" stroke-width="1.4" stroke-dasharray="7 4"/>
         <path d="${path(p.outline, dx, dy)}" fill="#f4f2ee" stroke="#222" stroke-width="1.6"/>
         ${stitch ? `<path d="${path(stitch, dx, dy)}" fill="none" stroke="#b8863b" stroke-width="1" stroke-dasharray="4 3"/>` : ''}
         ${plk}
+        ${princess}
         <line x1="${(p.grain[0].x + dx).toFixed(1)}" y1="${(p.grain[0].y + dy).toFixed(1)}"
           x2="${(p.grain[1].x + dx).toFixed(1)}" y2="${(p.grain[1].y + dy).toFixed(1)}"
           stroke="#5b6472" stroke-width="1.2"/>
