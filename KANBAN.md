@@ -61,6 +61,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Textile patterns as fabrics** — a repeating pattern (stripe · plaid · check · gingham · polka · camo) that tiles across the whole garment behind any placed prints, from the Appearance panel or `?textile=` — PR #108
 - [x] **Import a fabric photo → tiling PBR** — drop in a swatch photo; DesignIO heals the seam + derives a normal map + roughness + tint and tiles it across the whole garment (Appearance → "Import fabric photo", or `?swatch=demo`) — PR #110
 - [x] **Prints on sleeves & legs** — each print carries the part it sits on (body / sleeves / legs); the design map is built per-part so logos + text render on the sleeve or leg you place them on, and the textile pattern now tiles onto sleeves/legs too — PR #112
+- [x] **Prints on the 2D pattern + tech pack** — placed logos/text show on the exported flat-pattern panels + the manufacturing pack, mapped to the right piece (front/back/sleeve/leg) and positioned to scale (dashed placement box + label; DXF PRINT layer) — PR #114
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -87,7 +88,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 **Features**
 - [ ] **Drop in a real photoreal skin** — the GLB slot is now the default + renders own materials; add a CC0 photoreal human `.glb` at `assets/mannequin.glb` (current is a clean rigged mannequin)
 - [ ] **More garments** — cargo/tapered variants, more structured jackets (blazer · hoodie · cargo · coat · blouse shipped — PR #70; the hoodie's real hood — PR #71)
-- [ ] **Prints on the 2D flat pattern** — show placed logos/text on the exported panels + manufacturing pack
 - [ ] **Per-panel physics** — front vs back drape stiffness (deferred from per-panel fabric; needs per-constraint region params in the XPBD solver)
 - [ ] **Split sleeves front/back** — per-panel fabric splits the body + legs; sleeves are still a single panel
 - [ ] **Made-to-measure** — type real body measurements (cm/in) to drive the mannequin + garment fit, not just sliders

@@ -384,7 +384,7 @@ function initStudio(
   // Templates → the real per-garment flat pattern; Pattern mode → the sewn top.
   const patternSVG = (): string =>
     mode === 'templates'
-      ? garmentPatternSVG(getGarment(stack.active.data.garmentType), gradeParams(stack.active.data), mannequin.measurements, mannequin.colliders)
+      ? garmentPatternSVG(getGarment(stack.active.data.garmentType), gradeParams(stack.active.data), mannequin.measurements, mannequin.colliders, stack.active.prints)
       : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
 
   // Persist the edit buffer → active layer, rebuild + refresh everywhere. Shared by
@@ -535,7 +535,7 @@ function initStudio(
       case 'svg': {
         const svg =
           mode === 'templates'
-            ? garmentPatternSVG(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+            ? garmentPatternSVG(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
             : patternToSVG(dims)
         await saveFile('pattern.svg', svg, [{ name: 'SVG', extensions: ['svg'] }])
         break
@@ -543,7 +543,7 @@ function initStudio(
       case 'dxf': {
         const dxf =
           mode === 'templates'
-            ? garmentPatternDXF(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+            ? garmentPatternDXF(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
             : patternToDXF(dims)
         await saveFile('pattern.dxf', dxf, [{ name: 'DXF', extensions: ['dxf'] }])
         break
@@ -586,7 +586,7 @@ function initStudio(
           trim: l.data.trim ? getFabric(l.data.trimFabricId ?? l.data.fabricId).name : undefined,
           seam: l.data.seam ?? 10,
           metrics: activeMetrics(l),
-          patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+          patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
         }
       })
     }
