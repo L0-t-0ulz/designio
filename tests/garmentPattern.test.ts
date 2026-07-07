@@ -85,6 +85,20 @@ describe('real per-garment 2D pattern', () => {
     expect(dxf).toContain('CUT')
   })
 
+  it('reflects yokes + princess seams in the pattern', () => {
+    // sheath defaults to princess seams
+    const sheath = garmentToPanels(getGarment('sheath'), paramsFor('sheath'), M, C)
+    expect(sheath.princess).toBe(true)
+    expect(sheath.detail).toContain('princess seams')
+    expect(panelsToSVG(sheath)).toContain('#c0392b') // princess seam lines drawn on the panels
+    // a yoke adds a Yoke piece + note
+    const yoked = garmentToPanels(getGarment('long-sleeve'), { ...paramsFor('long-sleeve'), yoke: true }, M, C)
+    expect(yoked.panels.some((p) => p.name === 'Yoke')).toBe(true)
+    expect(yoked.detail).toContain('yoke')
+    // neither on a plain skirt
+    expect(garmentToPanels(getGarment('skirt'), paramsFor('skirt'), M, C).princess).toBeFalsy()
+  })
+
   it('adds a hem-frill pattern piece per frill style', () => {
     const ruffle = garmentToPanels(getGarment('skirt'), { ...paramsFor('skirt'), ruffles: true, frillStyle: 'ruffle' }, M, C)
     expect(ruffle.panels.some((p) => p.name === 'Ruffle')).toBe(true)

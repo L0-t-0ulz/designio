@@ -37,6 +37,8 @@ export interface DesignConfig {
   frillStyle?: FrillStyle
   boning?: boolean
   ribbing?: boolean
+  yoke?: boolean
+  princess?: boolean
   seam?: number
   notches?: boolean
   trim?: boolean

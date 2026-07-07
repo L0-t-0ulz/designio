@@ -53,6 +53,8 @@ export interface ConstructionCaps {
   ruffles?: boolean
   boning?: boolean
   ribbing?: boolean
+  yoke?: boolean
+  princess?: boolean
 }
 
 export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece

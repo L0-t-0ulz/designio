@@ -15,6 +15,7 @@ import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, corsetParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs, garmentSleeveSpecs } from '../garments/factory'
+import { radiusAt } from '../cloth/Garment'
 import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type Print } from '../start/design'
 import { gradeParams, type GarmentLayerData } from './document'
@@ -32,6 +33,7 @@ const CORD_MAT = new THREE.MeshStandardMaterial({ color: 0xece7db, roughness: 0.
 const AGLET_MAT = new THREE.MeshStandardMaterial({ color: 0xb8b8c0, metalness: 0.8, roughness: 0.35 })
 const CORD_LINE = new THREE.LineBasicMaterial({ color: 0xece7db }) // lacing cord
 const BONING_LINE = new THREE.LineBasicMaterial({ color: 0x8a8a92 }) // boning channel stitch
+const SEAM_LINE = new THREE.LineBasicMaterial({ color: 0x5b5b63 }) // yoke / princess seams
 // A button profile lathed once + shared: a slightly domed disc with a rounded rim + a
 // recessed centre well (where the holes sit) — reads far more like a real button than a flat disc.
 const BUTTON_PROFILE = (() => {
@@ -328,6 +330,44 @@ export class GarmentStack {
     if (l.data.ruffles) this.buildFrill(l)
     if (l.data.boning) this.buildBoning(l)
     if (l.data.ribbing) this.buildRibbing(l)
+    if (l.data.yoke || l.data.princess) this.buildSeams(l)
+  }
+
+  /**
+   * Structural seams drawn on the bodice: a horizontal **yoke** seam across the
+   * upper body, and **princess** shaping seams — curved vertical lines front + back
+   * from the shoulders over the bust to the waist (where a fitted piece gets its
+   * shape from seams, not just darts). Topstitch-style lines that hug the surface.
+   */
+  private buildSeams(l: StackLayer): void {
+    const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
+    if (!spec) return
+    const yTop = spec.shoulderY ?? spec.topY
+    const yHem = spec.bottomY
+    const surfacePoint = (a: number, y: number): THREE.Vector3 => {
+      const t = THREE.MathUtils.clamp((yTop - y) / (yTop - yHem || 1), 0, 1)
+      const r = radiusAt(spec, t) + 0.004
+      return new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r)
+    }
+    const pts: THREE.Vector3[] = []
+    if (l.data.yoke) {
+      const yokeY = yTop - 0.09 // shoulder-blade line
+      const seg = 48
+      for (let i = 0; i < seg; i++) {
+        pts.push(surfacePoint((i / seg) * Math.PI * 2, yokeY), surfacePoint(((i + 1) / seg) * Math.PI * 2, yokeY))
+      }
+    }
+    if (l.data.princess) {
+      const y0 = yTop - 0.03
+      const y1 = Math.max(this.measurements.waistY, yHem + 0.02)
+      const SEG = 12
+      for (const a of [Math.PI / 2 - 0.5, Math.PI / 2 + 0.5, (3 * Math.PI) / 2 - 0.5, (3 * Math.PI) / 2 + 0.5]) {
+        for (let s = 0; s < SEG; s++) {
+          pts.push(surfacePoint(a, y0 - (y0 - y1) * (s / SEG)), surfacePoint(a, y0 - (y0 - y1) * ((s + 1) / SEG)))
+        }
+      }
+    }
+    l.decor.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), SEAM_LINE))
   }
 
   /** A ribbed knit band (sweatshirt trim) from `a`→`b` — a short tube whose cross
