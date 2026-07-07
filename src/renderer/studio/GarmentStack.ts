@@ -20,6 +20,10 @@ import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type Print } fro
 import { gradeParams, type GarmentLayerData } from './document'
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
+// Shared closure materials (buttons · zip tape · metal pull) — geometry is per-mesh.
+const CLOSURE_BUTTON = new THREE.MeshStandardMaterial({ color: 0x2b2b31, metalness: 0.15, roughness: 0.5 })
+const CLOSURE_ZIP = new THREE.MeshStandardMaterial({ color: 0x1d1d21, metalness: 0.5, roughness: 0.45, side: THREE.DoubleSide })
+const CLOSURE_METAL = new THREE.MeshStandardMaterial({ color: 0xc2c2ca, metalness: 0.85, roughness: 0.3 })
 
 const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [
   l.material,
@@ -301,6 +305,68 @@ export class GarmentStack {
       if (spec) {
         band(spec.radiusBottom, spec.bottomY) // hem band
         if (spec.neckline) band(spec.radiusTop * 0.62, (spec.shoulderY ?? spec.topY) - 0.04) // neck band
+      }
+    }
+
+    if (l.data.closure) this.buildClosure(l)
+  }
+
+  /**
+   * A real front closure: a centre-front placket that hugs the garment front (a
+   * curved ribbon following the tube radius), with either a **column of buttons**
+   * or a **zip tape + metal pull** (chosen by the garment's `closureStyle`). Non-sim
+   * decoration, sized/placed from the garment's tube spec so it fits any figure/size.
+   */
+  private buildClosure(l: StackLayer): void {
+    const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
+    if (!spec) return
+    const style = getGarment(l.data.garmentType).closureStyle ?? 'button'
+    const yTop = (spec.shoulderY ?? spec.topY) - (spec.neckline ? 0.1 : 0.04)
+    const yBot = spec.bottomY + 0.015
+    if (yTop - yBot < 0.06) return
+    const rTop = spec.radiusTop
+    const rBot = spec.radiusBottom
+    const frontZ = (y: number): number => {
+      const t = THREE.MathUtils.clamp((y - yBot) / (yTop - yBot), 0, 1)
+      return rBot + (rTop - rBot) * t + 0.004 // sit just proud of the front surface
+    }
+    // Curved placket ribbon down the centre front (hugs the front bulge).
+    const hw = (style === 'zip' ? 0.022 : 0.034) / 2
+    const segs = 12
+    const pos: number[] = []
+    const idx: number[] = []
+    for (let i = 0; i <= segs; i++) {
+      const y = yBot + ((yTop - yBot) * i) / segs
+      const z = frontZ(y)
+      pos.push(-hw, y, z, hw, y, z)
+      if (i < segs) {
+        const a = i * 2
+        idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
+      }
+    }
+    const bandGeo = new THREE.BufferGeometry()
+    bandGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    bandGeo.setIndex(idx)
+    bandGeo.computeVertexNormals()
+    const band = new THREE.Mesh(bandGeo, style === 'zip' ? CLOSURE_ZIP : l.data.trim ? l.trimMaterial : l.material)
+    band.castShadow = true
+    band.receiveShadow = true
+    l.decor.add(band)
+    if (style === 'zip') {
+      const py = yTop - 0.035
+      const pull = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.022, 0.005), CLOSURE_METAL)
+      pull.position.set(0, py, frontZ(py) + 0.006)
+      pull.castShadow = true
+      l.decor.add(pull)
+    } else {
+      const n = Math.max(3, Math.round((yTop - yBot) / 0.085))
+      for (let i = 0; i < n; i++) {
+        const y = yBot + ((yTop - yBot) * (i + 0.5)) / n
+        const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.0085, 0.004, 16), CLOSURE_BUTTON)
+        btn.rotation.x = Math.PI / 2 // round face toward the front (+z)
+        btn.position.set(0, y, frontZ(y) + 0.006)
+        btn.castShadow = true
+        l.decor.add(btn)
       }
     }
   }

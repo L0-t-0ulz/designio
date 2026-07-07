@@ -96,6 +96,7 @@ function initStudio(
     dart: l0.dart,
     pocket: l0.pocket,
     hem: l0.hem,
+    closure: l0.closure,
     seam: l0.seam,
     notches: l0.notches,
     trim: l0.trim
@@ -184,6 +185,7 @@ function initStudio(
     garment.dart = l.data.dart
     garment.pocket = l.data.pocket
     garment.hem = l.data.hem
+    garment.closure = l.data.closure
     garment.seam = l.data.seam
     garment.notches = l.data.notches
     garment.trim = l.data.trim
@@ -367,6 +369,7 @@ function initStudio(
     l.data.dart = garment.dart
     l.data.pocket = garment.pocket
     l.data.hem = garment.hem
+    l.data.closure = garment.closure
     l.data.seam = garment.seam
     l.data.notches = garment.notches
     l.data.trim = garment.trim
@@ -905,6 +908,7 @@ if (skipStart) {
   if (entryParams.get('dart')) cfg.dart = true
   if (entryParams.get('pocket')) cfg.pocket = true
   if (entryParams.get('hem')) cfg.hem = true
+  if (entryParams.get('closure')) cfg.closure = true
   if (entryParams.get('trim')) cfg.trim = true
   const tc = entryParams.get('trimColor')
   if (tc) cfg.trimColor = parseInt(tc, 16)
