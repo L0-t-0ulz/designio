@@ -130,7 +130,69 @@ export interface GarmentLayerData {
   sparkle?: SparkleKind
   /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
   quilt?: QuiltPattern
+  /** Saved colour/fabric variants of this design (compared in the swatch grid). */
+  colorways?: Colorway[]
   visible: boolean
+}
+
+/** A named colour/fabric variant of one design — the appearance-only fields
+ *  (colour · fabric · per-part fabric · trim · textile/sparkle/quilt finishes).
+ *  Applying a colorway never changes the garment's shape/construction. */
+export interface Colorway {
+  id: string
+  name: string
+  color: number
+  fabricId: string
+  trim?: boolean
+  trimColor?: number
+  trimFabricId?: string
+  partFabrics?: PartFabrics
+  textile?: TextilePattern
+  sparkle?: SparkleKind
+  quilt?: QuiltPattern
+}
+
+let cwSeq = 0
+export const newColorwayId = (): string => `cw${++cwSeq}_${Math.random().toString(36).slice(2, 6)}`
+
+const clonePartFabrics = (pf?: PartFabrics): PartFabrics | undefined =>
+  pf
+    ? {
+        sleeves: pf.sleeves && { ...pf.sleeves },
+        legs: pf.legs && { ...pf.legs },
+        back: pf.back && { ...pf.back },
+        legBack: pf.legBack && { ...pf.legBack }
+      }
+    : undefined
+
+/** Snapshot a layer's current appearance as a colorway (shape fields excluded). */
+export function captureColorway(l: GarmentLayerData, name: string): Colorway {
+  return {
+    id: newColorwayId(),
+    name,
+    color: l.color,
+    fabricId: l.fabricId,
+    trim: l.trim,
+    trimColor: l.trimColor,
+    trimFabricId: l.trimFabricId,
+    partFabrics: clonePartFabrics(l.partFabrics),
+    textile: l.textile,
+    sparkle: l.sparkle,
+    quilt: l.quilt
+  }
+}
+
+/** Apply a colorway to a layer in place — appearance only; construction is untouched. */
+export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
+  l.color = cw.color
+  l.fabricId = cw.fabricId
+  l.trim = cw.trim
+  l.trimColor = cw.trimColor
+  l.trimFabricId = cw.trimFabricId
+  l.partFabrics = clonePartFabrics(cw.partFabrics)
+  l.textile = cw.textile
+  l.sparkle = cw.sparkle
+  l.quilt = cw.quilt
 }
 
 export interface BodyData {
@@ -276,18 +338,12 @@ export function docFromConfig(c: DesignConfig, scene: SceneData = defaultScene()
 export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
   return {
     ...l,
-    partFabrics: l.partFabrics
-      ? {
-          sleeves: l.partFabrics.sleeves && { ...l.partFabrics.sleeves },
-          legs: l.partFabrics.legs && { ...l.partFabrics.legs },
-          back: l.partFabrics.back && { ...l.partFabrics.back },
-          legBack: l.partFabrics.legBack && { ...l.partFabrics.legBack }
-        }
-      : undefined,
+    partFabrics: clonePartFabrics(l.partFabrics),
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined,
     textile: l.textile,
     sparkle: l.sparkle,
-    quilt: l.quilt
+    quilt: l.quilt,
+    colorways: l.colorways ? l.colorways.map((cw) => ({ ...cw, partFabrics: clonePartFabrics(cw.partFabrics) })) : undefined
   }
 }
 

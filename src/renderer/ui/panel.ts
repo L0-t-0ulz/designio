@@ -61,6 +61,15 @@ export interface PrintItem {
   kind: 'image' | 'text'
   label: string
 }
+/** A saved colorway as shown in the swatch grid. */
+export interface ColorwayItem {
+  id: string
+  name: string
+  /** Swatch base colour (0xRRGGBB). */
+  color: number
+  /** A short finish tag (textile/sparkle/quilt/trim), if any. */
+  tag?: string
+}
 export interface PrintPatch {
   x?: number
   y?: number
@@ -119,6 +128,13 @@ export interface PanelOptions {
   sparkle?: { get: () => SparkleKind | undefined; set: (k: SparkleKind | undefined) => void }
   /** A quilting finish — channel / diamond / box loft (optional). */
   quilt?: { get: () => QuiltPattern | undefined; set: (p: QuiltPattern | undefined) => void }
+  /** Saved colour/fabric variants of the design, compared in a swatch grid (optional). */
+  colorways?: {
+    list: () => ColorwayItem[]
+    add: () => void
+    apply: (id: string) => void
+    remove: (id: string) => void
+  }
   /** Live measurements of the active garment (for the Measurements readout). */
   getMetrics?: () => GarmentMetrics
   bodySize: BodyParams
@@ -559,6 +575,46 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return parts
   }
 
+  // Colorways — save the current look, then compare saved variants in a swatch grid.
+  function colorwaysControls(cw: NonNullable<PanelOptions['colorways']>): HTMLElement {
+    const wrap = el('div', 'dio-graphic')
+    const grid = el('div', 'dio-cw-grid')
+    const render = (): void => {
+      grid.replaceChildren()
+      const items = cw.list()
+      if (!items.length) grid.append(el('div', 'dio-lib-empty', 'No colorways yet — save the current look'))
+      for (const it of items) {
+        const cell = el('div', 'dio-cw')
+        const chip = el('button', 'dio-cw-chip')
+        chip.style.background = '#' + (it.color >>> 0).toString(16).padStart(6, '0').slice(-6)
+        chip.title = `Apply "${it.name}"${it.tag ? ` · ${it.tag}` : ''}`
+        chip.setAttribute('type', 'button')
+        chip.addEventListener('click', () => cw.apply(it.id))
+        const rm = el('button', 'dio-cw-rm', '×')
+        rm.title = 'Delete colorway'
+        rm.addEventListener('click', (e) => {
+          e.stopPropagation()
+          cw.remove(it.id)
+          render()
+        })
+        chip.append(rm)
+        const name = el('div', 'dio-cw-name', it.name + (it.tag ? ` · ${it.tag}` : ''))
+        cell.append(chip, name)
+        grid.append(cell)
+      }
+    }
+    const addRow = el('div', 'dio-actions')
+    addRow.append(
+      button('＋ Save current look', () => {
+        cw.add()
+        render()
+      })
+    )
+    render()
+    wrap.append(el('div', 'dio-field-label', 'Colorways'), grid, addRow)
+    return wrap
+  }
+
   // Multiple placed prints (logos + text) — add, select, place (X/Y/size/rotation), remove.
   function printsControls(p: PrintControls): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -689,6 +745,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.sparkle) look.body.append(sparkleControls(opts.sparkle))
   if (opts.quilt) look.body.append(quiltControls(opts.quilt))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
+  if (opts.colorways) look.body.append(colorwaysControls(opts.colorways))
   if (opts.prints) look.body.append(printsControls(opts.prints))
 
   // ---- measurements (live production spec) ----
