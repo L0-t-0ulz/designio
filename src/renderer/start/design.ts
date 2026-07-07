@@ -63,6 +63,11 @@ export interface DesignConfig {
 /** Which garment piece a print sits on — its `x/y` are across that piece's panel. */
 export type PrintPart = 'body' | 'sleeves' | 'legs'
 
+/** How a placed motif is finished: a flat graphic, raised **embroidery** (stitched
+ * thread relief), or an **appliqué** patch (a raised panel with a stitched border).
+ * The raised styles paint a bump map so they catch the light. */
+export type PrintStyle = 'flat' | 'embroidery' | 'applique'
+
 /** A logo/graphic or text placed on the garment. `x/y` are 0…1 across the front. */
 export interface Print {
   id: string
@@ -80,6 +85,8 @@ export interface Print {
   rotation: number
   /** The garment part this print is placed on (body / sleeves / legs). */
   part: PrintPart
+  /** Finish: flat graphic · raised embroidery · appliqué patch. */
+  style: PrintStyle
 }
 
 /** The serialisable part of a print (no runtime image) for `.dio` projects. */
@@ -89,17 +96,19 @@ let pid = 0
 export const newPrintId = (): string => `pr${++pid}_${Math.random().toString(36).slice(2, 6)}`
 // Default placement: centred on the front-facing chest (x≈0.25 is the +z face).
 export function newImagePrint(image: HTMLImageElement, name: string): Print {
-  return { id: newPrintId(), kind: 'image', image, imageName: name, text: '', color: 0xffffff, x: 0.25, y: 0.32, scale: 0.4, rotation: 0, part: 'body' }
+  return { id: newPrintId(), kind: 'image', image, imageName: name, text: '', color: 0xffffff, x: 0.25, y: 0.32, scale: 0.4, rotation: 0, part: 'body', style: 'flat' }
 }
 export function newTextPrint(text = ''): Print {
-  return { id: newPrintId(), kind: 'text', image: null, text, color: 0x1a1a22, x: 0.25, y: 0.5, scale: 0.5, rotation: 0, part: 'body' }
+  return { id: newPrintId(), kind: 'text', image: null, text, color: 0x1a1a22, x: 0.25, y: 0.5, scale: 0.5, rotation: 0, part: 'body', style: 'flat' }
 }
+/** Whether a motif is raised (embroidery / appliqué) → contributes to the bump relief. */
+export const printIsRaised = (p: Print): boolean => p.style === 'embroidery' || p.style === 'applique'
 export const printHasContent = (p: Print): boolean => (p.kind === 'image' ? p.image != null : p.text.trim().length > 0)
 export function printToSpec(p: Print): PrintSpec {
   const { image: _drop, ...spec } = p
   return spec
 }
-export const printFromSpec = (s: PrintSpec): Print => ({ ...s, image: null, part: s.part ?? 'body' })
+export const printFromSpec = (s: PrintSpec): Print => ({ ...s, image: null, part: s.part ?? 'body', style: s.style ?? 'flat' })
 
 export function defaultConfig(): DesignConfig {
   return {
@@ -124,6 +133,9 @@ export function defaultConfig(): DesignConfig {
 
 export interface DesignArt {
   texture: THREE.CanvasTexture
+  /** Height relief for raised motifs (embroidery / appliqué) — `null` when none are
+   * placed, so a flat design pays no bump cost. Updated by `redraw`. */
+  bump: THREE.CanvasTexture | null
   /** Repaint with the *current* colour + prints (pass fresh input so a recolour isn't stale). */
   redraw: (input: DesignArtInput) => void
 }
@@ -143,6 +155,89 @@ export function hasArt(c: { prints: Print[]; textile?: TextilePattern }): boolea
   return !!c.textile || c.prints.some(printHasContent)
 }
 
+/** Whether any placed motif is raised (embroidery / appliqué) → needs the bump map. */
+export function anyRaised(prints: Print[]): boolean {
+  return prints.some((p) => printHasContent(p) && printIsRaised(p))
+}
+
+/** The appliqué patch footprint (mm) for a motif, shared by the albedo + bump so
+ *  the coloured patch and its relief line up. */
+function appliqueBox(p: Print, size: number): { w: number; h: number; r: number } {
+  const s = p.scale * size
+  const w = p.kind === 'text' ? Math.max(s * 0.9, s * Math.min(p.text.trim().length, 10) * 0.26) : s
+  const h = p.kind === 'text' ? s * 0.66 : p.image ? s * (p.image.height / p.image.width) : s
+  return { w, h, r: Math.min(w, h) * 0.16 }
+}
+
+/** A darker/lighter tone of a colour for the appliqué border + motif-on-patch. */
+function shade(color: number, dl: number): string {
+  const c = new THREE.Color(color)
+  const hsl = { h: 0, s: 0, l: 0 }
+  c.getHSL(hsl)
+  return '#' + new THREE.Color().setHSL(hsl.h, hsl.s, Math.max(0, Math.min(1, hsl.l + dl))).getHexString()
+}
+
+/** Draw the coloured motif onto the albedo — a flat/embroidered graphic in its own
+ *  colour, or an appliqué patch (filled panel + border) with the motif proud on top. */
+function paintAlbedoMotif(ctx: CanvasRenderingContext2D, p: Print, size: number): void {
+  if (p.style === 'applique') {
+    const { w, h, r } = appliqueBox(p, size)
+    ctx.fillStyle = hex(p.color) // the patch fabric
+    ctx.beginPath()
+    ctx.roundRect(-w / 2, -h / 2, w, h, r)
+    ctx.fill()
+    ctx.strokeStyle = shade(p.color, -0.22) // stitched-down edge
+    ctx.lineWidth = Math.max(2, p.scale * size * 0.02)
+    ctx.stroke()
+    drawMotifShape(ctx, p, size, shade(p.color, p.kind === 'text' ? 0.4 : 0)) // motif on the patch
+    return
+  }
+  drawMotifShape(ctx, p, size, hex(p.color)) // flat / embroidery graphic
+}
+
+/** Draw a motif's silhouette (text glyphs / image) in one bump tone, centred at the
+ *  current transform origin (used to build the height relief). */
+function drawMotifShape(b: CanvasRenderingContext2D, p: Print, size: number, fill: string): void {
+  b.fillStyle = fill
+  if (p.kind === 'text') {
+    b.font = `800 ${Math.round(size * 0.12 * p.scale)}px system-ui, sans-serif`
+    b.textAlign = 'center'
+    b.textBaseline = 'middle'
+    b.fillText(p.text.slice(0, 24), 0, 0)
+  } else if (p.image) {
+    const w = p.scale * size
+    const h = w * (p.image.height / p.image.width)
+    b.drawImage(p.image, -w / 2, -h / 2, w, h) // image luminance → relief
+  }
+}
+
+/** Paint one raised motif into the bump height field (already translated/rotated to
+ *  its place). Embroidery = the motif proud of the cloth; appliqué = a raised patch
+ *  plateau with a satin-stitch tackdown border, the motif proud on top. */
+function paintRaisedBump(b: CanvasRenderingContext2D, p: Print, size: number): void {
+  const s = p.scale * size
+  if (p.style === 'applique') {
+    const { w, h, r } = appliqueBox(p, size)
+    // raised patch plateau
+    b.fillStyle = '#9a9a9a'
+    b.beginPath()
+    b.roundRect(-w / 2, -h / 2, w, h, r)
+    b.fill()
+    // satin-stitch tackdown just inside the edge (the highest ridge)
+    b.strokeStyle = '#f0f0f0'
+    b.lineWidth = Math.max(2, s * 0.035)
+    b.setLineDash([Math.max(3, s * 0.05), Math.max(2, s * 0.035)])
+    b.beginPath()
+    b.roundRect(-w / 2 + s * 0.06, -h / 2 + s * 0.06, w - s * 0.12, h - s * 0.12, r * 0.7)
+    b.stroke()
+    b.setLineDash([])
+    drawMotifShape(b, p, size, '#ffffff') // the motif sits proud on the patch
+  } else {
+    // embroidery: raised threads (the motif proud of the cloth, edges catch the light)
+    drawMotifShape(b, p, size, '#e6e6e6')
+  }
+}
+
 /**
  * Paint the design onto a canvas → a CanvasTexture used as the garment's albedo
  * `map`. Base colour fills it; each **print** (logo or text) is drawn at its own
@@ -155,36 +250,54 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
   canvas.width = size
   canvas.height = size
   const ctx = canvas.getContext('2d')!
-  let texture: THREE.CanvasTexture | null = null
+  // A grayscale height field (black = flat) for raised motifs — allocated lazily.
+  let bumpCanvas: HTMLCanvasElement | null = null
+  let bctx: CanvasRenderingContext2D | null = null
+  const art: DesignArt = { texture: null as unknown as THREE.CanvasTexture, bump: null, redraw: () => {} }
 
-  const redraw = (inp: DesignArtInput): void => {
+  const placeMotif = (c: CanvasRenderingContext2D, p: Print, draw: () => void): void => {
+    c.save()
+    c.translate(p.x * size, p.y * size)
+    c.rotate((p.rotation * Math.PI) / 180)
+    c.scale(-1, 1) // the garment face samples the canvas mirrored — un-flip (front + back alike)
+    draw()
+    c.restore()
+  }
+
+  art.redraw = (inp: DesignArtInput): void => {
     ctx.fillStyle = hex(inp.color)
     ctx.fillRect(0, 0, size, size)
     if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color) // tiling pattern behind the prints
     for (const p of inp.prints) {
       if (!printHasContent(p)) continue
-      ctx.save()
-      ctx.translate(p.x * size, p.y * size)
-      ctx.rotate((p.rotation * Math.PI) / 180)
-      ctx.scale(-1, 1) // the garment face samples the canvas mirrored — un-flip (front + back alike)
-      if (p.kind === 'image' && p.image) {
-        const w = p.scale * size
-        const h = w * (p.image.height / p.image.width)
-        ctx.drawImage(p.image, -w / 2, -h / 2, w, h)
-      } else if (p.kind === 'text') {
-        ctx.fillStyle = hex(p.color)
-        ctx.font = `700 ${Math.round(size * 0.12 * p.scale)}px system-ui, sans-serif`
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText(p.text.slice(0, 24), 0, 0)
-      }
-      ctx.restore()
+      placeMotif(ctx, p, () => paintAlbedoMotif(ctx, p, size))
     }
-    if (texture) texture.needsUpdate = true
+    // Raised relief: paint embroidery/appliqué motifs into the bump height field.
+    // The texture, once created, is kept (blanked when empty) so it disposes cleanly;
+    // the material binds it only when `anyRaised` is true (see GarmentStack).
+    const raised = inp.prints.filter((p) => printHasContent(p) && printIsRaised(p))
+    if (raised.length || art.bump) {
+      if (!bumpCanvas) {
+        bumpCanvas = document.createElement('canvas')
+        bumpCanvas.width = bumpCanvas.height = size
+        bctx = bumpCanvas.getContext('2d')
+      }
+      const b = bctx!
+      b.fillStyle = '#000'
+      b.fillRect(0, 0, size, size)
+      for (const p of raised) placeMotif(b, p, () => paintRaisedBump(b, p, size))
+      if (!art.bump) {
+        art.bump = new THREE.CanvasTexture(bumpCanvas)
+        art.bump.colorSpace = THREE.NoColorSpace
+        art.bump.anisotropy = 4
+      }
+      art.bump.needsUpdate = true
+    }
+    if (art.texture) art.texture.needsUpdate = true
   }
-  redraw(input) // paint the canvas *before* creating the texture, so its first GPU upload isn't blank
-  texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 4
-  return { texture, redraw }
+  art.redraw(input) // paint the canvas *before* creating the texture, so its first GPU upload isn't blank
+  art.texture = new THREE.CanvasTexture(canvas)
+  art.texture.colorSpace = THREE.SRGBColorSpace
+  art.texture.anisotropy = 4
+  return art
 }

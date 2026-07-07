@@ -763,7 +763,7 @@ function initStudio(
       list: () => stack.active.prints.map((p) => ({ id: p.id, kind: p.kind, label: p.kind === 'image' ? (p.imageName ?? 'logo') : p.text || 'text' })),
       get: (id) => {
         const p = stack.active.prints.find((q) => q.id === id)
-        return p ? { kind: p.kind, x: p.x, y: p.y, scale: p.scale, rotation: p.rotation, text: p.text, color: p.color, part: p.part } : null
+        return p ? { kind: p.kind, x: p.x, y: p.y, scale: p.scale, rotation: p.rotation, text: p.text, color: p.color, part: p.part, style: p.style } : null
       },
       addImage: (image, name) => {
         const p = newImagePrint(image, name)
@@ -969,6 +969,12 @@ if (skipStart) {
     cfg.prints.push({ ...newTextPrint('BODY'), x: 0.25, y: 0.32, scale: 0.45, color: 0xffffff, part: 'body' })
     cfg.prints.push({ ...newTextPrint('ARM'), x: 0.25, y: 0.5, scale: 0.6, color: 0xffffff, part: 'sleeves' })
     cfg.prints.push({ ...newTextPrint('LEG'), x: 0.25, y: 0.4, scale: 0.6, color: 0xffffff, part: 'legs' })
+  }
+  if (entryParams.get('prints') === 'embroidery') {
+    cfg.prints.push({ ...newTextPrint('LUXE'), x: 0.25, y: 0.34, scale: 0.55, color: 0xf0c674, style: 'embroidery' })
+  }
+  if (entryParams.get('prints') === 'applique') {
+    cfg.prints.push({ ...newTextPrint('STAR'), x: 0.25, y: 0.36, scale: 0.5, color: 0xd94f6a, style: 'applique' })
   }
   if (entryParams.get('collar')) cfg.collar = true
   const cs = entryParams.get('collarStyle')

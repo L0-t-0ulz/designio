@@ -13,7 +13,7 @@ import { SIZES, type SizeLabel } from '../studio/document'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
-import type { PrintPart } from '../start/design'
+import type { PrintPart, PrintStyle } from '../start/design'
 
 export interface GarmentState {
   type: GarmentType
@@ -67,6 +67,7 @@ export interface PrintPatch {
   text?: string
   color?: number
   part?: PrintPart
+  style?: PrintStyle
 }
 /** Manage the garment's placed prints (multiple logos + text) from the studio. */
 export interface PrintControls {
@@ -544,6 +545,18 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
           row.append(b)
         }
         editor.append(el('div', 'dio-field-label', 'On part'), row)
+      }
+      // Finish: flat graphic · raised embroidery · appliqué patch.
+      {
+        const cur = p.get(id)?.style ?? 'flat'
+        const row = el('div', 'dio-seg dio-seg-wrap')
+        for (const [label, st] of [['Flat', 'flat'], ['Embroidery', 'embroidery'], ['Appliqué', 'applique']] as [string, PrintStyle][]) {
+          const b = el('button', 'dio-seg-btn' + (cur === st ? ' on' : ''), label)
+          b.setAttribute('type', 'button')
+          b.addEventListener('click', () => { p.update(id, { style: st }); renderEditor() })
+          row.append(b)
+        }
+        editor.append(el('div', 'dio-field-label', 'Finish'), row)
       }
       editor.append(
         slider({ label: 'Across (X)', min: 0, max: 1, step: 0.01, get: () => p.get(id)?.x ?? 0.5, set: (v) => p.update(id, { x: v }) }).row,

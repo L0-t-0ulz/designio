@@ -100,9 +100,10 @@ Renderer modules:
   piece" builder — garment · colour/print · **neckline/sleeve/size** · quick-looks · surprise/spin ·
   fit; aurora tints to the colour), `PreviewStudio` (live 3D preview; grades size, `setAutoRotate`),
   `design` (`DesignConfig` + **`Print[]`** — multiple placed logos/text with x/y/scale/rotation + a
-  **`part`** (body/sleeves/legs) each sits on, + an optional **`textile`** pattern tiled behind them;
-  `buildDesignArt` layers them onto the albedo — the stack builds one design map **per part**), `presets`
-  (looks).
+  **`part`** (body/sleeves/legs) each sits on + a **`style`** (flat · raised **embroidery** · **appliqué**
+  patch), + an optional **`textile`** pattern tiled behind them; `buildDesignArt` layers them onto the
+  albedo + paints a **bump relief** for raised motifs — the stack builds one design map **per part**),
+  `presets` (looks).
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
   (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar` (File: New · Open/Save
   `.dio` project · Exports; Edit: undo/redo · cut/copy/paste/duplicate/delete garment), `statusBar`,
@@ -136,7 +137,8 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
 the garment, behind the prints) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
 procedural swatch) · `?prints=demo` (two body prints) · `?prints=parts` (a print on the body + sleeves +
-legs — each print sits on its own piece) ·
+legs — each print sits on its own piece) · `?prints=embroidery` / `?prints=applique` (a raised
+embroidered / appliqué motif) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
