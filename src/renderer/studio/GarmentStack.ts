@@ -353,7 +353,7 @@ export class GarmentStack {
   /** Two flat fold-back lapels forming a V/notch down the chest (jacket front). */
   private buildLapels(l: StackLayer, neckY: number, mat: THREE.Material): void {
     const m = this.measurements
-    const fz = m.chestR + 0.006
+    const fz = m.chestR + 0.014 // sit proud of the draped jacket front
     for (const s of [-1, 1]) {
       const p = [
         s * 0.02, neckY + 0.02, fz, // top inner (near centre-front neck)
@@ -389,7 +389,7 @@ export class GarmentStack {
     const rBot = spec.radiusBottom
     const frontZ = (y: number): number => {
       const t = THREE.MathUtils.clamp((y - yBot) / (yTop - yBot), 0, 1)
-      return rBot + (rTop - rBot) * t + 0.004 // sit just proud of the front surface
+      return rBot + (rTop - rBot) * t + 0.011 // sit proud of the draped front surface
     }
     // Curved placket ribbon down the centre front (hugs the front bulge).
     const hw = (style === 'zip' ? 0.022 : 0.034) / 2

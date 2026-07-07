@@ -71,15 +71,19 @@ function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false): AxisTub
   ]
   return arms.map(([upper, fore]) => {
     const a = upper.a.clone() // shoulder
-    const b = (long ? fore.b : upper.b).clone() // wrist or elbow
+    // wrist (long) or a true short sleeve at mid-bicep (was the full upper arm to the
+    // elbow, which read as elbow-length + flared off the shoulder).
+    const b = long ? fore.b.clone() : upper.a.clone().lerp(upper.b, 0.62)
     const len = a.distanceTo(b)
     return {
       rings: Math.max(6, Math.min(28, Math.round(len / 0.03))),
       radial: 26,
       a,
       b,
-      radiusStart: 0.085,
-      radiusEnd: (long ? fore.radius : upper.radius) + (cuff ? 0.004 : 0.03) // a cuff draws the hem in
+      // Hug the shoulder/arm more (was a wide, barely-tapering tube that flared off the
+      // deltoid); still clears the deltoid at the top, tapers toward the arm at the hem.
+      radiusStart: 0.072,
+      radiusEnd: (long ? fore.radius : upper.radius) + (cuff ? 0.004 : 0.02) // a cuff draws the hem in
     }
   })
 }
