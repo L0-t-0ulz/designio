@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
-import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape } from '../garment/templates'
-import { COLLAR_STYLES, SLEEVE_SHAPES } from '../garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle } from '../garment/templates'
+import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
@@ -28,6 +28,7 @@ export interface GarmentState {
   pleats?: boolean
   dart?: boolean
   pocket?: boolean
+  pocketStyle?: PocketStyle
   hem?: boolean
   closure?: boolean
   seam?: number
@@ -201,6 +202,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sleeveShapeBlock = el('div')
   sleeveShapeBlock.append(el('div', 'dio-field-label', 'Sleeve shape'), sleeveShapeRow)
 
+  // pocket picker (the pocket library; shown when the Pocket detail is on)
+  const pocketLabels: Record<PocketStyle, string> = { patch: 'Patch', welt: 'Welt', jetted: 'Jetted', flap: 'Flap', bellows: 'Bellows' }
+  const pocketRow = el('div', 'dio-actions')
+  pocketRow.style.flexWrap = 'wrap'
+  const pocketBtns = new Map<PocketStyle, HTMLButtonElement>()
+  for (const ps of POCKET_STYLES) {
+    const b = button(pocketLabels[ps], () => { garment.pocketStyle = ps; syncGarment(); opts.onGarmentEdit() }, (garment.pocketStyle ?? 'patch') === ps)
+    pocketBtns.set(ps, b)
+    pocketRow.append(b)
+  }
+  const pocketBlock = el('div')
+  pocketBlock.append(el('div', 'dio-field-label', 'Pocket style'), pocketRow)
+
   // collar / lapel picker (shown when the Collar detail is on)
   const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel' }
   const collarRow = el('div', 'dio-actions')
@@ -288,6 +302,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     // the sleeve library shows only when the garment has sleeves selected
     sleeveShapeBlock.classList.toggle('dio-hidden', !def.supports.sleeve || garment.sleeve === 'none')
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
+    // the pocket library shows only when the Pocket detail is supported + on
+    pocketBlock.classList.toggle('dio-hidden', !def.supports.pocket || !garment.pocket)
+    for (const [ps, node] of pocketBtns) node.classList.toggle('primary', (garment.pocketStyle ?? 'patch') === ps)
     syncNeckSleeve()
     lenS.refresh()
     easeS.refresh()
@@ -315,7 +332,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; syncGarment(); opts.onGarmentEdit() } })
   }))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock)
+  construction.body.append(sizeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock, pocketBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

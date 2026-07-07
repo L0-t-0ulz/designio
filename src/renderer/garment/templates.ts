@@ -9,6 +9,9 @@ export const SLEEVE_SHAPES: SleeveShape[] = ['set-in', 'raglan', 'dolman', 'bish
 /** Collar / lapel styles (active when the `collar` detail is on). */
 export type CollarStyle = 'band' | 'shirt' | 'mandarin' | 'peterpan' | 'notch'
 export const COLLAR_STYLES: CollarStyle[] = ['band', 'shirt', 'mandarin', 'peterpan', 'notch']
+/** Pocket styles (the pocket library; active when the `pocket` detail is on). */
+export type PocketStyle = 'patch' | 'welt' | 'jetted' | 'flap' | 'bellows'
+export const POCKET_STYLES: PocketStyle[] = ['patch', 'welt', 'jetted', 'flap', 'bellows']
 
 export interface GarmentParams {
   /** Overall length, 0 (short) … 1 (long). */
@@ -36,6 +39,8 @@ export interface GarmentParams {
   dart?: boolean
   /** Patch pocket(s) on the front (a pocket panel on the pattern + a 3D patch). */
   pocket?: boolean
+  /** Pocket shape when `pocket` is on (patch / welt / jetted / flap / bellows). */
+  pocketStyle?: PocketStyle
   /** Rolled hem — a shorter, finished hem (turn-up). */
   hem?: boolean
   /** Front closure — a centre-front placket with buttons (or a zip). */

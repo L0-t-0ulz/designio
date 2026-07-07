@@ -85,6 +85,23 @@ describe('real per-garment 2D pattern', () => {
     expect(dxf).toContain('CUT')
   })
 
+  it('adds pocket pattern pieces per pocket style', () => {
+    // cargo defaults to a bellows pocket → a cargo pocket + a flap piece
+    const cargo = garmentToPanels(getGarment('cargo'), paramsFor('cargo'), M, C)
+    const names = cargo.panels.map((p) => p.name)
+    expect(names).toContain('Cargo pocket')
+    expect(names).toContain('Pocket flap')
+    expect(cargo.detail).toContain('bellows pocket')
+    // style drives the piece(s)
+    expect(panels('long-sleeve', { pocket: true, pocketStyle: 'welt' }).some((p) => p.name === 'Welt')).toBe(true)
+    expect(panels('long-sleeve', { pocket: true, pocketStyle: 'jetted' }).some((p) => p.name === 'Jetted welt')).toBe(true)
+    const flap = panels('long-sleeve', { pocket: true, pocketStyle: 'flap' }).map((p) => p.name)
+    expect(flap).toContain('Pocket')
+    expect(flap).toContain('Pocket flap')
+    // no pocket → no pocket pieces
+    expect(panels('long-sleeve', { pocket: false }).some((p) => /Pocket|Welt/.test(p.name))).toBe(false)
+  })
+
   it('adds a collar/lapel pattern piece per collar style', () => {
     // blazer defaults to a notch lapel → a "Lapel" piece + a styled note
     const blazer = garmentToPanels(getGarment('blazer'), paramsFor('blazer'), M, C)

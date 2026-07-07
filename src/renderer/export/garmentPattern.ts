@@ -185,19 +185,28 @@ export function garmentToPanels(
   }
 
   if (params.pocket) {
+    const style = params.pocketStyle ?? 'patch'
     const places = pocketPlacements(def, m)
+    const cut = places.length || 1
     const w = (places[0]?.w ?? 0.11) * MM
     const h = (places[0]?.h ?? 0.12) * MM
-    // a classic patch pocket: rectangle with a pointed bottom + a top fold notch
-    const outline: Pt[] = [
-      { x: 0, y: 0 },
-      { x: w, y: 0 },
-      { x: w, y: h * 0.72 },
-      { x: w / 2, y: h },
-      { x: 0, y: h * 0.72 }
-    ]
-    const notches: Pt[] = [{ x: 0, y: h * 0.14 }, { x: w, y: h * 0.14 }] // top-fold line
-    panels.push(finishPanel('Pocket', places.length || 1, { outline, notches }))
+    if (style === 'welt' || style === 'jetted') {
+      // a welt/jetted pocket = a narrow welt strip (bagging is internal)
+      const wh = h * (style === 'jetted' ? 0.22 : 0.32)
+      const outline: Pt[] = [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: wh }, { x: 0, y: wh }]
+      panels.push(finishPanel(style === 'jetted' ? 'Jetted welt' : 'Welt', cut, { outline, notches: [] }))
+    } else {
+      // patch / flap / bellows: a patch (bellows adds side-gusset allowance) with a pointed hem
+      const gw = style === 'bellows' ? w * 1.18 : w
+      const outline: Pt[] = [{ x: 0, y: 0 }, { x: gw, y: 0 }, { x: gw, y: h * 0.72 }, { x: gw / 2, y: h }, { x: 0, y: h * 0.72 }]
+      const notches: Pt[] = [{ x: 0, y: h * 0.14 }, { x: gw, y: h * 0.14 }] // top-fold line
+      panels.push(finishPanel(style === 'bellows' ? 'Cargo pocket' : 'Pocket', cut, { outline, notches }))
+      if (style === 'flap' || style === 'bellows') {
+        const fh = h * 0.42
+        const flap: Pt[] = [{ x: 0, y: 0 }, { x: gw, y: 0 }, { x: gw, y: fh * 0.6 }, { x: gw / 2, y: fh }, { x: 0, y: fh * 0.6 }]
+        panels.push(finishPanel('Pocket flap', cut, { outline: flap, notches: [] }))
+      }
+    }
   }
 
   if (params.collar) {
@@ -224,7 +233,7 @@ export function garmentToPanels(
     params.cuff && 'cuffs',
     params.pleats && 'pleats',
     params.dart && 'darts',
-    params.pocket && 'pocket',
+    params.pocket && `${params.pocketStyle ?? 'patch'} pocket`,
     params.hem && 'rolled hem',
     closure && `${closure} closure`,
     specs.sleeves.length > 0 && (params.sleeveShape ?? 'set-in') !== 'set-in' && `${params.sleeveShape} sleeve`

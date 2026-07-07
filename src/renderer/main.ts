@@ -13,8 +13,8 @@ import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
-import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape } from './garment/templates'
-import { COLLAR_STYLES, SLEEVE_SHAPES } from './garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle } from './garment/templates'
+import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
@@ -98,6 +98,7 @@ function initStudio(
     pleats: l0.pleats,
     dart: l0.dart,
     pocket: l0.pocket,
+    pocketStyle: l0.pocketStyle,
     hem: l0.hem,
     closure: l0.closure,
     seam: l0.seam,
@@ -189,6 +190,7 @@ function initStudio(
     garment.pleats = l.data.pleats
     garment.dart = l.data.dart
     garment.pocket = l.data.pocket
+    garment.pocketStyle = l.data.pocketStyle
     garment.hem = l.data.hem
     garment.closure = l.data.closure
     garment.seam = l.data.seam
@@ -375,6 +377,7 @@ function initStudio(
     l.data.pleats = garment.pleats
     l.data.dart = garment.dart
     l.data.pocket = garment.pocket
+    l.data.pocketStyle = garment.pocketStyle
     l.data.hem = garment.hem
     l.data.closure = garment.closure
     l.data.seam = garment.seam
@@ -921,6 +924,11 @@ if (skipStart) {
   if (entryParams.get('pleats')) cfg.pleats = true
   if (entryParams.get('dart')) cfg.dart = true
   if (entryParams.get('pocket')) cfg.pocket = true
+  const ps = entryParams.get('pocketStyle')
+  if (ps && (POCKET_STYLES as string[]).includes(ps)) {
+    cfg.pocket = true
+    cfg.pocketStyle = ps as PocketStyle
+  }
   if (entryParams.get('hem')) cfg.hem = true
   if (entryParams.get('closure')) cfg.closure = true
   if (entryParams.get('trim')) cfg.trim = true

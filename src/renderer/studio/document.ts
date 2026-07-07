@@ -6,7 +6,7 @@
  * of a `.dio` project. Pure + unit-tested; the runtime (main.ts) builds live
  * meshes/solvers from it and reads them back into it.
  */
-import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle, SleeveShape } from '../garment/templates'
+import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle, SleeveShape, PocketStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
@@ -35,6 +35,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     pleats: l.pleats,
     dart: l.dart,
     pocket: l.pocket,
+    pocketStyle: l.pocketStyle,
     hem: l.hem,
     closure: l.closure,
     seam: l.seam,
@@ -80,6 +81,7 @@ export interface GarmentLayerData {
   pleats?: boolean
   dart?: boolean
   pocket?: boolean
+  pocketStyle?: PocketStyle
   hem?: boolean
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
@@ -147,6 +149,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     pleats: c.pleats,
     dart: c.dart,
     pocket: c.pocket,
+    pocketStyle: c.pocketStyle,
     hem: c.hem,
     closure: c.closure,
     seam: c.seam,
@@ -180,6 +183,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     pleats: d.pleats,
     dart: d.dart,
     pocket: d.pocket,
+    pocketStyle: d.pocketStyle,
     hem: d.hem,
     closure: d.closure,
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',

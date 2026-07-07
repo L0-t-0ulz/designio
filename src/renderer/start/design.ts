@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { CollarStyle, GarmentType, SleeveStyle, SleeveShape } from '../garment/templates'
+import type { CollarStyle, GarmentType, SleeveStyle, SleeveShape, PocketStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
@@ -24,6 +24,7 @@ export interface DesignConfig {
   pleats?: boolean
   dart?: boolean
   pocket?: boolean
+  pocketStyle?: PocketStyle
   hem?: boolean
   closure?: boolean
   seam?: number

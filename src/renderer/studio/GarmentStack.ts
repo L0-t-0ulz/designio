@@ -278,18 +278,7 @@ export class GarmentStack {
 
     if (getGarment(l.data.garmentType).hood) this.buildHood(l)
 
-    if (l.data.pocket) {
-      for (const p of pocketPlacements(getGarment(l.data.garmentType), this.measurements)) {
-        const geo = new THREE.PlaneGeometry(p.w, p.h)
-        const plane = new THREE.Mesh(geo, pocketMat)
-        plane.position.set(p.x, p.y, p.z)
-        plane.castShadow = true
-        plane.receiveShadow = true
-        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), POCKET_LINE)
-        edges.position.set(p.x, p.y, p.z + 0.0015)
-        l.decor.add(plane, edges)
-      }
-    }
+    if (l.data.pocket) this.buildPocket(l, pocketMat)
 
     // contrast-trim bands at the hem + neckline (thin rings in the trim material)
     if (trimOn) {
@@ -347,6 +336,55 @@ export class GarmentStack {
       // notch: fold-back lapels down the V front + a small back stand
       this.buildLapels(l, neckY, mat)
       add(new THREE.CylinderGeometry(neckR * 1.02, neckR * 1.04, 0.03, 40, 1, true, Math.PI * 0.72, Math.PI * 1.56), neckY + 0.015) // back-only stand
+    }
+  }
+
+  /**
+   * The pocket library at each placement: a flat **patch**, a single **welt** or
+   * double **jetted** lip (inset slit pockets), a patch + **flap**, or a 3D **bellows**
+   * (cargo) box + flap. Non-sim decoration in the garment (or trim) fabric.
+   */
+  private buildPocket(l: StackLayer, mat: THREE.Material): void {
+    const style = l.data.pocketStyle ?? 'patch'
+    const add = (geo: THREE.BufferGeometry, x: number, y: number, z: number): void => {
+      const m = new THREE.Mesh(geo, mat)
+      m.position.set(x, y, z)
+      m.castShadow = true
+      m.receiveShadow = true
+      l.decor.add(m)
+    }
+    const stitch = (geo: THREE.BufferGeometry, x: number, y: number, z: number): void => {
+      const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), POCKET_LINE)
+      e.position.set(x, y, z)
+      l.decor.add(e)
+    }
+    for (const p of pocketPlacements(getGarment(l.data.garmentType), this.measurements)) {
+      if (style === 'welt' || style === 'jetted') {
+        const lipH = style === 'jetted' ? 0.007 : 0.014
+        const oy = p.y + p.h * 0.2
+        const top = new THREE.PlaneGeometry(p.w, lipH)
+        add(top, p.x, oy, p.z + 0.001)
+        stitch(top, p.x, oy, p.z + 0.0025)
+        if (style === 'jetted') {
+          const bot = new THREE.PlaneGeometry(p.w, lipH)
+          add(bot, p.x, oy - lipH - 0.006, p.z + 0.001)
+          stitch(bot, p.x, oy - lipH - 0.006, p.z + 0.0025)
+        }
+      } else {
+        const bellows = style === 'bellows'
+        const body = bellows ? new THREE.BoxGeometry(p.w, p.h, 0.022) : new THREE.PlaneGeometry(p.w, p.h)
+        const bz = bellows ? p.z + 0.011 : p.z
+        add(body, p.x, p.y, bz)
+        stitch(body, p.x, p.y, bz + 0.0015)
+        if (style === 'flap' || bellows) {
+          const flapH = p.h * 0.4
+          const flap = new THREE.PlaneGeometry(p.w * 1.04, flapH)
+          const fy = p.y + p.h / 2 - flapH / 2 + 0.006
+          const fz = bellows ? p.z + 0.023 : p.z + 0.003
+          add(flap, p.x, fy, fz)
+          stitch(flap, p.x, fy, fz + 0.0015)
+        }
+      }
     }
   }
 
