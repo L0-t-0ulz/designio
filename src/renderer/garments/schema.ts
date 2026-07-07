@@ -47,6 +47,9 @@ export interface ConstructionCaps {
   closure?: boolean
   lined?: boolean
   interfaced?: boolean
+  waistband?: boolean
+  facing?: boolean
+  drawstring?: boolean
 }
 
 export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece

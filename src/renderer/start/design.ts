@@ -30,6 +30,9 @@ export interface DesignConfig {
   closure?: boolean
   lined?: boolean
   interfaced?: boolean
+  waistband?: boolean
+  facing?: boolean
+  drawstring?: boolean
   seam?: number
   notches?: boolean
   trim?: boolean

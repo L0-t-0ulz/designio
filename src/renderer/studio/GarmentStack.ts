@@ -27,6 +27,9 @@ const CLOSURE_HOLE = new THREE.MeshStandardMaterial({ color: 0x0d0d10, roughness
 const CLOSURE_THREAD = new THREE.LineBasicMaterial({ color: 0xdedad0 }) // cross-stitch thread
 const CLOSURE_ZIP = new THREE.MeshStandardMaterial({ color: 0x1d1d21, metalness: 0.5, roughness: 0.45, side: THREE.DoubleSide })
 const CLOSURE_METAL = new THREE.MeshStandardMaterial({ color: 0xc2c2ca, metalness: 0.85, roughness: 0.3 })
+// Drawstring cord + metal aglet tip (shared; geometry is per-mesh).
+const CORD_MAT = new THREE.MeshStandardMaterial({ color: 0xece7db, roughness: 0.75 })
+const AGLET_MAT = new THREE.MeshStandardMaterial({ color: 0xb8b8c0, metalness: 0.8, roughness: 0.35 })
 // A button profile lathed once + shared: a slightly domed disc with a rounded rim + a
 // recessed centre well (where the holes sit) — reads far more like a real button than a flat disc.
 const BUTTON_PROFILE = (() => {
@@ -317,6 +320,70 @@ export class GarmentStack {
 
     if (l.data.closure) this.buildClosure(l)
     if (l.data.collar) this.buildCollar(l)
+    if (l.data.waistband) this.buildWaistband(l)
+    if (l.data.drawstring) this.buildDrawstring(l)
+    if (l.data.facing) this.buildFacing(l)
+  }
+
+  /** Where a bottom's waist sits + its radius (hips for trousers, waist for skirts). */
+  private waistRing(l: StackLayer): { y: number; r: number; front: number } {
+    const m = this.measurements
+    const hasLegs = getGarment(l.data.garmentType).pieces.some((p) => p.kind === 'legTubes')
+    const y = hasLegs ? m.hipY : m.waistY
+    const r = (hasLegs ? m.hipR : m.waistR) + (l.data.ease ?? 0) + 0.008
+    return { y, r, front: r * 0.92 }
+  }
+
+  /** A constructed waistband — a clean band at the top of a skirt/trouser. */
+  private buildWaistband(l: StackLayer): void {
+    const { y, r } = this.waistRing(l)
+    const mat = l.data.trim ? l.trimMaterial : l.material
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.05, 40, 1, true), mat)
+    band.position.set(0, y + 0.01, 0)
+    band.castShadow = true
+    band.receiveShadow = true
+    l.decor.add(band)
+  }
+
+  /** A neckline facing — a clean inner finish band just inside the neck opening. */
+  private buildFacing(l: StackLayer): void {
+    const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
+    if (!spec || !spec.neckline) return
+    const neckR = spec.radiusTop * 0.6
+    const neckY = (spec.shoulderY ?? spec.topY) - 0.03
+    const facing = new THREE.Mesh(new THREE.CylinderGeometry(neckR * 0.98, neckR * 0.98, 0.03, 36, 1, true), l.lining ?? l.material)
+    facing.position.set(0, neckY - 0.012, 0)
+    facing.receiveShadow = true
+    l.decor.add(facing)
+  }
+
+  /**
+   * A functional drawstring: a cord threaded around the waist (bottoms) or the
+   * hood/neck (hooded tops), with two ends hanging down the front finished with
+   * metal aglets.
+   */
+  private buildDrawstring(l: StackLayer): void {
+    const m = this.measurements
+    const hooded = !!getGarment(l.data.garmentType).hood
+    const y = hooded ? m.neckY - 0.02 : this.waistRing(l).y + 0.012
+    const r = hooded ? m.chestR * 0.62 : this.waistRing(l).r
+    const fz = r * 0.94
+    // the cord ring at the opening
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.004, 8, 56), CORD_MAT)
+    ring.rotation.x = Math.PI / 2
+    ring.position.set(0, y, 0)
+    l.decor.add(ring)
+    // two hanging ends + aglets at the centre front
+    for (const sx of [-1, 1]) {
+      const len = 0.15
+      const end = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, len, 8), CORD_MAT)
+      end.position.set(sx * 0.016, y - len / 2, fz)
+      l.decor.add(end)
+      const aglet = new THREE.Mesh(new THREE.CylinderGeometry(0.0055, 0.004, 0.016, 10), AGLET_MAT)
+      aglet.position.set(sx * 0.016, y - len - 0.006, fz)
+      aglet.castShadow = true
+      l.decor.add(aglet)
+    }
   }
 
   /**
