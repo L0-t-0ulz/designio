@@ -68,7 +68,7 @@ overwhelming.
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
 pieces), so breadth comes from data, not bespoke code. Grouped by category:
 
-- **Tops** — t-shirt, tank, crop top, long-sleeve, tube top, tunic, blouse, hoodie
+- **Tops** — t-shirt, tank, crop top, long-sleeve, tube top, tunic, blouse, hoodie (with a real draped hood)
 - **Bottoms** — A-line / pencil / maxi skirt, trousers, shorts, wide-leg, cargo pants
 - **Dresses** — dress, sheath, slip, gown
 - **One-pieces** — jumpsuit
