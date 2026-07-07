@@ -254,6 +254,8 @@ export class GarmentStack {
     const trimOn = !!l.data.trim
     const pocketMat = trimOn ? l.trimMaterial : l.material
 
+    if (getGarment(l.data.garmentType).hood) this.buildHood(l)
+
     if (l.data.pocket) {
       for (const p of pocketPlacements(getGarment(l.data.garmentType), this.measurements)) {
         const geo = new THREE.PlaneGeometry(p.w, p.h)
@@ -283,6 +285,24 @@ export class GarmentStack {
         if (spec.neckline) band(spec.radiusTop * 0.62, (spec.shoulderY ?? spec.topY) - 0.04) // neck band
       }
     }
+  }
+
+  /**
+   * A real fallen-back hood: a draped cowl behind the neck. Built from the belly
+   * band of a sphere (poles trimmed) covering ~230° around the back, elongated
+   * vertically so it hangs down the upper back. Positioned + sized from the body
+   * so it fits any figure/size. Non-sim decoration in the garment's own fabric.
+   */
+  private buildHood(l: StackLayer): void {
+    const m = this.measurements
+    const hr = m.chestR * 1.05 // cowl radius — a touch wider than the neck
+    const geo = new THREE.SphereGeometry(hr, 28, 20, Math.PI * 0.86, Math.PI * 1.28, Math.PI * 0.14, Math.PI * 0.74)
+    geo.scale(1, 1.35, 0.92) // taller drape, slightly flattened front-to-back
+    const hood = new THREE.Mesh(geo, l.material)
+    hood.position.set(0, m.shoulderY - hr * 0.18, -m.chestR * 0.5)
+    hood.castShadow = true
+    hood.receiveShadow = true
+    l.decor.add(hood)
   }
 
   rebuild(l: StackLayer): void {

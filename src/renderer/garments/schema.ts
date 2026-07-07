@@ -21,6 +21,8 @@ export interface GarmentDefinition {
   defaultFabric?: string
   /** Which silhouette icon to draw in the picker (defaults by category). */
   icon?: GarmentIcon
+  /** Draw a hood (a draped cowl behind the neck) — e.g. a hoodie. */
+  hood?: boolean
 }
 
 /** The four base silhouette icons the picker can draw. */

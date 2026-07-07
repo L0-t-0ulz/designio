@@ -121,8 +121,9 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     pieces: [upperTube, { kind: 'sleeves' }],
     supports: upperCaps,
-    // relaxed pullover: stand collar (neck) + a kangaroo patch pocket.
-    defaults: { length: 0.7, ease: 0.06, flare: 0.06, neckline: 'crew', sleeve: 'long', collar: true, pocket: true },
+    hood: true,
+    // relaxed pullover: a real draped hood (neck treatment) + a kangaroo patch pocket.
+    defaults: { length: 0.7, ease: 0.06, flare: 0.06, neckline: 'crew', sleeve: 'long', pocket: true },
     defaultFabric: 'french-terry'
   },
 
