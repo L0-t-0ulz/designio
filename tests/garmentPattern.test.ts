@@ -8,7 +8,9 @@ import {
   panelsToSVG,
   panelsToDXF,
   offsetPolygon,
-  type Pt
+  placePrints,
+  type Pt,
+  type PatternPrintInput
 } from '../src/renderer/export/garmentPattern'
 
 const mann = buildMannequin()
@@ -172,6 +174,53 @@ describe('real per-garment 2D pattern', () => {
     const skirt = garmentToPanels(getGarment('skirt'), paramsFor('skirt'), M, C)
     expect(skirt.closure).toBeUndefined()
     expect(panelsToSVG(skirt)).not.toContain('#6b5bd6')
+  })
+
+  const mkPrint = (over: Partial<PatternPrintInput> = {}): PatternPrintInput =>
+    ({ part: 'body', kind: 'text', x: 0.25, y: 0.4, scale: 0.3, rotation: 0, text: 'LOGO', ...over })
+
+  it('maps prints onto the right panel (body front/back · sleeve · leg)', () => {
+    const top = panels('top') // Front, Back, Sleeve
+    expect(placePrints(top, [mkPrint({ part: 'body', x: 0.25 })])[0].panel).toBe('Front')
+    expect(placePrints(top, [mkPrint({ part: 'body', x: 0.75 })])[0].panel).toBe('Back')
+    expect(placePrints(top, [mkPrint({ part: 'sleeves' })])[0].panel).toBe('Sleeve')
+    const pants = panels('pants') // Leg front, Leg back
+    expect(placePrints(pants, [mkPrint({ part: 'legs', x: 0.25 })])[0].panel).toBe('Leg front')
+    expect(placePrints(pants, [mkPrint({ part: 'legs', x: 0.8 })])[0].panel).toBe('Leg back')
+  })
+
+  it('positions the print to scale within its panel (centre + footprint in mm)', () => {
+    const top = panels('top')
+    const front = top.find((p) => p.name === 'Front')!
+    const [pp] = placePrints(top, [mkPrint({ part: 'body', x: 0.25, y: 0.5, scale: 0.4 })])
+    expect(pp.cx).toBeCloseTo(front.wmm / 2, 1) // x=0.25 = front centre → mid-panel
+    expect(pp.cy).toBeCloseTo(front.hmm / 2, 1) // y=0.5 → mid-height
+    expect(pp.w).toBeGreaterThan(0)
+    expect(pp.cx).toBeGreaterThanOrEqual(0)
+    expect(pp.cx).toBeLessThanOrEqual(front.wmm)
+    expect(pp.cy).toBeLessThanOrEqual(front.hmm)
+  })
+
+  it('drops empty text + prints targeting a piece the garment lacks', () => {
+    const skirt = panels('skirt') // Front, Back — no sleeves/legs
+    expect(placePrints(skirt, [mkPrint({ kind: 'text', text: '   ' })])).toHaveLength(0)
+    expect(placePrints(skirt, [mkPrint({ part: 'sleeves' })])).toHaveLength(0)
+    expect(placePrints(skirt, [mkPrint({ part: 'legs' })])).toHaveLength(0)
+  })
+
+  it('draws placed prints (text + note) onto the pattern SVG + a PRINT layer in DXF', () => {
+    const res = garmentToPanels(getGarment('top'), paramsFor('top'), M, C, undefined, [
+      mkPrint({ text: 'TEAM & CO' }),
+      mkPrint({ part: 'sleeves', kind: 'image', imageName: 'crest.png' })
+    ])
+    const svg = panelsToSVG(res)
+    expect(svg).toContain('TEAM &amp; CO') // text drawn (xml-escaped)
+    expect(svg).toContain('crest.png') // image label drawn
+    expect(svg).toContain('print placement') // legend note
+    expect(panelsToDXF(res)).toContain('PRINT') // footprint on the PRINT layer
+    // no prints → no print layer / note
+    const plain = garmentToPanels(getGarment('top'), paramsFor('top'), M, C)
+    expect(panelsToSVG(plain)).not.toContain('print placement')
   })
 
   it('annotates a topstitch guide line inset inside the sew line', () => {

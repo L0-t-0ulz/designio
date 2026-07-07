@@ -46,6 +46,33 @@ export interface PatternResult {
   closure?: 'button' | 'zip'
   /** Draw princess shaping seams on the Front/Back panels. */
   princess?: boolean
+  /** Placed logos/text mapped onto their panels (artwork placement guide). */
+  prints?: PatternPrint[]
+}
+
+/** A placed print as fed to the pattern (a structural subset of a studio `Print`). */
+export interface PatternPrintInput {
+  part: 'body' | 'sleeves' | 'legs'
+  kind: 'image' | 'text'
+  x: number
+  y: number
+  scale: number
+  rotation: number
+  text: string
+  imageName?: string
+}
+
+/** A print resolved onto a panel — centre + footprint in that panel's local mm. */
+export interface PatternPrint {
+  panel: string
+  cx: number
+  cy: number
+  w: number
+  h: number
+  rotation: number
+  kind: 'image' | 'text'
+  /** Text content, or an image's label. */
+  text: string
 }
 
 const NCOL = 26 // samples across a panel (neckline/hem curve smoothness)
@@ -165,7 +192,8 @@ export function garmentToPanels(
   params: GarmentParams,
   m: Measurements,
   colliders: Capsule[],
-  seamMm = 10
+  seamMm = 10,
+  prints: PatternPrintInput[] = []
 ): PatternResult {
   const seam = params.seam ?? seamMm // per-garment seam allowance (mm)
   const specs = garmentPatternSpecs(def, params, m, colliders)
@@ -284,7 +312,14 @@ export function garmentToPanels(
     params.princess && 'princess seams',
     specs.sleeves.length > 0 && (params.sleeveShape ?? 'set-in') !== 'set-in' && `${params.sleeveShape} sleeve`
   ].filter(Boolean) as string[]
-  return { panels, seam, detail: active.length ? active.join(' · ') : undefined, closure, princess: params.princess }
+  return {
+    panels,
+    seam,
+    detail: active.length ? active.join(' · ') : undefined,
+    closure,
+    princess: params.princess,
+    prints: prints.length ? placePrints(panels, prints) : undefined
+  }
 }
 
 // ---- polygon offset (cut line = sew line + seam allowance) ----------------
@@ -328,6 +363,50 @@ export function offsetPolygon(pts: Pt[], d: number): Pt[] {
 // ---- SVG ------------------------------------------------------------------
 const path = (pts: Pt[], dx: number, dy: number): string =>
   pts.map((p, i) => `${i ? 'L' : 'M'}${(p.x + dx).toFixed(1)} ${(p.y + dy).toFixed(1)}`).join(' ') + ' Z'
+
+const clamp01 = (v: number): number => Math.max(0, Math.min(1, v))
+
+/**
+ * Map placed prints onto their pattern panels (pure). A body/leg print's `x`
+ * (0…1 around the tube) splits front (`x<0.5`) vs back onto the matching panel,
+ * re-scaled so the panel's own width spans that half; a sleeve print lands on the
+ * sleeve panel. `y` runs top→bottom. The footprint is a fraction of the panel so
+ * the callout is drawn to scale. Prints without content, or targeting a piece the
+ * garment doesn't have, are dropped.
+ */
+export function placePrints(panels: PatternPanel[], prints: PatternPrintInput[]): PatternPrint[] {
+  const out: PatternPrint[] = []
+  for (const pr of prints) {
+    if (pr.kind === 'text' && pr.text.trim().length === 0) continue
+    let name: string
+    let xFrac: number
+    if (pr.part === 'sleeves') {
+      name = 'Sleeve'
+      xFrac = pr.x
+    } else {
+      const front = pr.x < 0.5
+      name = pr.part === 'legs' ? (front ? 'Leg front' : 'Leg back') : front ? 'Front' : 'Back'
+      xFrac = (front ? pr.x : pr.x - 0.5) / 0.5
+    }
+    const panel = panels.find((p) => p.name === name) ?? panels.find((p) => p.name.startsWith(name))
+    if (!panel) continue
+    const w = Math.max(12, pr.scale * panel.wmm)
+    out.push({
+      panel: panel.name,
+      cx: clamp01(xFrac) * panel.wmm,
+      cy: clamp01(pr.y) * panel.hmm,
+      w,
+      h: pr.kind === 'text' ? w * 0.45 : w,
+      rotation: pr.rotation,
+      kind: pr.kind,
+      text: pr.kind === 'text' ? pr.text.slice(0, 24) : pr.imageName || 'logo'
+    })
+  }
+  return out
+}
+
+const xmlEscape = (s: string): string =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 export function panelsToSVG(res: PatternResult): string {
   const { panels, seam } = res
@@ -374,6 +453,20 @@ export function panelsToSVG(res: PatternResult): string {
     const princess = res.princess && (p.name.startsWith('Front') || p.name.startsWith('Back'))
       ? [0.32, 0.68].map((f) => `<line x1="${(p.wmm * f + dx).toFixed(1)}" y1="${(dy + 6).toFixed(1)}" x2="${(p.wmm * f + dx).toFixed(1)}" y2="${(dy + p.hmm - 6).toFixed(1)}" stroke="#c0392b" stroke-width="1" stroke-dasharray="3 3"/>`).join('')
       : ''
+    // placed prints (artwork placement guide) — a dashed footprint + the text/logo label
+    const prints = (res.prints ?? [])
+      .filter((pp) => pp.panel === p.name)
+      .map((pp) => {
+        const px = pp.cx + dx
+        const py = pp.cy + dy
+        const rot = pp.rotation ? ` transform="rotate(${(-pp.rotation).toFixed(1)} ${px.toFixed(1)} ${py.toFixed(1)})"` : ''
+        const fs = Math.max(7, Math.min(15, pp.h * 0.6))
+        return `<g${rot}>
+          <rect x="${(px - pp.w / 2).toFixed(1)}" y="${(py - pp.h / 2).toFixed(1)}" width="${pp.w.toFixed(1)}" height="${pp.h.toFixed(1)}" fill="none" stroke="#6b5bd6" stroke-width="1.1" stroke-dasharray="4 3"/>
+          <text x="${px.toFixed(1)}" y="${py.toFixed(1)}" font-family="sans-serif" font-size="${fs.toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="#6b5bd6">${xmlEscape(pp.text)}</text>
+        </g>`
+      })
+      .join('')
     parts.push(`
       <g>
         <path d="${path(cut, dx, dy)}" fill="none" stroke="#9aa0aa" stroke-width="1.4" stroke-dasharray="7 4"/>
@@ -381,6 +474,7 @@ export function panelsToSVG(res: PatternResult): string {
         ${stitch ? `<path d="${path(stitch, dx, dy)}" fill="none" stroke="#b8863b" stroke-width="1" stroke-dasharray="4 3"/>` : ''}
         ${plk}
         ${princess}
+        ${prints}
         <line x1="${(p.grain[0].x + dx).toFixed(1)}" y1="${(p.grain[0].y + dy).toFixed(1)}"
           x2="${(p.grain[1].x + dx).toFixed(1)}" y2="${(p.grain[1].y + dy).toFixed(1)}"
           stroke="#5b6472" stroke-width="1.2"/>
@@ -405,7 +499,7 @@ export function panelsToSVG(res: PatternResult): string {
   viewBox="0 0 ${totalW.toFixed(0)} ${totalH.toFixed(0)}">
   <rect width="${totalW.toFixed(0)}" height="${totalH.toFixed(0)}" fill="#fff"/>
   <text x="${margin}" y="${(totalH - 10).toFixed(0)}" font-family="sans-serif" font-size="11" fill="#9aa0aa">
-    DesignIO pattern · solid = sew line · grey dashed = cut line (SA ${seam} mm) · gold dashed = topstitch · purple = CF closure · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
+    DesignIO pattern · solid = sew line · grey dashed = cut line (SA ${seam} mm) · gold dashed = topstitch · purple = CF closure${res.prints?.length ? ' / print placement' : ''} · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
   ${parts.join('\n')}
 </svg>`
 }
@@ -425,6 +519,22 @@ export function panelsToDXF(res: PatternResult): string {
     const dx = x - cb.minX
     poly(cut, dx, 'CUT')
     poly(p.outline, dx, 'SEW')
+    // print placement footprints (axis-aligned box in panel-local mm) on a PRINT layer
+    for (const pp of res.prints ?? []) {
+      if (pp.panel !== p.name) continue
+      const hw = pp.w / 2
+      const hh = pp.h / 2
+      poly(
+        [
+          { x: pp.cx - hw, y: pp.cy - hh },
+          { x: pp.cx + hw, y: pp.cy - hh },
+          { x: pp.cx + hw, y: pp.cy + hh },
+          { x: pp.cx - hw, y: pp.cy + hh }
+        ],
+        dx,
+        'PRINT'
+      )
+    }
     x += cb.maxX - cb.minX + 30
   }
   lines.push('0', 'ENDSEC', '0', 'EOF')
@@ -436,15 +546,17 @@ export function garmentPatternSVG(
   def: GarmentDefinition,
   params: GarmentParams,
   m: Measurements,
-  colliders: Capsule[]
+  colliders: Capsule[],
+  prints: PatternPrintInput[] = []
 ): string {
-  return panelsToSVG(garmentToPanels(def, params, m, colliders))
+  return panelsToSVG(garmentToPanels(def, params, m, colliders, undefined, prints))
 }
 export function garmentPatternDXF(
   def: GarmentDefinition,
   params: GarmentParams,
   m: Measurements,
-  colliders: Capsule[]
+  colliders: Capsule[],
+  prints: PatternPrintInput[] = []
 ): string {
-  return panelsToDXF(garmentToPanels(def, params, m, colliders))
+  return panelsToDXF(garmentToPanels(def, params, m, colliders, undefined, prints))
 }
