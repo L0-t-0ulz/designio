@@ -84,4 +84,18 @@ describe('real per-garment 2D pattern', () => {
     expect(dxf).toContain('SEW')
     expect(dxf).toContain('CUT')
   })
+
+  it('annotates a topstitch guide line inset inside the sew line', () => {
+    const res = garmentToPanels(getGarment('dress'), paramsFor('dress'), M, C)
+    const svg = panelsToSVG(res)
+    expect(svg).toContain('#b8863b') // gold topstitch stroke
+    expect(svg).toContain('topstitch') // legend note
+    // the topstitch inset sits inside the sew line, which sits inside the cut line
+    const front = res.panels[0]
+    const sewW = width(front.outline)
+    const stitchW = width(offsetPolygon(front.outline, -6))
+    const cutW = width(offsetPolygon(front.outline, res.seam))
+    expect(stitchW).toBeLessThan(sewW)
+    expect(sewW).toBeLessThan(cutW)
+  })
 })

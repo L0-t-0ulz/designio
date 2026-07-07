@@ -9,6 +9,7 @@ import type { SimPieceView } from '../cloth/ClothCollision'
 import type { GarmentParams, GarmentType } from './templates'
 import { buildGarment } from '../garments/factory'
 import { getGarment } from '../garments/registry'
+import { Topstitch } from './Topstitch'
 
 /** Which body anchor a pin group follows (matrix keys of BodyAnchors). */
 type AnchorKey = 'torso' | 'hip' | 'armL' | 'armR' | 'foreL' | 'foreR'
@@ -29,6 +30,8 @@ interface Piece {
   pinGroups: { idx: number[]; kind: AnchorKey }[]
   /** Reset this piece's positions to its undraped shape. */
   refill: () => void
+  /** Drape-following topstitch along the hem + top edge. */
+  topstitch: Topstitch
 }
 
 /**
@@ -40,6 +43,8 @@ export class GarmentController {
   private gravityY = 9.81
   private windX = 0
   private windZ = 0
+  /** Shared thread material for every piece's topstitch (colour set by the stack). */
+  private readonly stitchMat = new THREE.LineDashedMaterial({ color: 0x2c2c33, dashSize: 0.007, gapSize: 0.004 })
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -101,7 +106,16 @@ export class GarmentController {
       pinnedY += positions[idx * 3 + 1]
     }
     const n = pinnedTop.length || 1
-    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions) })
+    const topstitch = new Topstitch(nx, ny, this.stitchMat)
+    mesh.add(topstitch.object) // parent to the mesh so it inherits visibility
+    geometry.computeVertexNormals()
+    topstitch.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
+    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch })
+  }
+
+  /** Set the topstitch thread colour (the studio drives this from the trim / fabric). */
+  setStitchColor(hex: number): void {
+    this.stitchMat.color.set(hex)
   }
 
   /** Bind each piece's pin groups to the body parts it hangs from — a sleeve pins its
@@ -202,6 +216,7 @@ export class GarmentController {
     for (const p of this.pieces) {
       p.geometry.attributes.position.needsUpdate = true
       p.geometry.computeVertexNormals()
+      p.topstitch.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
     }
   }
 
@@ -228,6 +243,7 @@ export class GarmentController {
   private dispose(): void {
     for (const p of this.pieces) {
       this.scene.remove(p.mesh)
+      p.topstitch.dispose()
       p.geometry.dispose()
     }
     this.pieces = []

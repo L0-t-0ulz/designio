@@ -46,6 +46,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **More garments** — blouse · hoodie · cargo pants · blazer · coat (+ Outerwear category), all data-driven — PR #70
 - [x] **Real hood on the hoodie** — a draped cowl behind the neck (data-driven `hood` flag; fits any figure/size) — PR #71
 - [x] **Fabric thickness** — every garment gets an inner lining shell (offset inward along normals by the fabric's physical thickness) so hems/edges read solid, not paper-thin — PR #72
+- [x] **Topstitching + seam styles** — drape-following dashed contrast stitch lines along hems/necklines/cuffs in 3D, + a gold topstitch guide on the 2D flat pattern — PR #73
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -70,7 +71,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 **Features**
 - [ ] **Drop in a real photoreal skin** — the GLB slot is now the default + renders own materials; add a CC0 photoreal human `.glb` at `assets/mannequin.glb` (current is a clean rigged mannequin)
 - [ ] **More garments** — cargo/tapered variants, more structured jackets (blazer · hoodie · cargo · coat · blouse shipped — PR #70; the hoodie's real hood — PR #71)
-- [ ] **Topstitching + seam styles** on the 3D + pattern
 - [ ] **A real Render tab** (high-quality still)
 - [ ] **Prints on sleeves & legs** — prints are body-only today; extend the design map to the sleeve/leg pieces (and their back panels)
 - [ ] **Prints on the 2D flat pattern** — show placed logos/text on the exported panels + manufacturing pack

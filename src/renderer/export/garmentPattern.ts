@@ -263,6 +263,7 @@ export function panelsToSVG(res: PatternResult): string {
   totalW += margin - gap
   const totalH = margin * 2 + maxH + 30
 
+  const TS = 6 // topstitch inset from the sew line (mm)
   let x = margin
   const parts: string[] = []
   for (const p of panels) {
@@ -270,10 +271,13 @@ export function panelsToSVG(res: PatternResult): string {
     const cb = bounds(cut)
     const dx = x - cb.minX // seat the cut bbox at the running x
     const dy = margin - cb.minY
+    // Topstitch guide: a dashed line inset from the sew line (skip panels too small to inset).
+    const stitch = Math.min(p.wmm, p.hmm) > 4 * TS ? offsetPolygon(p.outline, -TS) : null
     parts.push(`
       <g>
         <path d="${path(cut, dx, dy)}" fill="none" stroke="#9aa0aa" stroke-width="1.4" stroke-dasharray="7 4"/>
         <path d="${path(p.outline, dx, dy)}" fill="#f4f2ee" stroke="#222" stroke-width="1.6"/>
+        ${stitch ? `<path d="${path(stitch, dx, dy)}" fill="none" stroke="#b8863b" stroke-width="1" stroke-dasharray="4 3"/>` : ''}
         <line x1="${(p.grain[0].x + dx).toFixed(1)}" y1="${(p.grain[0].y + dy).toFixed(1)}"
           x2="${(p.grain[1].x + dx).toFixed(1)}" y2="${(p.grain[1].y + dy).toFixed(1)}"
           stroke="#5b6472" stroke-width="1.2"/>
@@ -298,7 +302,7 @@ export function panelsToSVG(res: PatternResult): string {
   viewBox="0 0 ${totalW.toFixed(0)} ${totalH.toFixed(0)}">
   <rect width="${totalW.toFixed(0)}" height="${totalH.toFixed(0)}" fill="#fff"/>
   <text x="${margin}" y="${(totalH - 10).toFixed(0)}" font-family="sans-serif" font-size="11" fill="#9aa0aa">
-    DesignIO pattern · solid = sew line · dashed = cut line (SA ${seam} mm) · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
+    DesignIO pattern · solid = sew line · grey dashed = cut line (SA ${seam} mm) · gold dashed = topstitch · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
   ${parts.join('\n')}
 </svg>`
 }

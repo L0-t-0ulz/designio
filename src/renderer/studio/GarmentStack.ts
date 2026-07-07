@@ -233,6 +233,20 @@ export class GarmentStack {
     l.backMaterial.needsUpdate = true
     this.applyPartMaterials(l)
     this.updateLining(l)
+    l.controller.setStitchColor(this.stitchColor(l))
+  }
+
+  /**
+   * Topstitch thread colour: the contrast trim colour when trim is on, else a tonal
+   * **contrast** of the fabric — a lighter thread on dark cloth, a darker thread on
+   * light cloth (the classic visible topstitch), desaturated so it stays tasteful.
+   */
+  private stitchColor(l: StackLayer): number {
+    if (l.data.trim) return l.data.trimColor ?? 0x1a1a22
+    const hsl = { h: 0, s: 0, l: 0 }
+    new THREE.Color(l.fabric.color).getHSL(hsl)
+    const tl = hsl.l < 0.5 ? Math.min(1, hsl.l + 0.4) : Math.max(0, hsl.l - 0.4)
+    return new THREE.Color().setHSL(hsl.h, hsl.s * 0.55, tl).getHex()
   }
 
   /** Rebuild a layer's print from scratch (image/text changed) + reapply. */
