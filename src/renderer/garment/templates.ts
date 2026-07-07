@@ -11,6 +11,9 @@ export const SLEEVE_SHAPES: SleeveShape[] = ['set-in', 'raglan', 'dolman', 'bish
 /** Collar / lapel styles (active when the `collar` detail is on). */
 export type CollarStyle = 'band' | 'shirt' | 'mandarin' | 'peterpan' | 'notch'
 export const COLLAR_STYLES: CollarStyle[] = ['band', 'shirt', 'mandarin', 'peterpan', 'notch']
+/** Hem frill styles (ruffles/flounces/godets; active when the `ruffles` detail is on). */
+export type FrillStyle = 'ruffle' | 'flounce' | 'godet'
+export const FRILL_STYLES: FrillStyle[] = ['ruffle', 'flounce', 'godet']
 /** Pocket styles (the pocket library; active when the `pocket` detail is on). */
 export type PocketStyle = 'patch' | 'welt' | 'jetted' | 'flap' | 'bellows'
 export const POCKET_STYLES: PocketStyle[] = ['patch', 'welt', 'jetted', 'flap', 'bellows']
@@ -59,6 +62,10 @@ export interface GarmentParams {
   facing?: boolean
   /** Functional drawstring — a cord at the waist/hood with two aglet-tipped ends. */
   drawstring?: boolean
+  /** Hem frill — a ruffle/flounce/godet flare at the hem. */
+  ruffles?: boolean
+  /** Which hem frill to draw when `ruffles` is on (ruffle / flounce / godet). */
+  frillStyle?: FrillStyle
   /** Seam allowance in mm for the flat pattern's cut line (default 10). */
   seam?: number
   /** Draw matching notches on the pattern (default true). */

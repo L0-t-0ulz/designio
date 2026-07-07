@@ -85,6 +85,18 @@ describe('real per-garment 2D pattern', () => {
     expect(dxf).toContain('CUT')
   })
 
+  it('adds a hem-frill pattern piece per frill style', () => {
+    const ruffle = garmentToPanels(getGarment('skirt'), { ...paramsFor('skirt'), ruffles: true, frillStyle: 'ruffle' }, M, C)
+    expect(ruffle.panels.some((p) => p.name === 'Ruffle')).toBe(true)
+    expect(ruffle.detail).toContain('ruffle frill')
+    expect(garmentToPanels(getGarment('skirt'), { ...paramsFor('skirt'), ruffles: true, frillStyle: 'flounce' }, M, C).panels.some((p) => p.name === 'Flounce')).toBe(true)
+    expect(garmentToPanels(getGarment('skirt'), { ...paramsFor('skirt'), ruffles: true, frillStyle: 'godet' }, M, C).panels.some((p) => p.name === 'Godet')).toBe(true)
+    // a ruffle strip is fuller (longer) than a flounce strip
+    const rw = (g: string) => { const p = garmentToPanels(getGarment('skirt'), { ...paramsFor('skirt'), ruffles: true, frillStyle: g as never }, M, C).panels.find((p) => /Ruffle|Flounce/.test(p.name))!; return p.wmm }
+    expect(rw('ruffle')).toBeGreaterThan(rw('flounce'))
+    expect(garmentToPanels(getGarment('skirt'), paramsFor('skirt'), M, C).panels.some((p) => /Ruffle|Flounce|Godet/.test(p.name))).toBe(false)
+  })
+
   it('adds waistband / facing pieces + notes for waistbands, facings & drawstrings', () => {
     // wide-leg defaults to a waistband + drawstring
     const wl = garmentToPanels(getGarment('wide-leg'), paramsFor('wide-leg'), M, C)

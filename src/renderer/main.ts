@@ -13,8 +13,8 @@ import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
-import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle } from './garment/templates'
-import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES } from './garment/templates'
+import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
+import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
@@ -107,6 +107,8 @@ function initStudio(
     waistband: l0.waistband,
     facing: l0.facing,
     drawstring: l0.drawstring,
+    ruffles: l0.ruffles,
+    frillStyle: l0.frillStyle,
     seam: l0.seam,
     notches: l0.notches,
     trim: l0.trim
@@ -205,6 +207,8 @@ function initStudio(
     garment.waistband = l.data.waistband
     garment.facing = l.data.facing
     garment.drawstring = l.data.drawstring
+    garment.ruffles = l.data.ruffles
+    garment.frillStyle = l.data.frillStyle
     garment.seam = l.data.seam
     garment.notches = l.data.notches
     garment.trim = l.data.trim
@@ -398,6 +402,8 @@ function initStudio(
     l.data.waistband = garment.waistband
     l.data.facing = garment.facing
     l.data.drawstring = garment.drawstring
+    l.data.ruffles = garment.ruffles
+    l.data.frillStyle = garment.frillStyle
     l.data.seam = garment.seam
     l.data.notches = garment.notches
     l.data.trim = garment.trim
@@ -956,6 +962,9 @@ if (skipStart) {
   if (entryParams.get('waistband')) cfg.waistband = true
   if (entryParams.get('facing')) cfg.facing = true
   if (entryParams.get('drawstring')) cfg.drawstring = true
+  if (entryParams.get('ruffles')) cfg.ruffles = true
+  const fr = entryParams.get('frillStyle')
+  if (fr && (FRILL_STYLES as string[]).includes(fr)) { cfg.ruffles = true; cfg.frillStyle = fr as FrillStyle }
   if (entryParams.get('trim')) cfg.trim = true
   const tc = entryParams.get('trimColor')
   if (tc) cfg.trimColor = parseInt(tc, 16)
