@@ -500,6 +500,93 @@
   color: var(--fg-2);
   font-size: 12px;
 }
+/* ---- Render tab: a high-res still of the current view ---- */
+.dio-pattern-tools.dio-hidden {
+  display: none;
+}
+.dio-render-pane {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 52px 24px 24px;
+  background: var(--bg-1);
+}
+.dio-render-pane.dio-hidden {
+  display: none;
+}
+.dio-render-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.dio-render-res {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--glass-hi);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+}
+.dio-render-resbtn {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--fg-1);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+}
+.dio-render-resbtn.on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.dio-render-hint {
+  color: var(--fg-2);
+  font-size: 12px;
+}
+.dio-render-save {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 18px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+}
+.dio-render-stage {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+.dio-render-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: var(--shadow-2);
+}
+.dio-render-pane.dio-render-busy .dio-render-stage::after {
+  content: 'Rendering…';
+  position: absolute;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-weight: 600;
+}
 /* ---- 2D pattern edit tools (design straight from 2D) ---- */
 .dio-pattern-tools {
   display: flex;
