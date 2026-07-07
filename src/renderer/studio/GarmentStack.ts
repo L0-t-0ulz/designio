@@ -19,6 +19,7 @@ import { radiusAt } from '../cloth/Garment'
 import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, printFromSpec, type DesignArt, type Print } from '../start/design'
 import type { TextilePattern } from '../fabric/textile'
+import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { gradeParams, type GarmentLayerData } from './document'
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
@@ -63,7 +64,8 @@ const disposeMats = (l: StackLayer): void => {
   for (const m of layerMats(l)) m.dispose()
   l.lining?.dispose()
 }
-/** Free the print/design canvas textures (front + back) so they don't leak. */
+/** Free the print/design canvas textures (front + back) so they don't leak.
+ *  The swatch is *kept* (re-applied after a redraw); dispose it at layer teardown. */
 const disposeDesigns = (l: StackLayer): void => {
   l.design?.texture.dispose()
   l.backDesign?.texture.dispose()
@@ -89,6 +91,8 @@ export interface StackLayer {
   design: DesignArt | null
   /** The back panel's own albedo (back colour + prints) when a back fabric is set. */
   backDesign: DesignArt | null
+  /** An imported fabric-photo swatch → seamless tiling PBR (overrides the body look). */
+  swatch: SwatchTextures | null
   /** Non-simulated decoration (patch pockets + trim bands) parented to the layer. */
   decor: THREE.Group
   /** Placed prints (logos + text) — runtime (images live here). */
@@ -259,11 +263,39 @@ export class GarmentStack {
       l.backDesign.texture.dispose()
       l.backDesign = null
     }
+    // An imported fabric-photo swatch clothes the *whole* garment — its seamless
+    // tiling albedo + derived normal + roughness override the procedural fabric
+    // on every part (and any print/textile map, which tiles at a different rate).
+    if (l.swatch) {
+      for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial]) {
+        m.map = l.swatch.albedo
+        m.normalMap = l.swatch.normal
+        m.normalScale.set(1, 1)
+        m.roughness = l.swatch.roughness
+        m.color.set(0xffffff)
+        m.needsUpdate = true
+      }
+    }
     l.material.needsUpdate = true
     l.backMaterial.needsUpdate = true
     this.applyPartMaterials(l)
     this.updateLining(l)
     l.controller.setStitchColor(this.stitchColor(l))
+  }
+
+  /** Apply an imported fabric-photo swatch to the active layer (seamless PBR). */
+  setSwatch(l: StackLayer, source: HTMLImageElement | HTMLCanvasElement): void {
+    disposeSwatch(l.swatch)
+    l.swatch = buildSwatchTextures(source)
+    this.applyLook(l)
+  }
+  /** Remove the fabric-photo swatch, restoring the procedural fabric look. */
+  clearSwatch(l: StackLayer): void {
+    if (!l.swatch) return
+    disposeSwatch(l.swatch)
+    l.swatch = null
+    for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial]) m.map = null
+    this.refreshDesign(l) // rebuild the normal fabric + any print/textile map
   }
 
   /**
@@ -940,6 +972,7 @@ export class GarmentStack {
       controller,
       design: null,
       backDesign: null,
+      swatch: null,
       decor,
       prints: (data.prints ?? []).map(printFromSpec)
     }
@@ -968,6 +1001,7 @@ export class GarmentStack {
     l.controller.clear()
     disposeMats(l)
     disposeDesigns(l)
+    disposeSwatch(l.swatch)
     this.disposeDecor(l)
     this.activeIndex = Math.min(this.activeIndex, this.layers.length - 1)
   }
@@ -1042,6 +1076,7 @@ export class GarmentStack {
       l.controller.clear()
       disposeMats(l)
       disposeDesigns(l)
+      disposeSwatch(l.swatch)
       this.disposeDecor(l)
     }
     this.layers.length = 0

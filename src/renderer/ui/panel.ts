@@ -108,6 +108,8 @@ export interface PanelOptions {
   prints?: PrintControls
   /** The repeating textile pattern tiled across the whole garment (optional). */
   textile?: { get: () => TextilePattern | undefined; set: (t: TextilePattern | undefined) => void }
+  /** Import a fabric-swatch photo → a seamless tiling PBR material (optional). */
+  swatch?: { active: () => boolean; set: (img: HTMLImageElement) => void; clear: () => void }
   /** Live measurements of the active garment (for the Measurements readout). */
   getMetrics?: () => GarmentMetrics
   bodySize: BodyParams
@@ -473,6 +475,32 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // Import a fabric-swatch photo → a seamless tiling PBR material for the garment.
+  function swatchControls(s: NonNullable<PanelOptions['swatch']>): HTMLElement {
+    const wrap = el('div', 'dio-graphic')
+    const fileInput = el('input') as HTMLInputElement
+    fileInput.type = 'file'
+    fileInput.accept = 'image/*'
+    fileInput.style.display = 'none'
+    const actions = el('div', 'dio-actions')
+    const importBtn = button('＋ Import fabric photo', () => fileInput.click())
+    const removeBtn = button('Remove photo', () => { s.clear(); render() })
+    function render(): void {
+      actions.replaceChildren(importBtn)
+      if (s.active()) actions.append(removeBtn)
+    }
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files?.[0]
+      if (!f || !f.type.startsWith('image/') || f.size > 12_000_000) return
+      const img = new Image()
+      img.onload = () => { s.set(img); render() }
+      img.src = URL.createObjectURL(f)
+    })
+    render()
+    wrap.append(el('div', 'dio-field-label', 'Fabric photo → tiling material'), actions, fileInput)
+    return wrap
+  }
+
   // Multiple placed prints (logos + text) — add, select, place (X/Y/size/rotation), remove.
   function printsControls(p: PrintControls): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -575,6 +603,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
   if (opts.textile) look.body.append(textileControls(opts.textile))
+  if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.prints) look.body.append(printsControls(opts.prints))
 
   // ---- measurements (live production spec) ----
