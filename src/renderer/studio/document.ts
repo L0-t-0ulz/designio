@@ -46,6 +46,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     drawstring: l.drawstring,
     ruffles: l.ruffles,
     boning: l.boning,
+    ribbing: l.ribbing,
     frillStyle: l.frillStyle,
     seam: l.seam,
     notches: l.notches
@@ -103,6 +104,7 @@ export interface GarmentLayerData {
   ruffles?: boolean
   frillStyle?: FrillStyle
   boning?: boolean
+  ribbing?: boolean
   /** Seam allowance (mm) + notches — pattern/production. */
   seam?: number
   notches?: boolean
@@ -178,6 +180,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     drawstring: c.drawstring,
     ruffles: c.ruffles,
     boning: c.boning,
+    ribbing: c.ribbing,
     frillStyle: c.frillStyle,
     seam: c.seam,
     notches: c.notches,
@@ -221,6 +224,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     drawstring: d.drawstring,
     ruffles: d.ruffles,
     boning: d.boning,
+    ribbing: d.ribbing,
     frillStyle: d.frillStyle,
     fabricId: getGarment(garmentType).defaultFabric ?? 'cotton-poplin',
     color: 0xc85a54,

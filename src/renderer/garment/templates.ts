@@ -67,6 +67,8 @@ export interface GarmentParams {
   /** Boning / corsetry — a structured bodice that cinches + holds its shape, with
    * visible boning channels + back lacing. */
   boning?: boolean
+  /** Knit ribbing trims — ribbed bands at the hem, cuffs + collar (sweatshirt look). */
+  ribbing?: boolean
   /** Which hem frill to draw when `ruffles` is on (ruffle / flounce / godet). */
   frillStyle?: FrillStyle
   /** Seam allowance in mm for the flat pattern's cut line (default 10). */

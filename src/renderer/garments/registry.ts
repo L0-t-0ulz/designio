@@ -40,7 +40,7 @@ const coatTube = {
   flareScale: 0.7,
   neckline: true
 }
-const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true, closure: true, lined: true, interfaced: true, facing: true, drawstring: true, ruffles: true, boning: true }
+const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true, closure: true, lined: true, interfaced: true, facing: true, drawstring: true, ruffles: true, boning: true, ribbing: true }
 const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true, waistband: true, drawstring: true, ruffles: true }
 
 /**
@@ -124,7 +124,7 @@ export const GARMENTS: GarmentDefinition[] = [
     hood: true,
     closureStyle: 'zip',
     // relaxed zip-up pullover: a real draped hood + a front zip + a kangaroo patch pocket.
-    defaults: { length: 0.7, ease: 0.06, flare: 0.06, neckline: 'crew', sleeve: 'long', pocket: true, closure: true, drawstring: true },
+    defaults: { length: 0.7, ease: 0.06, flare: 0.06, neckline: 'crew', sleeve: 'long', pocket: true, closure: true, drawstring: true, ribbing: true },
     defaultFabric: 'french-terry'
   },
 
