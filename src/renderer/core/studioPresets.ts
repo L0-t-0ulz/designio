@@ -105,15 +105,19 @@ export interface BackdropPreset {
   label: string
   stops: [number, string][] // vertical cyclorama gradient (top → bottom)
   floor: boolean // reflective floor + light pool + pedestal shown
+  /** No backdrop at all — the scene clears to alpha 0 (a transparent product cutout). */
+  transparent?: boolean
 }
 
 export const BACKDROP_PRESETS: BackdropPreset[] = [
   { id: 'studio-grey', label: 'Studio grey', stops: [[0, '#e2e5ec'], [0.55, '#bcc1cd'], [1, '#878d9c']], floor: true },
   { id: 'white', label: 'White', stops: [[0, '#ffffff'], [0.7, '#f4f5f8'], [1, '#e7e9ee']], floor: true },
+  { id: 'product-white', label: 'Product white', stops: [[0, '#ffffff'], [1, '#ffffff']], floor: false },
   { id: 'charcoal', label: 'Charcoal', stops: [[0, '#3b3e45'], [0.6, '#2a2c31'], [1, '#1c1d21']], floor: true },
   { id: 'black', label: 'Black', stops: [[0, '#161616'], [1, '#080808']], floor: false },
   { id: 'blush', label: 'Blush', stops: [[0, '#f4e3e0'], [0.6, '#e6c6c0'], [1, '#cc9d95']], floor: true },
-  { id: 'sky', label: 'Sky', stops: [[0, '#e0eaf6'], [0.6, '#bacfe8'], [1, '#8da8cb']], floor: true }
+  { id: 'sky', label: 'Sky', stops: [[0, '#e0eaf6'], [0.6, '#bacfe8'], [1, '#8da8cb']], floor: true },
+  { id: 'transparent', label: 'Transparent', stops: [], floor: false, transparent: true }
 ]
 
 export const LIGHTING_IDS = LIGHTING_PRESETS.map((p) => p.id)

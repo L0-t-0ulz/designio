@@ -167,11 +167,16 @@ export function setupEnvironment(
 
   const applyBackdrop = (p: BackdropPreset): void => {
     backdropId = p.id
-    const next = gradientBackground(p.stops)
-    scene.background = next
-    background?.dispose()
-    background = next
-    // On a "floating" backdrop (e.g. black) hide the stage furniture for a clean shot.
+    if (p.transparent) {
+      // No backdrop: the renderer clears to alpha 0 → a transparent product cutout.
+      scene.background = null
+    } else {
+      const next = gradientBackground(p.stops)
+      scene.background = next
+      background?.dispose()
+      background = next
+    }
+    // On a product / floating backdrop hide the stage furniture for a clean shot.
     floor.visible = p.floor
     pool.visible = p.floor
     pedestal.visible = p.floor
