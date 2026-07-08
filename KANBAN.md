@@ -70,6 +70,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Named colour library (Pantone/TPX-style)** — a swatch grid of named textile colours (curated `TR-####` refs) under the Colour field; any picked hue maps to its nearest production reference, shown live + in the tech-pack BOM — PR #126
 - [x] **Photoreal-ish default skin** — the default avatar (GLB + procedural) renders as warm skin (skin tone · semi-matte · warm subsurface sheen) instead of plaster; a textured GLB at `assets/mannequin.glb` still overrides it — PR #128
 - [x] **Made-to-measure** — type real body measurements (cm/in) for height/bust/waist/hips to drive the mannequin (in sync with the sliders) + a built-in size chart & paste importer (JSON/CSV) — PR #130
+- [x] **Pose library** — lookbook stances (Stand · Weight-shift · Stride · Relaxed): the GLB freezes a real idle/walk clip frame, the procedural body a matching stance; garments re-settle on the new pose (`?pose=`) — PR #132
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -97,7 +98,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Drop in a real photoreal skin (asset)** — the fallback now renders as warm skin (PR #128) + the GLB slot is the default; the remaining step is dropping an actual CC0 photoreal human `.glb` at `assets/mannequin.glb` (a binary asset)
 - [ ] **More garments** — cargo/tapered variants, more structured jackets (blazer · hoodie · cargo · coat · blouse shipped — PR #70; the hoodie's real hood — PR #71)
 - [ ] **Split sleeves front/back** — per-panel fabric splits the body + legs; sleeves are still a single panel
-- [ ] **Pose the mannequin** — a small pose library (contrapposto · hands-on-hips · seated) for lookbook stills
 - [ ] **Studio lighting + backdrop presets** — softbox · runway · sunset · seamless colour, swappable per shot
 - [ ] **Turntable / clip + AR export** — record a spin to MP4/GIF, and export a USDZ/GLB to view the piece on a phone / in AR
 - [ ] **Draw-your-own panel** — sketch a custom 2D panel (freeform + mirror symmetry), then sew it onto the body

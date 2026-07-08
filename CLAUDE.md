@@ -49,7 +49,8 @@ Renderer modules:
   place**, and the mannequin fits the capsules to its Mixamo bones each frame so cloth collides with the
   moving body), `colliders` (capsule math), `measure` (**made-to-measure**: pure `bodyToMeasurements`/
   `setMeasurement` map real cm ↔ the body-param multipliers, + `parseSizeChart`/`applySizeRow` for a
-  size-chart importer — unit-tested). `?body=mesh` forces the procedural body.
+  size-chart importer — unit-tested), `poses` (**lookbook pose library** — `setPose` freezes a real GLB
+  idle/walk clip frame / a procedural stance; garments re-settle). `?body=mesh` forces the procedural body.
 - `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
   `bindPins`/`setAnchor` — so garments stay on the animated avatar; per-fabric **aerodynamic drag** —
   `FabricParams.aero` removes the broadside/normal velocity so light+sheer fabrics billow/float/lag and
@@ -143,7 +144,8 @@ Renderer modules:
 ## Snapshot deep-links (query string)
 
 `?start=0` skip start page · `?garment=<id>` (registry id — dress, gown, jumpsuit, wide-leg, …; applies
-its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?bodyType=female|male` ·
+its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?pose=stand|weight-shift|stride|relaxed`
+(a static lookbook pose) · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
