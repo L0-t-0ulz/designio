@@ -74,6 +74,27 @@ export interface PrintItem {
   kind: 'image' | 'text'
   label: string
 }
+/** A keyframe as shown in the timeline strip. */
+export interface TimelineKfItem {
+  id: string
+  subject: string
+  duration: number
+  active: boolean
+}
+/** Drives the shot-sequencer timeline from the panel. */
+export interface TimelineControls {
+  list: () => TimelineKfItem[]
+  add: () => void
+  remove: (id: string) => void
+  setDuration: (id: string, seconds: number) => void
+  transport: (action: 'play' | 'pause' | 'stop') => void
+  toggleLoop: () => boolean
+  seek: (t: number) => void
+  record: () => void
+  state: () => { playing: boolean; loop: boolean; time: number; total: number }
+  /** Called back on playback progress so the scrubber tracks. */
+  subscribe: (cb: () => void) => void
+}
 /** A saved colorway as shown in the swatch grid. */
 export interface ColorwayItem {
   id: string
@@ -129,6 +150,8 @@ export interface PanelOptions {
   onSetAnimMode: (m: AnimationMode) => void
   /** Apply a static lookbook pose (implies static mode). */
   onSetPose?: (name: PoseName) => void
+  /** The shot-sequencer timeline (keyframe camera + pose, play/scrub, record WebM). */
+  timeline?: TimelineControls
   onAnimSpeed: (v: number) => void
   onColor: (hex: number) => void
   /** Which garment part the colour/fabric edits target (Body/Sleeves/Legs/Trim). */
@@ -455,6 +478,66 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     opts.onSetMode(m)
   }
   switchMode(opts.mode)
+
+  // Shot-sequencer timeline — keyframe (camera + pose) chips, transport, scrubber, record.
+  function timelineControls(tl: TimelineControls): HTMLElement {
+    const root = el('div', 'dio-timeline')
+    const strip = el('div', 'dio-tl-strip')
+    const scrub = el('input', 'dio-tl-scrub') as HTMLInputElement
+    scrub.type = 'range'
+    scrub.min = '0'
+    scrub.step = '0.01'
+    const renderStrip = (): void => {
+      strip.replaceChildren()
+      const items = tl.list()
+      if (!items.length) strip.append(el('div', 'dio-lib-empty', 'No keyframes — pose + frame the shot, then ＋ Keyframe'))
+      items.forEach((it, i) => {
+        const chip = el('div', 'dio-tl-kf' + (it.active ? ' on' : ''))
+        const dur = el('input', 'dio-tl-dur') as HTMLInputElement
+        dur.type = 'number'
+        dur.step = '0.5'
+        dur.min = '0.1'
+        dur.value = String(it.duration)
+        dur.title = 'Seconds to the next keyframe'
+        dur.addEventListener('change', () => {
+          const v = parseFloat(dur.value)
+          if (Number.isFinite(v)) tl.setDuration(it.id, v)
+        })
+        const rm = el('button', 'dio-tl-rm', '×')
+        rm.addEventListener('click', () => {
+          tl.remove(it.id)
+          renderStrip()
+        })
+        chip.append(el('span', 'dio-tl-lbl', `${i + 1} · ${it.subject}`), dur, rm)
+        strip.append(chip)
+      })
+      scrub.max = String(Math.max(0.01, tl.state().total))
+    }
+    const transport = el('div', 'dio-actions')
+    const playBtn = button('▶ Play', () => tl.transport(tl.state().playing ? 'pause' : 'play'))
+    const loopBtn = button('Loop', () => loopBtn.classList.toggle('primary', tl.toggleLoop()))
+    transport.append(
+      button('＋ Keyframe', () => {
+        tl.add()
+        renderStrip()
+      }),
+      playBtn,
+      button('■ Stop', () => tl.transport('stop')),
+      loopBtn,
+      button('● Record', () => tl.record())
+    )
+    scrub.addEventListener('input', () => tl.seek(parseFloat(scrub.value)))
+    tl.subscribe(() => {
+      const st = tl.state()
+      playBtn.textContent = st.playing ? '❚❚ Pause' : '▶ Play'
+      scrub.max = String(Math.max(0.01, st.total))
+      if (document.activeElement !== scrub) scrub.value = String(st.time)
+      for (const [i, chip] of Array.from(strip.querySelectorAll('.dio-tl-kf')).entries()) chip.classList.toggle('on', tl.list()[i]?.active ?? false)
+    })
+    renderStrip()
+    root.append(el('div', 'dio-field-label', 'Timeline (shot sequencer)'), strip, scrub, transport)
+    return root
+  }
 
   // Made-to-measure — type real cm/in measurements + import a size chart; both drive
   // the mannequin through the same body params the sliders use.
@@ -1019,7 +1102,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const avatarGroup = el('div', 'dio-hidden')
   avatarGroup.append(bodySec.root)
   const sceneGroup = el('div')
-  sceneGroup.append(redrapeRow, env.root, animSec.root, view.root)
+  const tlSec = section('Timeline', true)
+  if (opts.timeline) tlSec.body.append(timelineControls(opts.timeline))
+  sceneGroup.append(redrapeRow, env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
 
   const ctxTabs = el('div', 'dio-ctx-tabs')
   const ctxBtns: Record<'garment' | 'avatar', HTMLButtonElement> = {

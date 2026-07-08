@@ -89,6 +89,27 @@ export class Viewport {
     this.composer.render()
   }
 
+  private readonly _sph = new THREE.Spherical()
+  private readonly _off = new THREE.Vector3()
+  /** Capture the current orbit camera as a serialisable pose (for timeline keyframes). */
+  getCameraPose(): { azimuth: number; polar: number; distance: number; target: [number, number, number] } {
+    const t = this.controls.target
+    return {
+      azimuth: this.controls.getAzimuthalAngle(),
+      polar: this.controls.getPolarAngle(),
+      distance: this.controls.getDistance(),
+      target: [t.x, t.y, t.z]
+    }
+  }
+  /** Drive the orbit camera to a saved pose (used by timeline playback). */
+  setCameraPose(p: { azimuth: number; polar: number; distance: number; target: [number, number, number] }): void {
+    this.controls.target.set(p.target[0], p.target[1], p.target[2])
+    this._sph.set(Math.max(0.01, p.distance), p.polar, p.azimuth)
+    this._off.setFromSpherical(this._sph)
+    this.camera.position.copy(this.controls.target).add(this._off)
+    this.camera.lookAt(this.controls.target)
+  }
+
   /**
    * Render a **high-resolution still** of the current view (WYSIWYG — same camera,
    * lighting and post-processing as the live viewport, just supersampled to `width`

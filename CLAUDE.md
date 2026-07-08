@@ -98,7 +98,9 @@ Renderer modules:
   `[front, back]` material array when its `back`/`legBack` panel has its own fabric (visual only —
   `panelFabricId` falls back back→body, legBack→legs→body). Adding a garment is `stack.addLayer`.
   `projectStore` (the **in-app project library** — localStorage list/save/load/delete/rename of saved
-  `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested).
+  `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested), `timeline` + `TimelinePlayer`
+  (the **shot-sequencer** — keyframe camera + avatar subject; pure `sampleTimeline`/`lerpCameraPose` are
+  unit-tested; the player eases the camera via `Viewport.get/setCameraPose` + records a WebM clip).
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
