@@ -16,6 +16,7 @@ import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
 import { getBodyPreset } from './avatar/bodyPresets'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
+import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
 import { TimelinePlayer } from './studio/TimelinePlayer'
 import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
@@ -80,6 +81,8 @@ function initStudio(
   const l0 = doc0.layers[0]
   const bodySize = { ...doc0.body }
   const anim = { mode: doc0.scene.animMode, speed: doc0.scene.animSpeed }
+  let simRes: SimResolution = 'normal'
+  let simQuality = 0.57 // → ~14 substeps (the default)
   let gravity = doc0.scene.gravity
   let windX = doc0.scene.windX
   let windZ = doc0.scene.windZ
@@ -547,6 +550,16 @@ function initStudio(
   if (params.get('heatmap') === '1') stack.setHeatmap(true)
   const accParam = params.get('accessories')
   if (accParam) for (const k of accParam.split(',')) if ((ACCESSORY_KINDS as string[]).includes(k.trim())) accessories.setEnabled(k.trim() as AccessoryKind, true)
+  const srParam = params.get('simRes')
+  if (srParam && SIM_RESOLUTIONS.some((r) => r.name === srParam)) {
+    simRes = srParam as SimResolution
+    stack.setSimResolution(simRes)
+  }
+  const sqParam = params.get('simQuality')
+  if (sqParam) {
+    simQuality = Math.max(0, Math.min(1, +sqParam))
+    stack.setSimQuality(qualityToSubsteps(simQuality))
+  }
 
   // ---- export ----
   function techData(): TechpackData {
@@ -778,6 +791,10 @@ function initStudio(
     onDrop: () => (mode === 'templates' ? stack.redrapeActive() : patternCtl?.resew()),
     heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
     accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
+    sim: {
+      resolution: { get: () => simRes, set: (r) => { simRes = r; stack.setSimResolution(r) } },
+      quality: { get: () => simQuality, set: (t) => { simQuality = t; stack.setSimQuality(qualityToSubsteps(t)) } }
+    },
     onSetGravity: (v) => {
       gravity = v
       stack.setGravity(v)

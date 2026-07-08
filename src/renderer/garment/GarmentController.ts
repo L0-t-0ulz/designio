@@ -173,6 +173,14 @@ export class GarmentController {
     return this.pieces.map((p) => ({ name: p.name, mesh: p.mesh }))
   }
 
+  /** Solver substeps per piece (simulation quality ↔ performance). */
+  setQuality(substeps: number): void {
+    for (const p of this.pieces) {
+      p.solver.substeps = substeps
+      p.solver.wake()
+    }
+  }
+
   private strainScratch: Float32Array | null = null
   /** Bake each piece's cloth **strain** into its geometry vertex colours (fit heatmap). */
   updateHeatmap(colorFn: (strain: number) => [number, number, number]): void {

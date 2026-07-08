@@ -8,6 +8,7 @@ import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { POSES, type PoseName } from '../avatar/poses'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
+import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import {
   bodyToMeasurements,
   setMeasurement,
@@ -147,6 +148,11 @@ export interface PanelOptions {
   onDrop: () => void
   /** Fit / tension heatmap toggle (visualise where a garment is tight vs loose). */
   heatmap?: { get: () => boolean; set: (on: boolean) => void }
+  /** Simulation resolution (particle count) + quality (substeps) for dense garments. */
+  sim?: {
+    resolution: { get: () => SimResolution; set: (r: SimResolution) => void }
+    quality: { get: () => number; set: (t: number) => void }
+  }
   onSetGravity: (y: number) => void
   onSetWind: (x: number, z: number) => void
   onExport: (format: ExportFormat) => void
@@ -1135,6 +1141,28 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const heatmapRow = opts.heatmap
     ? toggle({ label: 'Fit / tension heatmap', get: () => opts.heatmap!.get(), set: (v) => opts.heatmap!.set(v) }).row
     : el('div')
+  // Simulation resolution (denser garments) + quality (substeps ↔ performance).
+  const simSec = section('Simulation', true)
+  if (opts.sim) {
+    const resRow = el('div', 'dio-actions')
+    resRow.style.flexWrap = 'wrap'
+    const resBtns = new Map<SimResolution, HTMLButtonElement>()
+    for (const r of SIM_RESOLUTIONS) {
+      const b = button(r.label, () => {
+        for (const [, node] of resBtns) node.classList.remove('primary')
+        b.classList.add('primary')
+        opts.sim!.resolution.set(r.name)
+      }, opts.sim.resolution.get() === r.name)
+      b.style.flex = '1 1 22%'
+      resBtns.set(r.name, b)
+      resRow.append(b)
+    }
+    simSec.body.append(
+      el('div', 'dio-field-label', 'Resolution (particle density)'),
+      resRow,
+      slider({ label: 'Quality', min: 0, max: 1, step: 0.05, format: (v) => (v < 0.34 ? 'Perf' : v > 0.66 ? 'High' : 'Balanced'), get: () => opts.sim!.quality.get(), set: (v) => opts.sim!.quality.set(v) }).row
+    )
+  }
 
   // ---- context groups + tabs (Garment / Avatar / Scene) ----
   const garmentGroup = el('div')
@@ -1144,7 +1172,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sceneGroup = el('div')
   const tlSec = section('Timeline', true)
   if (opts.timeline) tlSec.body.append(timelineControls(opts.timeline))
-  sceneGroup.append(redrapeRow, heatmapRow, env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
+  sceneGroup.append(redrapeRow, heatmapRow, opts.sim ? simSec.root : el('div'), env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
 
   const ctxTabs = el('div', 'dio-ctx-tabs')
   const ctxBtns: Record<'garment' | 'avatar', HTMLButtonElement> = {
