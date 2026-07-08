@@ -7,6 +7,7 @@ import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { POSES, type PoseName } from '../avatar/poses'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
+import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import {
   bodyToMeasurements,
   setMeasurement,
@@ -181,6 +182,8 @@ export interface PanelOptions {
   bodySize: BodyParams
   onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
+  /** Toggle worn accessories (shoes / belt / hat / bag) on the avatar. */
+  accessories?: { get: (kind: AccessoryKind) => boolean; set: (kind: AccessoryKind, on: boolean) => void }
   /** Notify the shell of the current editor context (for the status bar). */
   onSelectContext?: (label: string) => void
   /** Return to the start page ("Design your piece"). */
@@ -659,11 +662,27 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     b.style.flex = '1 1 30%'
     presetRow.append(b)
   }
+  // Accessories — footwear / belt / hat / bag worn on the avatar (toggle each).
+  const accRow = el('div', 'dio-actions')
+  accRow.style.flexWrap = 'wrap'
+  const ACC_LABELS: Record<AccessoryKind, string> = { shoes: 'Shoes', belt: 'Belt', hat: 'Hat', bag: 'Bag' }
+  if (opts.accessories) {
+    for (const kind of ACCESSORY_KINDS) {
+      const b = button(ACC_LABELS[kind], () => {
+        const on = !opts.accessories!.get(kind)
+        opts.accessories!.set(kind, on)
+        b.classList.toggle('primary', on)
+      }, opts.accessories.get(kind))
+      b.style.flex = '1 1 22%'
+      accRow.append(b)
+    }
+  }
   bodySec.body.append(
     figRow,
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
     el('div', 'dio-field-label', 'Body shape'),
     presetRow,
+    ...(opts.accessories ? [el('div', 'dio-field-label', 'Accessories'), accRow] : []),
     bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,
     bodySlider('Build', 'build', 0.8, 1.25, (v) => `${Math.round(v * 100)}%`).row,
     bodySlider('Bust', 'bust', 0.82, 1.25, (v) => `${Math.round(v * 100)}%`).row,
