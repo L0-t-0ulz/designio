@@ -52,7 +52,9 @@ Renderer modules:
   size-chart importer — unit-tested), `poses` (**lookbook pose library** — `setPose` freezes a real GLB
   idle/walk clip frame / a procedural stance; garments re-settle), `bodyPresets` (**body-shape presets** —
   Runway/Curvy/Plus/Athletic/Petite/Tall shape-multiplier sets, in-range so colliders stay valid; pure
-  `applyBodyPreset` is unit-tested). `?body=mesh` forces the procedural body.
+  `applyBodyPreset` is unit-tested), `accessories` (**shoes · belt · hat · bag** — pure
+  `accessoryAnchors(colliders)` + an `Accessories` group whose rigid meshes re-attach to the live body
+  each frame; unit-tested). `?body=mesh` forces the procedural body.
 - `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
   `bindPins`/`setAnchor` — so garments stay on the animated avatar; per-fabric **aerodynamic drag** —
   `FabricParams.aero` removes the broadside/normal velocity so light+sheer fabrics billow/float/lag and
@@ -153,7 +155,8 @@ Renderer modules:
 its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?pose=stand|weight-shift|stride|relaxed`
 (a static lookbook pose) · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) ·
-`?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) · `?text=<print>`
+`?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) ·
+`?accessories=<shoes,belt,hat,bag>` (worn accessories) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
 the garment, behind the prints) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
