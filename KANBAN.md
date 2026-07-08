@@ -71,6 +71,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Photoreal-ish default skin** — the default avatar (GLB + procedural) renders as warm skin (skin tone · semi-matte · warm subsurface sheen) instead of plaster; a textured GLB at `assets/mannequin.glb` still overrides it — PR #128
 - [x] **Made-to-measure** — type real body measurements (cm/in) for height/bust/waist/hips to drive the mannequin (in sync with the sliders) + a built-in size chart & paste importer (JSON/CSV) — PR #130
 - [x] **Pose library** — lookbook stances (Stand · Weight-shift · Stride · Relaxed): the GLB freezes a real idle/walk clip frame, the procedural body a matching stance; garments re-settle on the new pose (`?pose=`) — PR #132
+- [x] **Pose / animation timeline** — a shot sequencer: keyframe the camera + avatar (pose/idle/walk) on a timeline, ease between keyframes, scrub/loop, and record the pass to a WebM clip — PR #134
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
