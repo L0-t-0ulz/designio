@@ -144,6 +144,8 @@ export interface PanelOptions {
   onPatternEdit: () => void
   onResew: () => void
   onDrop: () => void
+  /** Fit / tension heatmap toggle (visualise where a garment is tight vs loose). */
+  heatmap?: { get: () => boolean; set: (on: boolean) => void }
   onSetGravity: (y: number) => void
   onSetWind: (x: number, z: number) => void
   onExport: (format: ExportFormat) => void
@@ -1111,6 +1113,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   // ---- Scene actions (re-drape) ----
   const redrapeRow = el('div', 'dio-actions')
   redrapeRow.append(button('⤓  Re-drape', () => opts.onDrop()))
+  const heatmapRow = opts.heatmap
+    ? toggle({ label: 'Fit / tension heatmap', get: () => opts.heatmap!.get(), set: (v) => opts.heatmap!.set(v) }).row
+    : el('div')
 
   // ---- context groups + tabs (Garment / Avatar / Scene) ----
   const garmentGroup = el('div')
@@ -1120,7 +1125,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sceneGroup = el('div')
   const tlSec = section('Timeline', true)
   if (opts.timeline) tlSec.body.append(timelineControls(opts.timeline))
-  sceneGroup.append(redrapeRow, env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
+  sceneGroup.append(redrapeRow, heatmapRow, env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
 
   const ctxTabs = el('div', 'dio-ctx-tabs')
   const ctxBtns: Record<'garment' | 'avatar', HTMLButtonElement> = {

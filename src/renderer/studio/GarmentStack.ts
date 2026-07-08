@@ -22,6 +22,7 @@ import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabr
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import type { FabricParams } from '../cloth/fabricPresets'
+import { strainToColor } from '../fabric/heatmap'
 import { gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
@@ -32,6 +33,8 @@ const RAISED_BUMP_SCALE = 6
 const FABRIC_ENV_INTENSITY = 1.1
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
+/** Fit / tension heatmap surface — vertex-coloured strain (soft-lit so the form still reads). */
+const HEATMAP_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
 // Shared closure materials (buttons · zip tape · metal pull) — geometry is per-mesh.
 // A shell/plastic button — a clearcoat gives the subtle glossy highlight real buttons have.
 const CLOSURE_BUTTON = new THREE.MeshPhysicalMaterial({ color: 0x26262c, metalness: 0, roughness: 0.42, clearcoat: 0.7, clearcoatRoughness: 0.32, sheen: 0.2 })
@@ -1057,6 +1060,17 @@ export class GarmentStack {
     this.buildDecor(l)
     this.updateLining(l)
     this.applyVisibility(l)
+    if (this.heatmapOn) this.applyHeatmapTo(l) // survive a rebuild (garment edit / async GLB load)
+  }
+
+  /** Put one layer into (or out of) the heatmap look. */
+  private applyHeatmapTo(l: StackLayer): void {
+    const on = this.heatmapOn
+    if (on) for (const { mesh } of l.controller.getPieces()) mesh.material = HEATMAP_MAT
+    else this.applyPartMaterials(l)
+    for (const { mesh } of l.controller.getPieces()) for (const c of mesh.children) if (c.userData.lining) c.visible = !on
+    for (const c of l.decor.children) c.visible = !on
+    if (on) l.controller.updateHeatmap(strainToColor)
   }
   rebuildAll(): void {
     for (const l of this.layers) this.rebuild(l)
@@ -1150,6 +1164,17 @@ export class GarmentStack {
   }
   updateMeshes(): void {
     for (const l of this.layers) if (l.data.visible) l.controller.updateMeshes()
+    if (this.heatmapOn) for (const l of this.layers) if (l.data.visible) l.controller.updateHeatmap(strainToColor)
+  }
+
+  /** Fit / tension heatmap — swap every piece to a vertex-colour strain view (or restore). */
+  private heatmapOn = false
+  setHeatmap(on: boolean): void {
+    this.heatmapOn = on
+    for (const l of this.layers) this.applyHeatmapTo(l)
+  }
+  get heatmap(): boolean {
+    return this.heatmapOn
   }
   redrapeAll(): void {
     for (const l of this.layers) l.controller.redrape()

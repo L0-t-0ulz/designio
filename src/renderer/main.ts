@@ -540,6 +540,7 @@ function initStudio(
   const bodyRender = params.get('body')
   if (bodyRender === 'mesh') mannequin.setBodyMode(false)
   else if (bodyRender === 'glb') mannequin.setBodyMode(true)
+  if (params.get('heatmap') === '1') stack.setHeatmap(true)
 
   // ---- export ----
   function techData(): TechpackData {
@@ -769,6 +770,7 @@ function initStudio(
     },
     onResew: () => patternCtl?.resew(),
     onDrop: () => (mode === 'templates' ? stack.redrapeActive() : patternCtl?.resew()),
+    heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
     onSetGravity: (v) => {
       gravity = v
       stack.setGravity(v)

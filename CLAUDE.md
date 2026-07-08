@@ -77,7 +77,9 @@ Renderer modules:
   (**channel / diamond / box quilting** — pure `quiltHeight` pillow-loft field + `quiltNormal` are
   unit-tested; `makeQuiltNormalMap` bakes the tiling loft normal map for puffers/jackets), `namedColors`
   (a curated **named textile colour library** — `TR-####` production refs; pure `nearestNamedColor`/
-  `colorRefLabel` map any picked hue to its closest reference, shown in the panel + the tech-pack BOM).
+  `colorRefLabel` map any picked hue to its closest reference, shown in the panel + the tech-pack BOM),
+  `heatmap` (**fit / tension heatmap** — pure `strainToColor` slack→blue→tight→red ramp is unit-tested;
+  the stack bakes `XPBDSolver.strain` into mesh vertex colours so you see where a garment pulls).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
   `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem** detail),
   `registry` (the garments, as data), `factory` (`buildGarment` composes pieces; construction detail is
@@ -163,6 +165,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` (per-panel fabric — the body/leg **back** panel) ·
-`?closeup=1` (macro camera) · `?still=1` (freeze the start-page turntable) · `?page=start` (deep-link the
+`?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?still=1` (freeze the start-page
+turntable) · `?page=start` (deep-link the
 builder) · `?page=projects[&demo]` (the Projects gallery; `demo` seeds a few looks). Entry is the homepage
 launcher → start page / Projects → studio. Regenerate docs with `npm run capture`.
