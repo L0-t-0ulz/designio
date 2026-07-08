@@ -15,6 +15,7 @@ import type { GarmentMetrics } from '../export/garmentMetrics'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
 import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
 import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
+import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
 import type { PrintPart, PrintStyle } from '../start/design'
 
 export interface GarmentState {
@@ -615,6 +616,32 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A named textile colour library — click a swatch to set the colour; the readout
+  // shows the current colour's nearest production reference (exact, or ≈ nearest).
+  function colorLibrary(): Refreshable {
+    const row = el('div', 'dio-colorlib-row')
+    const ref = el('div', 'dio-color-ref')
+    const grid = el('div', 'dio-color-lib')
+    for (const nc of NAMED_COLORS) {
+      const chip = el('button', 'dio-swatch')
+      chip.style.background = '#' + nc.hex.toString(16).padStart(6, '0')
+      chip.title = `${nc.code} · ${nc.name}`
+      chip.setAttribute('type', 'button')
+      chip.addEventListener('click', () => {
+        opts.onColor(nc.hex)
+        refreshAll()
+      })
+      grid.append(chip)
+    }
+    const refresh = (): void => {
+      const nc = nearestNamedColor(current.color)
+      ref.textContent = `${isExactNamedColor(current.color) ? '' : '≈ '}${nc.code} · ${nc.name}`
+    }
+    refresh()
+    row.append(ref, grid)
+    return { row, refresh }
+  }
+
   // Multiple placed prints (logos + text) — add, select, place (X/Y/size/rotation), remove.
   function printsControls(p: PrintControls): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -734,6 +761,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     partBlock,
     track(toggle({ label: 'Contrast trim', get: () => !!garment.trim, set: (v) => { garment.trim = v; opts.onGarmentEdit() } })),
     track(colorField({ label: 'Colour', get: () => current.color, set: (v) => opts.onColor(v) })),
+    track(colorLibrary()),
     track(slider({ label: 'Roughness', min: 0, max: 1, step: 0.01, get: () => current.roughness, set: (v) => { current.roughness = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheen', min: 0, max: 1, step: 0.01, get: () => current.sheen, set: (v) => { current.sheen = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Weave density', min: 40, max: 400, step: 1, get: () => current.weaveScale, set: (v) => { current.weaveScale = v; opts.onVisualEdit() } })),

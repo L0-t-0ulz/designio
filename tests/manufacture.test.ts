@@ -19,6 +19,7 @@ const bundle = (): ManufactureBundle => {
         fabricName: 'Satin',
         gsm: 120,
         color: 0xc85a54,
+        colorRef: 'TR-2050 Terracotta',
         metrics: garmentMetrics(def.name, 'M', def, params, mann.measurements, mann.colliders),
         patternSVG: '<svg><rect/></svg>'
       }
@@ -35,13 +36,15 @@ describe('manufacturing export', () => {
     expect(html).toContain('Yardage')
     expect(html).toContain('<svg>') // the embedded flat pattern
     expect(html).toContain('size M')
+    expect(html).toContain('TR-2050 Terracotta') // production colour reference in the BOM
   })
 
-  it('builds a JSON manifest with measurements + yardage', () => {
+  it('builds a JSON manifest with measurements + yardage + colour reference', () => {
     const json = JSON.parse(manufactureJSON(bundle()))
     expect(json.garments).toHaveLength(1)
     expect(json.garments[0].size).toBe('M')
     expect(json.garments[0].measurements_cm).toHaveProperty('Chest')
     expect(json.garments[0].yardage_m).toBeGreaterThan(0)
+    expect(json.garments[0].color_ref).toBe('TR-2050 Terracotta')
   })
 })

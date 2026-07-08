@@ -13,6 +13,8 @@ export interface ManufactureLayer {
   fabricName: string
   gsm: number
   color: number
+  /** Production colour reference (named textile library, e.g. "TR-6030 Classic Navy"). */
+  colorRef?: string
   /** Per-part fabric overrides (e.g. leather sleeves) for the BOM. */
   parts?: { part: string; fabric: string }[]
   /** Contrast trim fabric/colour, if any. */
@@ -56,6 +58,7 @@ function layerSection(l: ManufactureLayer): string {
         <table>
           <tbody>
             <tr><td>Fabric (body)</td><td colspan="2">${esc(l.fabricName)} · ${l.gsm} gsm</td></tr>
+            <tr><td>Colour</td><td colspan="2"><span class="dot" style="background:${hex(l.color)}"></span>${l.colorRef ? esc(l.colorRef) : hex(l.color)}</td></tr>
             ${(l.parts ?? []).map((p) => `<tr><td>Fabric (${esc(p.part)})</td><td colspan="2">${esc(p.fabric)}</td></tr>`).join('')}
             ${l.trim ? `<tr><td>Trim</td><td colspan="2">${esc(l.trim)}</td></tr>` : ''}
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
@@ -121,6 +124,7 @@ export function manufactureJSON(b: ManufactureBundle): string {
         trim: l.trim ?? null,
         seam_allowance_mm: l.seam ?? 10,
         color: hex(l.color),
+        color_ref: l.colorRef ?? null,
         measurements_cm: Object.fromEntries(l.metrics.rows.map((r) => [r.label, r.cm])),
         fabric_area_m2: l.metrics.fabricM2,
         yardage_m: +(l.metrics.fabricM2 / FABRIC_WIDTH_M).toFixed(2),

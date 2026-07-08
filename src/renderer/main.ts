@@ -33,6 +33,7 @@ import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
 import { demoSwatchCanvas } from './fabric/swatch'
 import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
 import { QUILT_PATTERNS, type QuiltPattern } from './fabric/quilt'
+import { colorRefLabel } from './fabric/namedColors'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord } from './studio/projectStore'
@@ -584,6 +585,7 @@ function initStudio(
           fabricName: l.fabric.name,
           gsm: l.fabric.gsm,
           color: l.data.color,
+          colorRef: colorRefLabel(l.data.color),
           parts: parts.length ? parts : undefined,
           trim: l.data.trim ? getFabric(l.data.trimFabricId ?? l.data.fabricId).name : undefined,
           seam: l.data.seam ?? 10,
