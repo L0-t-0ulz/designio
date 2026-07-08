@@ -65,7 +65,9 @@ Renderer modules:
   a thickness apart, skipping same-piece grid-adjacent pairs, so layered garments push off each other +
   a garment doesn't pass through itself), `ClothWorld` (general particle+constraint solver
   for sewn panels; seams are stitch constraints), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
-  reused by the 2D pattern), `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`). Both
+  reused by the 2D pattern), `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `simQuality`
+  (**dense-garment controls** — pure `simTube` scales a tube's radial/rings by a resolution, `qualityToSubsteps`
+  maps the quality slider to solver substeps; unit-tested). Both
   solvers **sleep** (dead-stop) when windless + still, so at default settings garments hang perfectly
   still (any wind/body-move/edit wakes them).
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape),
@@ -168,7 +170,9 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` (per-panel fabric — the body/leg **back** panel) ·
-`?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?still=1` (freeze the start-page
+`?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) ·
+`?simRes=<coarse|normal|fine|ultra>&simQuality=<0..1>` (dense-garment resolution + solver quality) ·
+`?still=1` (freeze the start-page
 turntable) · `?page=start` (deep-link the
 builder) · `?page=projects[&demo]` (the Projects gallery; `demo` seeds a few looks). Entry is the homepage
 launcher → start page / Projects → studio. Regenerate docs with `npm run capture`.
