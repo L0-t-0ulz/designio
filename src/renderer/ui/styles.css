@@ -308,6 +308,45 @@ canvas {
   color: var(--dio-muted);
   margin: 4px 0 4px;
 }
+/* Made to measure */
+.dio-mtm {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--dio-border);
+}
+.dio-mtm-num {
+  width: 78px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--dio-border);
+  background: var(--dio-card-bg);
+  color: var(--dio-text);
+  font: inherit;
+  text-align: right;
+}
+.dio-mtm-select {
+  width: 100%;
+  margin: 6px 0 4px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--dio-border);
+  background: var(--dio-card-bg);
+  color: var(--dio-text);
+  font: inherit;
+}
+.dio-mtm-import {
+  width: 100%;
+  min-height: 58px;
+  margin-top: 5px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--dio-border);
+  background: var(--dio-card-bg);
+  color: var(--dio-text);
+  font: 11px/1.4 var(--font-ui, monospace);
+  resize: vertical;
+  box-sizing: border-box;
+}
 /* Named colour library */
 .dio-color-ref {
   font-size: 11px;

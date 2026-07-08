@@ -5,6 +5,17 @@ import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, P
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
+import {
+  bodyToMeasurements,
+  setMeasurement,
+  applySizeRow,
+  parseSizeChart,
+  cmToIn,
+  inToCm,
+  STANDARD_SIZE_CHART,
+  type MeasureKey,
+  type SizeChartRow
+} from '../avatar/measure'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, textField, toggle, type Refreshable } from './controls'
@@ -442,6 +453,82 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
   switchMode(opts.mode)
 
+  // Made-to-measure — type real cm/in measurements + import a size chart; both drive
+  // the mannequin through the same body params the sliders use.
+  function madeToMeasure(): { root: HTMLElement; refresh: () => void } {
+    const root = el('div', 'dio-mtm')
+    let unit: 'cm' | 'in' = 'cm'
+    root.append(el('div', 'dio-field-label', 'Made to measure'))
+    const unitRow = el('div', 'dio-actions')
+    const cmBtn = button('cm', () => setUnit('cm'), true)
+    const inBtn = button('in', () => setUnit('in'), false)
+    unitRow.append(cmBtn, inBtn)
+    function setUnit(u: 'cm' | 'in'): void {
+      unit = u
+      cmBtn.classList.toggle('primary', u === 'cm')
+      inBtn.classList.toggle('primary', u === 'in')
+      refresh()
+    }
+    root.append(unitRow)
+
+    const inputs = new Map<MeasureKey, HTMLInputElement>()
+    for (const [key, label] of [['height', 'Height'], ['bust', 'Bust'], ['waist', 'Waist'], ['hips', 'Hips']] as [MeasureKey, string][]) {
+      const rowEl = el('div', 'dio-row')
+      const input = el('input', 'dio-mtm-num') as HTMLInputElement
+      input.type = 'number'
+      input.step = '0.5'
+      input.addEventListener('change', () => {
+        const v = parseFloat(input.value)
+        if (!Number.isFinite(v)) return
+        Object.assign(opts.bodySize, setMeasurement(opts.bodySize, key, unit === 'in' ? inToCm(v) : v))
+        opts.onBodySize(opts.bodySize)
+        refreshBody()
+      })
+      inputs.set(key, input)
+      rowEl.append(el('label', undefined, label), input)
+      root.append(rowEl)
+    }
+
+    // size-chart selector + paste importer
+    let charts: SizeChartRow[] = [...STANDARD_SIZE_CHART]
+    const select = el('select', 'dio-mtm-select') as HTMLSelectElement
+    function fillSelect(): void {
+      select.replaceChildren(el('option', undefined, 'Size chart…'))
+      for (const r of charts) select.append(el('option', undefined, `${r.size} · ${r.bust}/${r.waist}/${r.hips}`))
+    }
+    select.addEventListener('change', () => {
+      const row = charts[select.selectedIndex - 1]
+      if (!row) return
+      Object.assign(opts.bodySize, applySizeRow(opts.bodySize, row))
+      opts.onBodySize(opts.bodySize)
+      refreshBody()
+      select.selectedIndex = 0
+    })
+    fillSelect()
+    const ta = el('textarea', 'dio-mtm-import dio-hidden') as HTMLTextAreaElement
+    ta.placeholder = 'Paste a size chart — JSON, or "Size,Bust,Waist,Hips" lines'
+    const importRow = el('div', 'dio-actions')
+    importRow.append(
+      button('Import chart', () => ta.classList.toggle('dio-hidden')),
+      button('Load', () => {
+        const rows = parseSizeChart(ta.value)
+        if (rows.length) {
+          charts = rows
+          fillSelect()
+          ta.classList.add('dio-hidden')
+        }
+      })
+    )
+    root.append(select, importRow, ta)
+
+    const refresh = (): void => {
+      const m = bodyToMeasurements(opts.bodySize)
+      for (const [key, input] of inputs) input.value = (unit === 'in' ? cmToIn(m[key]) : m[key]).toFixed(1)
+    }
+    refresh()
+    return { root, refresh }
+  }
+
   // ---- body / avatar ----
   const bodySec = section('Body')
   let realisticBody = true // the GLB avatar is the default body
@@ -457,14 +544,28 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     opts.onBodySize(opts.bodySize)
   }
   figRow.append(figBtns.female, figBtns.male)
+  // Body-shape sliders (multipliers) — captured so made-to-measure edits refresh them.
+  const bodyRefreshers: Refreshable[] = []
+  const bodySlider = (label: string, key: keyof BodyParams, min: number, max: number, fmt: (v: number) => string): Refreshable => {
+    const s = slider({ label, min, max, step: 0.01, format: fmt, get: () => opts.bodySize[key] as number, set: (v) => { (opts.bodySize[key] as number) = v; opts.onBodySize(opts.bodySize); refreshMeasure() } })
+    bodyRefreshers.push(s)
+    return s
+  }
+  const mtm = madeToMeasure()
+  const refreshMeasure = (): void => mtm.refresh()
+  const refreshBody = (): void => {
+    for (const s of bodyRefreshers) s.refresh()
+    mtm.refresh()
+  }
   bodySec.body.append(
     figRow,
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
-    slider({ label: 'Height', min: 0.85, max: 1.15, step: 0.01, format: (v) => `${Math.round(v * 175)} cm`, get: () => opts.bodySize.height, set: (v) => { opts.bodySize.height = v; opts.onBodySize(opts.bodySize) } }).row,
-    slider({ label: 'Build', min: 0.8, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.build, set: (v) => { opts.bodySize.build = v; opts.onBodySize(opts.bodySize) } }).row,
-    slider({ label: 'Bust', min: 0.82, max: 1.25, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.bust, set: (v) => { opts.bodySize.bust = v; opts.onBodySize(opts.bodySize) } }).row,
-    slider({ label: 'Waist', min: 0.78, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.waist, set: (v) => { opts.bodySize.waist = v; opts.onBodySize(opts.bodySize) } }).row,
-    slider({ label: 'Hips', min: 0.82, max: 1.3, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => opts.bodySize.hips, set: (v) => { opts.bodySize.hips = v; opts.onBodySize(opts.bodySize) } }).row
+    bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,
+    bodySlider('Build', 'build', 0.8, 1.25, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Bust', 'bust', 0.82, 1.25, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Waist', 'waist', 0.78, 1.3, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Hips', 'hips', 0.82, 1.3, (v) => `${Math.round(v * 100)}%`).row,
+    mtm.root
   )
   // The fabric *gallery* now lives in the Library; keep selectFabric as the shared
   // path (the swatch map stays empty, so its highlight loop no-ops).
