@@ -24,6 +24,7 @@ import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
+import { wrinkleAmount, installWrinkle, uninstallWrinkle } from '../fabric/wrinkle'
 import { gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
@@ -1166,6 +1167,23 @@ export class GarmentStack {
   updateMeshes(): void {
     for (const l of this.layers) if (l.data.visible) l.controller.updateMeshes()
     if (this.heatmapOn) for (const l of this.layers) if (l.data.visible) l.controller.updateHeatmap(strainToColor)
+    if (this.wrinklesOn) for (const l of this.layers) if (l.data.visible) l.controller.updateWrinkle(wrinkleAmount)
+  }
+
+  /** Strain-driven micro-wrinkles — a shader crease perturbation on every part material. */
+  private wrinklesOn = false
+  setWrinkles(on: boolean): void {
+    this.wrinklesOn = on
+    for (const l of this.layers) {
+      for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.trimMaterial]) {
+        if (on) installWrinkle(m)
+        else uninstallWrinkle(m)
+      }
+      if (on) l.controller.updateWrinkle(wrinkleAmount)
+    }
+  }
+  get wrinkles(): boolean {
+    return this.wrinklesOn
   }
 
   /** Fit / tension heatmap — swap every piece to a vertex-colour strain view (or restore). */

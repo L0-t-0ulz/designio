@@ -205,6 +205,25 @@ export class GarmentController {
     }
   }
 
+  /** Write each piece's per-particle **wrinkle amount** (from strain) into an `aStrain`
+   *  attribute the fabric shader reads for micro-wrinkle creases. */
+  updateWrinkle(amountFn: (strain: number) => number): void {
+    for (const p of this.pieces) {
+      const n = p.solver.count
+      if (!this.strainScratch || this.strainScratch.length < n) this.strainScratch = new Float32Array(n)
+      const strain = this.strainScratch
+      p.solver.strain(strain)
+      let attr = p.geometry.getAttribute('aStrain') as THREE.BufferAttribute | undefined
+      if (!attr || attr.count !== n) {
+        attr = new THREE.BufferAttribute(new Float32Array(n), 1)
+        p.geometry.setAttribute('aStrain', attr)
+      }
+      const a = attr.array as Float32Array
+      for (let k = 0; k < n; k++) a[k] = amountFn(strain[k])
+      attr.needsUpdate = true
+    }
+  }
+
   /** Per-piece particle views for the global cloth-collision pass. */
   simPieces(): SimPieceView[] {
     return this.pieces.map((p) => ({

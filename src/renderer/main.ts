@@ -548,6 +548,7 @@ function initStudio(
   if (bodyRender === 'mesh') mannequin.setBodyMode(false)
   else if (bodyRender === 'glb') mannequin.setBodyMode(true)
   if (params.get('heatmap') === '1') stack.setHeatmap(true)
+  if (params.get('wrinkles') === '1') stack.setWrinkles(true)
   const accParam = params.get('accessories')
   if (accParam) for (const k of accParam.split(',')) if ((ACCESSORY_KINDS as string[]).includes(k.trim())) accessories.setEnabled(k.trim() as AccessoryKind, true)
   const srParam = params.get('simRes')
@@ -790,6 +791,7 @@ function initStudio(
     onResew: () => patternCtl?.resew(),
     onDrop: () => (mode === 'templates' ? stack.redrapeActive() : patternCtl?.resew()),
     heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
+    wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },
     accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
     sim: {
       resolution: { get: () => simRes, set: (r) => { simRes = r; stack.setSimResolution(r) } },
