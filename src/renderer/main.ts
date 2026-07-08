@@ -17,6 +17,7 @@ import { POSE_NAMES, type PoseName } from './avatar/poses'
 import { getBodyPreset } from './avatar/bodyPresets'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
 import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
+import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
 import { TimelinePlayer } from './studio/TimelinePlayer'
 import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
@@ -86,6 +87,9 @@ function initStudio(
   let gravity = doc0.scene.gravity
   let windX = doc0.scene.windX
   let windZ = doc0.scene.windZ
+  let windBaseX = windX // base wind for the gust pulse
+  let windBaseZ = windZ
+  let windGust = 0 // gust amplitude (0 = steady); set by a wind preset
   const patternParams = { ...DEFAULT_PATTERN }
   let mode: DesignMode = 'templates'
   let editPart: PartId = 'body' // which garment part colour/fabric edits target
@@ -390,6 +394,11 @@ function initStudio(
   const loop = new Loop(
     (dt) => {
       simTime += dt
+      if (windGust > 0) {
+        const w = gustWind(windBaseX, windBaseZ, windGust, simTime) // pulse the wind (gust/breeze)
+        stack.setWind(w.x, w.z)
+        patternCtl?.setWind(w.x, w.z)
+      }
       player.tick(dt) // timeline playback drives the camera + avatar subject
       mannequin.update(simTime, anim.mode, anim.speed)
       accessories.update(mannequin.colliders) // shoes/belt/hat/bag follow the live body
@@ -549,6 +558,14 @@ function initStudio(
   else if (bodyRender === 'glb') mannequin.setBodyMode(true)
   if (params.get('heatmap') === '1') stack.setHeatmap(true)
   if (params.get('wrinkles') === '1') stack.setWrinkles(true)
+  const windParam = params.get('wind')
+  if (windParam && WIND_PRESET_NAMES.includes(windParam)) {
+    const p = getWindPreset(windParam)!
+    windX = windBaseX = p.x
+    windZ = windBaseZ = p.z
+    windGust = p.gust
+    stack.setWind(p.x, p.z)
+  }
   const accParam = params.get('accessories')
   if (accParam) for (const k of accParam.split(',')) if ((ACCESSORY_KINDS as string[]).includes(k.trim())) accessories.setEnabled(k.trim() as AccessoryKind, true)
   const srParam = params.get('simRes')
@@ -803,10 +820,21 @@ function initStudio(
       patternCtl?.setGravity(v)
     },
     onSetWind: (x, z) => {
-      windX = x
-      windZ = z
+      windX = windBaseX = x
+      windZ = windBaseZ = z
+      windGust = 0 // a manual wind is steady (a preset re-enables gusting)
       stack.setWind(x, z)
       patternCtl?.setWind(x, z)
+    },
+    onSetWindPreset: (name) => {
+      const p = getWindPreset(name)
+      if (!p) return
+      windX = windBaseX = p.x
+      windZ = windBaseZ = p.z
+      windGust = p.gust
+      stack.setWind(p.x, p.z)
+      patternCtl?.setWind(p.x, p.z)
+      return { x: p.x, z: p.z }
     },
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
     anim,
