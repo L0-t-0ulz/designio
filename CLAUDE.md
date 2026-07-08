@@ -116,9 +116,10 @@ Renderer modules:
   garments simulate on one mannequin). **Per-part fabric**: a material per part (body / sleeves / legs)
   assigned to each piece mesh by name, + a **trim** material with contrast decor bands (hem/neckline) and
   trim-coloured pockets — `stack.setPart(part, {fabricId?, color?})`. **Per-panel fabric**: each tube
-  splits into **front (+z) / back (−z)** geometry groups (`finishTube`), so the body/leg mesh takes a
-  `[front, back]` material array when its `back`/`legBack` panel has its own fabric (visual only —
-  `panelFabricId` falls back back→body, legBack→legs→body). Adding a garment is `stack.addLayer`.
+  splits into **front (+z) / back (−z)** geometry groups (`finishTube`), so the body/leg/sleeve mesh takes a
+  `[front, back]` material array when its `back`/`legBack`/`sleeveBack` panel has its own fabric (visual +
+  per-panel physics — `panelFabricId` falls back back→body, legBack→legs→body, sleeveBack→sleeves→body).
+  Adding a garment is `stack.addLayer`.
   `projectStore` (the **in-app project library** — localStorage list/save/load/delete/rename of saved
   `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested), `timeline` + `TimelinePlayer`
   (the **shot-sequencer** — keyframe camera + avatar subject; pure `sampleTimeline`/`lerpCameraPose` are
@@ -189,7 +190,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
-`?backFabric=<id>` · `?legBackFabric=<id>` (per-panel fabric — the body/leg **back** panel) ·
+`?backFabric=<id>` · `?legBackFabric=<id>` · `?sleeveBackFabric=<id>` (per-panel fabric — the body/leg/sleeve **back** panel) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?stress=1` (fit-failure viz) ·
 `?wrinkles=1` (strain-driven micro-wrinkles) · `?wind=<still|breeze|gust|runway>` (wind preset) ·
 `?simRes=<coarse|normal|fine|ultra>&simQuality=<0..1>` (dense-garment resolution + solver quality) ·

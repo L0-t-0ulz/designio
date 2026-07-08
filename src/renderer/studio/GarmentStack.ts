@@ -73,7 +73,8 @@ const layerMats = (l: StackLayer): THREE.MeshPhysicalMaterial[] => [
   l.legMaterial,
   l.trimMaterial,
   l.backMaterial,
-  l.legBackMaterial
+  l.legBackMaterial,
+  l.sleeveBackMaterial
 ]
 const disposeMats = (l: StackLayer): void => {
   for (const m of layerMats(l)) m.dispose()
@@ -82,7 +83,7 @@ const disposeMats = (l: StackLayer): void => {
 /** Free the print/design canvas textures (every part panel) so they don't leak.
  *  The swatch is *kept* (re-applied after a redraw); dispose it at layer teardown. */
 const disposeDesigns = (l: StackLayer): void => {
-  for (const d of [l.design, l.sleeveDesign, l.legDesign, l.backDesign, l.legBackDesign]) {
+  for (const d of [l.design, l.sleeveDesign, l.legDesign, l.backDesign, l.legBackDesign, l.sleeveBackDesign]) {
     d?.texture.dispose()
     d?.bump?.dispose()
   }
@@ -100,6 +101,7 @@ export interface StackLayer {
   /** Back-panel materials (used only when a back panel has its own fabric). */
   backMaterial: THREE.MeshPhysicalMaterial
   legBackMaterial: THREE.MeshPhysicalMaterial
+  sleeveBackMaterial: THREE.MeshPhysicalMaterial
   /** Contrast-trim material (collar/cuff/pocket/hem bands) when `data.trim` is on. */
   trimMaterial: THREE.MeshPhysicalMaterial
   /** Inner "lining" material — a darkened shell offset inward for fabric thickness. */
@@ -113,6 +115,8 @@ export interface StackLayer {
   backDesign: DesignArt | null
   /** The leg-back panel's own albedo when a leg-back fabric is set. */
   legBackDesign: DesignArt | null
+  /** The sleeve-back panel's own albedo when a sleeve-back fabric is set. */
+  sleeveBackDesign: DesignArt | null
   /** An imported fabric-photo swatch → seamless tiling PBR (overrides the body look). */
   swatch: SwatchTextures | null
   /** Non-simulated decoration (patch pockets + trim bands) parented to the layer. */
@@ -130,7 +134,7 @@ export interface LayerSummary {
 }
 
 /** Editable garment parts (piece groups + back panels + trim). */
-export type PartId = 'body' | 'sleeves' | 'legs' | 'trim' | 'back' | 'legBack'
+export type PartId = 'body' | 'sleeves' | 'legs' | 'trim' | 'back' | 'legBack' | 'sleeveBack'
 
 /** Which part a simulated piece belongs to, keyed off its mesh name (drives its material + physics). */
 export function partForPiece(name: string): 'sleeves' | 'legs' | 'body' {
@@ -142,11 +146,13 @@ export function partForPiece(name: string): 'sleeves' | 'legs' | 'body' {
 /**
  * The fabric id for a back panel, following its fallback chain: a body `back`
  * panel falls back to the body fabric; a `legBack` panel to the `legs` fabric
- * then the body fabric. (Front panels use the piece's own fabric.)
+ * then the body fabric; a `sleeveBack` panel to the `sleeves` fabric then the
+ * body fabric. (Front panels use the piece's own fabric.)
  */
-export function panelFabricId(data: GarmentLayerData, panel: 'back' | 'legBack'): string {
+export function panelFabricId(data: GarmentLayerData, panel: 'back' | 'legBack' | 'sleeveBack'): string {
   const pf = data.partFabrics
   if (panel === 'back') return pf?.back?.fabricId ?? data.fabricId
+  if (panel === 'sleeveBack') return pf?.sleeveBack?.fabricId ?? pf?.sleeves?.fabricId ?? data.fabricId
   return pf?.legBack?.fabricId ?? pf?.legs?.fabricId ?? data.fabricId
 }
 
@@ -179,8 +185,8 @@ export class GarmentStack {
     return { color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile }
   }
   /** The albedo input for a back panel — its own colour + the owning part's prints. */
-  private artInputForBack(l: StackLayer, panel: 'back' | 'legBack'): DesignArtInput {
-    const part: PrintPart = panel === 'back' ? 'body' : 'legs'
+  private artInputForBack(l: StackLayer, panel: 'back' | 'legBack' | 'sleeveBack'): DesignArtInput {
+    const part: PrintPart = panel === 'back' ? 'body' : panel === 'legBack' ? 'legs' : 'sleeves'
     return { color: this.panelFabric(l, panel).color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile }
   }
   /** Whether the live garment actually has pieces for a part (skip building unused maps). */
@@ -238,7 +244,7 @@ export class GarmentStack {
    *  (no override → the whole tube drapes with the front fabric). */
   private panelSolverParams(l: StackLayer, name: string): FabricParams | null {
     const part = partForPiece(name)
-    const panel = part === 'body' ? 'back' : part === 'legs' ? 'legBack' : null
+    const panel = part === 'body' ? 'back' : part === 'legs' ? 'legBack' : part === 'sleeves' ? 'sleeveBack' : null
     if (!panel) return null
     const ov = l.data.partFabrics?.[panel]
     if (!ov) return null
@@ -250,8 +256,9 @@ export class GarmentStack {
     const d = this.active.data
     if (part === 'body') return { fabricId: d.fabricId, color: d.color }
     if (part === 'trim') return { fabricId: d.trimFabricId ?? d.fabricId, color: d.trimColor ?? d.color }
-    // legBack falls back to the legs (front) fabric, then the body default.
+    // legBack / sleeveBack fall back to their piece's (front) fabric, then the body default.
     if (part === 'legBack') return d.partFabrics?.legBack ?? d.partFabrics?.legs ?? { fabricId: d.fabricId, color: d.color }
+    if (part === 'sleeveBack') return d.partFabrics?.sleeveBack ?? d.partFabrics?.sleeves ?? { fabricId: d.fabricId, color: d.color }
     return d.partFabrics?.[part] ?? { fabricId: d.fabricId, color: d.color }
   }
   /** Assign a fabric and/or colour to a part of the active layer (visual). */
@@ -280,10 +287,11 @@ export class GarmentStack {
   }
 
   /** The fabric for a back panel (its override, else the piece's front fabric). */
-  private panelFabric(l: StackLayer, panel: 'back' | 'legBack'): Fabric {
-    const ov = panel === 'back' ? l.data.partFabrics?.back : l.data.partFabrics?.legBack
+  private panelFabric(l: StackLayer, panel: 'back' | 'legBack' | 'sleeveBack'): Fabric {
+    const ov = panel === 'back' ? l.data.partFabrics?.back : panel === 'legBack' ? l.data.partFabrics?.legBack : l.data.partFabrics?.sleeveBack
     if (ov) return { ...getFabric(ov.fabricId), color: ov.color }
-    return panel === 'back' ? l.fabric : this.partFabric(l, 'legs')
+    if (panel === 'back') return l.fabric
+    return this.partFabric(l, panel === 'legBack' ? 'legs' : 'sleeves')
   }
   /**
    * Assign each piece mesh its material by piece name. When a back panel has its
@@ -294,9 +302,10 @@ export class GarmentStack {
   private applyPartMaterials(l: StackLayer): void {
     const hasBack = !!l.data.partFabrics?.back
     const hasLegBack = !!l.data.partFabrics?.legBack
+    const hasSleeveBack = !!l.data.partFabrics?.sleeveBack
     for (const { name, mesh } of l.controller.getPieces()) {
       const part = partForPiece(name)
-      if (part === 'sleeves') mesh.material = l.sleeveMaterial
+      if (part === 'sleeves') mesh.material = hasSleeveBack ? [l.sleeveMaterial, l.sleeveBackMaterial] : l.sleeveMaterial
       else if (part === 'legs') mesh.material = hasLegBack ? [l.legMaterial, l.legBackMaterial] : l.legMaterial
       else mesh.material = hasBack ? [l.material, l.backMaterial] : l.material
     }
@@ -309,6 +318,7 @@ export class GarmentStack {
     applyFabric(l.legMaterial, this.partFabric(l, 'legs'))
     applyFabric(l.backMaterial, this.panelFabric(l, 'back'))
     applyFabric(l.legBackMaterial, this.panelFabric(l, 'legBack'))
+    applyFabric(l.sleeveBackMaterial, this.panelFabric(l, 'sleeveBack'))
     const trimFab: Fabric = l.data.trimFabricId
       ? { ...getFabric(l.data.trimFabricId), color: l.data.trimColor ?? 0x1a1a22 }
       : { ...l.fabric, color: l.data.trimColor ?? 0x1a1a22 }
@@ -331,11 +341,14 @@ export class GarmentStack {
     l.legBackDesign = l.data.partFabrics?.legBack
       ? this.applyPartDesign(l.legBackMaterial, l.legBackDesign, this.artInputForBack(l, 'legBack'))
       : this.applyPartDesign(l.legBackMaterial, l.legBackDesign, EMPTY_ART)
+    l.sleeveBackDesign = l.data.partFabrics?.sleeveBack
+      ? this.applyPartDesign(l.sleeveBackMaterial, l.sleeveBackDesign, this.artInputForBack(l, 'sleeveBack'))
+      : this.applyPartDesign(l.sleeveBackMaterial, l.sleeveBackDesign, EMPTY_ART)
     // An imported fabric-photo swatch clothes the *whole* garment — its seamless
     // tiling albedo + derived normal + roughness override the procedural fabric
     // on every part (and any print/textile map, which tiles at a different rate).
     if (l.swatch) {
-      for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial]) {
+      for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
         m.map = l.swatch.albedo
         m.normalMap = l.swatch.normal
         m.normalScale.set(1, 1)
@@ -353,7 +366,7 @@ export class GarmentStack {
     const sparkleNormalMap = l.data.sparkle ? makeSparkleNormalMap(l.data.sparkle) : null
     const ql = !l.data.sparkle && l.data.quilt ? quiltParams(l.data.quilt) : null
     const quiltNormalMap = ql && l.data.quilt ? makeQuiltNormalMap(l.data.quilt) : null
-    for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial]) {
+    for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
       // metallic props applyFabric doesn't touch — default matte unless sparkle sets them
       m.metalness = sp ? sp.metalness : 0
       m.clearcoat = sp ? sp.clearcoat : 0
@@ -1102,6 +1115,7 @@ export class GarmentStack {
       legMaterial: createFabricMaterial(fabric),
       backMaterial: createFabricMaterial(fabric),
       legBackMaterial: createFabricMaterial(fabric),
+      sleeveBackMaterial: createFabricMaterial(fabric),
       trimMaterial: createFabricMaterial(fabric),
       lining: null,
       controller,
@@ -1110,6 +1124,7 @@ export class GarmentStack {
       legDesign: null,
       backDesign: null,
       legBackDesign: null,
+      sleeveBackDesign: null,
       swatch: null,
       decor,
       prints: (data.prints ?? []).map(printFromSpec)

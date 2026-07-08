@@ -1228,6 +1228,8 @@ if (skipStart) {
   if (bf) (cfg.partFabrics ??= {}).back = { fabricId: bf, color: getFabric(bf).color }
   const lbf = entryParams.get('legBackFabric')
   if (lbf) (cfg.partFabrics ??= {}).legBack = { fabricId: lbf, color: getFabric(lbf).color }
+  const sbf = entryParams.get('sleeveBackFabric')
+  if (sbf) (cfg.partFabrics ??= {}).sleeveBack = { fabricId: sbf, color: getFabric(sbf).color }
   initStudio(cfg)
 } else if (entryParams.get('page') === 'start') {
   showStartPage(FABRIC_LIBRARY, initStudio, undefined, openHome) // deep-link to the builder
