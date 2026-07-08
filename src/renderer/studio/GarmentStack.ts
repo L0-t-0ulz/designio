@@ -24,6 +24,7 @@ import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
+import { stressColor, stressThreshold } from '../fabric/stress'
 import { wrinkleAmount, installWrinkle, uninstallWrinkle } from '../fabric/wrinkle'
 import { gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
 
@@ -1062,17 +1063,17 @@ export class GarmentStack {
     this.buildDecor(l)
     this.updateLining(l)
     this.applyVisibility(l)
-    if (this.heatmapOn) this.applyHeatmapTo(l) // survive a rebuild (garment edit / async GLB load)
+    if (this.strainView !== 'none') this.applyStrainViewTo(l) // survive a rebuild (garment edit / async GLB load)
   }
 
-  /** Put one layer into (or out of) the heatmap look. */
-  private applyHeatmapTo(l: StackLayer): void {
-    const on = this.heatmapOn
+  /** Put one layer into (or out of) the strain-view look (fit heatmap / stress check). */
+  private applyStrainViewTo(l: StackLayer): void {
+    const on = this.strainView !== 'none'
     if (on) for (const { mesh } of l.controller.getPieces()) mesh.material = HEATMAP_MAT
     else this.applyPartMaterials(l)
     for (const { mesh } of l.controller.getPieces()) for (const c of mesh.children) if (c.userData.lining) c.visible = !on
     for (const c of l.decor.children) c.visible = !on
-    if (on) l.controller.updateHeatmap(strainToColor)
+    if (on) l.controller.updateHeatmap(this.layerColorFn(l))
   }
   rebuildAll(): void {
     for (const l of this.layers) this.rebuild(l)
@@ -1166,7 +1167,7 @@ export class GarmentStack {
   }
   updateMeshes(): void {
     for (const l of this.layers) if (l.data.visible) l.controller.updateMeshes()
-    if (this.heatmapOn) for (const l of this.layers) if (l.data.visible) l.controller.updateHeatmap(strainToColor)
+    if (this.strainView !== 'none') for (const l of this.layers) if (l.data.visible) l.controller.updateHeatmap(this.layerColorFn(l))
     if (this.wrinklesOn) for (const l of this.layers) if (l.data.visible) l.controller.updateWrinkle(wrinkleAmount)
   }
 
@@ -1186,14 +1187,31 @@ export class GarmentStack {
     return this.wrinklesOn
   }
 
-  /** Fit / tension heatmap — swap every piece to a vertex-colour strain view (or restore). */
-  private heatmapOn = false
+  // Strain overlay: a per-vertex colouring of the cloth by solver strain — either the
+  // fit heatmap (loose→tight) or the stress check (fit-failure). Mutually exclusive.
+  private strainView: 'none' | 'heatmap' | 'stress' = 'none'
+  /** The strain→colour fn for a layer — stress is fabric-aware (a stretchy fabric reds
+   *  out at higher strain than a rigid one), the heatmap is a fixed tension ramp. */
+  private layerColorFn(l: StackLayer): (s: number) => [number, number, number] {
+    if (this.strainView !== 'stress') return strainToColor
+    const T = stressThreshold(l.fabric.stretch)
+    return (s) => stressColor(s, T)
+  }
+  private setStrainView(mode: 'none' | 'heatmap' | 'stress'): void {
+    this.strainView = mode
+    for (const l of this.layers) this.applyStrainViewTo(l)
+  }
   setHeatmap(on: boolean): void {
-    this.heatmapOn = on
-    for (const l of this.layers) this.applyHeatmapTo(l)
+    this.setStrainView(on ? 'heatmap' : 'none')
+  }
+  setStress(on: boolean): void {
+    this.setStrainView(on ? 'stress' : 'none')
   }
   get heatmap(): boolean {
-    return this.heatmapOn
+    return this.strainView === 'heatmap'
+  }
+  get stress(): boolean {
+    return this.strainView === 'stress'
   }
   redrapeAll(): void {
     for (const l of this.layers) l.controller.redrape()
