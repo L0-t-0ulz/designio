@@ -14,6 +14,8 @@ import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
+import { TimelinePlayer } from './studio/TimelinePlayer'
+import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
@@ -192,10 +194,27 @@ function initStudio(
     viewport.controls.autoRotate = m === 'turn'
     viewport.controls.autoRotateSpeed = anim.speed * 2.2
   }
+  let uiPose: PoseName = 'stand' // the current static pose (for timeline keyframe capture)
   function setPose(name: PoseName): void {
+    uiPose = name
     setAnimMode('static') // lookbook poses are static stances
     mannequin.setPose(name) // applies the pose + re-settles garments (via onBodyChange)
   }
+  /** The avatar's current subject — a live idle/walk mode, else the static pose. */
+  const currentSubject = (): Keyframe['subject'] => (anim.mode === 'walk' ? 'walk' : anim.mode === 'idle' ? 'idle' : uiPose)
+
+  // ---- animation timeline (shot sequencer + WebM record) ----
+  let timelineNotify: (() => void) | null = null
+  const player = new TimelinePlayer({
+    applyCamera: (c) => viewport.setCameraPose(c),
+    applySubject: (s) => (s === 'idle' || s === 'walk' ? setAnimMode(s) : setPose(s)),
+    onFrame: (_t, _total, playing) => {
+      // Hand the camera to the timeline during playback (no user damping/orbit fighting it).
+      viewport.controls.enableDamping = !playing
+      viewport.controls.enabled = !playing
+      timelineNotify?.()
+    }
+  })
 
   // Load the active layer into the panel buffers + refresh the panel controls.
   function loadActive(): void {
@@ -364,6 +383,7 @@ function initStudio(
   const loop = new Loop(
     (dt) => {
       simTime += dt
+      player.tick(dt) // timeline playback drives the camera + avatar subject
       mannequin.update(simTime, anim.mode, anim.speed)
       if (mode === 'templates') stack.step(dt)
       else patternCtl?.step(dt)
@@ -755,6 +775,43 @@ function initStudio(
     anim,
     onSetAnimMode: setAnimMode,
     onSetPose: setPose,
+    timeline: {
+      list: () => {
+        const active = sampleTimeline(player.keyframes, player.time)?.index ?? -1
+        return player.keyframes.map((k, i) => ({ id: k.id, subject: k.subject, duration: k.duration, active: i === active }))
+      },
+      add: () => {
+        player.keyframes.push({ id: newKeyframeId(), camera: viewport.getCameraPose(), subject: currentSubject(), duration: 2 })
+        timelineNotify?.()
+      },
+      remove: (id) => {
+        player.keyframes = player.keyframes.filter((k) => k.id !== id)
+        timelineNotify?.()
+      },
+      setDuration: (id, s) => {
+        const k = player.keyframes.find((k) => k.id === id)
+        if (k) k.duration = Math.max(0.1, s)
+        timelineNotify?.()
+      },
+      transport: (a) => (a === 'play' ? player.play() : a === 'pause' ? player.pause() : player.stop()),
+      toggleLoop: () => (player.loop = !player.loop),
+      seek: (t) => player.seek(t),
+      record: () => {
+        player
+          .record(viewport.renderer.domElement)
+          .then((blob) => {
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = 'designio-clip.webm'
+            a.click()
+            setTimeout(() => URL.revokeObjectURL(url), 8000)
+          })
+          .catch((err) => window.alert('Record failed: ' + (err as Error).message))
+      },
+      state: () => ({ playing: player.playing, loop: player.loop, time: player.time, total: player.total }),
+      subscribe: (cb) => (timelineNotify = cb)
+    },
     onAnimSpeed: (v) => {
       anim.speed = v
       viewport.controls.autoRotateSpeed = v * 2.2

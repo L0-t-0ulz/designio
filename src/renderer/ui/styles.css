@@ -308,6 +308,53 @@ canvas {
   color: var(--dio-muted);
   margin: 4px 0 4px;
 }
+/* Animation timeline (shot sequencer) */
+.dio-tl-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 6px;
+}
+.dio-tl-kf {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 4px 5px;
+  border-radius: 7px;
+  border: 1px solid var(--dio-border);
+  background: var(--dio-card-bg);
+}
+.dio-tl-kf.on {
+  border-color: var(--dio-accent);
+  box-shadow: 0 0 0 1px var(--dio-accent) inset;
+}
+.dio-tl-lbl {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.dio-tl-dur {
+  width: 46px;
+  padding: 2px 4px;
+  border-radius: 5px;
+  border: 1px solid var(--dio-border);
+  background: var(--dio-panel-bg);
+  color: var(--dio-text);
+  font: 10px var(--font-ui);
+  text-align: right;
+}
+.dio-tl-rm {
+  border: none;
+  background: transparent;
+  color: var(--dio-muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+.dio-tl-scrub {
+  width: 100%;
+  margin: 2px 0 6px;
+}
 /* Made to measure */
 .dio-mtm {
   margin-top: 6px;
