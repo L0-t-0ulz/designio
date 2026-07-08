@@ -54,7 +54,11 @@ Renderer modules:
   Runway/Curvy/Plus/Athletic/Petite/Tall shape-multiplier sets, in-range so colliders stay valid; pure
   `applyBodyPreset` is unit-tested), `accessories` (**shoes · belt · hat · bag** — pure
   `accessoryAnchors(colliders)` + an `Accessories` group whose rigid meshes re-attach to the live body
-  each frame; unit-tested). `?body=mesh` forces the procedural body.
+  each frame; unit-tested), `face` (**face & hair customization** — a procedural `FaceRig` of hair styles
+  (none/short/bob/long/afro) + a hair-colour material + subtle toggleable face features (brows/eyes/lips),
+  all authored in a unit head frame and placed by the pure, unit-tested `headFrame(colliders)` so they
+  ride the live head like the accessories; default **none** so the clean avatar is unchanged; best fit on
+  the procedural body). `?body=mesh` forces the procedural body.
 - `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
   `bindPins`/`setAnchor` — so garments stay on the animated avatar; per-fabric **aerodynamic drag** —
   `FabricParams.aero` removes the broadside/normal velocity so light+sheer fabrics billow/float/lag and
@@ -163,7 +167,9 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 (a static lookbook pose) · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) ·
 `?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) ·
-`?accessories=<shoes,belt,hat,bag>` (worn accessories) · `?text=<print>`
+`?accessories=<shoes,belt,hat,bag>` (worn accessories) ·
+`?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
+features — brows/eyes/lips) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
 the garment, behind the prints) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a

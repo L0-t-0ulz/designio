@@ -16,6 +16,7 @@ import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
 import { getBodyPreset } from './avatar/bodyPresets'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
+import { FaceRig, HAIRSTYLES, type Hairstyle } from './avatar/face'
 import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
 import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
 import { TimelinePlayer } from './studio/TimelinePlayer'
@@ -66,6 +67,8 @@ const mannequin = buildMannequin()
 viewport.scene.add(mannequin.group)
 const accessories = new Accessories()
 viewport.scene.add(accessories.group)
+const faceRig = new FaceRig() // hair + face features, worn on the head
+viewport.scene.add(faceRig.group)
 
 // A garment on the clipboard (survives across studios so you can copy/paste).
 let clipboard: GarmentLayerData | null = null
@@ -402,6 +405,7 @@ function initStudio(
       player.tick(dt) // timeline playback drives the camera + avatar subject
       mannequin.update(simTime, anim.mode, anim.speed)
       accessories.update(mannequin.colliders) // shoes/belt/hat/bag follow the live body
+      faceRig.update(mannequin.colliders) // hair + face features ride the head
       if (mode === 'templates') stack.step(dt)
       else patternCtl?.step(dt)
     },
@@ -569,6 +573,11 @@ function initStudio(
   }
   const accParam = params.get('accessories')
   if (accParam) for (const k of accParam.split(',')) if ((ACCESSORY_KINDS as string[]).includes(k.trim())) accessories.setEnabled(k.trim() as AccessoryKind, true)
+  const hairParam = params.get('hair')
+  if (hairParam && (HAIRSTYLES as string[]).includes(hairParam)) faceRig.setHairstyle(hairParam as Hairstyle)
+  const hairColorParam = params.get('hairColor')
+  if (hairColorParam) faceRig.setHairColor(parseInt(hairColorParam.replace('#', ''), 16))
+  if (params.get('face') === '1') faceRig.setFaceVisible(true) // subtle features are opt-in
   const srParam = params.get('simRes')
   if (srParam && SIM_RESOLUTIONS.some((r) => r.name === srParam)) {
     simRes = srParam as SimResolution
@@ -812,6 +821,14 @@ function initStudio(
     stress: { get: () => stack.stress, set: (on) => stack.setStress(on) },
     wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },
     accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
+    hair: {
+      getStyle: () => faceRig.getHairstyle(),
+      setStyle: (s) => faceRig.setHairstyle(s),
+      getColor: () => faceRig.getHairColor(),
+      setColor: (hex) => faceRig.setHairColor(hex),
+      getFace: () => faceRig.isFaceVisible(),
+      setFace: (on) => faceRig.setFaceVisible(on)
+    },
     sim: {
       resolution: { get: () => simRes, set: (r) => { simRes = r; stack.setSimResolution(r) } },
       quality: { get: () => simQuality, set: (t) => { simQuality = t; stack.setSimQuality(qualityToSubsteps(t)) } }

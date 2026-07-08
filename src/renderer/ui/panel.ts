@@ -8,6 +8,7 @@ import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { POSES, type PoseName } from '../avatar/poses'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
+import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { WIND_PRESETS } from '../cloth/windPresets'
 import {
@@ -197,6 +198,15 @@ export interface PanelOptions {
   onBodyMode: (realistic: boolean) => void
   /** Toggle worn accessories (shoes / belt / hat / bag) on the avatar. */
   accessories?: { get: (kind: AccessoryKind) => boolean; set: (kind: AccessoryKind, on: boolean) => void }
+  /** Hair + face customization on the avatar. */
+  hair?: {
+    getStyle: () => Hairstyle
+    setStyle: (s: Hairstyle) => void
+    getColor: () => number
+    setColor: (hex: number) => void
+    getFace: () => boolean
+    setFace: (on: boolean) => void
+  }
   /** Notify the shell of the current editor context (for the status bar). */
   onSelectContext?: (label: string) => void
   /** Return to the start page ("Design your piece"). */
@@ -690,12 +700,37 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       accRow.append(b)
     }
   }
+  // Hair & face — a procedural hairstyle + colour and toggleable face features.
+  const hairRow = el('div', 'dio-actions')
+  hairRow.style.flexWrap = 'wrap'
+  const hairBtns = new Map<Hairstyle, HTMLButtonElement>()
+  if (opts.hair) {
+    for (const style of HAIRSTYLES) {
+      const b = button(HAIRSTYLE_LABELS[style], () => {
+        opts.hair!.setStyle(style)
+        for (const [s, btn] of hairBtns) btn.classList.toggle('primary', s === style)
+      }, opts.hair.getStyle() === style)
+      b.style.flex = '1 1 30%'
+      hairBtns.set(style, b)
+      hairRow.append(b)
+    }
+  }
+  const hairFaceEls = opts.hair
+    ? [
+        el('div', 'dio-field-label', 'Hair'),
+        hairRow,
+        colorField({ label: 'Hair colour', get: () => opts.hair!.getColor(), set: (hex) => opts.hair!.setColor(hex) }).row,
+        toggle({ label: 'Face features', get: () => opts.hair!.getFace(), set: (v) => opts.hair!.setFace(v) }).row
+      ]
+    : []
+
   bodySec.body.append(
     figRow,
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
     el('div', 'dio-field-label', 'Body shape'),
     presetRow,
     ...(opts.accessories ? [el('div', 'dio-field-label', 'Accessories'), accRow] : []),
+    ...hairFaceEls,
     bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,
     bodySlider('Build', 'build', 0.8, 1.25, (v) => `${Math.round(v * 100)}%`).row,
     bodySlider('Bust', 'bust', 0.82, 1.25, (v) => `${Math.round(v * 100)}%`).row,
