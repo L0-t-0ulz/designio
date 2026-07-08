@@ -9,6 +9,7 @@ import { POSES, type PoseName } from '../avatar/poses'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
+import { WIND_PRESETS } from '../cloth/windPresets'
 import {
   bodyToMeasurements,
   setMeasurement,
@@ -157,6 +158,8 @@ export interface PanelOptions {
   }
   onSetGravity: (y: number) => void
   onSetWind: (x: number, z: number) => void
+  /** Apply a named wind preset (still / breeze / gust / runway) — returns its base vector. */
+  onSetWindPreset?: (name: string) => { x: number; z: number } | void
   onExport: (format: ExportFormat) => void
   anim: { mode: AnimationMode; speed: number }
   onSetAnimMode: (m: AnimationMode) => void
@@ -1062,10 +1065,31 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   let gravity = 9.81
   let windX = 0
   let windZ = 0
+  const windXs = slider({ label: 'Wind ←→', min: -10, max: 10, step: 0.1, get: () => windX, set: (v) => { windX = v; opts.onSetWind(windX, windZ) } })
+  const windZs = slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => windZ, set: (v) => { windZ = v; opts.onSetWind(windX, windZ) } })
+  // Wind presets — art-direct the 4D secondary motion (still / breeze / gust / runway).
+  const windRow = el('div', 'dio-actions')
+  windRow.style.flexWrap = 'wrap'
+  if (opts.onSetWindPreset) {
+    for (const p of WIND_PRESETS) {
+      const b = button(p.label, () => {
+        const base = opts.onSetWindPreset!(p.name)
+        if (base) {
+          windX = base.x
+          windZ = base.z
+          windXs.refresh()
+          windZs.refresh()
+        }
+      })
+      b.style.flex = '1 1 30%'
+      windRow.append(b)
+    }
+  }
   env.body.append(
     slider({ label: 'Gravity', min: 0, max: 20, step: 0.1, get: () => gravity, set: (v) => { gravity = v; opts.onSetGravity(v) } }).row,
-    slider({ label: 'Wind ←→', min: -10, max: 10, step: 0.1, get: () => windX, set: (v) => { windX = v; opts.onSetWind(windX, windZ) } }).row,
-    slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => windZ, set: (v) => { windZ = v; opts.onSetWind(windX, windZ) } }).row,
+    ...(opts.onSetWindPreset ? [el('div', 'dio-field-label', 'Wind'), windRow] : []),
+    windXs.row,
+    windZs.row,
     slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) }).row
   )
   // ---- animation ----
