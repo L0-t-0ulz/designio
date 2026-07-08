@@ -43,10 +43,11 @@ Renderer modules:
   colliders — plus **visual-only shaping metaballs** for bust/pecs, deltoids, chest/back depth, knees; it
   exposes `anchors()` = torso/hip world frames garments pin to, and drives the GLB), `BodyMesh` (smooth
   metaball body via MarchingCubes; shaped head/hand/foot caps), `GlbMannequin` (the **default** realistic
-  avatar — replace `assets/mannequin.glb`; renders its own skin when textured, else the studio material,
-  and **falls back** to the procedural body; plays the rig's **idle/walk** clips **in place**, and the
-  mannequin fits the capsules to its Mixamo bones each frame so cloth collides with the moving body),
-  `colliders` (capsule math). `?body=mesh` forces the procedural body.
+  avatar — replace `assets/mannequin.glb`; renders its own skin when textured, else the **warm skin
+  material** (`avatar/skin.ts` — `makeSkinMaterial`: skin tone + warm subsurface sheen, shared with the
+  procedural body), and **falls back** to the procedural body; plays the rig's **idle/walk** clips **in
+  place**, and the mannequin fits the capsules to its Mixamo bones each frame so cloth collides with the
+  moving body), `colliders` (capsule math). `?body=mesh` forces the procedural body.
 - `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
   `bindPins`/`setAnchor` — so garments stay on the animated avatar; per-fabric **aerodynamic drag** —
   `FabricParams.aero` removes the broadside/normal velocity so light+sheer fabrics billow/float/lag and
