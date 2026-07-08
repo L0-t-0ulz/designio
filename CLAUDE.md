@@ -65,7 +65,8 @@ Renderer modules:
   a thickness apart, skipping same-piece grid-adjacent pairs, so layered garments push off each other +
   a garment doesn't pass through itself), `ClothWorld` (general particle+constraint solver
   for sewn panels; seams are stitch constraints), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
-  reused by the 2D pattern), `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `simQuality`
+  reused by the 2D pattern), `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `windPresets`
+  (**named wind presets** — still/breeze/gust/runway; pure `gustWind` pulse is unit-tested), `simQuality`
   (**dense-garment controls** — pure `simTube` scales a tube's radial/rings by a resolution, `qualityToSubsteps`
   maps the quality slider to solver substeps; unit-tested). Both
   solvers **sleep** (dead-stop) when windless + still, so at default settings garments hang perfectly
@@ -173,7 +174,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` (per-panel fabric — the body/leg **back** panel) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?wrinkles=1` (strain-driven
-micro-wrinkles) ·
+micro-wrinkles) · `?wind=<still|breeze|gust|runway>` (wind preset) ·
 `?simRes=<coarse|normal|fine|ultra>&simQuality=<0..1>` (dense-garment resolution + solver quality) ·
 `?still=1` (freeze the start-page
 turntable) · `?page=start` (deep-link the
