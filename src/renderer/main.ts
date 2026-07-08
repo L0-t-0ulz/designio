@@ -14,6 +14,7 @@ import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
+import { getBodyPreset } from './avatar/bodyPresets'
 import { TimelinePlayer } from './studio/TimelinePlayer'
 import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
@@ -517,6 +518,14 @@ function initStudio(
   if (btParam === 'male' || btParam === 'female') {
     bodySize.bodyType = btParam
     bodyChanged = true
+  }
+  const bpParam = params.get('bodyPreset')
+  if (bpParam) {
+    const preset = getBodyPreset(bpParam)
+    if (preset) {
+      Object.assign(bodySize, preset.shape)
+      bodyChanged = true
+    }
   }
   for (const [q, key] of bodyParams) {
     const v = params.get(q)

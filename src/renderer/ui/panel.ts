@@ -6,6 +6,7 @@ import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { POSES, type PoseName } from '../avatar/poses'
+import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import {
   bodyToMeasurements,
   setMeasurement,
@@ -643,9 +644,24 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     for (const s of bodyRefreshers) s.refresh()
     mtm.refresh()
   }
+  // Body-shape presets (diversity) — each applies a set of shape multipliers on top
+  // of the current figure; garments refit via the same resize path as the sliders.
+  const presetRow = el('div', 'dio-actions')
+  presetRow.style.flexWrap = 'wrap'
+  for (const preset of BODY_PRESETS) {
+    const b = button(preset.label, () => {
+      Object.assign(opts.bodySize, applyBodyPreset(opts.bodySize, preset))
+      opts.onBodySize(opts.bodySize)
+      refreshBody()
+    })
+    b.style.flex = '1 1 30%'
+    presetRow.append(b)
+  }
   bodySec.body.append(
     figRow,
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
+    el('div', 'dio-field-label', 'Body shape'),
+    presetRow,
     bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,
     bodySlider('Build', 'build', 0.8, 1.25, (v) => `${Math.round(v * 100)}%`).row,
     bodySlider('Bust', 'bust', 0.82, 1.25, (v) => `${Math.round(v * 100)}%`).row,
