@@ -79,6 +79,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Wrinkle / micro-normal baking** — a "Micro-wrinkles" toggle: strain-driven procedural crease normals in the fabric shader so close-ups show crisp micro-folds where the cloth bunches, no extra geometry (`?wrinkles=1`) — PR #144
 - [x] **Wind field presets** — named winds (Still · Breeze · Gust · Runway draft) that art-direct the 4D secondary motion; a gust pulse swells/lulls over time (`?wind=`) — PR #146
 - [x] **Tearing & stress-failure viz** — a "Stress check" toggle that colours the garment green→amber→red by fabric-aware failure tolerance (a stiff woven reds out sooner than a stretchy knit), for fit validation (`?stress=1`) — PR #148
+- [x] **Face & hair customization** — a procedural hairstyle library (None · Short · Bob · Long · Afro) + a hair-colour picker + subtle toggleable face features (brows/eyes/lips), riding the live head via a pure `headFrame(colliders)` so they follow the walk/turn/pose/resize; default None keeps the clean avatar (`?hair=`, `?hairColor=`, `?face=1`) — PR #150
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -109,6 +110,33 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Studio lighting + backdrop presets** — softbox · runway · sunset · seamless colour, swappable per shot
 - [ ] **Turntable / clip + AR export** — record a spin to MP4/GIF, and export a USDZ/GLB to view the piece on a phone / in AR
 - [ ] **Draw-your-own panel** — sketch a custom 2D panel (freeform + mirror symmetry), then sew it onto the body
+
+**More design & construction**
+- [ ] **Measure & annotate** — a tape-measure tool (click two points in 3D → distance) + pin comments/notes on the garment for review
+- [ ] **Gathers, shirring & smocking** — elastic-gathered panels + honeycomb smocking detail (3D + a gathered-strip pattern piece)
+- [ ] **Functional openings** — a button placket / zip that actually *opens* (the garment gaps at the closure), not just a drawn line
+- [ ] **Convertible details** — wrap-dress ties + drawcords that knot, so one garment styles multiple ways
+
+**More materials & finishes**
+- [ ] **Iridescent / holographic & metallic-ombré** — colour-shifting eveningwear shaders beyond the sequin/foil sparkle
+- [ ] **Faux fur & shearling** — a fluffy pile shell for trims, collars + full coats (shell-layer fins or a fur normal)
+- [ ] **Lace & broderie** — alpha-cutout sheer lace panels you can actually see through, with a scalloped edge
+- [ ] **Dip-dye / ombré gradient** — a vertical (or radial) colour gradient baked into the albedo, per garment
+- [ ] **Distressed / washed / faded finish** — worn denim, acid wash, vintage fade (strain- or height-driven wear map)
+
+**More avatar & scene**
+- [ ] **Skin-tone & complexion picker** — a range of skin tones + undertones for the default avatar (complements the body presets)
+- [ ] **Group / runway line-up** — several avatars wearing different looks side by side for a collection shot
+- [ ] **Contact shadows & SSAO** — grounded contact shadows + ambient occlusion for richer, seated-in-the-scene shading
+
+**More production**
+- [ ] **Care-label & content generator** — fibre content % + laundering care symbols auto-added to the tech pack
+- [ ] **Import an existing flat pattern** — read a DXF/AAMA pattern in and drape it onto the body (round-trips the export)
+
+**AI-assisted design** _(uses the latest Claude models)_
+- [ ] **AI design assistant** — describe a garment in words → DesignIO builds the config (garment · fabric · colour · construction details)
+- [ ] **AI colorway & print suggestions** — a mood / season prompt → a set of on-trend colorways + a matching textile pattern
+- [ ] **AI tech-pack copywriter** — auto-write the spec-sheet prose, construction notes + care instructions from the garment data
 
 **Polish / tech-debt** _(found while building the above)_
 - [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67
