@@ -74,6 +74,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Pose / animation timeline** — a shot sequencer: keyframe the camera + avatar (pose/idle/walk) on a timeline, ease between keyframes, scrub/loop, and record the pass to a WebM clip — PR #134
 - [x] **More body types & diversity** — body-shape presets (Runway · Curvy · Plus · Athletic · Petite · Tall) on top of the female/male figures; all valid cloth colliders, garments refit (`?bodyPreset=`) — PR #136
 - [x] **Fit / tension heatmap** — a toggle that recolours the garment by cloth strain (slack → blue · neutral → green · tight → red), following the drape live, so you see where it pulls vs hangs loose (`?heatmap=1`) — PR #138
+- [x] **Shoes & accessories library** — footwear · belt · hat · bag that attach to the avatar's body capsules and follow it (walk/pose/resize), layered over the garments (`?accessories=`) — PR #140
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44

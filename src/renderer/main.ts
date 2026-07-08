@@ -15,6 +15,7 @@ import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
 import { getBodyPreset } from './avatar/bodyPresets'
+import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
 import { TimelinePlayer } from './studio/TimelinePlayer'
 import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
@@ -61,6 +62,8 @@ const viewport = new Viewport(container)
 setupEnvironment(viewport.scene, viewport.renderer)
 const mannequin = buildMannequin()
 viewport.scene.add(mannequin.group)
+const accessories = new Accessories()
+viewport.scene.add(accessories.group)
 
 // A garment on the clipboard (survives across studios so you can copy/paste).
 let clipboard: GarmentLayerData | null = null
@@ -386,6 +389,7 @@ function initStudio(
       simTime += dt
       player.tick(dt) // timeline playback drives the camera + avatar subject
       mannequin.update(simTime, anim.mode, anim.speed)
+      accessories.update(mannequin.colliders) // shoes/belt/hat/bag follow the live body
       if (mode === 'templates') stack.step(dt)
       else patternCtl?.step(dt)
     },
@@ -541,6 +545,8 @@ function initStudio(
   if (bodyRender === 'mesh') mannequin.setBodyMode(false)
   else if (bodyRender === 'glb') mannequin.setBodyMode(true)
   if (params.get('heatmap') === '1') stack.setHeatmap(true)
+  const accParam = params.get('accessories')
+  if (accParam) for (const k of accParam.split(',')) if ((ACCESSORY_KINDS as string[]).includes(k.trim())) accessories.setEnabled(k.trim() as AccessoryKind, true)
 
   // ---- export ----
   function techData(): TechpackData {
@@ -771,6 +777,7 @@ function initStudio(
     onResew: () => patternCtl?.resew(),
     onDrop: () => (mode === 'templates' ? stack.redrapeActive() : patternCtl?.resew()),
     heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
+    accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
     onSetGravity: (v) => {
       gravity = v
       stack.setGravity(v)
