@@ -47,7 +47,9 @@ Renderer modules:
   material** (`avatar/skin.ts` — `makeSkinMaterial`: skin tone + warm subsurface sheen, shared with the
   procedural body), and **falls back** to the procedural body; plays the rig's **idle/walk** clips **in
   place**, and the mannequin fits the capsules to its Mixamo bones each frame so cloth collides with the
-  moving body), `colliders` (capsule math). `?body=mesh` forces the procedural body.
+  moving body), `colliders` (capsule math), `measure` (**made-to-measure**: pure `bodyToMeasurements`/
+  `setMeasurement` map real cm ↔ the body-param multipliers, + `parseSizeChart`/`applySizeRow` for a
+  size-chart importer — unit-tested). `?body=mesh` forces the procedural body.
 - `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
   `bindPins`/`setAnchor` — so garments stay on the animated avatar; per-fabric **aerodynamic drag** —
   `FabricParams.aero` removes the broadside/normal velocity so light+sheer fabrics billow/float/lag and
