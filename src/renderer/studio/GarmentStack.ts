@@ -14,7 +14,8 @@ import { ClothCollision } from '../cloth/ClothCollision'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, corsetParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
-import { garmentPatternSpecs, garmentSleeveSpecs } from '../garments/factory'
+import { garmentPatternSpecs, garmentSleeveSpecs, setSimResolution as setFactoryResolution } from '../garments/factory'
+import type { SimResolution } from '../cloth/simQuality'
 import { radiusAt } from '../cloth/Garment'
 import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type DesignArtInput, type Print, type PrintPart } from '../start/design'
@@ -1178,6 +1179,20 @@ export class GarmentStack {
   }
   redrapeAll(): void {
     for (const l of this.layers) l.controller.redrape()
+  }
+
+  // ---- simulation resolution (particle count) + quality (substeps) ----
+  private simSubsteps = 14
+  /** Set the sim resolution + rebuild every garment at the new tessellation. */
+  setSimResolution(name: SimResolution): void {
+    setFactoryResolution(name)
+    this.rebuildAll()
+    for (const l of this.layers) l.controller.setQuality(this.simSubsteps) // new solvers → re-apply quality
+  }
+  /** Set solver substeps on every garment (quality ↔ performance). */
+  setSimQuality(substeps: number): void {
+    this.simSubsteps = substeps
+    for (const l of this.layers) l.controller.setQuality(substeps)
   }
   redrapeActive(): void {
     this.active.controller.redrape()

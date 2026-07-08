@@ -11,11 +11,19 @@ import {
   type TubeSpec
 } from '../cloth/Garment'
 import type { BodyTubePiece, GarmentDefinition } from './schema'
+import { simTube, getResolutionScale, type SimResolution } from '../cloth/simQuality'
 
 const RADIAL = 60
 const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v))
 
-/** One tube piece; `rings` scaled to its height for even resolution. */
+// Global simulation-resolution scale (denser garments — higher particle counts).
+let simScale = 1
+/** Set the sim resolution used when garments are (re)built. */
+export function setSimResolution(name: SimResolution): void {
+  simScale = getResolutionScale(name)
+}
+
+/** One tube piece; `rings`/`radial` scaled to its height + the sim resolution. */
 function piece(
   topY: number,
   bottomY: number,
@@ -25,8 +33,8 @@ function piece(
   radial = RADIAL
 ): TubeSpec {
   const h = Math.max(0.05, topY - bottomY)
-  const rings = Math.max(10, Math.min(60, Math.round(h / 0.022)))
-  return { rings, radial, topY, bottomY, radiusTop, radiusBottom, centerX }
+  const t = simTube(radial, h, 0.022, simScale)
+  return { rings: t.rings, radial: t.radial, topY, bottomY, radiusTop, radiusBottom, centerX }
 }
 
 /** A torso/dress/skirt tube from a `bodyTube` piece + the live measurements. */
@@ -117,7 +125,8 @@ function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: S
     const b = fullLen ? fore.b.clone() : upper.a.clone().lerp(upper.b, 0.62)
     const len = a.distanceTo(b)
     const { radiusStart, radiusEnd, profile } = sleeveShapeSpec(shape, fullLen ? fore.radius : upper.radius, cuff)
-    return { rings: Math.max(6, Math.min(28, Math.round(len / 0.03))), radial: 26, a, b, radiusStart, radiusEnd, profile }
+    const t = simTube(26, len, 0.03, simScale)
+    return { rings: t.rings, radial: t.radial, a, b, radiusStart, radiusEnd, profile }
   })
 }
 
