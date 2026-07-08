@@ -78,6 +78,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Dense garments — sim resolution + quality** — a resolution control (Coarse→Ultra ≈ 1.9× particles) for denser cloth/finer folds + a quality slider (solver substeps ↔ framerate); the CPU-side answer to "GPU cloth solver" — PR #142
 - [x] **Wrinkle / micro-normal baking** — a "Micro-wrinkles" toggle: strain-driven procedural crease normals in the fabric shader so close-ups show crisp micro-folds where the cloth bunches, no extra geometry (`?wrinkles=1`) — PR #144
 - [x] **Wind field presets** — named winds (Still · Breeze · Gust · Runway draft) that art-direct the 4D secondary motion; a gust pulse swells/lulls over time (`?wind=`) — PR #146
+- [x] **Tearing & stress-failure viz** — a "Stress check" toggle that colours the garment green→amber→red by fabric-aware failure tolerance (a stiff woven reds out sooner than a stretchy knit), for fit validation (`?stress=1`) — PR #148
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44

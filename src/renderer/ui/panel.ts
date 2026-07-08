@@ -151,6 +151,8 @@ export interface PanelOptions {
   heatmap?: { get: () => boolean; set: (on: boolean) => void }
   /** Strain-driven micro-wrinkle normals toggle (crisp folds on close-ups). */
   wrinkles?: { get: () => boolean; set: (on: boolean) => void }
+  /** Stress / fit-failure viz toggle (where a too-tight garment would strain/fail). */
+  stress?: { get: () => boolean; set: (on: boolean) => void }
   /** Simulation resolution (particle count) + quality (substeps) for dense garments. */
   sim?: {
     resolution: { get: () => SimResolution; set: (r: SimResolution) => void }
@@ -1164,9 +1166,15 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   // ---- Scene actions (re-drape) ----
   const redrapeRow = el('div', 'dio-actions')
   redrapeRow.append(button('⤓  Re-drape', () => opts.onDrop()))
-  const heatmapRow = opts.heatmap
-    ? toggle({ label: 'Fit / tension heatmap', get: () => opts.heatmap!.get(), set: (v) => opts.heatmap!.set(v) }).row
-    : el('div')
+  // Fit heatmap + Stress check share the strain overlay (mutually exclusive) → cross-refresh.
+  const syncStrainToggles = (): void => {
+    heatT?.refresh()
+    stressT?.refresh()
+  }
+  const heatT = opts.heatmap ? toggle({ label: 'Fit / tension heatmap', get: () => opts.heatmap!.get(), set: (v) => { opts.heatmap!.set(v); syncStrainToggles() } }) : null
+  const stressT = opts.stress ? toggle({ label: 'Stress check (fit)', get: () => opts.stress!.get(), set: (v) => { opts.stress!.set(v); syncStrainToggles() } }) : null
+  const heatmapRow = heatT ? heatT.row : el('div')
+  const stressRow = stressT ? stressT.row : el('div')
   const wrinkleRow = opts.wrinkles
     ? toggle({ label: 'Micro-wrinkles', get: () => opts.wrinkles!.get(), set: (v) => opts.wrinkles!.set(v) }).row
     : el('div')
@@ -1201,7 +1209,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sceneGroup = el('div')
   const tlSec = section('Timeline', true)
   if (opts.timeline) tlSec.body.append(timelineControls(opts.timeline))
-  sceneGroup.append(redrapeRow, heatmapRow, wrinkleRow, opts.sim ? simSec.root : el('div'), env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
+  sceneGroup.append(redrapeRow, heatmapRow, stressRow, wrinkleRow, opts.sim ? simSec.root : el('div'), env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
 
   const ctxTabs = el('div', 'dio-ctx-tabs')
   const ctxBtns: Record<'garment' | 'avatar', HTMLButtonElement> = {
