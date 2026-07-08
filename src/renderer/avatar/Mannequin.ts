@@ -3,6 +3,7 @@ import type { Capsule } from './colliders'
 import { BodyMesh, type BodyPart } from './BodyMesh'
 import { loadGlbBody, type GlbBody } from './GlbMannequin'
 import { makeSkinMaterial } from './skin'
+import { getPose, type PoseName } from './poses'
 import { BodyCollider } from '../cloth/BodyCollider'
 
 /** Key body measurements (metres) garments are fitted to (scale with body size). */
@@ -117,6 +118,8 @@ export interface Mannequin {
   resize: (body: Partial<BodyParams>) => void
   /** true = realistic GLB, false = procedural metaball body. */
   setBodyMode: (realistic: boolean) => void
+  /** Set the static lookbook pose (applied while the animation mode is `static`). */
+  setPose: (name: PoseName) => void
   /** Current body anchors — garments pin to these so they follow the animated body. */
   anchors: () => BodyAnchors
   /** Called when the body swaps (async GLB load / toggle) — re-drape garments onto it. */
@@ -485,10 +488,42 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     return { torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: false }
   }
 
+  // Static lookbook pose (held while the animation mode is `static`).
+  let currentPose: PoseName = 'stand'
+  let posedKey = '' // guards the procedural rebuild so a held pose doesn't rebuild per frame
+  const applyProcPose = (force: boolean): void => {
+    const pose = getPose(currentPose)
+    curAngle.legL = pose.proc.legL
+    curAngle.legR = pose.proc.legR
+    curAngle.armL = pose.proc.armL
+    curAngle.armR = pose.proc.armR
+    const key = `pose:${currentPose}`
+    if (!force && key === posedKey) return
+    posedKey = key
+    lastKey = ''
+    applyPose(curAngle)
+    bodyMesh.rebuild(buildAll())
+    syncBodyBVH(false)
+  }
+  const applyCurrentPose = (force: boolean): void => {
+    if (useGlb && glb) {
+      const pose = getPose(currentPose)
+      glb.freezePose(pose.glb.clip, pose.glb.phase)
+      fitCollidersToGlb()
+    } else {
+      applyProcPose(force)
+    }
+  }
+
   let lastT = 0
   const update = (t: number, mode: AnimationMode, speed: number): void => {
     const dt = Math.min(0.05, Math.max(0, t - lastT))
     lastT = t
+    if (mode === 'static') {
+      applyCurrentPose(false) // hold the current lookbook pose
+      return
+    }
+    posedKey = '' // a moving mode → the next static re-applies the pose
     if (useGlb && glb) {
       // Play the rig's idle/walk clip (idle frozen when static) then snap the cloth
       // capsules onto its bones; garments follow via their body anchors (see anchors()).
@@ -534,6 +569,13 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     glb?.fit(body.height, body.build)
   }
 
+  /** Set the static lookbook pose + re-settle garments (applied while mode = static). */
+  const setPose = (name: PoseName): void => {
+    currentPose = name
+    applyCurrentPose(true)
+    onBodyChange?.() // garments re-drape onto the new pose
+  }
+
   /** Apply the current GLB/metaball choice (used by the toggle AND the async loader). */
   function applyBodyMode(): void {
     useGlb = wantGlb && glb != null
@@ -569,6 +611,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     update,
     resize,
     setBodyMode,
+    setPose,
     anchors,
     setOnBodyChange: (cb) => (onBodyChange = cb)
   }

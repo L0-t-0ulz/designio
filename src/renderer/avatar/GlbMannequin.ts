@@ -33,6 +33,8 @@ export interface GlbBody {
   bones: GlbBones
   /** Advance the rig by `dt` s — the walk clip (in place) when `walking`, else idle. */
   update: (dt: number, walking: boolean) => void
+  /** Freeze a real clip frame as a static pose (`phase` 0…1 of the clip's duration). */
+  freezePose: (clip: 'idle' | 'walk', phase: number) => void
 }
 
 /** Classify a bone by name (strips a `mixorig:`-style prefix; side-agnostic segments are centred). */
@@ -134,6 +136,28 @@ export function loadGlbBody(
         }
       }
 
+      // Freeze a real clip frame as a static lookbook pose — solo the clip, seek to
+      // `phase` of its duration, sample once (no time advance), keep the walk in place.
+      const freezePose = (clip: 'idle' | 'walk', phase: number): void => {
+        const target = clip === 'walk' && walkAction ? walkAction : idleAction
+        if (!target) return
+        for (const a of [idleAction, walkAction]) {
+          if (!a) continue
+          a.enabled = a === target
+          a.setEffectiveWeight(a === target ? 1 : 0)
+        }
+        target.play()
+        active = target
+        const dur = target.getClip().duration || 1
+        target.time = Math.max(0, Math.min(dur, phase * dur))
+        mixer.update(0)
+        if (target === walkAction && bones.hips) {
+          bones.hips.position.x = hipsBindX
+          bones.hips.position.z = hipsBindZ
+        }
+        model.updateMatrixWorld(true)
+      }
+
       // Intrinsic (bind-pose) bounds → normalise to 1.75 m, feet on floor, centred.
       const box = new THREE.Box3().setFromObject(model)
       const size = box.getSize(new THREE.Vector3())
@@ -146,7 +170,7 @@ export function loadGlbBody(
         model.position.set(-center.x * base * build, -min.y * base * height, -center.z * base * build)
       }
       fit(1, 1)
-      onReady({ model, fit, bones, update })
+      onReady({ model, fit, bones, update, freezePose })
     },
     undefined,
     (err) => onError?.(err)
