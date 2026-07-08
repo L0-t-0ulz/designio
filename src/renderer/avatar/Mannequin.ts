@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { Capsule } from './colliders'
 import { BodyMesh, type BodyPart } from './BodyMesh'
 import { loadGlbBody, type GlbBody } from './GlbMannequin'
+import { makeSkinMaterial } from './skin'
 import { BodyCollider } from '../cloth/BodyCollider'
 
 /** Key body measurements (metres) garments are fitted to (scale with body size). */
@@ -168,15 +169,9 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
 
   const group = new THREE.Group()
   group.name = 'mannequin'
-  // Matte studio-mannequin material (neutral plaster; a whisper of sheen).
-  const material = new THREE.MeshPhysicalMaterial({
-    color: 0xe9e7e2,
-    roughness: 0.85,
-    metalness: 0,
-    sheen: 0.25,
-    sheenRoughness: 0.85,
-    sheenColor: new THREE.Color(0xffffff)
-  })
+  // Warm skin material for the studio mannequin — reads as photoreal-ish skin
+  // (a textured GLB at assets/mannequin.glb overrides it). See `avatar/skin.ts`.
+  const material = makeSkinMaterial()
 
   const bones: Bone[] = []
   const colliders: Capsule[] = []
