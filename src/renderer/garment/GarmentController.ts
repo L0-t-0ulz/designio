@@ -173,6 +173,30 @@ export class GarmentController {
     return this.pieces.map((p) => ({ name: p.name, mesh: p.mesh }))
   }
 
+  private strainScratch: Float32Array | null = null
+  /** Bake each piece's cloth **strain** into its geometry vertex colours (fit heatmap). */
+  updateHeatmap(colorFn: (strain: number) => [number, number, number]): void {
+    for (const p of this.pieces) {
+      const n = p.solver.count
+      if (!this.strainScratch || this.strainScratch.length < n) this.strainScratch = new Float32Array(n)
+      const strain = this.strainScratch
+      p.solver.strain(strain)
+      let attr = p.geometry.getAttribute('color') as THREE.BufferAttribute | undefined
+      if (!attr || attr.count !== n) {
+        attr = new THREE.BufferAttribute(new Float32Array(n * 3), 3)
+        p.geometry.setAttribute('color', attr)
+      }
+      const c = attr.array as Float32Array
+      for (let k = 0; k < n; k++) {
+        const [r, g, b] = colorFn(strain[k])
+        c[k * 3] = r
+        c[k * 3 + 1] = g
+        c[k * 3 + 2] = b
+      }
+      attr.needsUpdate = true
+    }
+  }
+
   /** Per-piece particle views for the global cloth-collision pass. */
   simPieces(): SimPieceView[] {
     return this.pieces.map((p) => ({

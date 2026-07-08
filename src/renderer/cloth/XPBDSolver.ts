@@ -264,6 +264,28 @@ export class XPBDSolver {
     return moved
   }
 
+  private strainCounts: Float32Array | null = null
+  /**
+   * Per-particle signed **strain** into `out` (length ≥ `count`): the average over
+   * the stretch constraints touching each particle of `(currentLen − rest)/rest`.
+   * Positive = stretched (the cloth is **tight** there), negative = slack (loose).
+   */
+  strain(out: Float32Array): void {
+    const n = this.count
+    for (let k = 0; k < n; k++) out[k] = 0
+    const counts = (this.strainCounts ??= new Float32Array(n))
+    counts.fill(0)
+    for (const con of this.constraints) {
+      if (con.bend || con.rest <= 1e-9) continue
+      const s = (this.restLength(con.i, con.j) - con.rest) / con.rest
+      out[con.i] += s
+      out[con.j] += s
+      counts[con.i]++
+      counts[con.j]++
+    }
+    for (let k = 0; k < n; k++) if (counts[k] > 0) out[k] /= counts[k]
+  }
+
   /** Re-activate the solver after any change (wind, gravity, fabric, respawn, body move). */
   wake(): void {
     this.asleep = false
