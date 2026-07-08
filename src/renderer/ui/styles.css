@@ -308,6 +308,36 @@ canvas {
   color: var(--dio-muted);
   margin: 4px 0 4px;
 }
+/* Named colour library */
+.dio-color-ref {
+  font-size: 11px;
+  color: var(--dio-muted);
+  margin: 2px 0 5px;
+  letter-spacing: 0.2px;
+}
+.dio-color-lib {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 4px;
+  max-height: 118px;
+  overflow-y: auto;
+  padding: 2px;
+  margin-bottom: 6px;
+}
+.dio-swatch {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  border: 1px solid var(--dio-border);
+  cursor: pointer;
+  padding: 0;
+  box-shadow: inset 0 1px 0 var(--inner-hi);
+  transition: transform var(--dur-fast) var(--ease-spring), border-color var(--dur-fast);
+}
+.dio-swatch:hover {
+  transform: scale(1.14);
+  border-color: var(--accent-line);
+  z-index: 1;
+}
 /* Colorways swatch grid */
 .dio-cw-grid {
   display: grid;
