@@ -38,7 +38,12 @@ Electron: `src/main` (window, native menu, CSP, `dialog:saveFile` IPC), `src/pre
 
 Renderer modules:
 - `core/` — `Viewport` (renderer + camera + OrbitControls + post-processing: bloom, vignette, SMAA),
-  `Environment` (IBL, rim lights, reflective floor + shadow-catcher), `Loop` (fixed-timestep).
+  `Environment` (IBL, key + rim rig, reflective floor + shadow-catcher; returns an `EnvironmentHandle`
+  with `setLighting`/`setBackdrop` driven by `studioPresets` — **studio lighting presets** (Studio ·
+  Softbox · Dramatic · High-key · Runway · Golden-hour: each an azimuth/elevation-described key + rims +
+  hemi + exposure, positioned by the pure, unit-tested `lampPosition`) + **backdrop presets** (Studio grey ·
+  White · Charcoal · Black · Blush · Sky cyclorama gradients; `black` hides the stage floor for a floating
+  shot)), `Loop` (fixed-timestep).
 - `avatar/` — `Mannequin` (poseable **and** resizable capsule skeleton; capsules are the cloth
   colliders — plus **visual-only shaping metaballs** for bust/pecs, deltoids, chest/back depth, knees; it
   exposes `anchors()` = torso/hip world frames garments pin to, and drives the GLB), `BodyMesh` (smooth
@@ -169,7 +174,9 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) ·
 `?accessories=<shoes,belt,hat,bag>` (worn accessories) ·
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
-features — brows/eyes/lips) · `?text=<print>`
+features — brows/eyes/lips) ·
+`?light=<studio|softbox|dramatic|high-key|runway|golden-hour>` (a studio lighting preset) ·
+`?backdrop=<studio-grey|white|charcoal|black|blush|sky>` (a backdrop preset) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
 the garment, behind the prints) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a

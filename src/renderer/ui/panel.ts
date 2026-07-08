@@ -10,6 +10,7 @@ import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
+import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
 import { WIND_PRESETS } from '../cloth/windPresets'
 import {
   bodyToMeasurements,
@@ -206,6 +207,13 @@ export interface PanelOptions {
     setColor: (hex: number) => void
     getFace: () => boolean
     setFace: (on: boolean) => void
+  }
+  /** Studio lighting + backdrop presets. */
+  scene?: {
+    getLighting: () => string
+    setLighting: (id: string) => void
+    getBackdrop: () => string
+    setBackdrop: (id: string) => void
   }
   /** Notify the shell of the current editor context (for the status bar). */
   onSelectContext?: (label: string) => void
@@ -1122,12 +1130,44 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       windRow.append(b)
     }
   }
+  // Studio lighting + backdrop presets (photo-studio looks the Environment applies).
+  const lightRow = el('div', 'dio-actions')
+  lightRow.style.flexWrap = 'wrap'
+  const lightBtns = new Map<string, HTMLButtonElement>()
+  const backdropRow = el('div', 'dio-actions')
+  backdropRow.style.flexWrap = 'wrap'
+  const backdropBtns = new Map<string, HTMLButtonElement>()
+  const exposureRefresh: Refreshable[] = []
+  if (opts.scene) {
+    for (const p of LIGHTING_PRESETS) {
+      const b = button(p.label, () => {
+        opts.scene!.setLighting(p.id)
+        for (const [id, btn] of lightBtns) btn.classList.toggle('primary', id === p.id)
+        exposureRefresh.forEach((r) => r.refresh()) // preset sets exposure — sync the slider
+      }, opts.scene.getLighting() === p.id)
+      b.style.flex = '1 1 30%'
+      lightBtns.set(p.id, b)
+      lightRow.append(b)
+    }
+    for (const p of BACKDROP_PRESETS) {
+      const b = button(p.label, () => {
+        opts.scene!.setBackdrop(p.id)
+        for (const [id, btn] of backdropBtns) btn.classList.toggle('primary', id === p.id)
+      }, opts.scene.getBackdrop() === p.id)
+      b.style.flex = '1 1 30%'
+      backdropBtns.set(p.id, b)
+      backdropRow.append(b)
+    }
+  }
+  const exposureSlider = slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) })
+  exposureRefresh.push(exposureSlider)
   env.body.append(
+    ...(opts.scene ? [el('div', 'dio-field-label', 'Lighting'), lightRow, el('div', 'dio-field-label', 'Backdrop'), backdropRow] : []),
     slider({ label: 'Gravity', min: 0, max: 20, step: 0.1, get: () => gravity, set: (v) => { gravity = v; opts.onSetGravity(v) } }).row,
     ...(opts.onSetWindPreset ? [el('div', 'dio-field-label', 'Wind'), windRow] : []),
     windXs.row,
     windZs.row,
-    slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) }).row
+    exposureSlider.row
   )
   // ---- animation ----
   const animSec = section('Animation', true)
