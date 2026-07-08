@@ -69,7 +69,9 @@ Renderer modules:
   beading / metallic foil** eveningwear finishes — pure `sparkleNormal` facet field + `sparkleParams`
   metallic recipe are unit-tested; `makeSparkleNormalMap` bakes the tiling glint normal map), `quilt`
   (**channel / diamond / box quilting** — pure `quiltHeight` pillow-loft field + `quiltNormal` are
-  unit-tested; `makeQuiltNormalMap` bakes the tiling loft normal map for puffers/jackets).
+  unit-tested; `makeQuiltNormalMap` bakes the tiling loft normal map for puffers/jackets), `namedColors`
+  (a curated **named textile colour library** — `TR-####` production refs; pure `nearestNamedColor`/
+  `colorRefLabel` map any picked hue to its closest reference, shown in the panel + the tech-pack BOM).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
   `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem** detail),
   `registry` (the garments, as data), `factory` (`buildGarment` composes pieces; construction detail is
