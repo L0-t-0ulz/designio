@@ -176,7 +176,9 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
 features — brows/eyes/lips) ·
 `?light=<studio|softbox|dramatic|high-key|runway|golden-hour>` (a studio lighting preset) ·
-`?backdrop=<studio-grey|white|charcoal|black|blush|sky>` (a backdrop preset) · `?text=<print>`
+`?backdrop=<studio-grey|white|product-white|charcoal|black|blush|sky|transparent>` (a backdrop preset;
+**product-white** = flat white no-floor product sweep, **transparent** = no backdrop → the Render tab
+exports a PNG **with alpha**) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
 the garment, behind the prints) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a

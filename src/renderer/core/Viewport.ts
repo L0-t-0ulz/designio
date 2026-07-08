@@ -28,7 +28,8 @@ export class Viewport {
   private readonly bloom: UnrealBloomPass
 
   constructor(private container: HTMLElement) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
+    // `alpha: true` so a transparent backdrop exports a real cutout (PNG with alpha).
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -86,7 +87,22 @@ export class Viewport {
 
   render(): void {
     this.controls.update()
-    this.composer.render()
+    this.renderScene()
+  }
+
+  /**
+   * A transparent backdrop (`scene.background === null`) renders the scene **directly**
+   * so post-processing (bloom / vignette) neither clobbers the alpha nor darkens the
+   * edges — a clean product cutout. Everything else goes through the composer.
+   */
+  private renderScene(): void {
+    if (this.scene.background === null) {
+      this.renderer.setClearColor(0x000000, 0)
+      this.renderer.render(this.scene, this.camera)
+    } else {
+      this.renderer.setClearAlpha(1)
+      this.composer.render()
+    }
   }
 
   private readonly _sph = new THREE.Spherical()
@@ -124,7 +140,7 @@ export class Viewport {
     this.composer.setSize(W, H)
     this.bloom.setSize(W, H)
     this.controls.update()
-    this.composer.render()
+    this.renderScene() // honours a transparent backdrop → PNG with alpha
     const out = document.createElement('canvas')
     out.width = W
     out.height = H

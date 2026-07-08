@@ -66,9 +66,9 @@ describe('lighting presets', () => {
 })
 
 describe('backdrop presets', () => {
-  it('cover the full gradient with valid hex colours', () => {
+  it('cover the full gradient with valid hex colours (except the transparent one)', () => {
     expect(BACKDROP_PRESETS.length).toBeGreaterThan(3)
-    for (const p of BACKDROP_PRESETS) {
+    for (const p of BACKDROP_PRESETS.filter((b) => !b.transparent)) {
       const positions = p.stops.map((s) => s[0])
       expect(Math.min(...positions)).toBe(0)
       expect(Math.max(...positions)).toBe(1)
@@ -81,5 +81,15 @@ describe('backdrop presets', () => {
     expect(getBackdropPreset('black')!.floor).toBe(false)
     expect(getBackdropPreset('studio-grey')!.floor).toBe(true)
     expect(BACKDROP_IDS).toContain('white')
+  })
+
+  it('has product-shot backgrounds — a transparent cutout + a flat product white', () => {
+    const t = getBackdropPreset('transparent')!
+    expect(t.transparent).toBe(true)
+    expect(t.floor).toBe(false)
+    expect(t.stops).toEqual([]) // no gradient — the scene clears to alpha
+    const w = getBackdropPreset('product-white')!
+    expect(w.floor).toBe(false)
+    expect(w.stops.every((s) => s[1] === '#ffffff')).toBe(true) // a flat white sweep
   })
 })
