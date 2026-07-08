@@ -62,7 +62,7 @@ import {
 // ---- shared scene (built once) -------------------------------------------
 const container = document.getElementById('app') as HTMLElement
 const viewport = new Viewport(container)
-setupEnvironment(viewport.scene, viewport.renderer)
+const env = setupEnvironment(viewport.scene, viewport.renderer)
 const mannequin = buildMannequin()
 viewport.scene.add(mannequin.group)
 const accessories = new Accessories()
@@ -578,6 +578,10 @@ function initStudio(
   const hairColorParam = params.get('hairColor')
   if (hairColorParam) faceRig.setHairColor(parseInt(hairColorParam.replace('#', ''), 16))
   if (params.get('face') === '1') faceRig.setFaceVisible(true) // subtle features are opt-in
+  const lightParam = params.get('light')
+  if (lightParam) env.setLighting(lightParam)
+  const backdropParam = params.get('backdrop')
+  if (backdropParam) env.setBackdrop(backdropParam)
   const srParam = params.get('simRes')
   if (srParam && SIM_RESOLUTIONS.some((r) => r.name === srParam)) {
     simRes = srParam as SimResolution
@@ -828,6 +832,12 @@ function initStudio(
       setColor: (hex) => faceRig.setHairColor(hex),
       getFace: () => faceRig.isFaceVisible(),
       setFace: (on) => faceRig.setFaceVisible(on)
+    },
+    scene: {
+      getLighting: () => env.getLighting(),
+      setLighting: (id) => env.setLighting(id),
+      getBackdrop: () => env.getBackdrop(),
+      setBackdrop: (id) => env.setBackdrop(id)
     },
     sim: {
       resolution: { get: () => simRes, set: (r) => { simRes = r; stack.setSimResolution(r) } },

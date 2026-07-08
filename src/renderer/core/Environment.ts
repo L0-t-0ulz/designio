@@ -1,6 +1,23 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js'
+import {
+  LIGHTING_PRESETS,
+  BACKDROP_PRESETS,
+  getLightingPreset,
+  getBackdropPreset,
+  lampPosition,
+  type LightingPreset,
+  type BackdropPreset
+} from './studioPresets'
+
+export interface EnvironmentHandle {
+  setLighting: (id: string) => void
+  getLighting: () => string
+  setBackdrop: (id: string) => void
+  getBackdrop: () => string
+  dispose: () => void
+}
 
 /** Vertical gradient backdrop (a soft studio cyclorama), as a texture. */
 function gradientBackground(stops: [number, string][]): THREE.Texture {
@@ -44,7 +61,7 @@ function radialGlowTexture(): THREE.Texture {
 export function setupEnvironment(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer
-): { dispose: () => void } {
+): EnvironmentHandle {
   const disposables: { dispose: () => void }[] = []
   const track = <T extends { dispose: () => void }>(o: T): T => (disposables.push(o), o)
 
@@ -52,19 +69,10 @@ export function setupEnvironment(
   const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
   scene.environment = envTexture
 
-  // Deeper cyclorama falloff → more contrast so the matte body reads with form.
-  const background = gradientBackground([
-    [0, '#e2e5ec'],
-    [0.55, '#bcc1cd'],
-    [1, '#878d9c']
-  ])
-  scene.background = background
-
   const hemi = new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.62)
   scene.add(hemi)
 
   const key = new THREE.DirectionalLight(0xfff6ec, 1.9)
-  key.position.set(3.2, 6.0, 4.2)
   key.castShadow = true
   key.shadow.mapSize.set(2048, 2048)
   key.shadow.camera.near = 0.5
@@ -79,12 +87,9 @@ export function setupEnvironment(
   key.shadow.radius = 5
   scene.add(key)
 
-  const coolRim = new THREE.DirectionalLight(0x9cc0ff, 0.6)
-  coolRim.position.set(-4, 3, -4)
-  scene.add(coolRim)
-  const warmRim = new THREE.DirectionalLight(0xffc79a, 0.32)
-  warmRim.position.set(4.5, 1.6, -2)
-  scene.add(warmRim)
+  // Two reusable rim/fill lamps a lighting preset drives (unused ones drop to 0).
+  const rims = [new THREE.DirectionalLight(0x9cc0ff, 0), new THREE.DirectionalLight(0xffc79a, 0)]
+  for (const r of rims) scene.add(r)
 
   // Gently reflective floor + a transparent shadow-catcher above it.
   const floor = new Reflector(track(new THREE.CircleGeometry(14, 96)), {
@@ -138,11 +143,59 @@ export function setupEnvironment(
   scene.add(grid)
   disposables.push({ dispose: () => gridMat.dispose() })
 
+  // ---- presets -----------------------------------------------------------------
+  let background: THREE.Texture | null = null
+  let lightingId = LIGHTING_PRESETS[0].id
+  let backdropId = BACKDROP_PRESETS[0].id
+
+  const applyLighting = (p: LightingPreset): void => {
+    lightingId = p.id
+    renderer.toneMappingExposure = p.exposure
+    hemi.intensity = p.hemi
+    key.color.setHex(p.key.color)
+    key.intensity = p.key.intensity
+    key.position.copy(lampPosition(p.key))
+    rims.forEach((lamp, i) => {
+      const spec = p.rims[i]
+      lamp.intensity = spec ? spec.intensity : 0
+      if (spec) {
+        lamp.color.setHex(spec.color)
+        lamp.position.copy(lampPosition(spec))
+      }
+    })
+  }
+
+  const applyBackdrop = (p: BackdropPreset): void => {
+    backdropId = p.id
+    const next = gradientBackground(p.stops)
+    scene.background = next
+    background?.dispose()
+    background = next
+    // On a "floating" backdrop (e.g. black) hide the stage furniture for a clean shot.
+    floor.visible = p.floor
+    pool.visible = p.floor
+    pedestal.visible = p.floor
+    grid.visible = p.floor
+  }
+
+  applyLighting(LIGHTING_PRESETS[0])
+  applyBackdrop(BACKDROP_PRESETS[0])
+
   return {
+    setLighting: (id) => {
+      const p = getLightingPreset(id)
+      if (p) applyLighting(p)
+    },
+    getLighting: () => lightingId,
+    setBackdrop: (id) => {
+      const p = getBackdropPreset(id)
+      if (p) applyBackdrop(p)
+    },
+    getBackdrop: () => backdropId,
     dispose: () => {
       pmrem.dispose()
       envTexture.dispose()
-      background.dispose()
+      background?.dispose()
       for (const d of disposables) d.dispose()
     }
   }
