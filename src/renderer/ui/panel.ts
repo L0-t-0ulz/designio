@@ -5,6 +5,7 @@ import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, P
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
+import { POSES, type PoseName } from '../avatar/poses'
 import {
   bodyToMeasurements,
   setMeasurement,
@@ -126,6 +127,8 @@ export interface PanelOptions {
   onExport: (format: ExportFormat) => void
   anim: { mode: AnimationMode; speed: number }
   onSetAnimMode: (m: AnimationMode) => void
+  /** Apply a static lookbook pose (implies static mode). */
+  onSetPose?: (name: PoseName) => void
   onAnimSpeed: (v: number) => void
   onColor: (hex: number) => void
   /** Which garment part the colour/fabric edits target (Body/Sleeves/Legs/Trim). */
@@ -958,9 +961,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     animBtns.set(m, b)
     animRow.append(b)
   }
+  // Lookbook poses (static stances) — picking one switches to static mode.
+  const poseRow = el('div', 'dio-actions')
+  poseRow.style.flexWrap = 'wrap'
+  const poseBtns = new Map<PoseName, HTMLButtonElement>()
+  for (const pose of POSES) {
+    const b = button(pose.label, () => {
+      for (const [, node] of poseBtns) node.classList.remove('primary')
+      b.classList.add('primary')
+      for (const [am, node] of animBtns) node.classList.toggle('primary', am === 'static')
+      opts.onSetPose?.(pose.name)
+    })
+    b.style.flex = '1 1 42%'
+    poseBtns.set(pose.name, b)
+    poseRow.append(b)
+  }
   animSec.body.append(
     animRow,
-    slider({ label: 'Speed', min: 0.2, max: 3, step: 0.1, get: () => opts.anim.speed, set: (v) => { opts.anim.speed = v; opts.onAnimSpeed(v) } }).row
+    slider({ label: 'Speed', min: 0.2, max: 3, step: 0.1, get: () => opts.anim.speed, set: (v) => { opts.anim.speed = v; opts.onAnimSpeed(v) } }).row,
+    el('div', 'dio-field-label', 'Pose (lookbook)'),
+    poseRow
   )
   // (Export lives in the File menu; Re-drape + Play/Pause in the Scene group / status bar.)
 

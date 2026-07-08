@@ -13,6 +13,7 @@ import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
+import { POSE_NAMES, type PoseName } from './avatar/poses'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
@@ -190,6 +191,10 @@ function initStudio(
     anim.mode = m
     viewport.controls.autoRotate = m === 'turn'
     viewport.controls.autoRotateSpeed = anim.speed * 2.2
+  }
+  function setPose(name: PoseName): void {
+    setAnimMode('static') // lookbook poses are static stances
+    mannequin.setPose(name) // applies the pose + re-settles garments (via onBodyChange)
   }
 
   // Load the active layer into the panel buffers + refresh the panel controls.
@@ -478,6 +483,8 @@ function initStudio(
   if (params.get('mode') === 'pattern') setMode('pattern')
   const animParam = params.get('anim') as AnimationMode | null
   if (animParam) setAnimMode(animParam)
+  const poseParam = params.get('pose')
+  if (poseParam && (POSE_NAMES as string[]).includes(poseParam)) setPose(poseParam as PoseName)
   const bodyParams: [string, 'height' | 'build' | 'bust' | 'waist' | 'hips'][] = [
     ['bodyH', 'height'],
     ['bodyB', 'build'],
@@ -747,6 +754,7 @@ function initStudio(
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
     anim,
     onSetAnimMode: setAnimMode,
+    onSetPose: setPose,
     onAnimSpeed: (v) => {
       anim.speed = v
       viewport.controls.autoRotateSpeed = v * 2.2
