@@ -83,7 +83,9 @@ Renderer modules:
   (a curated **named textile colour library** — `TR-####` production refs; pure `nearestNamedColor`/
   `colorRefLabel` map any picked hue to its closest reference, shown in the panel + the tech-pack BOM),
   `heatmap` (**fit / tension heatmap** — pure `strainToColor` slack→blue→tight→red ramp is unit-tested;
-  the stack bakes `XPBDSolver.strain` into mesh vertex colours so you see where a garment pulls).
+  the stack bakes `XPBDSolver.strain` into mesh vertex colours so you see where a garment pulls),
+  `wrinkle` (**strain-driven micro-wrinkles** — pure `wrinkleAmount` unit-tested; `installWrinkle` injects a
+  crease-normal perturbation into the fabric shader scaled by an `aStrain` vertex attribute).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces +
   `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem** detail),
   `registry` (the garments, as data), `factory` (`buildGarment` composes pieces; construction detail is
@@ -170,7 +172,8 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` (per-panel fabric — the body/leg **back** panel) ·
-`?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) ·
+`?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?wrinkles=1` (strain-driven
+micro-wrinkles) ·
 `?simRes=<coarse|normal|fine|ultra>&simQuality=<0..1>` (dense-garment resolution + solver quality) ·
 `?still=1` (freeze the start-page
 turntable) · `?page=start` (deep-link the
