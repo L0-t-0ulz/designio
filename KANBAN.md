@@ -146,7 +146,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Free print textures on delete** — dispose the print `CanvasTexture`s on print removal / layer delete — PR #67
 - [x] **Fix blank prints/textiles in the studio** — the fabric-thickness lining shell was pushed *outward* over the printed surface (tube normals point inward); push it inward so the albedo map shows — PR #108
 - [x] **Wire the library search + filters** — fabric browser filters by family · weight · stretch (combined with the text search); pure `matchesFabric` unit-tested — PR #165
-- [ ] **Autosave + crash recovery** — periodically snapshot the working project so a crash doesn't lose work
+- [x] **Autosave + crash recovery** — snapshots the working `.dio` doc to localStorage every 15 s + on close; a fresh launch offers to recover it via a non-blocking banner; pure `parseSnapshot`/`shouldOfferRestore` unit-tested — PR #166
 - [ ] **Golden-image snapshot tests in CI** — capture a few key looks and diff them each PR to catch visual regressions
 
 ---
