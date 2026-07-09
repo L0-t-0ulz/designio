@@ -91,6 +91,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Distressed / washed / faded finish** — a procedural wear map (faded · acid-wash · distressed) bleached into the albedo; pure value-noise `wearValue` + `wearTone` unit-tested (`?wear=`) — PR #160
 - [x] **Care-label & content generator** — auto fibre content % + laundering instructions per fabric, folded into the manufacturing pack (HTML + JSON); pure `fibreContent`/`careInstructions` unit-tested — PR #161
 - [x] **Skin-tone & complexion picker** — 8 skin tones (fair→deep) × warm/neutral/cool undertones for the default avatar; pure `skinLook` unit-tested, applied to the shared body/GLB material (`?skin=&undertone=`) — PR #162
+- [x] **Lace & broderie** — sheer alpha-cutout lace (chantilly · geometric · fishnet) with a scalloped edge; real see-through via `alphaTest` (lining dropped); pure `laceAlpha`/`scallopValue` unit-tested (`?lace=`) — PR #163
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -126,7 +127,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **More materials & finishes**
 - [ ] **Faux fur & shearling** — a fluffy pile shell for trims, collars + full coats (shell-layer fins or a fur normal)
-- [ ] **Lace & broderie** — alpha-cutout sheer lace panels you can actually see through, with a scalloped edge
 
 **More avatar & scene**
 - [ ] **Group / runway line-up** — several avatars wearing different looks side by side for a collection shot
