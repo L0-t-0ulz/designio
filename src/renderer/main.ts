@@ -5,6 +5,7 @@ import './ui/shell.css'
 import { Viewport } from './core/Viewport'
 import { createStudioShell } from './shell/StudioShell'
 import { buildMenuBar } from './shell/menuBar'
+import { showToast } from './ui/toast'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { buildLibrary } from './shell/library'
 import { buildObjectBrowser } from './shell/objectBrowser'
@@ -441,7 +442,7 @@ function initStudio(
       applyDoc(doc)
       projectId = null // an imported file becomes a new library entry on next save
     } catch (e) {
-      window.alert('Could not open project: ' + (e as Error).message)
+      showToast('Could not open project: ' + (e as Error).message, 'error')
     }
   }
 
@@ -530,7 +531,7 @@ function initStudio(
     if (!r) return
     const parsed = parsePatternDXF(r.content)
     if (!parsed.panels.length) {
-      window.alert('No pattern panels found in that DXF.')
+      showToast('No pattern panels found in that DXF.', 'error')
       return
     }
     importedPattern = parsed
@@ -810,7 +811,7 @@ function initStudio(
         a.click()
         setTimeout(() => URL.revokeObjectURL(url), 8000)
       })
-      .catch((err) => window.alert('Turntable record failed: ' + (err as Error).message))
+      .catch((err) => showToast('Turntable record failed: ' + (err as Error).message, 'error'))
       .finally(() => {
         controls.autoRotate = wasAuto
         controls.enableDamping = wasDamping
@@ -945,16 +946,20 @@ function initStudio(
 
   // ---- menu bar + status bar (wired to the real actions) ----
   let simpleView = false
+  const exportError = (err: unknown): void => {
+    console.error('Export failed', err)
+    showToast('Export failed: ' + (err as Error).message, 'error')
+  }
   buildMenuBar(shell.menubar, {
     onNew: goHome,
     onProjects: goProjects,
     onSaveProject: saveProject,
-    onExportDio: () => void exportDio().catch((err) => console.error('Export failed', err)),
+    onExportDio: () => void exportDio().catch(exportError),
     onOpenProject: () => void openProject(),
     onImportPattern: () => void importPattern(),
-    onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
+    onExport: (fmt) => void doExport(fmt).catch(exportError),
     onRecordTurntable: recordTurntableSpin,
-    onRunwayLineup: () => void exportRunwayLineup().catch((err) => window.alert('Line-up failed: ' + (err as Error).message)),
+    onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
     onUndo: undo,
     onRedo: redo,
     onCut: cutGarment,
@@ -962,6 +967,10 @@ function initStudio(
     onPaste: pasteGarment,
     onDuplicate: duplicateGarment,
     onDelete: deleteGarment,
+    canUndo: () => undoStack.length > 0,
+    canRedo: () => redoStack.length > 0,
+    canPaste: () => clipboard !== null,
+    canModifyLayers: () => stack.size > 1,
     onAnim: setAnimMode,
     onToggleWireframe: () => stack.setWireframe(!stack.wireframe),
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
@@ -1091,7 +1100,7 @@ function initStudio(
       patternCtl?.setWind(p.x, p.z)
       return { x: p.x, z: p.z }
     },
-    onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
+    onExport: (fmt) => void doExport(fmt).catch(exportError),
     anim,
     onSetAnimMode: setAnimMode,
     onSetPose: setPose,
@@ -1127,7 +1136,7 @@ function initStudio(
             a.click()
             setTimeout(() => URL.revokeObjectURL(url), 8000)
           })
-          .catch((err) => window.alert('Record failed: ' + (err as Error).message))
+          .catch((err) => showToast('Record failed: ' + (err as Error).message, 'error'))
       },
       state: () => ({ playing: player.playing, loop: player.loop, time: player.time, total: player.total }),
       subscribe: (cb) => (timelineNotify = cb)

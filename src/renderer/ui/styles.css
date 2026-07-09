@@ -1652,3 +1652,61 @@ canvas {
   .dio-spark,
   .dio-start-tool.spinning { animation: none; transition: none; }
 }
+
+/* Toast notifications (non-blocking, bottom-right) — replaces window.alert for errors. */
+.dio-toasts {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.dio-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 240px;
+  max-width: 400px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg-2, #1c1c26);
+  color: var(--fg-0, #e8eaee);
+  border: 1px solid var(--dio-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.dio-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.dio-toast-error {
+  border-left: 3px solid #e0564e;
+}
+.dio-toast-success {
+  border-left: 3px solid #4caf7d;
+}
+.dio-toast-info {
+  border-left: 3px solid var(--accent, #7a6cff);
+}
+.dio-toast-msg {
+  flex: 1;
+}
+.dio-toast-close {
+  background: none;
+  border: none;
+  color: var(--fg-1, #9aa0aa);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.dio-toast-close:hover {
+  color: var(--fg-0, #e8eaee);
+}

@@ -1,6 +1,7 @@
 import { animate, stagger } from 'motion'
 import { createElement, Plus, Upload, Trash2, Pencil, Download, ArrowLeft } from 'lucide'
 import { el } from '../ui/controls'
+import { showToast } from '../ui/toast'
 import { getGarment } from '../garments/registry'
 import { GARMENT_SIL } from '../ui/thumbnails'
 import { serializeDoc, parseDoc } from '../studio/document'
@@ -173,7 +174,7 @@ export function showProjectsPage(opts: ProjectsActions): void {
       saveProjectRecord({ id: newId(), name: base, doc })
       render()
     } catch (e) {
-      window.alert('Could not import project: ' + (e as Error).message)
+      showToast('Could not import project: ' + (e as Error).message, 'error')
     }
   }
 
