@@ -28,7 +28,8 @@ import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, type Fabric } from './fabric/FabricLibrary'
-import { exportGLB, exportOBJ } from './export/exporters3d'
+import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
+import { recordTurntable } from './studio/turntable'
 import { patternToSVG, patternToDXF } from './export/patternExport'
 import { garmentPatternSVG, garmentPatternDXF } from './export/garmentPattern'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
@@ -620,6 +621,9 @@ function initStudio(
       case 'glb':
         await saveFile('garment.glb', await exportGLB(meshes), [{ name: 'glTF binary', extensions: ['glb'] }])
         break
+      case 'usdz':
+        await saveFile('garment.usdz', await exportUSDZ(meshes), [{ name: 'USDZ (AR)', extensions: ['usdz'] }])
+        break
       case 'obj':
         await saveFile('garment.obj', exportOBJ(meshes), [{ name: 'Wavefront OBJ', extensions: ['obj'] }])
         break
@@ -649,6 +653,33 @@ function initStudio(
         await saveFile('manufacturing.html', manufactureHTML(manufactureBundle()), [{ name: 'HTML', extensions: ['html'] }])
         break
     }
+  }
+
+  // Record a one-click 360° turntable spin of the live view to a WebM clip.
+  // Freeze OrbitControls' own auto-rotate + damping so the sweep is smooth, then
+  // restore the framing afterwards.
+  function recordTurntableSpin(): void {
+    const controls = viewport.controls
+    const wasAuto = controls.autoRotate
+    const wasDamping = controls.enableDamping
+    controls.autoRotate = false
+    controls.enableDamping = false
+    const base = viewport.getCameraPose()
+    recordTurntable(viewport.renderer.domElement, base, (p) => viewport.setCameraPose(p), { seconds: 6 })
+      .then((blob) => {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'designio-turntable.webm'
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(url), 8000)
+      })
+      .catch((err) => window.alert('Turntable record failed: ' + (err as Error).message))
+      .finally(() => {
+        controls.autoRotate = wasAuto
+        controls.enableDamping = wasDamping
+        viewport.setCameraPose(base) // restore the original framing
+      })
   }
 
   // The whole outfit as a manufacturing pack (spec + BOM + flat patterns per layer).
@@ -735,6 +766,7 @@ function initStudio(
     onExportDio: () => void exportDio().catch((err) => console.error('Export failed', err)),
     onOpenProject: () => void openProject(),
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
+    onRecordTurntable: recordTurntableSpin,
     onUndo: undo,
     onRedo: redo,
     onCut: cutGarment,

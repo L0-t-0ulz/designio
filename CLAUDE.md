@@ -123,9 +123,11 @@ Renderer modules:
   `projectStore` (the **in-app project library** — localStorage list/save/load/delete/rename of saved
   `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested), `timeline` + `TimelinePlayer`
   (the **shot-sequencer** — keyframe camera + avatar subject; pure `sampleTimeline`/`lerpCameraPose` are
-  unit-tested; the player eases the camera via `Viewport.get/setCameraPose` + records a WebM clip).
+  unit-tested; the player eases the camera via `Viewport.get/setCameraPose` + records a WebM clip),
+  `turntable` (**one-click turntable spin → WebM**: pure `turntablePose` orbits the camera a full turn
+  around the subject, unit-tested; `recordTurntable` replays it against the live canvas via MediaRecorder).
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
-- `export/` — `exporters3d` (glTF/OBJ), `garmentPattern` (**real per-garment flat pattern**: unwraps the
+- `export/` — `exporters3d` (glTF/OBJ + **USDZ** for iOS AR Quick Look), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
   A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF; pure `placePrints` maps
   placed logos/text onto their panel to scale — a dashed placement box + label in SVG, a PRINT layer in

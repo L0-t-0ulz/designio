@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js'
+import { USDZExporter } from 'three/examples/jsm/exporters/USDZExporter.js'
 
 /** Clone the given objects into a fresh group (so we don't reparent the scene). */
 function group(objects: THREE.Object3D[]): THREE.Group {
@@ -31,4 +32,11 @@ export function exportGLB(objects: THREE.Object3D[]): Promise<Uint8Array> {
 /** Export the objects as a Wavefront OBJ string. */
 export function exportOBJ(objects: THREE.Object3D[]): string {
   return new OBJExporter().parse(group(objects))
+}
+
+/** Export the objects as a USDZ — Apple AR Quick Look on iOS (plane-anchored). */
+export function exportUSDZ(objects: THREE.Object3D[]): Promise<Uint8Array> {
+  return new USDZExporter().parseAsync(group(objects), {
+    ar: { anchoring: { type: 'plane' }, planeAnchoring: { alignment: 'horizontal' } }
+  })
 }
