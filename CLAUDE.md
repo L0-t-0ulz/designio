@@ -135,7 +135,10 @@ Renderer modules:
   per-panel physics — `panelFabricId` falls back back→body, legBack→legs→body, sleeveBack→sleeves→body).
   Adding a garment is `stack.addLayer`.
   `projectStore` (the **in-app project library** — localStorage list/save/load/delete/rename of saved
-  `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested), `timeline` + `TimelinePlayer`
+  `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested), `autosave` (**autosave +
+  crash recovery** — snapshots the working `.dio` doc to localStorage every 15 s + on close; a fresh
+  launch offers to recover it via a non-blocking banner; pure `parseSnapshot`/`shouldOfferRestore`/
+  `describeAge` are unit-tested), `timeline` + `TimelinePlayer`
   (the **shot-sequencer** — keyframe camera + avatar subject; pure `sampleTimeline`/`lerpCameraPose` are
   unit-tested; the player eases the camera via `Viewport.get/setCameraPose` + records a WebM clip),
   `turntable` (**one-click turntable spin → WebM**: pure `turntablePose` orbits the camera a full turn
