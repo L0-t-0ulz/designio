@@ -89,6 +89,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Dip-dye / ombré gradient** — a top-down · bottom-up · radial colour gradient baked into the albedo (base → a deeper dipped tone; derived so it tracks a recolour); pure `ombreT`/`ombreDip` unit-tested (`?ombre=`) — PR #158
 - [x] **Iridescent / holographic finish** — colour-shifting thin-film eveningwear shaders (iridescent · holographic · oil-slick) driving `MeshPhysicalMaterial.iridescence`; pure `iridescentParams` unit-tested (`?iridescent=`) — PR #159
 - [x] **Distressed / washed / faded finish** — a procedural wear map (faded · acid-wash · distressed) bleached into the albedo; pure value-noise `wearValue` + `wearTone` unit-tested (`?wear=`) — PR #160
+- [x] **Care-label & content generator** — auto fibre content % + laundering instructions per fabric, folded into the manufacturing pack (HTML + JSON); pure `fibreContent`/`careInstructions` unit-tested — PR #161
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -132,7 +133,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Contact shadows & SSAO** — grounded contact shadows + ambient occlusion for richer, seated-in-the-scene shading
 
 **More production**
-- [ ] **Care-label & content generator** — fibre content % + laundering care symbols auto-added to the tech pack
 - [ ] **Import an existing flat pattern** — read a DXF/AAMA pattern in and drape it onto the body (round-trips the export)
 
 **AI-assisted design** _(uses the latest Claude models)_
