@@ -192,6 +192,39 @@
 .dio-lib-search::placeholder {
   color: var(--fg-2);
 }
+.dio-lib-filters {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 4px;
+}
+.dio-lib-filters:empty {
+  display: none;
+}
+.dio-lib-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.dio-lib-chip {
+  padding: 3px 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--fg-1);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+.dio-lib-chip:hover {
+  color: var(--fg-0);
+}
+.dio-lib-chip.on {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
 .dio-lib-body {
   flex: 1;
   min-height: 0;

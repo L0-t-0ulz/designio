@@ -4,6 +4,7 @@ import { GARMENT_CATEGORIES, garmentsByCategory } from '../garments/registry'
 import { FABRIC_FAMILIES, FABRIC_LIBRARY } from '../fabric/FabricLibrary'
 import { GARMENT_SIL, fabricSwatchCanvas } from '../ui/thumbnails'
 import { PRESETS, type Preset } from '../start/presets'
+import { matchesFabric, type FabricFilter, type WeightBucket, type StretchBucket } from './libraryFilter'
 
 type Tab = 'garments' | 'fabrics' | 'avatars' | 'presets'
 
@@ -35,12 +36,18 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
   const search = el('input', 'dio-lib-search') as HTMLInputElement
   search.type = 'search'
   search.placeholder = 'Search…'
+  const filterBar = el('div', 'dio-lib-filters')
   const body = el('div', 'dio-lib-body')
-  root.append(tabsRow, search, body)
+  root.append(tabsRow, search, filterBar, body)
   host.append(root)
 
   let tab: Tab = 'garments'
   let query = ''
+  // Structured fabric filters (family / weight / stretch), driven by the chip bar.
+  let famFilter = 'all'
+  let weightFilter: WeightBucket = 'any'
+  let stretchFilter: StretchBucket = 'any'
+  const fabricFilter = (): FabricFilter => ({ query, family: famFilter, weight: weightFilter, stretch: stretchFilter })
 
   const tabs: [Tab, string][] = [
     ['garments', 'Garments'],
@@ -66,6 +73,29 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
   })
 
   const match = (name: string): boolean => !query || name.toLowerCase().includes(query)
+
+  // A row of exclusive filter chips: picks a value into `set`, then re-renders.
+  function chipRow<T>(choices: [string, T][], get: () => T, set: (v: T) => void): HTMLElement {
+    const row = el('div', 'dio-lib-chips')
+    for (const [label, val] of choices) {
+      const b = el('button', 'dio-lib-chip' + (get() === val ? ' on' : ''), label)
+      b.addEventListener('click', () => {
+        set(val)
+        render()
+      })
+      row.append(b)
+    }
+    return row
+  }
+  function buildFilterBar(): void {
+    filterBar.replaceChildren()
+    if (tab !== 'fabrics') return
+    filterBar.append(
+      chipRow<string>([['All', 'all'], ...FABRIC_FAMILIES.map((f) => [f.label, f.id] as [string, string])], () => famFilter, (v) => (famFilter = v)),
+      chipRow<WeightBucket>([['Any wt', 'any'], ['Light', 'light'], ['Medium', 'medium'], ['Heavy', 'heavy']], () => weightFilter, (v) => (weightFilter = v)),
+      chipRow<StretchBucket>([['Any', 'any'], ['Rigid', 'rigid'], ['Stretch', 'stretch']], () => stretchFilter, (v) => (stretchFilter = v))
+    )
+  }
   const cat = (label: string): HTMLElement => el('div', 'dio-lib-cat', label)
   const grid = (): HTMLElement => el('div', 'dio-lib-grid')
 
@@ -84,6 +114,7 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
   function render(): void {
     body.replaceChildren()
     search.style.display = tab === 'avatars' ? 'none' : ''
+    buildFilterBar()
 
     if (tab === 'garments') {
       for (const c of GARMENT_CATEGORIES) {
@@ -101,8 +132,9 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
         body.append(g)
       }
     } else if (tab === 'fabrics') {
+      const flt = fabricFilter()
       for (const fam of FABRIC_FAMILIES) {
-        const items = FABRIC_LIBRARY.filter((f) => f.family === fam.id && match(f.name))
+        const items = FABRIC_LIBRARY.filter((f) => f.family === fam.id && matchesFabric(f, flt))
         if (!items.length) continue
         body.append(cat(fam.label))
         const g = grid()
