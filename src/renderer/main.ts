@@ -6,6 +6,7 @@ import { Viewport } from './core/Viewport'
 import { createStudioShell } from './shell/StudioShell'
 import { buildMenuBar } from './shell/menuBar'
 import { showToast } from './ui/toast'
+import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOverlay'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { buildLibrary } from './shell/library'
 import { buildObjectBrowser } from './shell/objectBrowser'
@@ -906,6 +907,8 @@ function initStudio(
   function onKey(e: KeyboardEvent): void {
     const t = e.target as HTMLElement | null
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+    if (e.key === 'Escape' && shortcutsOpen()) return closeShortcuts()
+    if (e.key === '?') return e.preventDefault(), toggleShortcuts()
     const mod = e.metaKey || e.ctrlKey
     const k = e.key.toLowerCase()
     if (mod && k === 'z') return e.preventDefault(), void (e.shiftKey ? redo() : undo())
@@ -923,6 +926,7 @@ function initStudio(
   // ---- navigation out of the studio ----
   function teardown(): void {
     document.removeEventListener('keydown', onKey)
+    closeShortcuts()
     loop.stop()
     shell.dispose()
     stack.clear()
@@ -988,6 +992,7 @@ function initStudio(
       objBrowser.setVisible(!simpleView)
     },
     onResetLayout: () => shell.resetLayout(),
+    onShortcuts: toggleShortcuts,
     onAbout: () =>
       window.alert('DesignIO — a fully-3D clothing design studio.\n© Zayan Khan. All rights reserved.')
   })
@@ -999,7 +1004,8 @@ function initStudio(
       loop.setRunning(running)
       statusHandles?.setSim(running)
     },
-    running
+    running,
+    getGarment(stack.active.data.garmentType).name // seed the selection so it never flashes "No selection"
   )
 
   // ---- control panel (docked into the right region) ----
