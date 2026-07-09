@@ -90,6 +90,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Iridescent / holographic finish** — colour-shifting thin-film eveningwear shaders (iridescent · holographic · oil-slick) driving `MeshPhysicalMaterial.iridescence`; pure `iridescentParams` unit-tested (`?iridescent=`) — PR #159
 - [x] **Distressed / washed / faded finish** — a procedural wear map (faded · acid-wash · distressed) bleached into the albedo; pure value-noise `wearValue` + `wearTone` unit-tested (`?wear=`) — PR #160
 - [x] **Care-label & content generator** — auto fibre content % + laundering instructions per fabric, folded into the manufacturing pack (HTML + JSON); pure `fibreContent`/`careInstructions` unit-tested — PR #161
+- [x] **Skin-tone & complexion picker** — 8 skin tones (fair→deep) × warm/neutral/cool undertones for the default avatar; pure `skinLook` unit-tested, applied to the shared body/GLB material (`?skin=&undertone=`) — PR #162
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -128,7 +129,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Lace & broderie** — alpha-cutout sheer lace panels you can actually see through, with a scalloped edge
 
 **More avatar & scene**
-- [ ] **Skin-tone & complexion picker** — a range of skin tones + undertones for the default avatar (complements the body presets)
 - [ ] **Group / runway line-up** — several avatars wearing different looks side by side for a collection shot
 - [ ] **Contact shadows & SSAO** — grounded contact shadows + ambient occlusion for richer, seated-in-the-scene shading
 
