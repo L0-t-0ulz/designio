@@ -35,6 +35,7 @@ import { garmentPatternSVG, garmentPatternDXF } from './export/garmentPattern'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
+import { careLabel } from './export/careLabel'
 import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
@@ -711,6 +712,8 @@ function initStudio(
           parts: parts.length ? parts : undefined,
           trim: l.data.trim ? getFabric(l.data.trimFabricId ?? l.data.fabricId).name : undefined,
           seam: l.data.seam ?? 10,
+          fibre: careLabel(l.fabric).fibre,
+          care: careLabel(l.fabric).care,
           metrics: activeMetrics(l),
           patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
         }

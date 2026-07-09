@@ -21,6 +21,9 @@ export interface ManufactureLayer {
   trim?: string
   /** Seam allowance (mm). */
   seam?: number
+  /** Auto-generated care label — fibre content + laundering instructions. */
+  fibre?: string
+  care?: string[]
   metrics: GarmentMetrics
   patternSVG: string
 }
@@ -67,6 +70,17 @@ function layerSection(l: ManufactureLayer): string {
             <tr><td>Total seam length</td><td colspan="2">${l.metrics.seamCm.toFixed(0)} cm</td></tr>
           </tbody>
         </table>
+        ${
+          l.fibre || l.care
+            ? `<h3>Care &amp; content</h3>
+        <table>
+          <tbody>
+            ${l.fibre ? `<tr><td>Fibre content</td><td colspan="2">${esc(l.fibre)}</td></tr>` : ''}
+            ${(l.care ?? []).map((c) => `<tr><td>Care</td><td colspan="2">${esc(c)}</td></tr>`).join('')}
+          </tbody>
+        </table>`
+            : ''
+        }
       </div>
       <div class="pattern">
         <h3>Flat pattern</h3>
@@ -123,6 +137,8 @@ export function manufactureJSON(b: ManufactureBundle): string {
         part_fabrics: l.parts ?? [],
         trim: l.trim ?? null,
         seam_allowance_mm: l.seam ?? 10,
+        fibre_content: l.fibre ?? null,
+        care: l.care ?? [],
         color: hex(l.color),
         color_ref: l.colorRef ?? null,
         measurements_cm: Object.fromEntries(l.metrics.rows.map((r) => [r.label, r.cm])),
