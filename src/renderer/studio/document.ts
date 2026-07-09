@@ -67,15 +67,16 @@ export interface PartFabric {
 
 /**
  * Per-part / per-panel fabric overrides. `sleeves`/`legs` scope a whole piece;
- * `back` (body) and `legBack` (legs) scope just that piece's back panel — the
- * front panel uses the piece's own fabric (body default / `legs`). Body front
- * uses the layer's `fabricId`/`color`.
+ * `back` (body), `legBack` (legs) and `sleeveBack` (sleeves) scope just that
+ * piece's back panel — the front panel uses the piece's own fabric (body
+ * default / `legs` / `sleeves`). Body front uses the layer's `fabricId`/`color`.
  */
 export interface PartFabrics {
   sleeves?: PartFabric
   legs?: PartFabric
   back?: PartFabric
   legBack?: PartFabric
+  sleeveBack?: PartFabric
 }
 
 /** One garment worn on the body (its own construction + fabric + print). */
@@ -161,7 +162,8 @@ const clonePartFabrics = (pf?: PartFabrics): PartFabrics | undefined =>
         sleeves: pf.sleeves && { ...pf.sleeves },
         legs: pf.legs && { ...pf.legs },
         back: pf.back && { ...pf.back },
-        legBack: pf.legBack && { ...pf.legBack }
+        legBack: pf.legBack && { ...pf.legBack },
+        sleeveBack: pf.sleeveBack && { ...pf.sleeveBack }
       }
     : undefined
 

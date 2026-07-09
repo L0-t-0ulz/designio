@@ -408,7 +408,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       ['Body', 'body'],
       ['Back', 'back']
     ]
-    if (def.supports.sleeve) parts.push(['Sleeves', 'sleeves'])
+    if (def.supports.sleeve) parts.push(['Sleeves', 'sleeves'], ['Sleeves back', 'sleeveBack'])
     if (hasLegs) parts.push(['Legs', 'legs'], ['Legs back', 'legBack'])
     parts.push(['Trim', 'trim'])
     if (!parts.some(([, p]) => p === currentPart)) currentPart = 'body'
