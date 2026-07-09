@@ -242,6 +242,10 @@ procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle 
 piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
+`?lined/interfaced/waistband/facing/drawstring/ruffles/boning/ribbing/yoke/princess=1` (more construction detail) ·
+`?sleeveShape=<set-in|raglan|dolman|bishop|puff|bell>` · `?collarStyle=<…>` · `?pleatStyle=<knife|box|accordion|cartridge|gather>` ·
+`?pocketStyle=<…>` · `?frillStyle=<…>` · `?closureStyle=<button|zip>` (construction *style* pickers) ·
+`?embroidery=1` · `?applique=1` (raised print styles — same as `?prints=embroidery|applique`) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` · `?sleeveBackFabric=<id>` (per-panel fabric — the body/leg/sleeve **back** panel) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?stress=1` (fit-failure viz) ·

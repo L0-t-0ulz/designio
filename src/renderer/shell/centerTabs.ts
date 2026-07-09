@@ -143,13 +143,13 @@ export function buildCenterTabs(
       tools.append(stepper('Sleeve', () => cap(edit.sleeve()), () => edit.nudgeSleeve(-1), () => edit.nudgeSleeve(1), '◀', '▶'))
     }
     if (sup.length) {
-      tools.append(stepper('Length', () => edit.length().toFixed(2), () => edit.nudgeLength(-0.05), () => edit.nudgeLength(0.05)))
+      tools.append(stepper('Length', () => `${Math.round(edit.length() * 100)}%`, () => edit.nudgeLength(-0.05), () => edit.nudgeLength(0.05)))
     }
     if (sup.ease) {
-      tools.append(stepper('Width', () => `${Math.round(edit.ease() * 100)} cm`, () => edit.nudgeEase(-0.005), () => edit.nudgeEase(0.005)))
+      tools.append(stepper('Width', () => `${(edit.ease() * 100).toFixed(1)} cm`, () => edit.nudgeEase(-0.005), () => edit.nudgeEase(0.005)))
     }
     if (sup.flare) {
-      tools.append(stepper('Hem', () => `${Math.round(edit.flare() * 100)} cm`, () => edit.nudgeFlare(-0.01), () => edit.nudgeFlare(0.01)))
+      tools.append(stepper('Hem', () => `${(edit.flare() * 100).toFixed(1)} cm`, () => edit.nudgeFlare(-0.01), () => edit.nudgeFlare(0.01)))
     }
   }
 

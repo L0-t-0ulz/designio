@@ -8,11 +8,11 @@ export interface StatusHandles {
 }
 
 /** Bottom status bar: simulate toggle · sim state · selection · units · fps. */
-export function buildStatusBar(host: HTMLElement, onToggleSim: () => void, running: boolean): StatusHandles {
+export function buildStatusBar(host: HTMLElement, onToggleSim: () => void, running: boolean, initialSelection = 'No selection'): StatusHandles {
   host.replaceChildren()
   const simBtn = el('button', 'dio-status-btn')
   const sim = el('span', 'dio-status-item')
-  const sel = el('span', 'dio-status-item', 'No selection')
+  const sel = el('span', 'dio-status-item', initialSelection)
   const spacer = el('span', 'dio-status-spacer')
   const units = el('span', 'dio-status-item', 'Units: m')
   const fps = el('span', 'dio-status-item dio-status-fps', '— fps')

@@ -168,6 +168,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Free print textures on delete** — dispose the print `CanvasTexture`s on print removal / layer delete — PR #67
 - [x] **Resource-disposal hardening** — `clearSwatch` now resets the `sleeveBackMaterial` map too (was a stale-texture leak on back panels); `GarmentController.clear()` disposes the shared thread material (leaked per layer-delete); the two decor-dispose loops are one recursive helper (`clearDecorChildren`) that frees nested geometry too — PR #187
 - [x] **Error UX & menu affordances** — a non-blocking **toast** system (`ui/toast.ts`, `role="alert"`, auto-dismiss) replaces `window.alert` for failures (open/import/DXF/turntable/line-up/record) + **surfaces export failures** (were silent `console.error`); **Undo/Redo/Paste/Cut/Delete** menu items grey out at their boundaries (empty stack · empty clipboard · last garment), re-evaluated on menu open — PR #188
+- [x] **UI consistency & docs** — quick-edit toolbar formats consistently (Length as %, Width/Hem as `N.N cm` reflecting their 0.5-cm steps); the status bar seeds the active garment (no "No selection" flash); the ~15 wired-but-undocumented construction deep-link params (`?sleeveShape`/`pleatStyle`/`lined`/`boning`/… ) added to `CLAUDE.md` — PR #189
 - [x] **Fix blank prints/textiles in the studio** — the fabric-thickness lining shell was pushed *outward* over the printed surface (tube normals point inward); push it inward so the albedo map shows — PR #108
 - [x] **Wire the library search + filters** — fabric browser filters by family · weight · stretch (combined with the text search); pure `matchesFabric` unit-tested — PR #165
 - [x] **Autosave + crash recovery** — snapshots the working `.dio` doc to localStorage every 15 s + on close; a fresh launch offers to recover it via a non-blocking banner; pure `parseSnapshot`/`shouldOfferRestore` unit-tested — PR #166
@@ -347,7 +348,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Global search** — garments + fabrics + colours + presets in one box
 - [ ] **Favourites / recents row** in the Library
 - [ ] **Multi-select layers** — recolour/edit several garment layers at once
-- [ ] **Keyboard-shortcuts overlay** (press `?`)
+- [x] **Keyboard-shortcuts overlay** (press `?`) — a dismissible cheat-sheet modal (`ui/shortcutsOverlay.ts`) listing every shortcut + a Help-menu entry; Esc/click to close — PR #189
 
 **Performance** _(refine PRs #142 · #167)_
 - [ ] **Cloth solver in a Web Worker** — run the sim off the main thread
