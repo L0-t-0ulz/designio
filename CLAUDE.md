@@ -89,7 +89,9 @@ Renderer modules:
   pure `makeSeamless`/`normalFromLuma`/`estimateRoughness` pixel math is unit-tested; `buildSwatchTextures`
   bakes an albedo + derived normal + roughness that clothe the whole garment), `sparkle` (**sequins /
   beading / metallic foil** eveningwear finishes — pure `sparkleNormal` facet field + `sparkleParams`
-  metallic recipe are unit-tested; `makeSparkleNormalMap` bakes the tiling glint normal map), `quilt`
+  metallic recipe are unit-tested; `makeSparkleNormalMap` bakes the tiling glint normal map), `iridescent`
+  (**iridescent / holographic / oil-slick** colour-shifting finishes — pure `iridescentParams` thin-film
+  recipe is unit-tested; the stack drives `MeshPhysicalMaterial.iridescence` per part), `quilt`
   (**channel / diamond / box quilting** — pure `quiltHeight` pillow-loft field + `quiltNormal` are
   unit-tested; `makeQuiltNormalMap` bakes the tiling loft normal map for puffers/jackets), `namedColors`
   (a curated **named textile colour library** — `TR-####` production refs; pure `nearestNamedColor`/
@@ -189,6 +191,7 @@ back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repe
 the garment, behind the prints) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
 into the albedo) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
 procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
+`?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
 `?quilt=<channel|diamond|box>` (a quilted-loft finish) · `?prints=demo`
 (two body prints) · `?prints=parts` (a print on the body + sleeves + legs — each print sits on its own
 piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·

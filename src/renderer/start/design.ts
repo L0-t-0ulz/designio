@@ -6,6 +6,7 @@ import type { SizeLabel, PartFabrics } from '../studio/document'
 import { paintTextile, type TextilePattern } from '../fabric/textile'
 import { paintOmbre, type OmbreDirection } from '../fabric/ombre'
 import type { SparkleKind } from '../fabric/sparkle'
+import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
 
 /** Everything the start page lets you build before entering the 3D studio. */
@@ -65,6 +66,8 @@ export interface DesignConfig {
   ombre?: OmbreDirection
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
+  /** Iridescent finish — soap-bubble / holographic / oil-slick colour shift. */
+  iridescent?: IridescentKind
   /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
   quilt?: QuiltPattern
 }

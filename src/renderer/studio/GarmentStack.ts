@@ -22,6 +22,7 @@ import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type 
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
+import { iridescentParams } from '../fabric/iridescent'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
@@ -361,17 +362,23 @@ export class GarmentStack {
     // Surface finish over every part material — keeps the albedo (prints/textile)
     // but overrides the shading. Sparkle (sequins/beading/foil) = a faceted normal
     // + metallic glints; else quilting (channel/diamond/box) = a pillow-loft normal;
-    // else the plain matte fabric (weave normal already set by applyFabric).
+    // an iridescent (soap-bubble/hologram/oil-slick) thin-film colour-shift layers
+    // on top; else the plain matte fabric (weave normal already set by applyFabric).
     const sp = l.data.sparkle ? sparkleParams(l.data.sparkle) : null
     const sparkleNormalMap = l.data.sparkle ? makeSparkleNormalMap(l.data.sparkle) : null
     const ql = !l.data.sparkle && l.data.quilt ? quiltParams(l.data.quilt) : null
     const quiltNormalMap = ql && l.data.quilt ? makeQuiltNormalMap(l.data.quilt) : null
+    const ir = !l.data.sparkle && l.data.iridescent ? iridescentParams(l.data.iridescent) : null
     for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
-      // metallic props applyFabric doesn't touch — default matte unless sparkle sets them
-      m.metalness = sp ? sp.metalness : 0
-      m.clearcoat = sp ? sp.clearcoat : 0
-      m.clearcoatRoughness = sp ? sp.clearcoatRoughness : 0
-      m.envMapIntensity = sp ? sp.envMapIntensity : FABRIC_ENV_INTENSITY
+      // metallic props applyFabric doesn't touch — default matte unless a finish sets them
+      m.metalness = sp ? sp.metalness : ir ? ir.metalness : 0
+      m.clearcoat = sp ? sp.clearcoat : ir ? ir.clearcoat : 0
+      m.clearcoatRoughness = sp ? sp.clearcoatRoughness : ir ? ir.clearcoatRoughness : 0
+      m.envMapIntensity = sp ? sp.envMapIntensity : ir ? ir.envMapIntensity : FABRIC_ENV_INTENSITY
+      // thin-film iridescence — reset to off (0) unless an iridescent finish is on.
+      m.iridescence = ir ? ir.iridescence : 0
+      m.iridescenceIOR = ir ? ir.iridescenceIOR : 1.3
+      m.iridescenceThicknessRange = ir ? ir.thicknessRange : [100, 400]
       if (sp && sparkleNormalMap) {
         m.normalMap = sparkleNormalMap
         m.normalScale.set(sp.normalStrength, sp.normalStrength)
@@ -381,6 +388,8 @@ export class GarmentStack {
         m.normalMap = quiltNormalMap
         m.normalScale.set(ql.normalStrength, ql.normalStrength)
         m.roughness = ql.roughness
+      } else if (ir) {
+        m.roughness = ir.roughness // glossy so the colour-shift reads
       }
       m.needsUpdate = true
     }
