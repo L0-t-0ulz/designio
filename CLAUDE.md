@@ -50,7 +50,9 @@ Renderer modules:
   metaball body via MarchingCubes; shaped head/hand/foot caps), `GlbMannequin` (the **default** realistic
   avatar — replace `assets/mannequin.glb`; renders its own skin when textured, else the **warm skin
   material** (`avatar/skin.ts` — `makeSkinMaterial`: skin tone + warm subsurface sheen, shared with the
-  procedural body), and **falls back** to the procedural body; plays the rig's **idle/walk** clips **in
+  procedural body; a **complexion picker** — `skinLook(tone, undertone)` maps 8 skin tones (fair→deep) ×
+  warm/neutral/cool undertones to a shared-material look, pure + unit-tested, applied via
+  `mannequin.setSkinTone`), and **falls back** to the procedural body; plays the rig's **idle/walk** clips **in
   place**, and the mannequin fits the capsules to its Mixamo bones each frame so cloth collides with the
   moving body), `colliders` (capsule math), `measure` (**made-to-measure**: pure `bodyToMeasurements`/
   `setMeasurement` map real cm ↔ the body-param multipliers, + `parseSizeChart`/`applySizeRow` for a
@@ -184,6 +186,8 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) ·
 `?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) ·
 `?accessories=<shoes,belt,hat,bag>` (worn accessories) ·
+`?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
+`?undertone=<warm|neutral|cool>` (its undertone) ·
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
 features — brows/eyes/lips) ·
 `?light=<studio|softbox|dramatic|high-key|runway|golden-hour>` (a studio lighting preset) ·

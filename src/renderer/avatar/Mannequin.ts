@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import type { Capsule } from './colliders'
 import { BodyMesh, type BodyPart } from './BodyMesh'
 import { loadGlbBody, type GlbBody } from './GlbMannequin'
-import { makeSkinMaterial } from './skin'
+import { makeSkinMaterial, applySkinLook, type SkinLook } from './skin'
 import { getPose, type PoseName } from './poses'
 import { BodyCollider } from '../cloth/BodyCollider'
 
@@ -120,6 +120,8 @@ export interface Mannequin {
   setBodyMode: (realistic: boolean) => void
   /** Set the static lookbook pose (applied while the animation mode is `static`). */
   setPose: (name: PoseName) => void
+  /** Set the avatar's complexion (skin tone + undertone) — the shared body/GLB material. */
+  setSkinTone: (look: SkinLook) => void
   /** Current body anchors — garments pin to these so they follow the animated body. */
   anchors: () => BodyAnchors
   /** Called when the body swaps (async GLB load / toggle) — re-drape garments onto it. */
@@ -612,6 +614,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     resize,
     setBodyMode,
     setPose,
+    setSkinTone: (look) => applySkinLook(material, look),
     anchors,
     setOnBodyChange: (cb) => (onBodyChange = cb)
   }

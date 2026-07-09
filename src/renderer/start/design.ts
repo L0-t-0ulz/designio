@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { CollarStyle, GarmentType, SleeveStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
+import type { SkinTone, Undertone } from '../avatar/skin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
 import { paintTextile, type TextilePattern } from '../fabric/textile'
 import { paintOmbre, type OmbreDirection } from '../fabric/ombre'
@@ -59,6 +60,9 @@ export interface DesignConfig {
   bodyBust: number
   bodyWaist: number
   bodyHips: number
+  /** Complexion — skin tone + undertone (undefined = the default warm mid skin). */
+  skinTone?: SkinTone
+  undertone?: Undertone
   /** Placed prints (logos + text), each positioned / sized / rotated. */
   prints: Print[]
   /** A repeating textile pattern tiled across the whole garment (behind prints). */

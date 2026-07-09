@@ -5,6 +5,7 @@ import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, P
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
+import { SKIN_TONES, SKIN_TONE_HEX, UNDERTONES, type SkinTone, type Undertone } from '../avatar/skin'
 import { POSES, type PoseName } from '../avatar/poses'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
@@ -206,6 +207,12 @@ export interface PanelOptions {
   bodySize: BodyParams
   onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
+  /** The avatar's complexion — skin tone + undertone (optional). */
+  skin?: {
+    getTone: () => SkinTone | undefined
+    getUndertone: () => Undertone
+    set: (tone: SkinTone | undefined, undertone: Undertone) => void
+  }
   /** Toggle worn accessories (shoes / belt / hat / bag) on the avatar. */
   accessories?: { get: (kind: AccessoryKind) => boolean; set: (kind: AccessoryKind, on: boolean) => void }
   /** Hair + face customization on the avatar. */
@@ -741,6 +748,46 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       ]
     : []
 
+  // Complexion — a skin-tone swatch ramp (fair → deep) + a warm/neutral/cool undertone.
+  function skinEls(sk: NonNullable<PanelOptions['skin']>): HTMLElement[] {
+    const toneRow = el('div', 'dio-seg dio-seg-wrap')
+    const chips = new Map<SkinTone | undefined, HTMLButtonElement>()
+    const paint = (): void => {
+      for (const [t, b] of chips) b.classList.toggle('on', t === sk.getTone())
+    }
+    const undertoneRow = el('div', 'dio-seg dio-seg-wrap')
+    const UT_LABELS: Record<Undertone, string> = { warm: 'Warm', neutral: 'Neutral', cool: 'Cool' }
+    const chip = (tone: SkinTone | undefined): HTMLButtonElement => {
+      const b = el('button', 'dio-seg-btn' + (sk.getTone() === tone ? ' on' : ''), tone ? '' : 'Default') as HTMLButtonElement
+      b.setAttribute('type', 'button')
+      if (tone) {
+        b.title = tone
+        b.style.background = '#' + SKIN_TONE_HEX[tone].toString(16).padStart(6, '0')
+        b.style.width = '22px'
+        b.style.minWidth = '22px'
+      }
+      b.addEventListener('click', () => {
+        sk.set(tone, sk.getUndertone())
+        paint()
+      })
+      chips.set(tone, b)
+      return b
+    }
+    toneRow.append(chip(undefined), ...SKIN_TONES.map((t) => chip(t)))
+    for (const ut of UNDERTONES) {
+      const b = el('button', 'dio-seg-btn' + (sk.getUndertone() === ut ? ' on' : ''), UT_LABELS[ut])
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        sk.set(sk.getTone(), ut)
+        for (const n of Array.from(undertoneRow.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      undertoneRow.append(b)
+    }
+    return [el('div', 'dio-field-label', 'Complexion'), toneRow, el('div', 'dio-field-label', 'Undertone'), undertoneRow]
+  }
+  const skinControlEls = opts.skin ? skinEls(opts.skin) : []
+
   bodySec.body.append(
     figRow,
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
@@ -748,6 +795,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     presetRow,
     ...(opts.accessories ? [el('div', 'dio-field-label', 'Accessories'), accRow] : []),
     ...hairFaceEls,
+    ...skinControlEls,
     bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,
     bodySlider('Build', 'build', 0.8, 1.25, (v) => `${Math.round(v * 100)}%`).row,
     bodySlider('Bust', 'bust', 0.82, 1.25, (v) => `${Math.round(v * 100)}%`).row,

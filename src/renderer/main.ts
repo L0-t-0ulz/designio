@@ -13,6 +13,7 @@ import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
+import { skinLook, SKIN_LOOK, SKIN_TONES, UNDERTONES, type SkinTone, type Undertone } from './avatar/skin'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
 import { getBodyPreset } from './avatar/bodyPresets'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
@@ -188,6 +189,11 @@ function initStudio(
     if (mode === 'templates') stack.rebuildAll()
     else patternCtl?.build(patternParams)
   }
+  // Apply the avatar's complexion (skin tone + undertone) — cheap material update,
+  // separate from the geometry resize path. Undefined tone = the default warm skin.
+  function applySkin(): void {
+    mannequin.setSkinTone(bodySize.skinTone ? skinLook(bodySize.skinTone, bodySize.undertone ?? 'warm') : SKIN_LOOK)
+  }
   function setMode(m: DesignMode): void {
     mode = m
     if (m === 'templates') {
@@ -290,6 +296,7 @@ function initStudio(
     stack.clear()
     Object.assign(bodySize, doc.body)
     mannequin.resize(bodySize)
+    applySkin()
     gravity = doc.scene.gravity
     windX = doc.scene.windX
     windZ = doc.scene.windZ
@@ -428,8 +435,9 @@ function initStudio(
     }
   )
 
-  const { bodyType: bt, ...bodyScales } = bodySize
+  const { bodyType: bt, skinTone: _st, undertone: _ut, ...bodyScales } = bodySize
   if (bt !== 'female' || Object.values(bodyScales).some((v) => v !== 1)) setBody(bodySize)
+  applySkin() // complexion is independent of the geometry-resize condition above
   loop.start()
 
   // ---- professional studio shell (menu bar · viewport · dock · status bar) ----
@@ -558,6 +566,13 @@ function initStudio(
       bodySize[key] = +v
       bodyChanged = true
     }
+  }
+  const skinParam = params.get('skin')
+  if (skinParam && (SKIN_TONES as string[]).includes(skinParam)) {
+    bodySize.skinTone = skinParam as SkinTone
+    const utParam = params.get('undertone')
+    if (utParam && (UNDERTONES as string[]).includes(utParam)) bodySize.undertone = utParam as Undertone
+    applySkin()
   }
   if (bodyChanged) setBody(bodySize)
   if (params.get('view') === 'pattern') centerTabs.show('pattern')
@@ -1075,6 +1090,15 @@ function initStudio(
       mannequin.setBodyMode(realistic)
       if (mode === 'templates') stack.redrapeAll()
       else patternCtl?.resew()
+    },
+    skin: {
+      getTone: () => bodySize.skinTone,
+      getUndertone: () => bodySize.undertone ?? 'warm',
+      set: (tone, undertone) => {
+        bodySize.skinTone = tone
+        bodySize.undertone = tone ? undertone : undefined
+        applySkin()
+      }
     },
     onSelectContext: (label) => statusHandles?.setSelection(label),
     onBack: goBack

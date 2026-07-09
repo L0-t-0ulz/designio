@@ -9,6 +9,7 @@
 import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
+import { SKIN_TONES, UNDERTONES, type SkinTone, type Undertone } from '../avatar/skin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
 import type { TextilePattern } from '../fabric/textile'
 import type { OmbreDirection } from '../fabric/ombre'
@@ -219,6 +220,9 @@ export interface BodyData {
   bust: number
   waist: number
   hips: number
+  /** Complexion — skin tone + undertone (undefined = the default warm mid skin). */
+  skinTone?: SkinTone
+  undertone?: Undertone
 }
 
 export interface SceneData {
@@ -350,7 +354,9 @@ export function docFromConfig(c: DesignConfig, scene: SceneData = defaultScene()
       build: c.bodyBuild,
       bust: c.bodyBust,
       waist: c.bodyWaist,
-      hips: c.bodyHips
+      hips: c.bodyHips,
+      skinTone: c.skinTone,
+      undertone: c.undertone
     },
     scene,
     layers: [layerFromConfig(c)],
@@ -397,7 +403,9 @@ export function parseDoc(text: string): ProjectDoc {
     build: +(b.build ?? 1),
     bust: +(b.bust ?? 1),
     waist: +(b.waist ?? 1),
-    hips: +(b.hips ?? 1)
+    hips: +(b.hips ?? 1),
+    skinTone: b.skinTone && (SKIN_TONES as string[]).includes(b.skinTone) ? b.skinTone : undefined,
+    undertone: b.undertone && (UNDERTONES as string[]).includes(b.undertone) ? b.undertone : undefined
   }
   const s = raw.scene ?? ({} as Partial<SceneData>)
   const scene: SceneData = {
