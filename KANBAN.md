@@ -151,4 +151,105 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 ---
 
+## 🔬 Refinements & polish _(deepen what's already shipped — each is a small, self-contained card)_
+
+**Cloth & drape realism** _(refine the XPBD solver — PRs #53 · #65 · #69 · #121)_
+- [ ] **Weave-anisotropic bend** — cloth bends easier along the weave than across (warp vs weft) so twill/denim crease differently from plain weave
+- [ ] **Per-fabric self-collision thickness** — scale the particle-repulsion radius by the fabric's physical thickness (thick wool holds layers apart, chiffon nests close)
+- [ ] **Body friction / cling** — high-grip knits cling to the body, slippery satin slides down + pools at the hem
+- [ ] **Weighted hems** — a heavier bottom ring so gowns/drapes hang plumb (chain-weight couture look)
+- [ ] **Seam pucker** — a slight gather right at the seams for a hand-finished read
+- [ ] **Trapped-air puff** — a gentle outward pressure on quilted/puffer panels so they loft instead of hanging flat
+- [ ] **Body wind occlusion** — the leeward side of the garment catches less wind than the windward side
+- [ ] **Spring pins** — a little give where garments pin to the shoulders/hips so they don't look glued on
+
+**Construction detail depth** _(refine PRs #45 · #81 · #86 · #88 · #94 · #98 · #102 · #106)_
+- [ ] **Real dart take-up** — darts actually remove a wedge of fabric (shape the bust/waist), not just a drawn line
+- [ ] **Collar-stand + spread controls** — band-height + collar-spread sliders
+- [ ] **Cuff depth + button count** — configurable cuff width and 1-/2-button barrel cuffs
+- [ ] **Pleat depth + count sliders** — control how deep and how many pleats, beyond the style
+- [ ] **Real buttonholes** — buttonhole slits beside the button column (3D + on the pattern)
+- [ ] **Double-breasted plackets** — a second button row + a wider front overlap
+- [ ] **Lapel width + peak/notch angle** — configurable lapel geometry
+- [ ] **Hem vents** — a back/side vent slit that opens a little at the hem when walking
+- [ ] **Trouser turn-up cuffs** — a folded-up trouser-hem option (+ belt loops around the waistband)
+- [ ] **Structured shoulders** — a shoulder-pad toggle for blazers/coats
+
+**Materials & finish controls** _(refine PRs #108 · #110 · #116 · #118 · #120 · #158 · #159 · #160 · #163 · #164)_
+- [ ] **Ombré: pick the dip colour + a diagonal direction** — not just a derived tone / vertical-radial only
+- [ ] **Textile pattern scale + rotation + grainline align** — resize/rotate stripes & plaids to the cut
+- [ ] **Textile: pick both tones** — choose the pattern's two colours instead of deriving from the base
+- [ ] **Lace as a trim band** — apply lace to just the hem/yoke, not the whole garment; + a motif-scale slider
+- [ ] **Fur pile length + comb direction** — sliders; + fur as a collar/cuff/hem trim only
+- [ ] **Sparkle density** — a facet-count control per sparkle finish
+- [ ] **Quilt loft depth** — control how puffy the quilting reads
+- [ ] **Wear intensity + zone-targeted distress** — light fade → heavy destroy, concentrated at knees/elbows/hem (strain-driven)
+- [ ] **Velvet nap / leather grain** — directional sheen (velvet shifts with view angle; leather gets a subtle grain)
+- [ ] **Swatch import: real-world tile size + keep-photo-colour toggle** — set the swatch's cm scale; tint vs keep original colours
+- [ ] **Embroidery thread sheen + direction** — a satin-stitch highlight along the stitch angle
+
+**Prints & graphics** _(refine PRs #51 · #112 · #114 · #116)_
+- [ ] **Prints warp with the drape** — logos/text distort over folds (currently flat on the albedo)
+- [ ] **Print opacity + blend mode** — semi-transparent / multiply onto the fabric
+- [ ] **Arched / curved text** — bend text along an arc (team-jersey style)
+- [ ] **All-over repeat of a placed print** — tile one motif across the whole garment
+- [ ] **Per-print recolour** — recolour a single print, not just the whole design at once
+- [ ] **Higher-res design canvas** — crisper prints on the 2K/4K Render tab
+
+**Avatar & body** _(refine PRs #128 · #130 · #132 · #136 · #150 · #162)_
+- [ ] **Skin tone blends a textured GLB** — tint the GLB skin texture instead of replacing it
+- [ ] **More hairstyles + hair sway** — braids · bun · ponytail · curly; hair moves on the walk
+- [ ] **Face-shaping sliders** — nose/jaw/eye-spacing; an optional freckle/blemish map
+- [ ] **Hand poses** — relaxed vs fist; posed fingers on the GLB
+- [ ] **Heeled foot pose** — angle the foot so heels/shoes sit correctly on the ground
+- [ ] **A couple more body archetypes** — teen · senior · muscular presets
+
+**Lighting, scene & rendering** _(refine PRs #74 · #152 · #154 · #170)_
+- [ ] **HDRI environment options** — a few real HDR studio maps for reflections beyond the procedural IBL
+- [ ] **Depth of field on the Render tab** — a subtle focus falloff (product-macro look)
+- [ ] **Colour-grade / LUT presets** — warm / cool / film looks on the render
+- [ ] **Backdrop gradient editor** — pick the cyclorama's own two colours
+- [ ] **Rim-light colour + intensity** — art-direct the rim lights per look
+- [ ] **Shadow softness control** — soften/harden the key-light shadow
+- [ ] **Camera lens presets** — 35 / 50 / 85 mm framing for the viewport
+
+**Animation, camera & clip** _(refine PRs #134 · #157)_
+- [ ] **Per-keyframe ease curves** — linear / ease-in-out / bounce on the timeline
+- [ ] **Turntable options** — configurable duration · turns · direction
+- [ ] **Walk speed + stride length controls**
+- [ ] **MP4 / GIF export** — transcode the recorded WebM clip
+
+**Pattern & production** _(refine PRs #39 · #41 · #114 · #169)_
+- [ ] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern
+- [ ] **Marker / nesting layout** — auto-arrange panels to minimise fabric on the DXF/SVG
+- [ ] **Per-edge seam allowance** — different SA on hems vs seams
+- [ ] **Full size-run export** — the graded pattern XS–XXL in one file
+- [ ] **Drape the imported pattern onto the body** — the deferred half of PR #169
+- [ ] **Tech-pack: colourway pages + a notions/trims BOM** (thread, zips, buttons)
+
+**Fit analysis** _(refine PRs #138 · #148)_
+- [ ] **Ease map** — colour the tight vs loose zones (negative/positive ease)
+- [ ] **Strain-direction arrows** — show which way the cloth pulls, not just how hard
+- [ ] **Numeric fit report** — max strain + tightest zone summarised in the panel
+
+**Colour & colorways** _(refine PRs #124 · #126)_
+- [ ] **Colorway thumbnails render the real garment**, not a flat swatch
+- [ ] **Per-part colorways** — vary sleeve/back/trim within a single saved colorway
+- [ ] **Palette generator** — a harmonious colorway set from one picked colour
+- [ ] **Nearest-Pantone for every part** — production refs for trim/sleeve/back too
+
+**Library & editing UX** _(refine PRs #40 · #44 · #48 · #165)_
+- [ ] **Garment browser filters** — by category / length / sleeve, like the fabric filters
+- [ ] **Global search** — garments + fabrics + colours + presets in one box
+- [ ] **Favourites / recents row** in the Library
+- [ ] **Multi-select layers** — recolour/edit several garment layers at once
+- [ ] **Keyboard-shortcuts overlay** (press `?`)
+
+**Performance** _(refine PRs #142 · #167)_
+- [ ] **Cloth solver in a Web Worker** — run the sim off the main thread
+- [ ] **Lazy-load the heavy exporters** (GLTF / USDZ / OBJ) on first export
+- [ ] **Instance the decor geometry** (ribbing / boning / stitch lines) to cut draw calls
+
+---
+
 _Update this board as things ship — check the box + note the PR._
