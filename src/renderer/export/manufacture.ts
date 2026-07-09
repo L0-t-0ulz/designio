@@ -8,6 +8,7 @@
 import type { GarmentMetrics } from './garmentMetrics'
 import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
+import { threadMetres } from './thread'
 
 export interface ManufactureLayer {
   name: string
@@ -118,6 +119,7 @@ function layerSection(l: ManufactureLayer): string {
                 : `<tr><td>Yardage (@ ${FABRIC_WIDTH_M * 100} cm)</td><td colspan="2">${lengthM.toFixed(2)} m · ${(lengthM * 1.094).toFixed(2)} yd</td></tr>`
             }
             <tr><td>Total seam length</td><td colspan="2">${l.metrics.seamCm.toFixed(0)} cm</td></tr>
+            <tr><td>Thread (est., lockstitch)</td><td colspan="2">${threadMetres(l.metrics.seamCm).toFixed(1)} m</td></tr>
           </tbody>
         </table>
         ${
@@ -205,7 +207,8 @@ export function manufactureJSON(b: ManufactureBundle): string {
         fabric_area_m2: l.metrics.fabricM2,
         yardage_m: +((l.marker ? l.marker.lengthCm / 100 : l.metrics.fabricM2 / FABRIC_WIDTH_M).toFixed(2)),
         marker_efficiency_pct: l.marker ? Math.round(l.marker.efficiency * 100) : null,
-        seam_length_cm: l.metrics.seamCm
+        seam_length_cm: l.metrics.seamCm,
+        thread_m: threadMetres(l.metrics.seamCm)
       }))
     },
     null,
