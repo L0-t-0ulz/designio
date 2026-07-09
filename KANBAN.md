@@ -324,11 +324,10 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Procedural weave AO** — bake a self-shadow term into the weave map so the grain occludes itself; pure `weaveAO` unit-tested
 
 **Production pipeline** _(refine `export/manufacture`, `export/techpack`, `export/careLabel`)_
-- [ ] **Fabric yield estimate** — panel area ÷ marker efficiency → linear metres at the fabric's cuttable width, per size; pure `yieldMetres` unit-tested
+- [x] **Marker making — nest + realistic yield + efficiency** — nest the flat panels into the fabric width (first-fit decreasing-height shelf pack of the panel bounding boxes, rotating to fit) → real **marker length** (replaces the old area÷width optimistic yardage), **efficiency %** (true area ÷ marker area) + a preview SVG on the pack; pure `nestMarker` unit-tested. Covers *Fabric yield estimate* + *Marker efficiency %*; a rectangle approximation (true shape-nesting interlocks tighter) — PR #178
 - [ ] **Cost sheet** — fabric yield × price + trims BOM + labour minutes → a landed cost/unit on the pack; pure `costRollup` unit-tested
 - [ ] **BOM CSV export** — the fabric + trims BOM as CSV (supplier / ref / qty / uom) beside the HTML pack; pure serialiser unit-tested
 - [ ] **ISO 3758 care symbols** — render the wash/bleach/dry/iron glyphs as SVG from the derived care lines (not just text); pure code→glyph map unit-tested
-- [ ] **Marker efficiency %** — the nesting layout reports used-area ÷ bounding-area so fabric waste is visible; pure `markerEfficiency` unit-tested
 - [ ] **Thread consumption** — total seam length × stitch density → thread metres for the BOM; pure `threadMetres` unit-tested
 
 **Performance & architecture**

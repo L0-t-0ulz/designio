@@ -35,11 +35,12 @@ import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, type Fabric } from './
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordTurntable } from './studio/turntable'
 import { patternToSVG, patternToDXF } from './export/patternExport'
-import { garmentPatternSVG, garmentPatternDXF } from './export/garmentPattern'
+import { garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { pomTable } from './export/pom'
+import { nestMarker } from './export/marker'
 import { careLabel } from './export/careLabel'
 import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
@@ -874,6 +875,7 @@ function initStudio(
           care: careLabel(l.fabric).care,
           metrics: activeMetrics(l),
           pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders),
+          marker: nestMarker(garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels, 140),
           patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
         }
       })
