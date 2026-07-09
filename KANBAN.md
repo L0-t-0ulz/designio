@@ -155,7 +155,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **More production**
 - [x] **Import an existing flat pattern** — read a DXF pattern back in + preview it in the 2D pane (round-trips the export; pure `parsePatternDXF` unit-tested). Draping imported panels onto the body deferred — PR #169
-- [ ] **Points-of-measure (POM) sheet** — a graded POM table with tolerances (± cm) across the size run, on the tech pack (how factories are actually spec'd)
+- [x] **Points-of-measure (POM) sheet** — a graded POM table (every spec across XS–XXL with ± tolerances) on the manufacturing pack + JSON; re-runs `garmentMetrics` per size through the app's girth grading, so girths step per size and lengths hold (the app grades girth only — honest to the geometry); pure `pomTable` unit-tested — PR #177
 - [ ] **Grade-rule editor** — per-point grade increments so the size run grades like a real pattern, not a uniform girth scale
 
 **AI-assist** _(optional, later — not the focus; the core is the CLO3D/Browzwear CAD workflow above)_

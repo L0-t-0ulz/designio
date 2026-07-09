@@ -3,6 +3,8 @@ import { buildMannequin } from '../src/renderer/avatar/Mannequin'
 import { DEFAULT_PARAMS } from '../src/renderer/garment/templates'
 import { getGarment } from '../src/renderer/garments/registry'
 import { garmentMetrics } from '../src/renderer/export/garmentMetrics'
+import { pomTable } from '../src/renderer/export/pom'
+import { defaultLayer } from '../src/renderer/studio/document'
 import { manufactureHTML, manufactureJSON, type ManufactureBundle } from '../src/renderer/export/manufacture'
 
 const mann = buildMannequin()
@@ -21,6 +23,7 @@ const bundle = (): ManufactureBundle => {
         color: 0xc85a54,
         colorRef: 'TR-2050 Terracotta',
         metrics: garmentMetrics(def.name, 'M', def, params, mann.measurements, mann.colliders),
+        pom: pomTable(def, defaultLayer('dress'), mann.measurements, mann.colliders),
         patternSVG: '<svg><rect/></svg>'
       }
     ]
@@ -38,6 +41,7 @@ describe('manufacturing export', () => {
     expect(html).toContain('size M')
     expect(html).toContain('TR-2050 Terracotta') // production colour reference in the BOM
     expect(html).toContain('Fit ease') // the fit-ease table
+    expect(html).toContain('points of measure') // the graded POM table
   })
 
   it('builds a JSON manifest with measurements + yardage + colour reference', () => {
@@ -46,6 +50,8 @@ describe('manufacturing export', () => {
     expect(json.garments[0].size).toBe('M')
     expect(json.garments[0].measurements_cm).toHaveProperty('Chest')
     expect(json.garments[0].fit_ease_cm).toHaveProperty('Chest') // fit ease per point
+    expect(json.garments[0].points_of_measure.sizes).toContain('XL') // graded POM
+    expect(json.garments[0].points_of_measure.rows[0]).toHaveProperty('point')
     expect(json.garments[0].yardage_m).toBeGreaterThan(0)
     expect(json.garments[0].color_ref).toBe('TR-2050 Terracotta')
   })
