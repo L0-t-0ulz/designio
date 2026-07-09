@@ -9,6 +9,7 @@ export interface MenuActions {
   onExportDio: () => void
   onOpenProject: () => void
   onExport: (fmt: ExportFormat) => void
+  onRecordTurntable: () => void
   onUndo: () => void
   onRedo: () => void
   onCut: () => void
@@ -102,12 +103,14 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Open project (.dio)…', run: a.onOpenProject },
     { sep: true },
     ex('glb', 'Export 3D — glTF (.glb)'),
+    ex('usdz', 'Export 3D — USDZ (AR · iOS)'),
     ex('obj', 'Export 3D — OBJ'),
     ex('svg', 'Export pattern — SVG'),
     ex('dxf', 'Export pattern — DXF'),
     ex('techpack', 'Export tech-pack (HTML)'),
     ex('json', 'Export design (JSON)'),
     { sep: true },
+    { label: 'Record turntable spin (WebM)', run: a.onRecordTurntable },
     ex('manufacture', 'Export for manufacturing (HTML)')
   ])
   menu('Edit', [
