@@ -44,6 +44,8 @@ interface Piece {
   refill: () => void
   /** Drape-following topstitch along the hem + top edge. */
   topstitch: Topstitch
+  /** false for a flat open panel (a scarf) — the grid doesn't close in X. */
+  wrapX: boolean
 }
 
 /**
@@ -75,13 +77,13 @@ export class GarmentController {
     this.dispose()
     const def = getGarment(type)
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
-      this.addPiece(p.build, p.refill, p.name)
+      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true)
     }
     this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
   }
 
-  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string): void {
+  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true): void {
     const { geometry, positions, nx, ny, pinnedTop } = build
     const mesh = new THREE.Mesh(geometry, this.material)
     mesh.castShadow = true
@@ -89,7 +91,7 @@ export class GarmentController {
     mesh.frustumCulled = false
     this.scene.add(mesh)
 
-    const solver = new XPBDSolver(nx, ny, positions, this.params(name), { pinned: pinnedTop, wrapX: true })
+    const solver = new XPBDSolver(nx, ny, positions, this.params(name), { pinned: pinnedTop, wrapX })
     solver.colliders = this.colliders
     solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)
@@ -125,7 +127,7 @@ export class GarmentController {
     mesh.add(topstitch.object) // parent to the mesh so it inherits visibility
     geometry.computeVertexNormals()
     topstitch.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
-    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch })
+    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, wrapX })
   }
 
   /** Set the topstitch thread colour (the studio drives this from the trim / fabric). */
@@ -253,7 +255,7 @@ export class GarmentController {
       invMass: p.solver.invMass,
       nx: p.solver.nx,
       ny: p.solver.ny,
-      wrapX: true,
+      wrapX: p.wrapX,
       wake: () => p.solver.wake()
     }))
   }

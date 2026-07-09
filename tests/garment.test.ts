@@ -3,9 +3,12 @@ import * as THREE from 'three'
 import { MEASUREMENTS, buildMannequin } from '../src/renderer/avatar/Mannequin'
 import { DEFAULT_PARAMS, type GarmentType } from '../src/renderer/garment/templates'
 import { getGarment, GARMENTS, GARMENT_IDS } from '../src/renderer/garments/registry'
-import { garmentTubeSpecs, headTubeToSpec, buildGarment } from '../src/renderer/garments/factory'
+import { garmentTubeSpecs, headTubeToSpec, buildGarment, scarfToSpec } from '../src/renderer/garments/factory'
 import type { HeadTubePiece } from '../src/renderer/garments/schema'
 import { pieceAnchor } from '../src/renderer/garment/GarmentController'
+import { buildScarf, fillScarf, type ScarfSpec } from '../src/renderer/cloth/Garment'
+import { XPBDSolver } from '../src/renderer/cloth/XPBDSolver'
+import { FABRICS } from '../src/renderer/cloth/fabricPresets'
 import { FABRIC_LIBRARY } from '../src/renderer/fabric/FabricLibrary'
 import { fillTube, fillAxisTube, buildTubeGarment } from '../src/renderer/cloth/Garment'
 import type { GarmentParams } from '../src/renderer/garment/templates'
@@ -205,6 +208,81 @@ describe('headTube (headwear / neckwear)', () => {
     expect(pieces.map((pc) => pc.name)).toEqual(['Head'])
     expect(pieceAnchor('Head', 0, 1.7, mann.measurements.chestY, mann.measurements.hipY)).toBe('head')
   })
+})
+
+describe('scarf (flat draped panel)', () => {
+  const mann = buildMannequin()
+  const spec = (length = 0.6): ScarfSpec =>
+    scarfToSpec({ kind: 'scarfPanel', width: 0.16, wrapEase: 0.035, tailHi: 0.3, tailLo: 0.6 }, { ...DEFAULT_PARAMS, length }, mann.measurements)
+  const colY = (pos: Float32Array, s: ScarfSpec, ix: number): number => {
+    let y = 0
+    for (let iy = 0; iy < s.ny; iy++) y += pos[(iy * s.nx + ix) * 3 + 1]
+    return y / s.ny
+  }
+  const colZ = (pos: Float32Array, s: ScarfSpec, ix: number): number => {
+    let z = 0
+    for (let iy = 0; iy < s.ny; iy++) z += pos[(iy * s.nx + ix) * 3 + 2]
+    return z / s.ny
+  }
+
+  it('fills a finite, spread, non-degenerate panel', () => {
+    const s = spec()
+    const pos = new Float32Array(s.nx * s.ny * 3)
+    fillScarf(pos, s)
+    for (let i = 0; i < pos.length; i++) expect(Number.isFinite(pos[i])).toBe(true)
+    let minX = Infinity
+    let maxX = -Infinity
+    let minY = Infinity
+    let maxY = -Infinity
+    for (let k = 0; k < s.nx * s.ny; k++) {
+      minX = Math.min(minX, pos[k * 3])
+      maxX = Math.max(maxX, pos[k * 3])
+      minY = Math.min(minY, pos[k * 3 + 1])
+      maxY = Math.max(maxY, pos[k * 3 + 1])
+    }
+    expect(maxX - minX).toBeGreaterThan(0.1) // wraps around the neck horizontally
+    expect(maxY - minY).toBeGreaterThan(0.2) // collar down to the tail tips
+  })
+
+  it('the two length-ends are front tails hanging below the neck; the middle is the collar', () => {
+    const s = spec()
+    const pos = new Float32Array(s.nx * s.ny * 3)
+    fillScarf(pos, s)
+    expect(colY(pos, s, 0)).toBeLessThan(s.neckY - 0.15) // left tail hangs
+    expect(colY(pos, s, s.nx - 1)).toBeLessThan(s.neckY - 0.15) // right tail hangs
+    expect(colZ(pos, s, 0)).toBeGreaterThan(0.1) // in front of the body
+    expect(colZ(pos, s, s.nx - 1)).toBeGreaterThan(0.1)
+    expect(Math.abs(colY(pos, s, Math.floor(s.nx / 2)) - s.neckY)).toBeLessThan(0.05) // collar at the neck
+  })
+
+  it('longer length hangs the tails lower', () => {
+    const short = spec(0.1)
+    const long = spec(1)
+    const ps = new Float32Array(short.nx * short.ny * 3)
+    const pl = new Float32Array(long.nx * long.ny * 3)
+    fillScarf(ps, short)
+    fillScarf(pl, long)
+    expect(colY(pl, long, 0)).toBeLessThan(colY(ps, short, 0))
+  })
+
+  it('buildScarf pins the collar (an open panel — the tail ends stay free)', () => {
+    const b = buildScarf(spec())
+    expect(b.pinnedTop.length).toBeGreaterThan(0)
+    expect(b.pinnedTop.length).toBeLessThan(b.nx * b.ny) // not everything pinned — the tails drape
+  })
+
+  it('drapes bounded on the body (no explosion)', () => {
+    const s = spec()
+    const b = buildScarf(s)
+    const solver = new XPBDSolver(b.nx, b.ny, b.positions, FABRICS.cotton, { pinned: b.pinnedTop, wrapX: false })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 160; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let i = 0; i < b.positions.length; i++) mx = Math.max(mx, Math.abs(b.positions[i]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
 })
 
 describe('pieceAnchor (pin routing)', () => {

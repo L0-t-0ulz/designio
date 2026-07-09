@@ -234,3 +234,120 @@ export function buildAxisTube(spec: AxisTubeSpec): TubeBuild {
   fillAxisTube(positions, spec, ringT)
   return finishTube(positions, spec.radial, spec.rings, ringT)
 }
+
+/**
+ * A **flat scarf panel** — an open (non-wrapping) `nx(length) × ny(width)` grid whose
+ * centreline drapes once around the back of the neck with the two ends hanging down the
+ * front. Unlike a tube it doesn't close in X, so it solves with `wrapX: false` and the
+ * two length-ends are free tails.
+ */
+export interface ScarfSpec {
+  /** Particles along the scarf length (×) / across its width (rows). */
+  nx: number
+  ny: number
+  neckY: number
+  /** Wrap radius around the neck. */
+  wrapR: number
+  /** Band width (m). */
+  width: number
+  /** How far the front tails hang below the neck. */
+  tailLen: number
+  /** Z of the front where the tails hang. */
+  tailZ: number
+}
+
+// The wrap (collar) occupies the middle of the length; the two ends are the front tails.
+const WRAP_A = 0.25
+const WRAP_B = 0.75
+/** Wrap angle at length param `u` — front-left → around the back → front-right (~234°). */
+function wrapTheta(u: number): number {
+  return -0.35 * Math.PI - ((u - WRAP_A) / (WRAP_B - WRAP_A)) * (1.3 * Math.PI)
+}
+/** The scarf centreline at length param `u` ∈ [0,1] (into `out`). */
+function scarfCentre(u: number, s: ScarfSpec, out: THREE.Vector3): THREE.Vector3 {
+  if (u >= WRAP_A && u <= WRAP_B) {
+    const th = wrapTheta(u)
+    return out.set(Math.sin(th) * s.wrapR, s.neckY, Math.cos(th) * s.wrapR)
+  }
+  // a front tail: lerp from the collar's front end (join) forward + down to the hanging tip
+  const left = u < WRAP_A
+  const th = wrapTheta(left ? WRAP_A : WRAP_B)
+  const ex = Math.sin(th) * s.wrapR
+  const ez = Math.cos(th) * s.wrapR
+  const s01 = left ? u / WRAP_A : (1 - u) / (1 - WRAP_B) // 1 at the join … 0 at the tip
+  const tipX = (left ? -1 : 1) * s.wrapR * 0.6
+  return out.set(
+    tipX + (ex - tipX) * s01,
+    s.neckY - s.tailLen + s.tailLen * s01,
+    s.tailZ + (ez - s.tailZ) * s01 // tip well in front of the chest (clear of the torso)
+  )
+}
+/** Width direction at `u`: vertical on the collar (band height), horizontal on the tails
+ *  (flat hanging ribbon), smoothly blended between — robust, never degenerate. */
+function scarfWidthDir(u: number, out: THREE.Vector3): THREE.Vector3 {
+  let tail = 0
+  if (u < WRAP_A) tail = Math.min(1, (WRAP_A - u) / 0.12)
+  else if (u > WRAP_B) tail = Math.min(1, (u - WRAP_B) / 0.12)
+  return out.set(tail, 1 - tail, 0).normalize() // X on the tail, Y on the collar
+}
+
+const _sp = new THREE.Vector3()
+const _sw = new THREE.Vector3()
+
+/** Writes the flat scarf grid (length × width). */
+export function fillScarf(positions: Float32Array, s: ScarfSpec): void {
+  for (let ix = 0; ix < s.nx; ix++) {
+    const u = s.nx > 1 ? ix / (s.nx - 1) : 0.5
+    scarfCentre(u, s, _sp)
+    scarfWidthDir(u, _sw)
+    for (let iy = 0; iy < s.ny; iy++) {
+      const w = (s.ny > 1 ? iy / (s.ny - 1) - 0.5 : 0) * s.width
+      const k = (iy * s.nx + ix) * 3
+      positions[k] = _sp.x + _sw.x * w
+      positions[k + 1] = _sp.y + _sw.y * w
+      positions[k + 2] = _sp.z + _sw.z * w
+    }
+  }
+}
+
+/** Finish an **open** flat panel (no X-wrap) — one material group; `pinned` particles kept fixed. */
+function finishPanel(positions: Float32Array, nx: number, ny: number, pinned: number[]): TubeBuild {
+  const uvs = new Float32Array(nx * ny * 2)
+  for (let iy = 0; iy < ny; iy++)
+    for (let ix = 0; ix < nx; ix++) {
+      const k = iy * nx + ix
+      uvs[k * 2] = nx > 1 ? ix / (nx - 1) : 0
+      uvs[k * 2 + 1] = ny > 1 ? 1 - iy / (ny - 1) : 0
+    }
+  const indices: number[] = []
+  for (let iy = 0; iy < ny - 1; iy++)
+    for (let ix = 0; ix < nx - 1; ix++) {
+      const tl = iy * nx + ix
+      const tr = iy * nx + ix + 1
+      const bl = (iy + 1) * nx + ix
+      const br = (iy + 1) * nx + ix + 1
+      indices.push(tl, bl, tr, tr, bl, br)
+    }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
+  geometry.setIndex(indices)
+  geometry.addGroup(0, indices.length, 0)
+  geometry.computeVertexNormals()
+  geometry.computeBoundingSphere()
+  return { geometry, positions, nx, ny, pinnedTop: pinned }
+}
+
+/** Build the flat scarf panel, pinning the back-of-neck strip so the wrap stays on. */
+export function buildScarf(s: ScarfSpec): TubeBuild {
+  const positions = new Float32Array(s.nx * s.ny * 3)
+  fillScarf(positions, s)
+  // Pin the whole collar wrap (a stable band that follows the body) + the tail roots; only
+  // the two front tails below drape freely.
+  const pinned: number[] = []
+  for (let ix = 0; ix < s.nx; ix++) {
+    const u = s.nx > 1 ? ix / (s.nx - 1) : 0.5
+    if (Math.abs(u - 0.5) < 0.26) for (let iy = 0; iy < s.ny; iy++) pinned.push(iy * s.nx + ix)
+  }
+  return finishPanel(positions, s.nx, s.ny, pinned)
+}
