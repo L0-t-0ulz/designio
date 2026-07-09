@@ -178,7 +178,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Rigid headwear/neckwear accessories** — beanie · cap · bucket hat · balaclava (ski mask) · scarf · neck gaiter added to the avatar `Accessories` system, placed by the **head/neck frame** so they ride the animated head (crown dome + folded cuff, cap dome + curved bill, bucket dome + brim, full-head shell, neck loop + tails, knit tube); `accessoryAnchors` now exposes the head-frame basis + neck ring; pure placement math unit-tested; auto-wired into the `?accessories=` deep-link + Avatar-panel toggles — PR #182
 
 **Cloth-sim foundation** _(make the drape-y pieces real catalog garments — refine `garments/schema` · `factory` · `avatar/Mannequin` · `garment/GarmentController`)_
-- [ ] **Head/neck anchor** — add `head` to `BodyAnchors` + `AnchorKey`, computed in `Mannequin.anchors()` from the head frame (procedural + GLB head bone); pure, unit-tested
+- [x] **Head/neck anchor** — `head` added to `BodyAnchors` + `AnchorKey`; a pure `headAnchor(colliders)` builds the crown+basis `Matrix4` from the head frame (works for the procedural body + the GLB head bone) and `Mannequin.anchors()` returns it live so it turns/nods with the head — the frame a cloth-sim `headTube` pins to; unit-tested — PR #183
 - [ ] **`headTube` piece kind** — a tube anchored at the crown/neck running down over the head/neck, in `schema` + `factory` (`headTubeToSpec`); collides with the head/neck capsules (already free)
 - [ ] **Headwear category** — add `accessory`/`headwear` to `GarmentCategory` + the Library picker + garment icons
 - [ ] **Expose `headR`/`neckR` in `Measurements`** (currently internal `PROPORTIONS`) so headwear specs + fit read them
