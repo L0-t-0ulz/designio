@@ -53,6 +53,7 @@ import { colorRefLabel } from './fabric/namedColors'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord } from './studio/projectStore'
+import { writeAutosave, readAutosave, clearAutosave, shouldOfferRestore, describeAge } from './studio/autosave'
 import { defaultConfig, newImagePrint, newTextPrint, type DesignConfig } from './start/design'
 import { GarmentStack, type PartId } from './studio/GarmentStack'
 import {
@@ -80,6 +81,9 @@ viewport.scene.add(faceRig.group)
 
 // A garment on the clipboard (survives across studios so you can copy/paste).
 let clipboard: GarmentLayerData | null = null
+// Autosave timer/handler for the current studio (cleared when a new studio mounts).
+let autosaveTimer: ReturnType<typeof setInterval> | undefined
+let autosaveHandler: (() => void) | undefined
 
 /** Build the full 3D studio from a design config (called after the start page). */
 function initStudio(
@@ -382,7 +386,36 @@ function initStudio(
       projectName = name.trim()
     }
     projectId = saveProjectRecord({ id: projectId ?? undefined, name: projectName, doc: currentDoc(), thumb: captureThumb() })
+    clearAutosave() // work is saved — nothing to recover until the next edit
     statusHandles?.setSelection(`Saved “${projectName}”`)
+  }
+  // Autosave the working doc to localStorage (crash recovery). Best-effort + cheap.
+  function autosaveNow(): void {
+    writeAutosave({ doc: serializeDoc(currentDoc()), savedAt: Date.now(), name: projectName })
+  }
+  // A small non-blocking recovery banner (no modal → never hangs headless runs).
+  function showRecoveryBanner(name: string, ageText: string, onRestore: () => void): void {
+    const bar = document.createElement('div')
+    bar.style.cssText =
+      'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9999;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#1b1b22;border:1px solid rgba(124,111,240,.5);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.45);color:#e8e8ee;font:13px system-ui,sans-serif'
+    const msg = document.createElement('span')
+    msg.textContent = `Recover unsaved work “${name}” from ${ageText}?`
+    const mkBtn = (label: string, primary: boolean): HTMLButtonElement => {
+      const b = document.createElement('button')
+      b.textContent = label
+      b.style.cssText = `padding:5px 12px;border-radius:7px;border:0;cursor:pointer;font:inherit;${primary ? 'background:#7c6ff0;color:#fff' : 'background:#2a2a33;color:#cfcfd8'}`
+      return b
+    }
+    const restore = mkBtn('Restore', true)
+    const dismiss = mkBtn('Dismiss', false)
+    const close = (): void => bar.remove()
+    restore.addEventListener('click', () => {
+      onRestore()
+      close()
+    })
+    dismiss.addEventListener('click', close)
+    bar.append(msg, restore, dismiss)
+    document.body.append(bar)
   }
   /** Export the current project to a portable .dio file. */
   async function exportDio(): Promise<void> {
@@ -613,6 +646,32 @@ function initStudio(
   if (sqParam) {
     simQuality = Math.max(0, Math.min(1, +sqParam))
     stack.setSimQuality(qualityToSubsteps(simQuality))
+  }
+
+  // ---- autosave + crash recovery ----
+  // Snapshot the working doc to localStorage every 15s + on close (best-effort),
+  // so a crash / accidental close doesn't lose work. Replace any prior studio's
+  // timer + handler so re-entering doesn't stack them.
+  if (autosaveTimer) clearInterval(autosaveTimer)
+  if (autosaveHandler) window.removeEventListener('beforeunload', autosaveHandler)
+  autosaveHandler = autosaveNow
+  autosaveTimer = setInterval(autosaveNow, 15000)
+  window.addEventListener('beforeunload', autosaveHandler)
+  // On a fresh launch (not opening a saved project), offer to recover the last
+  // snapshot via a non-blocking banner.
+  if (!opened) {
+    const snap = readAutosave()
+    if (snap && shouldOfferRestore(snap, Date.now())) {
+      showRecoveryBanner(snap.name, describeAge(Date.now() - snap.savedAt), () => {
+        try {
+          applyDoc(parseDoc(snap.doc))
+          projectName = snap.name
+          statusHandles?.setSelection(`Recovered “${snap.name}”`)
+        } catch {
+          /* corrupt snapshot — leave the fresh scene */
+        }
+      })
+    }
   }
 
   // ---- export ----
