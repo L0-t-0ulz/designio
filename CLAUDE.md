@@ -60,9 +60,11 @@ Renderer modules:
   size-chart importer — unit-tested), `poses` (**lookbook pose library** — `setPose` freezes a real GLB
   idle/walk clip frame / a procedural stance; garments re-settle), `bodyPresets` (**body-shape presets** —
   Runway/Curvy/Plus/Athletic/Petite/Tall shape-multiplier sets, in-range so colliders stay valid; pure
-  `applyBodyPreset` is unit-tested), `accessories` (**shoes · belt · hat · bag** — pure
-  `accessoryAnchors(colliders)` + an `Accessories` group whose rigid meshes re-attach to the live body
-  each frame; unit-tested), `face` (**face & hair customization** — a procedural `FaceRig` of hair styles
+  `applyBodyPreset` is unit-tested), `accessories` (**shoes · belt · hat · bag + headwear & neckwear**
+  — beanie · cap · bucket hat · balaclava (ski mask) · scarf · neck gaiter; pure `accessoryAnchors(colliders)`
+  (now also exposes the head-frame basis + neck ring) + an `Accessories` group whose rigid meshes re-attach
+  to the live body each frame — head/neck pieces ride the animated head frame; unit-tested), `face`
+  (**face & hair customization** — a procedural `FaceRig` of hair styles
   (none/short/bob/long/afro) + a hair-colour material + subtle toggleable face features (brows/eyes/lips),
   all authored in a unit head frame and placed by the pure, unit-tested `headFrame(colliders)` so they
   ride the live head like the accessories; default **none** so the clean avatar is unchanged; best fit on
@@ -212,7 +214,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 (a static lookbook pose) · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) ·
 `?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) ·
-`?accessories=<shoes,belt,hat,bag>` (worn accessories) ·
+`?accessories=<shoes,belt,hat,bag,beanie,cap,bucket,balaclava,scarf,gaiter>` (worn accessories, incl. **headwear & neckwear** placed by the head/neck frame) ·
 `?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
 `?undertone=<warm|neutral|cool>` (its undertone) ·
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
