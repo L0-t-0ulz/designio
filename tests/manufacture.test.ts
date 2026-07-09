@@ -6,10 +6,14 @@ import { garmentMetrics } from '../src/renderer/export/garmentMetrics'
 import { pomTable } from '../src/renderer/export/pom'
 import { garmentToPanels } from '../src/renderer/export/garmentPattern'
 import { nestMarker } from '../src/renderer/export/marker'
+import { careLabel, careInstructions } from '../src/renderer/export/careLabel'
+import { careSymbols } from '../src/renderer/export/careSymbols'
+import { FABRIC_LIBRARY } from '../src/renderer/fabric/FabricLibrary'
 import { defaultLayer } from '../src/renderer/studio/document'
 import { manufactureHTML, manufactureJSON, type ManufactureBundle } from '../src/renderer/export/manufacture'
 
 const mann = buildMannequin()
+const fabric = FABRIC_LIBRARY.find((f) => f.id === 'silk-charmeuse')!
 const bundle = (): ManufactureBundle => {
   const def = getGarment('dress')
   const params = { ...DEFAULT_PARAMS, ...def.defaults }
@@ -27,6 +31,9 @@ const bundle = (): ManufactureBundle => {
         metrics: garmentMetrics(def.name, 'M', def, params, mann.measurements, mann.colliders),
         pom: pomTable(def, defaultLayer('dress'), mann.measurements, mann.colliders),
         marker: nestMarker(garmentToPanels(def, params, mann.measurements, mann.colliders).panels, 140),
+        fibre: careLabel(fabric).fibre,
+        care: careLabel(fabric).care,
+        careSymbols: careSymbols(careInstructions(fabric)),
         patternSVG: '<svg><rect/></svg>'
       }
     ]
@@ -42,6 +49,7 @@ describe('manufacturing export', () => {
     expect(html).toContain('Marker (@ 140 cm)') // the nested-marker yield + efficiency
     expect(html).toContain('efficient') // the marker preview heading
     expect(html).toContain('Thread (est.') // thread consumption in the BOM
+    expect(html).toContain('care-symbols') // ISO 3758 care-symbol row
     expect(html).toContain('<svg>') // the embedded flat pattern
     expect(html).toContain('size M')
     expect(html).toContain('TR-2050 Terracotta') // production colour reference in the BOM
@@ -61,6 +69,7 @@ describe('manufacturing export', () => {
     expect(json.garments[0].marker_efficiency_pct).toBeGreaterThan(0) // realistic nested yield
     expect(json.garments[0].marker_efficiency_pct).toBeLessThanOrEqual(100)
     expect(json.garments[0].thread_m).toBeGreaterThan(0) // thread consumption
+    expect(json.garments[0].care_symbols).toHaveProperty('wash') // ISO care symbols
     expect(json.garments[0].color_ref).toBe('TR-2050 Terracotta')
   })
 })
