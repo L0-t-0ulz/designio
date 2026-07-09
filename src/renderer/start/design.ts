@@ -10,6 +10,7 @@ import { paintWear, type WearKind } from '../fabric/wear'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
+import type { LacePattern } from '../fabric/lace'
 
 /** Everything the start page lets you build before entering the 3D studio. */
 export interface DesignConfig {
@@ -77,6 +78,8 @@ export interface DesignConfig {
   iridescent?: IridescentKind
   /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
   quilt?: QuiltPattern
+  /** Lace / broderie — a sheer alpha-cutout finish (chantilly / geometric / fishnet). */
+  lace?: LacePattern
 }
 
 /** Which garment piece a print sits on — its `x/y` are across that piece's panel. */

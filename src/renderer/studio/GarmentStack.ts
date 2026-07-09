@@ -23,6 +23,7 @@ import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabr
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { iridescentParams } from '../fabric/iridescent'
+import { makeLaceAlphaMap } from '../fabric/lace'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
@@ -369,6 +370,10 @@ export class GarmentStack {
     const ql = !l.data.sparkle && l.data.quilt ? quiltParams(l.data.quilt) : null
     const quiltNormalMap = ql && l.data.quilt ? makeQuiltNormalMap(l.data.quilt) : null
     const ir = !l.data.sparkle && l.data.iridescent ? iridescentParams(l.data.iridescent) : null
+    // Lace / broderie — a sheer alpha-cutout (real holes via alphaTest). Materials
+    // are already DoubleSide, so the inside shows through the holes; the lining shell
+    // is dropped for a lace garment (see updateLining) so it truly sees through.
+    const laceMap = l.data.lace ? makeLaceAlphaMap(l.data.lace) : null
     for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
       // metallic props applyFabric doesn't touch — default matte unless a finish sets them
       m.metalness = sp ? sp.metalness : ir ? ir.metalness : 0
@@ -379,6 +384,9 @@ export class GarmentStack {
       m.iridescence = ir ? ir.iridescence : 0
       m.iridescenceIOR = ir ? ir.iridescenceIOR : 1.3
       m.iridescenceThicknessRange = ir ? ir.thicknessRange : [100, 400]
+      // lace cutout (or reset when off)
+      m.alphaMap = laceMap
+      m.alphaTest = laceMap ? 0.5 : 0
       if (sp && sparkleNormalMap) {
         m.normalMap = sparkleNormalMap
         m.normalScale.set(sp.normalStrength, sp.normalStrength)
@@ -1044,9 +1052,9 @@ export class GarmentStack {
    * `applyLook` just re-syncs the material in place (no shader recompile).
    */
   private updateLining(l: StackLayer): void {
-    // Sheer fabrics (chiffon/organza) stay see-through — an opaque inner shell would
-    // kill the translucency, and they're thin + floaty anyway. Drop any lining shells.
-    if (l.fabric.transmission > 0.25) {
+    // Sheer fabrics (chiffon/organza) + lace stay see-through — an opaque inner shell
+    // would kill the translucency / fill the cutout holes. Drop any lining shells.
+    if (l.fabric.transmission > 0.25 || l.data.lace) {
       for (const { mesh } of l.controller.getPieces()) {
         for (const c of mesh.children.filter((ch) => ch.userData.lining)) mesh.remove(c)
       }

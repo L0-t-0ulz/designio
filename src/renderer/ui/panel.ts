@@ -37,6 +37,7 @@ import { WEAR_KINDS, type WearKind } from '../fabric/wear'
 import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
 import { IRIDESCENT_KINDS, type IridescentKind } from '../fabric/iridescent'
 import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
+import { LACE_PATTERNS, type LacePattern } from '../fabric/lace'
 import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
 import type { PrintPart, PrintStyle } from '../start/design'
 
@@ -195,6 +196,8 @@ export interface PanelOptions {
   iridescent?: { get: () => IridescentKind | undefined; set: (k: IridescentKind | undefined) => void }
   /** A quilting finish — channel / diamond / box loft (optional). */
   quilt?: { get: () => QuiltPattern | undefined; set: (p: QuiltPattern | undefined) => void }
+  /** A sheer lace / broderie finish — an alpha-cutout (optional). */
+  lace?: { get: () => LacePattern | undefined; set: (p: LacePattern | undefined) => void }
   /** Saved colour/fabric variants of the design, compared in a swatch grid (optional). */
   colorways?: {
     list: () => ColorwayItem[]
@@ -938,6 +941,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A sheer lace / broderie finish — an alpha-cutout you can see through.
+  const LACE_LABELS: Record<LacePattern, string> = { chantilly: 'Chantilly', geometric: 'Geometric', fishnet: 'Fishnet' }
+  function laceControls(lc: NonNullable<PanelOptions['lace']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, LacePattern | undefined][] = [['None', undefined], ...LACE_PATTERNS.map((p) => [LACE_LABELS[p], p] as [string, LacePattern])]
+    for (const [label, pat] of choices) {
+      const b = el('button', 'dio-seg-btn' + (lc.get() === pat ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        lc.set(pat)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Lace / broderie'), row)
+    return wrap
+  }
+
   // Import a fabric-swatch photo → a seamless tiling PBR material for the garment.
   function swatchControls(s: NonNullable<PanelOptions['swatch']>): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -1172,6 +1195,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.sparkle) look.body.append(sparkleControls(opts.sparkle))
   if (opts.iridescent) look.body.append(iridescentControls(opts.iridescent))
   if (opts.quilt) look.body.append(quiltControls(opts.quilt))
+  if (opts.lace) look.body.append(laceControls(opts.lace))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.colorways) look.body.append(colorwaysControls(opts.colorways))
   if (opts.prints) look.body.append(printsControls(opts.prints))
