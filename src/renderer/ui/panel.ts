@@ -33,6 +33,7 @@ import type { GarmentMetrics } from '../export/garmentMetrics'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from '../fabric/ombre'
 import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
+import { IRIDESCENT_KINDS, type IridescentKind } from '../fabric/iridescent'
 import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
 import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
 import type { PrintPart, PrintStyle } from '../start/design'
@@ -186,6 +187,8 @@ export interface PanelOptions {
   swatch?: { active: () => boolean; set: (img: HTMLImageElement) => void; clear: () => void }
   /** A sparkle finish — sequins / beading / metallic foil (optional). */
   sparkle?: { get: () => SparkleKind | undefined; set: (k: SparkleKind | undefined) => void }
+  /** An iridescent finish — soap-bubble / holographic / oil-slick colour shift (optional). */
+  iridescent?: { get: () => IridescentKind | undefined; set: (k: IridescentKind | undefined) => void }
   /** A quilting finish — channel / diamond / box loft (optional). */
   quilt?: { get: () => QuiltPattern | undefined; set: (p: QuiltPattern | undefined) => void }
   /** Saved colour/fabric variants of the design, compared in a swatch grid (optional). */
@@ -824,6 +827,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A colour-shifting iridescent finish — soap-bubble / holographic / oil-slick.
+  const IRIDESCENT_LABELS: Record<IridescentKind, string> = { iridescent: 'Iridescent', holographic: 'Holographic', 'oil-slick': 'Oil-slick' }
+  function iridescentControls(ir: NonNullable<PanelOptions['iridescent']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, IridescentKind | undefined][] = [['None', undefined], ...IRIDESCENT_KINDS.map((k) => [IRIDESCENT_LABELS[k], k] as [string, IridescentKind])]
+    for (const [label, kind] of choices) {
+      const b = el('button', 'dio-seg-btn' + (ir.get() === kind ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        ir.set(kind)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Iridescent finish'), row)
+    return wrap
+  }
+
   // A quilting finish — padded loft between stitch lines (channel / diamond / box).
   const QUILT_LABELS: Record<QuiltPattern, string> = { channel: 'Channel', diamond: 'Diamond', box: 'Box' }
   function quiltControls(q: NonNullable<PanelOptions['quilt']>): HTMLElement {
@@ -1075,6 +1098,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.textile) look.body.append(textileControls(opts.textile))
   if (opts.ombre) look.body.append(ombreControls(opts.ombre))
   if (opts.sparkle) look.body.append(sparkleControls(opts.sparkle))
+  if (opts.iridescent) look.body.append(iridescentControls(opts.iridescent))
   if (opts.quilt) look.body.append(quiltControls(opts.quilt))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.colorways) look.body.append(colorwaysControls(opts.colorways))

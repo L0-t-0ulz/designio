@@ -13,6 +13,7 @@ import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
 import type { TextilePattern } from '../fabric/textile'
 import type { OmbreDirection } from '../fabric/ombre'
 import type { SparkleKind } from '../fabric/sparkle'
+import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
 import { getGarment } from '../garments/registry'
 
@@ -131,6 +132,7 @@ export interface GarmentLayerData {
   ombre?: OmbreDirection
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
+  iridescent?: IridescentKind
   /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
   quilt?: QuiltPattern
   /** Saved colour/fabric variants of this design (compared in the swatch grid). */
@@ -153,6 +155,7 @@ export interface Colorway {
   textile?: TextilePattern
   ombre?: OmbreDirection
   sparkle?: SparkleKind
+  iridescent?: IridescentKind
   quilt?: QuiltPattern
 }
 
@@ -184,6 +187,7 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     textile: l.textile,
     ombre: l.ombre,
     sparkle: l.sparkle,
+    iridescent: l.iridescent,
     quilt: l.quilt
   }
 }
@@ -199,6 +203,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.textile = cw.textile
   l.ombre = cw.ombre
   l.sparkle = cw.sparkle
+  l.iridescent = cw.iridescent
   l.quilt = cw.quilt
 }
 
@@ -277,6 +282,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     textile: c.textile,
     ombre: c.ombre,
     sparkle: c.sparkle,
+    iridescent: c.iridescent,
     quilt: c.quilt,
     visible: true
   }
@@ -321,6 +327,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     textile: undefined,
     ombre: undefined,
     sparkle: undefined,
+    iridescent: undefined,
     quilt: undefined,
     visible: true
   }
@@ -352,6 +359,7 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     textile: l.textile,
     ombre: l.ombre,
     sparkle: l.sparkle,
+    iridescent: l.iridescent,
     quilt: l.quilt,
     colorways: l.colorways ? l.colorways.map((cw) => ({ ...cw, partFabrics: clonePartFabrics(cw.partFabrics) })) : undefined
   }

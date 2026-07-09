@@ -42,6 +42,7 @@ import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from './fabric/ombre'
 import { demoSwatchCanvas } from './fabric/swatch'
 import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
+import { IRIDESCENT_KINDS, type IridescentKind } from './fabric/iridescent'
 import { QUILT_PATTERNS, type QuiltPattern } from './fabric/quilt'
 import { colorRefLabel } from './fabric/namedColors'
 import { showHomepage } from './start/Homepage'
@@ -1011,6 +1012,13 @@ function initStudio(
         stack.applyLook(stack.active)
       }
     },
+    iridescent: {
+      get: () => stack.active.data.iridescent,
+      set: (k) => {
+        stack.active.data.iridescent = k
+        stack.applyLook(stack.active)
+      }
+    },
     quilt: {
       get: () => stack.active.data.quilt,
       set: (p) => {
@@ -1024,7 +1032,7 @@ function initStudio(
           id: cw.id,
           name: cw.name,
           color: cw.color,
-          tag: [cw.textile, cw.ombre && 'ombré', cw.sparkle, cw.quilt, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
+          tag: [cw.textile, cw.ombre && 'ombré', cw.sparkle, cw.iridescent, cw.quilt, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
         })),
       add: () => {
         pushUndo()
@@ -1255,6 +1263,8 @@ if (skipStart) {
   if (omb && (OMBRE_DIRECTIONS as string[]).includes(omb)) cfg.ombre = omb as OmbreDirection
   const spk = entryParams.get('sparkle')
   if (spk && (SPARKLE_KINDS as string[]).includes(spk)) cfg.sparkle = spk as SparkleKind
+  const iri = entryParams.get('iridescent')
+  if (iri && (IRIDESCENT_KINDS as string[]).includes(iri)) cfg.iridescent = iri as IridescentKind
   const qlt = entryParams.get('quilt')
   if (qlt && (QUILT_PATTERNS as string[]).includes(qlt)) cfg.quilt = qlt as QuiltPattern
   const fr = entryParams.get('frillStyle')
