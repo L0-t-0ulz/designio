@@ -931,6 +931,12 @@ function initStudio(
     shell.dispose()
     stack.clear()
     patternCtl?.clear()
+    measureTool?.dispose() // free the measure gizmos + its canvas listeners
+    // Stop the autosave timer so it doesn't keep firing (on a torn-down stack) off in the homepage.
+    if (autosaveTimer) clearInterval(autosaveTimer)
+    if (autosaveHandler) window.removeEventListener('beforeunload', autosaveHandler)
+    autosaveTimer = undefined
+    autosaveHandler = undefined
   }
   // "← Start / Projects": opened from a project → back to the Projects gallery;
   // opened from the builder → back to "Design your piece" keeping this design.

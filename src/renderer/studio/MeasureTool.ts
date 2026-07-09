@@ -63,6 +63,21 @@ export class MeasureTool {
     this.pending = null
     this.rebuild()
   }
+
+  /** Tear the tool down (studio teardown): remove the canvas listeners, the scene
+   *  group + its geometry, the HTML overlay + labels — so a re-entered studio doesn't
+   *  keep the old scene alive via a stale listener. */
+  dispose(): void {
+    this.canvas.removeEventListener('pointerdown', this.handleDown)
+    this.canvas.removeEventListener('pointerup', this.handleUp)
+    this.canvas.style.cursor = ''
+    for (const c of this.group.children) (c as THREE.Mesh).geometry?.dispose?.()
+    this.group.clear()
+    this.scene.remove(this.group)
+    for (const l of this.labels) l.el.remove()
+    this.labels = []
+    this.overlay.remove()
+  }
   undo(): void {
     if (this.pending) this.pending = null
     else this.store.removeLast()

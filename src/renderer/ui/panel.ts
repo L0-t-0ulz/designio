@@ -1016,8 +1016,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       const f = fileInput.files?.[0]
       if (!f || !f.type.startsWith('image/') || f.size > 12_000_000) return
       const img = new Image()
-      img.onload = () => { s.set(img); render() }
-      img.src = URL.createObjectURL(f)
+      const url = URL.createObjectURL(f)
+      img.onload = () => {
+        s.set(img)
+        render()
+        URL.revokeObjectURL(url) // the decoded bitmap is kept; free the blob URL
+      }
+      img.src = url
     })
     render()
     wrap.append(el('div', 'dio-field-label', 'Fabric photo → tiling material'), actions, fileInput)
@@ -1186,12 +1191,14 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     const loadImage = (file: File): void => {
       if (!file.type.startsWith('image/') || file.size > 8_000_000) return
       const img = new Image()
+      const url = URL.createObjectURL(file)
       img.onload = () => {
         selectedId = p.addImage(img, file.name.slice(0, 16))
         renderList()
         renderEditor()
+        URL.revokeObjectURL(url)
       }
-      img.src = URL.createObjectURL(file)
+      img.src = url
     }
     fileInput.addEventListener('change', () => {
       const f = fileInput.files?.[0]

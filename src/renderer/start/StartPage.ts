@@ -337,12 +337,14 @@ export function showStartPage(
   const loadImage = (file: File): void => {
     if (!file.type.startsWith('image/') || file.size > 8_000_000) return
     const img = new Image()
+    const url = URL.createObjectURL(file)
     img.onload = () => {
       config.prints = config.prints.filter((p) => p.kind !== 'image')
       config.prints.push(newImagePrint(img, file.name.slice(0, 16)))
       const thumb = el('div', 'dio-start-drop-preview')
       const im = el('img') as HTMLImageElement
-      im.src = img.src
+      im.onload = () => URL.revokeObjectURL(url) // free the blob URL once the thumbnail has decoded it
+      im.src = url
       const rm = el('span', 'dio-start-drop-remove', 'remove')
       rm.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -354,7 +356,7 @@ export function showStartPage(
       drop.replaceChildren(thumb)
       preview?.applyLook(config)
     }
-    img.src = URL.createObjectURL(file)
+    img.src = url
   }
   drop.addEventListener('click', () => fileInput.click())
   drop.addEventListener('keydown', (e) => {

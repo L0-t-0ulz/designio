@@ -46,9 +46,16 @@ export function recordTurntable(
   const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12_000_000 })
   const chunks: BlobPart[] = []
   rec.ondataavailable = (e) => e.data.size > 0 && chunks.push(e.data)
+  const stopStream = (): void => stream.getTracks().forEach((t) => t.stop()) // release the canvas capture
   return new Promise<Blob>((resolve, reject) => {
-    rec.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }))
-    rec.onerror = () => reject(new Error('Recording failed'))
+    rec.onstop = () => {
+      stopStream()
+      resolve(new Blob(chunks, { type: 'video/webm' }))
+    }
+    rec.onerror = () => {
+      stopStream()
+      reject(new Error('Recording failed'))
+    }
     const start = performance.now()
     const frame = (): void => {
       const t01 = Math.min(1, (performance.now() - start) / (seconds * 1000))
