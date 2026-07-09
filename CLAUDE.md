@@ -139,8 +139,10 @@ Renderer modules:
   placed logos/text onto their panel to scale — a dashed placement box + label in SVG, a PRINT layer in
   DXF), `garmentMetrics` (**live
   production spec**: real chest/waist/hip/length/sleeve/inseam + fabric area + seam length from the same
-  construction), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM +
-  embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF), `techpack`, `save`.
+  construction), `careLabel` (**auto care label**: pure `fibreContent`/`careInstructions` derive fibre
+  content % + laundering lines from a fabric's family/stretch — unit-tested; folded into the manufacturing
+  pack), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM + care &
+  content + embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF), `techpack`, `save`.
 - `start/` — `Homepage` (launcher → New design · **Your projects** · templates), `ProjectsPage` (the
   **project gallery** — open · rename · delete · import/export `.dio`), `StartPage` (the "design your
   piece" builder — garment · colour/print · **neckline/sleeve/size** · quick-looks · surprise/spin ·
