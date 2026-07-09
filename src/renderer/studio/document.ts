@@ -17,6 +17,7 @@ import type { WearKind } from '../fabric/wear'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
+import type { LacePattern } from '../fabric/lace'
 import { getGarment } from '../garments/registry'
 
 /** Manufacturing sizes. `M` is the drafted block; each step grades the girth. */
@@ -138,6 +139,7 @@ export interface GarmentLayerData {
   iridescent?: IridescentKind
   /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
   quilt?: QuiltPattern
+  lace?: LacePattern
   /** Saved colour/fabric variants of this design (compared in the swatch grid). */
   colorways?: Colorway[]
   visible: boolean
@@ -161,6 +163,7 @@ export interface Colorway {
   sparkle?: SparkleKind
   iridescent?: IridescentKind
   quilt?: QuiltPattern
+  lace?: LacePattern
 }
 
 let cwSeq = 0
@@ -193,7 +196,8 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     wear: l.wear,
     sparkle: l.sparkle,
     iridescent: l.iridescent,
-    quilt: l.quilt
+    quilt: l.quilt,
+    lace: l.lace
   }
 }
 
@@ -211,6 +215,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.sparkle = cw.sparkle
   l.iridescent = cw.iridescent
   l.quilt = cw.quilt
+  l.lace = cw.lace
 }
 
 export interface BodyData {
@@ -294,6 +299,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     sparkle: c.sparkle,
     iridescent: c.iridescent,
     quilt: c.quilt,
+    lace: c.lace,
     visible: true
   }
 }
@@ -340,6 +346,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     sparkle: undefined,
     iridescent: undefined,
     quilt: undefined,
+    lace: undefined,
     visible: true
   }
 }
@@ -375,6 +382,7 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     sparkle: l.sparkle,
     iridescent: l.iridescent,
     quilt: l.quilt,
+    lace: l.lace,
     colorways: l.colorways ? l.colorways.map((cw) => ({ ...cw, partFabrics: clonePartFabrics(cw.partFabrics) })) : undefined
   }
 }
