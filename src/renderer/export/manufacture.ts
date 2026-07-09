@@ -9,6 +9,7 @@ import type { GarmentMetrics } from './garmentMetrics'
 import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
 import { threadMetres } from './thread'
+import { careSymbolsSVG, type CareSymbol } from './careSymbols'
 
 export interface ManufactureLayer {
   name: string
@@ -27,6 +28,8 @@ export interface ManufactureLayer {
   /** Auto-generated care label — fibre content + laundering instructions. */
   fibre?: string
   care?: string[]
+  /** ISO 3758 care symbols derived from the care instructions. */
+  careSymbols?: CareSymbol[]
   metrics: GarmentMetrics
   /** Graded points-of-measure across the size run (XS…XXL). */
   pom?: PomSheet
@@ -130,7 +133,8 @@ function layerSection(l: ManufactureLayer): string {
             ${l.fibre ? `<tr><td>Fibre content</td><td colspan="2">${esc(l.fibre)}</td></tr>` : ''}
             ${(l.care ?? []).map((c) => `<tr><td>Care</td><td colspan="2">${esc(c)}</td></tr>`).join('')}
           </tbody>
-        </table>`
+        </table>
+        ${l.careSymbols?.length ? careSymbolsSVG(l.careSymbols) : ''}`
             : ''
         }
       </div>
@@ -167,6 +171,9 @@ export function manufactureHTML(b: ManufactureBundle): string {
   .pom td:not(:first-child), .pom th:not(:first-child) { text-align: right; }
   .marker { border: 1px solid #eee; border-radius: 8px; padding: 8px; max-width: 520px; }
   .marker svg { display: block; max-height: 360px; }
+  .care-symbols { display: flex; gap: 14px; margin: 4px 0 2px; flex-wrap: wrap; }
+  .care-sym { margin: 0; text-align: center; }
+  .care-sym figcaption { font-size: 10px; color: #6b7280; margin-top: 2px; }
   footer { color: #9aa0aa; font-size: 11px; margin-top: 28px; }
   @media print { body { padding: 0; } }
 </style></head>
@@ -197,6 +204,7 @@ export function manufactureJSON(b: ManufactureBundle): string {
         seam_allowance_mm: l.seam ?? 10,
         fibre_content: l.fibre ?? null,
         care: l.care ?? [],
+        care_symbols: l.careSymbols ? Object.fromEntries(l.careSymbols.map((s) => [s.key, s.variant])) : null,
         color: hex(l.color),
         color_ref: l.colorRef ?? null,
         measurements_cm: Object.fromEntries(l.metrics.rows.map((r) => [r.label, r.cm])),

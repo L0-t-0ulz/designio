@@ -41,7 +41,8 @@ import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { pomTable } from './export/pom'
 import { nestMarker } from './export/marker'
-import { careLabel } from './export/careLabel'
+import { careLabel, careInstructions } from './export/careLabel'
+import { careSymbols } from './export/careSymbols'
 import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
@@ -873,6 +874,7 @@ function initStudio(
           seam: l.data.seam ?? 10,
           fibre: careLabel(l.fabric).fibre,
           care: careLabel(l.fabric).care,
+          careSymbols: careSymbols(careInstructions(l.fabric)),
           metrics: activeMetrics(l),
           pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders),
           marker: nestMarker(garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels, 140),
