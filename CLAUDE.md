@@ -163,7 +163,8 @@ Renderer modules:
 - `shell/` — the **professional studio shell** (vanilla; CSS + `split.js` + localStorage): `StudioShell`
   (dockable menu-bar / Library / viewport / dock / status-bar regions), `menuBar` (File: New · Open/Save
   `.dio` project · Exports; Edit: undo/redo · cut/copy/paste/duplicate/delete garment), `statusBar`,
-  `library` (tabbed asset browser), `objectBrowser` (the **garment layers** worn on the body — select ·
+  `library` (tabbed asset browser — search-as-you-type + **fabric filters** by family/weight/stretch via
+  the pure, unit-tested `libraryFilter`), `objectBrowser` (the **garment layers** worn on the body — select ·
   visibility · add/duplicate/delete), `centerTabs` (3D · 2D-pattern dual viewport + a **persistent
   quick-edit toolbar over both** — size/neckline/sleeve/length/width/hem `PatternEditor` steppers that run
   the same `applyGarmentEdit` path, so 2D↔3D stay in sync), `layoutStore`.
