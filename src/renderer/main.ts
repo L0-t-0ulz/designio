@@ -24,6 +24,7 @@ import { TimelinePlayer } from './studio/TimelinePlayer'
 import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import { MeasureTool, type MeasureMode } from './studio/MeasureTool'
 import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPattern } from './export/patternImport'
+import { lineupCells, lineupHues } from './studio/lineup'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
@@ -803,6 +804,45 @@ function initStudio(
       })
   }
 
+  // Runway line-up — a collection shot of the garment across several colourways,
+  // rendered side by side into one PNG (snapshot per colourway, then composite).
+  async function exportRunwayLineup(): Promise<void> {
+    const l = stack.active
+    const orig = l.data.color
+    const cw = stack.colorways().map((c) => c.color)
+    const colors = cw.length >= 2 ? cw.slice(0, 6) : lineupHues(orig, 4)
+    const cellW = 640
+    const urls: string[] = []
+    for (const c of colors) {
+      stack.setPart('body', { color: c })
+      stack.updateMeshes()
+      urls.push(viewport.renderStill(cellW))
+    }
+    stack.setPart('body', { color: orig }) // restore the working design
+    stack.updateMeshes()
+    const load = (u: string): Promise<HTMLImageElement> =>
+      new Promise((res, rej) => {
+        const im = new Image()
+        im.onload = () => res(im)
+        im.onerror = () => rej(new Error('image decode failed'))
+        im.src = u
+      })
+    const imgs = await Promise.all(urls.map(load))
+    const { totalW, xs } = lineupCells(colors.length, cellW, 0)
+    const canvas = document.createElement('canvas')
+    canvas.width = totalW
+    canvas.height = imgs[0]?.height ?? cellW
+    const ctx = canvas.getContext('2d')!
+    imgs.forEach((im, i) => ctx.drawImage(im, xs[i], 0))
+    const b64 = canvas.toDataURL('image/png').split(',')[1] ?? ''
+    const bin = atob(b64)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'lineup'
+    await saveFile(`${safe}-lineup.png`, bytes, [{ name: 'PNG image', extensions: ['png'] }])
+    statusHandles?.setSelection(`Runway line-up — ${colors.length} looks`)
+  }
+
   // The whole outfit as a manufacturing pack (spec + BOM + flat patterns per layer).
   function activeMetrics(l = stack.active): ReturnType<typeof garmentMetrics> {
     const def = getGarment(l.data.garmentType)
@@ -891,6 +931,7 @@ function initStudio(
     onImportPattern: () => void importPattern(),
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
     onRecordTurntable: recordTurntableSpin,
+    onRunwayLineup: () => void exportRunwayLineup().catch((err) => window.alert('Line-up failed: ' + (err as Error).message)),
     onUndo: undo,
     onRedo: redo,
     onCut: cutGarment,

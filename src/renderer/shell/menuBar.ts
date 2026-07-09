@@ -24,6 +24,7 @@ export interface MenuActions {
   onMeasure: () => void
   onAnnotate: () => void
   onClearMeasure: () => void
+  onRunwayLineup: () => void
   onToggleLibrary: () => void
   onTogglePanel: () => void
   onToggleSimple: () => void
@@ -116,6 +117,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('json', 'Export design (JSON)'),
     { sep: true },
     { label: 'Record turntable spin (WebM)', run: a.onRecordTurntable },
+    { label: 'Export runway line-up (PNG)', run: a.onRunwayLineup },
     ex('manufacture', 'Export for manufacturing (HTML)')
   ])
   menu('Edit', [

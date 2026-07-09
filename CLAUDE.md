@@ -146,7 +146,11 @@ Renderer modules:
   around the subject, unit-tested; `recordTurntable` replays it against the live canvas via MediaRecorder),
   `measure` + `MeasureTool` (**measure & annotate** — a tape-measure (click two points on the garment/body →
   a cm reading) + pinned notes; pure `distanceCm`/`midpoint`/`MeasureStore` are unit-tested, the tool
-  raycasts the live meshes + reprojects HTML labels each frame; View-menu driven).
+  raycasts the live meshes + reprojects HTML labels each frame; View-menu driven),
+  `lineup` (**runway line-up** — a collection shot of the garment across N colourways rendered side by
+  side into one PNG; pure `lineupCells`/`lineupHues` are unit-tested, `main` snapshots per colourway +
+  composites (the body/cloth sim is a singleton, so it composites snapshots rather than surgically
+  offsetting colliders); File → Export runway line-up).
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ + **USDZ** for iOS AR Quick Look), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
