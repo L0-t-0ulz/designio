@@ -57,7 +57,7 @@ export interface ConstructionCaps {
   princess?: boolean
 }
 
-export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece
+export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece | HeadTubePiece
 
 /**
  * A tube wrapped around the torso (top/dress/skirt). Anchored at a body landmark,
@@ -91,4 +91,23 @@ export interface LegTubesPiece {
 /** Sleeves along the arm colliders; length comes from `params.sleeve`. */
 export interface SleevesPiece {
   kind: 'sleeves'
+}
+
+/**
+ * A tube around the **head or neck** (cowl · snood · gaiter · beanie) — anchored at
+ * the crown or the neck, running down over the head/neck and colliding with the head/
+ * neck capsules. Radii read from the head/neck measurements so it fits any figure/size.
+ */
+export interface HeadTubePiece {
+  kind: 'headTube'
+  /** Where the top edge hangs from — the crown (over the head) or the neck (around it). */
+  anchor: 'crown' | 'neck'
+  /** Metres the top edge sits above the anchor landmark (default 0). */
+  riseHi?: number
+  /** Metres it drops below the top edge at length = 0 and length = 1. */
+  dropHi: number
+  dropLo: number
+  /** Radius multiples on the head/neck radius at the top / bottom edge. */
+  topScale: number
+  botScale: number
 }

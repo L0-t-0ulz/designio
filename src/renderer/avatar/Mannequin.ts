@@ -13,6 +13,9 @@ export interface Measurements {
   waistR: number
   hipR: number
   thighR: number
+  /** Head + neck radii (for headwear specs + fit). */
+  headR: number
+  neckR: number
   neckY: number
   shoulderY: number
   chestY: number
@@ -69,6 +72,7 @@ function measurementsFor(type: BodyType): Measurements {
   const p = PROPORTIONS[type]
   return {
     chestR: p.chestR, waistR: p.waistR, hipR: p.hipR, thighR: p.thighR,
+    headR: p.headR, neckR: p.neckR,
     hipHalfX: p.hipHalfX, shoulderHalfX: p.shoulderHalfX, ...LANDMARKS
   }
 }
@@ -373,6 +377,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     measurements.waistR = p.waistR * b * body.waist
     measurements.hipR = p.hipR * b * body.hips
     measurements.thighR = p.thighR * b * body.hips
+    measurements.headR = p.headR * b
+    measurements.neckR = p.neckR * b
     measurements.hipHalfX = p.hipHalfX * b * body.hips
     measurements.shoulderHalfX = p.shoulderHalfX * b
     measurements.neckY = LANDMARKS.neckY * h

@@ -344,6 +344,18 @@ export const GARMENTS: GarmentDefinition[] = [
     // cropped zip jacket with a ribbed hem + cuffs and welt pockets.
     defaults: { length: 0.34, ease: 0.07, flare: 0.03, neckline: 'crew', sleeve: 'long', closure: true, ribbing: true, pocket: true, pocketStyle: 'welt' },
     defaultFabric: 'leather'
+  },
+  // ---- headwear / neckwear (cloth-sim, via the headTube piece) ----
+  {
+    id: 'snood',
+    name: 'Snood',
+    category: 'outerwear',
+    icon: 'top',
+    // a knit tube around the neck that drapes onto the shoulders (a cowl)
+    pieces: [{ kind: 'headTube', anchor: 'neck', dropHi: 0.14, dropLo: 0.34, topScale: 1.6, botScale: 2.8 }],
+    supports: { length: true, ease: true, flare: true },
+    defaults: { length: 0.55, ease: 0.02, flare: 0.03 },
+    defaultFabric: 'cable-knit'
   }
 ]
 
