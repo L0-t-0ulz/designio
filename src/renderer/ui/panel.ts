@@ -38,6 +38,7 @@ import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
 import { IRIDESCENT_KINDS, type IridescentKind } from '../fabric/iridescent'
 import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
 import { LACE_PATTERNS, type LacePattern } from '../fabric/lace'
+import { FUR_KINDS, type FurKind } from '../fabric/fur'
 import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
 import type { PrintPart, PrintStyle } from '../start/design'
 
@@ -198,6 +199,8 @@ export interface PanelOptions {
   quilt?: { get: () => QuiltPattern | undefined; set: (p: QuiltPattern | undefined) => void }
   /** A sheer lace / broderie finish — an alpha-cutout (optional). */
   lace?: { get: () => LacePattern | undefined; set: (p: LacePattern | undefined) => void }
+  /** A faux-fur / shearling / fleece pile finish (optional). */
+  fur?: { get: () => FurKind | undefined; set: (k: FurKind | undefined) => void }
   /** Saved colour/fabric variants of the design, compared in a swatch grid (optional). */
   colorways?: {
     list: () => ColorwayItem[]
@@ -961,6 +964,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A faux-fur / shearling / fleece pile finish.
+  const FUR_LABELS: Record<FurKind, string> = { shearling: 'Shearling', 'faux-fur': 'Faux fur', fleece: 'Fleece' }
+  function furControls(fr: NonNullable<PanelOptions['fur']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, FurKind | undefined][] = [['None', undefined], ...FUR_KINDS.map((k) => [FUR_LABELS[k], k] as [string, FurKind])]
+    for (const [label, kind] of choices) {
+      const b = el('button', 'dio-seg-btn' + (fr.get() === kind ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        fr.set(kind)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Faux fur / pile'), row)
+    return wrap
+  }
+
   // Import a fabric-swatch photo → a seamless tiling PBR material for the garment.
   function swatchControls(s: NonNullable<PanelOptions['swatch']>): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -1196,6 +1219,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.iridescent) look.body.append(iridescentControls(opts.iridescent))
   if (opts.quilt) look.body.append(quiltControls(opts.quilt))
   if (opts.lace) look.body.append(laceControls(opts.lace))
+  if (opts.fur) look.body.append(furControls(opts.fur))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.colorways) look.body.append(colorwaysControls(opts.colorways))
   if (opts.prints) look.body.append(printsControls(opts.prints))

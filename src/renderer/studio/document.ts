@@ -18,6 +18,7 @@ import type { SparkleKind } from '../fabric/sparkle'
 import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
 import type { LacePattern } from '../fabric/lace'
+import type { FurKind } from '../fabric/fur'
 import { getGarment } from '../garments/registry'
 
 /** Manufacturing sizes. `M` is the drafted block; each step grades the girth. */
@@ -140,6 +141,7 @@ export interface GarmentLayerData {
   /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
   quilt?: QuiltPattern
   lace?: LacePattern
+  fur?: FurKind
   /** Saved colour/fabric variants of this design (compared in the swatch grid). */
   colorways?: Colorway[]
   visible: boolean
@@ -164,6 +166,7 @@ export interface Colorway {
   iridescent?: IridescentKind
   quilt?: QuiltPattern
   lace?: LacePattern
+  fur?: FurKind
 }
 
 let cwSeq = 0
@@ -197,7 +200,8 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     sparkle: l.sparkle,
     iridescent: l.iridescent,
     quilt: l.quilt,
-    lace: l.lace
+    lace: l.lace,
+    fur: l.fur
   }
 }
 
@@ -216,6 +220,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.iridescent = cw.iridescent
   l.quilt = cw.quilt
   l.lace = cw.lace
+  l.fur = cw.fur
 }
 
 export interface BodyData {
@@ -300,6 +305,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     iridescent: c.iridescent,
     quilt: c.quilt,
     lace: c.lace,
+    fur: c.fur,
     visible: true
   }
 }
@@ -347,6 +353,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     iridescent: undefined,
     quilt: undefined,
     lace: undefined,
+    fur: undefined,
     visible: true
   }
 }
@@ -383,6 +390,7 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     iridescent: l.iridescent,
     quilt: l.quilt,
     lace: l.lace,
+    fur: l.fur,
     colorways: l.colorways ? l.colorways.map((cw) => ({ ...cw, partFabrics: clonePartFabrics(cw.partFabrics) })) : undefined
   }
 }
