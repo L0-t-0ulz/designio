@@ -18,6 +18,11 @@ export interface MenuActions {
   onPaste: () => void
   onDuplicate: () => void
   onDelete: () => void
+  /** Enable predicates, re-evaluated each time a menu opens (grey out at boundaries). */
+  canUndo: () => boolean
+  canRedo: () => boolean
+  canPaste: () => boolean
+  canModifyLayers: () => boolean
   onAnim: (mode: AnimationMode) => void
   onToggleWireframe: () => void
   onToggleMannequin: () => void
@@ -36,6 +41,8 @@ interface Item {
   label?: string
   run?: () => void
   disabled?: boolean
+  /** Re-evaluated when the menu opens; false → greyed out + inert. */
+  enabled?: () => boolean
   sep?: boolean
 }
 
@@ -60,38 +67,41 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     const wrap = el('div', 'dio-menu')
     const btn = el('button', 'dio-menu-btn', label)
     const drop = el('div', 'dio-menu-drop')
+    const rows: { mi: HTMLElement; item: Item }[] = []
     for (const it of items) {
       if (it.sep) {
         drop.append(el('div', 'dio-menu-sep'))
         continue
       }
-      const mi = el('button', 'dio-menu-item' + (it.disabled ? ' disabled' : ''), it.label)
-      if (!it.disabled) {
-        mi.addEventListener('click', () => {
-          closeAll()
-          it.run?.()
-        })
-      }
+      const mi = el('button', 'dio-menu-item', it.label)
+      mi.addEventListener('click', () => {
+        if (mi.classList.contains('disabled')) return
+        closeAll()
+        it.run?.()
+      })
       drop.append(mi)
+      rows.push({ mi, item: it })
+    }
+    // Re-evaluate each item's enabled state when the menu opens (grey out at boundaries).
+    const refresh = (): void => {
+      for (const { mi, item } of rows) mi.classList.toggle('disabled', item.enabled ? !item.enabled() : !!item.disabled)
+    }
+    const openThis = (): void => {
+      closeAll()
+      refresh()
+      wrap.classList.add('open')
+      open = wrap
+      setTimeout(() => document.addEventListener('pointerdown', onDoc), 0)
     }
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
       const wasOpen = wrap.classList.contains('open')
       closeAll()
-      if (!wasOpen) {
-        wrap.classList.add('open')
-        open = wrap
-        setTimeout(() => document.addEventListener('pointerdown', onDoc), 0)
-      }
+      if (!wasOpen) openThis()
     })
+    // hover-switch between menus once one is open (native menu-bar feel)
     btn.addEventListener('pointerenter', () => {
-      // hover-switch between menus once one is open (native menu-bar feel)
-      if (open && open !== wrap) {
-        closeAll()
-        wrap.classList.add('open')
-        open = wrap
-        setTimeout(() => document.addEventListener('pointerdown', onDoc), 0)
-      }
+      if (open && open !== wrap) openThis()
     })
     wrap.append(btn, drop)
     host.append(wrap)
@@ -121,15 +131,15 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('manufacture', 'Export for manufacturing (HTML)')
   ])
   menu('Edit', [
-    { label: 'Undo', run: a.onUndo },
-    { label: 'Redo', run: a.onRedo },
+    { label: 'Undo', run: a.onUndo, enabled: a.canUndo },
+    { label: 'Redo', run: a.onRedo, enabled: a.canRedo },
     { sep: true },
-    { label: 'Cut garment', run: a.onCut },
+    { label: 'Cut garment', run: a.onCut, enabled: a.canModifyLayers },
     { label: 'Copy garment', run: a.onCopy },
-    { label: 'Paste garment', run: a.onPaste },
+    { label: 'Paste garment', run: a.onPaste, enabled: a.canPaste },
     { label: 'Duplicate garment', run: a.onDuplicate },
     { sep: true },
-    { label: 'Delete garment', run: a.onDelete }
+    { label: 'Delete garment', run: a.onDelete, enabled: a.canModifyLayers }
   ])
   menu('Avatar', [
     { label: 'Idle', run: () => a.onAnim('idle') },
