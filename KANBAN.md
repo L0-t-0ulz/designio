@@ -119,11 +119,32 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Features**
 - [ ] **Drop in a real photoreal skin (asset)** — the fallback now renders as warm skin (PR #128) + the GLB slot is the default; the remaining step is dropping an actual CC0 photoreal human `.glb` at `assets/mannequin.glb` (a binary asset)
+
+**Pattern & true sewing** _(the CLO3D / Browzwear core loop: 2D panels → arrange on the body → sew → drape)_
 - [ ] **Draw-your-own panel** — sketch a custom 2D panel (freeform + mirror symmetry), then sew it onto the body
+- [ ] **Sewing lines & arrangement** — place pattern panels around the avatar with arrangement points, define **seam lines** between panel edges (mismatched lengths eased), then simulate to stitch + drape — the deferred half of #169, built on `ClothWorld` seam constraints
+- [ ] **Style lines** — draw a seam across a panel to split it (yoke + body, princess seam, colour-block), then re-sew the pieces; the split grades + exports as separate pattern panels
+- [ ] **Internal shapes & notches** — darts, drill holes, notches and internal cut-outs authored on a panel (real fabric take-up in 3D + marked on the flat pattern)
+- [ ] **Seam & topstitch types** — a stitch library (plain / french / flat-fell seams; single- vs double-needle topstitch, SPI, thread weight) that reads on the 3D garment and in the tech pack
+
+**Fabric science** _(spec cloth the way a mill / Browzwear FAB does)_
+- [ ] **Physical fabric properties** — a fabric editor in **real units** (weight GSM · thickness mm · bending rigidity · stretch % warp/weft · shear) that drives the solver and round-trips into the tech pack, instead of derived presets
+- [ ] **Virtual drape test** — a cantilever / circular-drape bench that measures a fabric's **drape coefficient**, so its physics can be validated + compared like real cloth
+- [ ] **Fusible interlining & lining layers** — a structured under-layer (fusible / canvas / lining) that stiffens a collar · placket · waistband, simulated + rendered as its own layer
+
+**Trims & notions** _(placed hardware, counted in the BOM)_
+- [ ] **Trims & notions library** — functional **zippers (teeth)**, snaps, rivets, eyelets, hook-&-bar, drawcords + elastic, placed on the garment and tallied into the manufacturing BOM
+- [ ] **Binding & elastic tape** — bias binding / elastic run along a chosen edge (neckline · armhole · waistband) that finishes + tightens it — CLO's "tape" tool
+- [ ] **Functional openings** — a button placket / zip that actually *opens* (the garment gaps at the closure), not just a drawn line
+
+**Fit & simulation tools** _(arrange, fit, analyse — the pro fitting workflow)_
+- [ ] **Pin · tack · freeze** — pin cloth to the avatar, tack two points together, freeze a region while arranging — the CLO staples for layout + fitting
+- [ ] **Pressure / contact fit map** — colour where the garment **presses into** the body (contact force), distinct from the strain + stress views — real fit analysis
+- [ ] **Ease table** — the numeric girth **ease** at chest / waist / hip / bicep (garment − body) shown in the panel + on the tech pack
+- [ ] **Fold arrangement** — pre-fold collars / lapels / cuffs before simulating so structured pieces settle the right way
 
 **More design & construction**
 - [ ] **Gathers, shirring & smocking** — elastic-gathered panels + honeycomb smocking detail (3D + a gathered-strip pattern piece)
-- [ ] **Functional openings** — a button placket / zip that actually *opens* (the garment gaps at the closure), not just a drawn line
 - [ ] **Convertible details** — wrap-dress ties + drawcords that knot, so one garment styles multiple ways
 
 **More materials & finishes**
@@ -134,11 +155,11 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **More production**
 - [x] **Import an existing flat pattern** — read a DXF pattern back in + preview it in the 2D pane (round-trips the export; pure `parsePatternDXF` unit-tested). Draping imported panels onto the body deferred — PR #169
+- [ ] **Points-of-measure (POM) sheet** — a graded POM table with tolerances (± cm) across the size run, on the tech pack (how factories are actually spec'd)
+- [ ] **Grade-rule editor** — per-point grade increments so the size run grades like a real pattern, not a uniform girth scale
 
-**AI-assisted design** _(uses the latest Claude models)_
+**AI-assist** _(optional, later — not the focus; the core is the CLO3D/Browzwear CAD workflow above)_
 - [ ] **AI design assistant** — describe a garment in words → DesignIO builds the config (garment · fabric · colour · construction details)
-- [ ] **AI colorway & print suggestions** — a mood / season prompt → a set of on-trend colorways + a matching textile pattern
-- [ ] **AI tech-pack copywriter** — auto-write the spec-sheet prose, construction notes + care instructions from the garment data
 
 **Polish / tech-debt** _(found while building the above)_
 - [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67
