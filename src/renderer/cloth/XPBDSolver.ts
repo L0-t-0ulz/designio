@@ -286,6 +286,11 @@ export class XPBDSolver {
     for (let k = 0; k < n; k++) if (counts[k] > 0) out[k] /= counts[k]
   }
 
+  /** True once the cloth has settled to rest (drape is stable) — for measuring a settled fit. */
+  get settled(): boolean {
+    return this.asleep
+  }
+
   /** Re-activate the solver after any change (wind, gravity, fabric, respawn, body move). */
   wake(): void {
     this.asleep = false

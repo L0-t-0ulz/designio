@@ -31,6 +31,7 @@ import { patternSchematic } from './patternSchematic'
 import { SIZES, type SizeLabel } from '../studio/document'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
+import type { GirthRow } from '../export/drapeFit'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from '../fabric/ombre'
 import { WEAR_KINDS, type WearKind } from '../fabric/wear'
@@ -210,6 +211,8 @@ export interface PanelOptions {
   }
   /** Live measurements of the active garment (for the Measurements readout). */
   getMetrics?: () => GarmentMetrics
+  /** Chest/waist/hip girth measured on the live *draped* garment (on-body fit). */
+  getDrapedFit?: () => GirthRow[]
   bodySize: BodyParams
   onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
@@ -1263,11 +1266,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     // Fit ease (garment − body) at chest/waist; tight (negative) ease flagged.
     if (m.ease.length) {
       metricsBody.append(el('div', 'dio-metric-sep'))
+      metricsBody.append(el('div', 'dio-metric-head', 'Fit ease (drafted)'))
       for (const e of m.ease) {
         const row = metricLine(`${e.label} ease`, fmtEase(e.easeCm))
         if (e.easeCm < 0) row.classList.add('dio-metric-neg')
         metricsBody.append(row)
       }
+    }
+    // Girth measured on the live drape — a real hip the flat draft can't give.
+    const draped = opts.getDrapedFit?.() ?? []
+    if (draped.length) {
+      metricsBody.append(el('div', 'dio-metric-sep'))
+      metricsBody.append(el('div', 'dio-metric-head', 'On body (draped)'))
+      for (const g of draped) metricsBody.append(metricLine(g.label, fmtLen(g.cm)))
     }
   }
   metricsSec.body.append(unitRow, metricsBody)

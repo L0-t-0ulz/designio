@@ -502,6 +502,14 @@ canvas {
 .dio-metric-neg .dio-metric-val {
   color: #d9a441;
 }
+/* Sub-heading within the measurements readout (Fit ease · On body). */
+.dio-metric-head {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--dio-muted);
+  margin: 2px 0 3px;
+}
 
 /* ---- printed-graphic (PNG) uploader ---- */
 .dio-graphic {
