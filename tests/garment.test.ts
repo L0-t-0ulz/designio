@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import * as THREE from 'three'
-import { MEASUREMENTS } from '../src/renderer/avatar/Mannequin'
+import { MEASUREMENTS, buildMannequin } from '../src/renderer/avatar/Mannequin'
 import { DEFAULT_PARAMS, type GarmentType } from '../src/renderer/garment/templates'
 import { getGarment, GARMENTS, GARMENT_IDS } from '../src/renderer/garments/registry'
-import { garmentTubeSpecs } from '../src/renderer/garments/factory'
+import { garmentTubeSpecs, headTubeToSpec, buildGarment } from '../src/renderer/garments/factory'
+import type { HeadTubePiece } from '../src/renderer/garments/schema'
 import { FABRIC_LIBRARY } from '../src/renderer/fabric/FabricLibrary'
 import { fillTube, fillAxisTube, buildTubeGarment } from '../src/renderer/cloth/Garment'
 import type { GarmentParams } from '../src/renderer/garment/templates'
@@ -154,5 +155,45 @@ describe('catalog additions — tapered bottoms + new silhouettes', () => {
     expect(j.defaults.ribbing).toBe(true)
     expect(j.defaults.waistband).toBe(true)
     expect(ankleR('joggers')).toBeLessThan(ankleR('wide-leg'))
+  })
+})
+
+describe('headTube (headwear / neckwear)', () => {
+  const neckPiece: HeadTubePiece = { kind: 'headTube', anchor: 'neck', dropHi: 0.14, dropLo: 0.34, topScale: 1.6, botScale: 2.8 }
+  const crownPiece: HeadTubePiece = { kind: 'headTube', anchor: 'crown', dropHi: 0.1, dropLo: 0.2, topScale: 0.5, botScale: 1.2 }
+
+  it('a neck cowl tube sits around the neck — radii from the neck measurement, flaring onto the shoulders', () => {
+    const m = MEASUREMENTS
+    const spec = headTubeToSpec(neckPiece, DEFAULT_PARAMS, m)
+    expect(spec.topY).toBeCloseTo(m.neckY, 5)
+    expect(spec.bottomY).toBeLessThan(spec.topY)
+    expect(spec.bottomY).toBeGreaterThan(m.chestY - 0.05) // stays up around the neck, not the belly
+    expect(spec.radiusTop).toBeGreaterThan(m.neckR) // clears the neck
+    expect(spec.radiusBottom).toBeGreaterThan(spec.radiusTop) // flares out
+    expect(spec.rings).toBeGreaterThanOrEqual(10) // denser rings so a short piece still drapes
+  })
+
+  it('a crown tube caps the head (up above the neck, gathered small at the top)', () => {
+    const m = MEASUREMENTS
+    const spec = headTubeToSpec(crownPiece, DEFAULT_PARAMS, m)
+    expect(spec.topY).toBeGreaterThan(m.neckY) // up at the crown
+    expect(spec.radiusTop).toBeLessThan(spec.radiusBottom) // gathered crown → wider over the head
+  })
+
+  it('length drops the hem lower (drapes further down)', () => {
+    const m = MEASUREMENTS
+    const short = headTubeToSpec(neckPiece, { ...DEFAULT_PARAMS, length: 0.1 }, m)
+    const long = headTubeToSpec(neckPiece, { ...DEFAULT_PARAMS, length: 1 }, m)
+    expect(long.bottomY).toBeLessThanOrEqual(short.bottomY)
+  })
+
+  it('the snood garment builds one head piece (a Cowl) with a pinned top ring', () => {
+    const mann = buildMannequin()
+    const def = getGarment('snood')
+    const p = { ...DEFAULT_PARAMS, ...def.defaults }
+    expect(garmentTubeSpecs(def, p, mann.measurements)).toHaveLength(1)
+    const pieces = buildGarment(def, p, mann.measurements, mann.colliders)
+    expect(pieces.map((pc) => pc.name)).toEqual(['Cowl'])
+    expect(pieces[0].build.pinnedTop.length).toBeGreaterThan(0)
   })
 })

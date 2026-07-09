@@ -179,9 +179,9 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Cloth-sim foundation** _(make the drape-y pieces real catalog garments — refine `garments/schema` · `factory` · `avatar/Mannequin` · `garment/GarmentController`)_
 - [x] **Head/neck anchor** — `head` added to `BodyAnchors` + `AnchorKey`; a pure `headAnchor(colliders)` builds the crown+basis `Matrix4` from the head frame (works for the procedural body + the GLB head bone) and `Mannequin.anchors()` returns it live so it turns/nods with the head — the frame a cloth-sim `headTube` pins to; unit-tested — PR #183
-- [ ] **`headTube` piece kind** — a tube anchored at the crown/neck running down over the head/neck, in `schema` + `factory` (`headTubeToSpec`); collides with the head/neck capsules (already free)
+- [x] **`headTube` piece kind** — a tube anchored at the crown/neck running down over the head/neck (`schema` `HeadTubePiece` + `factory` `headTubeToSpec`; denser rings so a short piece still drapes); collides with the head/neck capsules for free; wired through `buildGarment` + `garmentTubeSpecs`/`garmentPatternSpecs`. Shipped the first cloth-sim neckwear — a draping **snood** (cowl) catalog garment; `headTubeToSpec` + the build unit-tested + a headless drape-stability check — PR #184
 - [ ] **Headwear category** — add `accessory`/`headwear` to `GarmentCategory` + the Library picker + garment icons
-- [ ] **Expose `headR`/`neckR` in `Measurements`** (currently internal `PROPORTIONS`) so headwear specs + fit read them
+- [x] **Expose `headR`/`neckR` in `Measurements`** — added to the interface + `measurementsFor`/`applyBody` (scale with build), so `headTubeToSpec` + headwear fit read them — PR #184
 - [ ] **Pin headwear to the head/neck anchor** — `bindPinsToBody` head case (a beanie brim ring → head, a scarf → neck)
 - [ ] **Snug-knit collision tuning** — a tighter `bodySkin`/offset for knits so a beanie hugs the crown without hovering
 - [ ] **Cloth-sim draping scarf** — a rectangular knit panel that wraps the neck once and hangs + drapes under gravity

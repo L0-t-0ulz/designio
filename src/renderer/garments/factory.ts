@@ -10,7 +10,7 @@ import {
   type TubeBuild,
   type TubeSpec
 } from '../cloth/Garment'
-import type { BodyTubePiece, GarmentDefinition } from './schema'
+import type { BodyTubePiece, GarmentDefinition, HeadTubePiece } from './schema'
 import { simTube, getResolutionScale, type SimResolution } from '../cloth/simQuality'
 
 const RADIAL = 60
@@ -23,17 +23,20 @@ export function setSimResolution(name: SimResolution): void {
   simScale = getResolutionScale(name)
 }
 
-/** One tube piece; `rings`/`radial` scaled to its height + the sim resolution. */
+/** One tube piece; `rings`/`radial` scaled to its height + the sim resolution.
+ *  `divisor` = metres-per-ring the piece is authored at (smaller = denser rings —
+ *  short pieces like a cowl need it to drape + stay above the solver's ring minimum). */
 function piece(
   topY: number,
   bottomY: number,
   radiusTop: number,
   radiusBottom: number,
   centerX = 0,
-  radial = RADIAL
+  radial = RADIAL,
+  divisor = 0.022
 ): TubeSpec {
   const h = Math.max(0.05, topY - bottomY)
-  const t = simTube(radial, h, 0.022, simScale)
+  const t = simTube(radial, h, divisor, simScale)
   return { rings: t.rings, radial: t.radial, topY, bottomY, radiusTop, radiusBottom, centerX }
 }
 
@@ -64,6 +67,24 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.72)
   }
   return spec
+}
+
+/**
+ * A head/neck tube (cowl · snood · gaiter · beanie) from a `headTube` piece. Anchored
+ * at the crown or neck, running down over the head/neck; radii read from the head/neck
+ * measurements. It collides with the head/neck capsules for free (they're in the solver's
+ * collider set), so it drapes onto the neck/shoulders.
+ */
+export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measurements): TubeSpec {
+  const crown = pc.anchor === 'crown'
+  const baseY = crown ? m.neckY + m.headR * 1.9 : m.neckY // ≈ the crown, or the neck base
+  const baseR = crown ? m.headR : m.neckR
+  const topY = baseY + (pc.riseHi ?? 0)
+  const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length
+  const bottomY = Math.max(m.chestY - 0.03, topY - drop) // never past the upper chest
+  const rTop = baseR * pc.topScale + p.ease
+  const rBot = baseR * pc.botScale + p.ease + p.flare
+  return piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
 }
 
 /** The two trouser legs (hip → knee/ankle by length). */
@@ -136,6 +157,7 @@ export function garmentTubeSpecs(def: GarmentDefinition, params: GarmentParams, 
   for (const pc of def.pieces) {
     if (pc.kind === 'bodyTube') specs.push(bodyTubeToSpec(pc, params, m))
     else if (pc.kind === 'legTubes') specs.push(...legTubeSpecs(params, m))
+    else if (pc.kind === 'headTube') specs.push(headTubeToSpec(pc, params, m))
   }
   return specs
 }
@@ -160,6 +182,8 @@ export interface PatternSpecs {
   body: TubeSpec[]
   legs: TubeSpec[]
   sleeves: AxisTubeSpec[]
+  /** Head/neck tubes (cowl · snood · beanie); their flat pattern is a later card. */
+  head: TubeSpec[]
 }
 export function garmentPatternSpecs(
   def: GarmentDefinition,
@@ -169,11 +193,13 @@ export function garmentPatternSpecs(
 ): PatternSpecs {
   const body: TubeSpec[] = []
   const legs: TubeSpec[] = []
+  const head: TubeSpec[] = []
   for (const pc of def.pieces) {
     if (pc.kind === 'bodyTube') body.push(bodyTubeToSpec(pc, params, m))
     else if (pc.kind === 'legTubes') legs.push(legTubeSpecs(params, m)[0]) // one leg; mirror is cut 2
+    else if (pc.kind === 'headTube') head.push(headTubeToSpec(pc, params, m))
   }
-  return { body, legs, sleeves: garmentSleeveSpecs(def, params, colliders) }
+  return { body, legs, head, sleeves: garmentSleeveSpecs(def, params, colliders) }
 }
 
 /** A ready-to-simulate garment piece (geometry + how to reset it + a display name). */
@@ -212,6 +238,9 @@ export function buildGarment(
           out.push({ build: buildAxisTube(spec), refill: (pos) => fillAxisTube(pos, spec), name: sleeveName[i] })
         })
       }
+    } else if (pc.kind === 'headTube') {
+      const spec = headTubeToSpec(pc, params, m)
+      out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: pc.anchor === 'crown' ? 'Head' : 'Cowl' })
     }
   }
   return out
