@@ -4,6 +4,7 @@ import { BodyMesh, type BodyPart } from './BodyMesh'
 import { loadGlbBody, type GlbBody } from './GlbMannequin'
 import { makeSkinMaterial, applySkinLook, type SkinLook } from './skin'
 import { getPose, type PoseName } from './poses'
+import { headFrame } from './face'
 import { BodyCollider } from '../cloth/BodyCollider'
 
 /** Key body measurements (metres) garments are fitted to (scale with body size). */
@@ -97,6 +98,8 @@ export type AnimationMode = 'static' | 'idle' | 'walk' | 'turn'
 /** World-space frames garments pin to so they follow the moving body (torso = tops, hip = bottoms,
  *  armL/armR = sleeve shoulders, handL/handR = sleeve cuffs; armL/handL are the −x side, R the +x). */
 export interface BodyAnchors {
+  /** Head frame (crown + head basis) — headwear pins follow this; turns/nods with the body. */
+  head: THREE.Matrix4
   torso: THREE.Matrix4
   hip: THREE.Matrix4
   armL: THREE.Matrix4
@@ -105,6 +108,17 @@ export interface BodyAnchors {
   foreR: THREE.Matrix4
   /** true when the limbs actually animate (GLB) — sleeves then also elbow-pin to the forearms. */
   rigged: boolean
+}
+
+/**
+ * The **head anchor** frame (world) — the crown position + the orthonormal head basis
+ * (right/up/forward), as a rigid `Matrix4` that headwear pins follow. Pure; works for the
+ * procedural body and the GLB rig alike (the head capsule is fit to the GLB head bone), so
+ * it turns and nods with the animated head.
+ */
+export function headAnchor(colliders: Capsule[], out: THREE.Matrix4 = new THREE.Matrix4()): THREE.Matrix4 {
+  const hf = headFrame(colliders)
+  return out.makeBasis(hf.right, hf.up, hf.forward).setPosition(hf.crown)
 }
 
 export interface Mannequin {
@@ -450,6 +464,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
 
   // Body anchors garments pin to. GLB → chest/hips bones (move with the animation);
   // procedural → static frames at the chest/hip landmarks (the torso doesn't animate).
+  const headMat = new THREE.Matrix4()
   const torsoMat = new THREE.Matrix4()
   const hipMat = new THREE.Matrix4()
   const armLMat = new THREE.Matrix4()
@@ -457,6 +472,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const foreLMat = new THREE.Matrix4()
   const foreRMat = new THREE.Matrix4()
   const anchors = (): BodyAnchors => {
+    // Head anchor from the live head frame — same for both paths (colliders track the body/rig).
+    headAnchor(colliders, headMat)
     if (useGlb && glb?.bones.hips) {
       const chest = glb.bones.chest ?? glb.bones.neck ?? glb.bones.hips
       chest.updateWorldMatrix(true, false)
@@ -479,7 +496,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       const laIsNeg = !la || !ra || la.matrixWorld.elements[12] <= ra.matrixWorld.elements[12] // −x arm → armL
       setSide(armLMat, armRMat, la, ra, laIsNeg)
       setSide(foreLMat, foreRMat, glb.bones.lFore, glb.bones.rFore, laIsNeg)
-      return { torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: true }
+      return { head: headMat, torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: true }
     }
     torsoMat.makeTranslation(0, measurements.chestY, 0)
     hipMat.makeTranslation(0, measurements.hipY, 0)
@@ -487,7 +504,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     armRMat.makeTranslation(measurements.shoulderHalfX, measurements.shoulderY, 0)
     foreLMat.copy(armLMat)
     foreRMat.copy(armRMat)
-    return { torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: false }
+    return { head: headMat, torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: false }
   }
 
   // Static lookbook pose (held while the animation mode is `static`).

@@ -12,7 +12,7 @@ import { getGarment } from '../garments/registry'
 import { Topstitch } from './Topstitch'
 
 /** Which body anchor a pin group follows (matrix keys of BodyAnchors). */
-type AnchorKey = 'torso' | 'hip' | 'armL' | 'armR' | 'foreL' | 'foreR'
+type AnchorKey = 'head' | 'torso' | 'hip' | 'armL' | 'armR' | 'foreL' | 'foreR'
 
 interface Piece {
   geometry: THREE.BufferGeometry
