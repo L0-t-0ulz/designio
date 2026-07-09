@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import * as THREE from 'three'
-import { accessoryAnchors, ACCESSORY_KINDS } from '../src/renderer/avatar/accessories'
+import { accessoryAnchors, ACCESSORY_KINDS, Accessories } from '../src/renderer/avatar/accessories'
 import type { Capsule } from '../src/renderer/avatar/colliders'
 
 // A minimal 13-capsule body matching the mannequin's base layout (a/b endpoints).
@@ -28,8 +28,8 @@ function baseBody(): Capsule[] {
 }
 
 describe('accessories — body attach anchors', () => {
-  it('exposes the accessory set', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag'])
+  it('exposes the accessory set incl. headwear & neckwear', () => {
+    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter'])
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
@@ -61,5 +61,57 @@ describe('accessories — body attach anchors', () => {
     const a = accessoryAnchors(shifted)
     expect(a.headTop.x).toBeCloseTo(0.5, 5)
     expect(a.footL.x).toBeCloseTo(-0.12 + 0.5, 5)
+  })
+})
+
+const rotYBody = (rad: number): Capsule[] => {
+  const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rad)
+  return baseBody().map((c) => ({ a: c.a.clone().applyQuaternion(q), b: c.b.clone().applyQuaternion(q), radius: c.radius }))
+}
+
+describe('accessories — headwear / neckwear anchors', () => {
+  it('the head basis is orthonormal — forward +z / up +y / right +x at rest', () => {
+    const a = accessoryAnchors(baseBody())
+    expect(a.headUp.y).toBeCloseTo(1, 5)
+    expect(a.headFwd.z).toBeCloseTo(1, 5)
+    expect(a.headRight.x).toBeCloseTo(1, 5)
+    expect(a.headFwd.dot(a.headUp)).toBeCloseTo(0, 5)
+    expect(a.headFwd.dot(a.headRight)).toBeCloseTo(0, 5)
+    expect(a.headUp.dot(a.headRight)).toBeCloseTo(0, 5)
+  })
+
+  it('the head basis turns with the body (a 90° turn rotates forward off +z)', () => {
+    const a = accessoryAnchors(rotYBody(Math.PI / 2))
+    expect(Math.abs(a.headFwd.z)).toBeLessThan(0.2)
+    expect(Math.abs(a.headFwd.x)).toBeGreaterThan(0.8)
+  })
+
+  it('the neck anchor sits at the neck capsule + follows a body shift', () => {
+    const a = accessoryAnchors(baseBody())
+    expect(a.neck.y).toBeCloseTo((1.46 + 1.55) / 2, 5)
+    expect(a.neckR).toBeCloseTo(0.048, 5)
+    const shifted = baseBody().map((c) => ({ a: c.a.clone().add(new THREE.Vector3(0, 0, 0.3)), b: c.b.clone().add(new THREE.Vector3(0, 0, 0.3)), radius: c.radius }))
+    expect(accessoryAnchors(shifted).neck.z).toBeCloseTo(0.3, 5)
+  })
+})
+
+describe('accessories — worn headwear/neckwear meshes ride the head/neck', () => {
+  it('each new kind builds visible geometry positioned up around the head/neck', () => {
+    const acc = new Accessories()
+    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter'] as const
+    for (const k of kinds) {
+      acc.setEnabled(k, true)
+      expect(acc.isEnabled(k)).toBe(true)
+    }
+    acc.update(baseBody())
+    acc.group.updateMatrixWorld(true)
+    const visible = acc.group.children.filter((o) => o.visible)
+    expect(visible.length).toBe(kinds.length)
+    for (const g of visible) {
+      const box = new THREE.Box3().setFromObject(g)
+      expect(box.max.y).toBeGreaterThan(1.2) // up at the head/neck, not the feet
+      expect(box.min.y).toBeGreaterThan(1.0)
+      expect(box.max.y).toBeLessThan(2.0) // sane — not exploded
+    }
   })
 })

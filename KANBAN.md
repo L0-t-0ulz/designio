@@ -173,6 +173,85 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 ---
 
+## 🧢 Headwear & neckwear _(hats · beanies · ski masks · scarves · head scarves — a full build-out)_
+
+- [x] **Rigid headwear/neckwear accessories** — beanie · cap · bucket hat · balaclava (ski mask) · scarf · neck gaiter added to the avatar `Accessories` system, placed by the **head/neck frame** so they ride the animated head (crown dome + folded cuff, cap dome + curved bill, bucket dome + brim, full-head shell, neck loop + tails, knit tube); `accessoryAnchors` now exposes the head-frame basis + neck ring; pure placement math unit-tested; auto-wired into the `?accessories=` deep-link + Avatar-panel toggles — PR #182
+
+**Cloth-sim foundation** _(make the drape-y pieces real catalog garments — refine `garments/schema` · `factory` · `avatar/Mannequin` · `garment/GarmentController`)_
+- [ ] **Head/neck anchor** — add `head` to `BodyAnchors` + `AnchorKey`, computed in `Mannequin.anchors()` from the head frame (procedural + GLB head bone); pure, unit-tested
+- [ ] **`headTube` piece kind** — a tube anchored at the crown/neck running down over the head/neck, in `schema` + `factory` (`headTubeToSpec`); collides with the head/neck capsules (already free)
+- [ ] **Headwear category** — add `accessory`/`headwear` to `GarmentCategory` + the Library picker + garment icons
+- [ ] **Expose `headR`/`neckR` in `Measurements`** (currently internal `PROPORTIONS`) so headwear specs + fit read them
+- [ ] **Pin headwear to the head/neck anchor** — `bindPinsToBody` head case (a beanie brim ring → head, a scarf → neck)
+- [ ] **Snug-knit collision tuning** — a tighter `bodySkin`/offset for knits so a beanie hugs the crown without hovering
+- [ ] **Cloth-sim draping scarf** — a rectangular knit panel that wraps the neck once and hangs + drapes under gravity
+- [ ] **Cloth-sim ski mask (balaclava)** — a conforming knit shell with a real **face-opening cut-out** (dead particles for eyes/mouth, reusing the cut-out mechanism)
+
+**Beanies & knit caps**
+- [ ] **Cuffed beanie** — a folded-up ribbed brim (double-layer band) with an adjustable cuff height
+- [ ] **Slouchy beanie** — extra crown length that slouches/drapes at the back
+- [ ] **Fisherman / rolled beanie** — a short tight rolled brim, minimal crown
+- [ ] **Pom-pom beanie** — a faux-fur / yarn pom on the crown
+- [ ] **Ear-flap / trapper beanie** — ear flaps (+ ties) and a faux-fur lining
+- [ ] **Knit structure** — a rib / waffle / cable knit normal map + gauge for beanies
+- [ ] **Beanie fit** — crown-depth + brim-height + ear-coverage controls
+- [ ] **Beanie stretch (negative ease)** — a knit that stretches snug over the head
+
+**Structured hats**
+- [ ] **Baseball cap** — a 6-panel crown + a curved bill + a top button; a front-panel logo area
+- [ ] **Bill curvature control** — flat (snapback) → curved (dad hat)
+- [ ] **Cap closure** — snapback / strapback / fitted band at the back
+- [ ] **Trucker cap** — a foam front + a mesh back panel
+- [ ] **Bucket hat controls** — brim-width + crown-height; reversible option
+- [ ] **Fedora / trilby** — a pinched crown crease + a grosgrain hat band
+- [ ] **Wide-brim sun hat** — a large floppy brim (drapes slightly)
+- [ ] **Beret** — a soft flat disc pulled to one side
+- [ ] **Flat cap / newsboy** — a panelled crown + a short stiff front brim
+
+**Scarves & neckwear**
+- [ ] **Rectangular scarf** — length / width params + fringe ends
+- [ ] **Infinity / loop scarf** — a closed loop, worn single or doubled
+- [ ] **Blanket scarf** — an oversized square with a plaid check + fringe
+- [ ] **Silk neck scarf** — a small square knotted at the neck (knot styles)
+- [ ] **Snood / cowl** — a wide knit tube around the neck
+- [ ] **Neck gaiter / buff** — a thin stretch tube (pull up over the nose)
+- [ ] **Scarf drape styles** — once-around · wrapped · draped-tails · Parisian knot
+- [ ] **Fringe & tassels** — a configurable knotted fringe / tassel trim on scarf ends
+
+**Head scarves & wraps**
+- [ ] **Bandana** — a folded triangle tied at the back
+- [ ] **Headscarf / hijab wrap** — a draped wrap over the head + neck, tied at the nape
+- [ ] **Turban** — a wrapped + twisted turban form
+- [ ] **Do-rag / wave cap** — a tight skull wrap with tail ties
+- [ ] **Wrap-tie styles** — front-knot · nape-knot · turned-back · long-tail
+- [ ] **Head-wrap print** — a repeating scarf print / pattern mapped onto the wrap
+
+**Materials & finish**
+- [ ] **Knit-yarn material** — a wool / acrylic matte knit with rib / cable normal + sheen (reuse `FabricMaterial`)
+- [ ] **Faux-fur trim** — pom-poms, trapper flaps, brim fur (reuse the `fur` finish)
+- [ ] **Felt / wool-melton** — a dense matte felt with a subtle nap for structured hats
+- [ ] **Silk / satin** — a drapey lustrous finish for neck scarves
+- [ ] **Brim stiffener** — a buckram / wire brim so a sun-hat / fedora brim holds its shape
+- [ ] **Reflective / hi-vis + embellished** — reflective knit, sequins, beading on headwear
+
+**Fit, patterns & production**
+- [ ] **Head-circumference sizing** — measure head circ + a hat size run (XS–XL / cm) + grading
+- [ ] **Beanie flat pattern** — gore panels / a knit tube + crown, on the 2D pane + DXF
+- [ ] **6-panel cap pattern** — the 6 crown panels + bill + sweatband
+- [ ] **Bucket-hat pattern** — crown + side band + brim ring
+- [ ] **Balaclava / ski-mask pattern** — face + head panels with the opening
+- [ ] **Headwear tech-pack** — POM (head circ · crown height · brim width) + knit gauge + a trims BOM (button, closure, pom)
+- [ ] **Scarf / wrap pattern** — a rectangle / triangle + fringe + grainline
+
+**Avatar & UX**
+- [ ] **Hair under headwear** — flatten / hide hair under a snug beanie / cap; a ponytail through the cap back
+- [ ] **Headwear layering** — sits over hair + under a hood; plays nice with other layers
+- [ ] **Tracks head turn / nod** — verify placement follows the animated head frame under all poses
+- [ ] **Headwear colourways + presets** — colour / pattern each piece; per-type quick-look presets
+- [ ] **Headwear in the Library + runway line-up + projects** — category, icons, and inclusion in the collection shot
+
+---
+
 ## 🔬 Refinements & polish _(deepen what's already shipped — each is a small, self-contained card)_
 
 **Cloth & drape realism** _(refine the XPBD solver — PRs #53 · #65 · #69 · #121)_

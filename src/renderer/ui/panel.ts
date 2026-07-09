@@ -718,10 +718,21 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     b.style.flex = '1 1 30%'
     presetRow.append(b)
   }
-  // Accessories — footwear / belt / hat / bag worn on the avatar (toggle each).
+  // Accessories — footwear / belt / bag + headwear & neckwear worn on the avatar (toggle each).
   const accRow = el('div', 'dio-actions')
   accRow.style.flexWrap = 'wrap'
-  const ACC_LABELS: Record<AccessoryKind, string> = { shoes: 'Shoes', belt: 'Belt', hat: 'Hat', bag: 'Bag' }
+  const ACC_LABELS: Record<AccessoryKind, string> = {
+    shoes: 'Shoes',
+    belt: 'Belt',
+    hat: 'Hat',
+    bag: 'Bag',
+    beanie: 'Beanie',
+    cap: 'Cap',
+    bucket: 'Bucket hat',
+    balaclava: 'Ski mask',
+    scarf: 'Scarf',
+    gaiter: 'Neck gaiter'
+  }
   if (opts.accessories) {
     for (const kind of ACCESSORY_KINDS) {
       const b = button(ACC_LABELS[kind], () => {
