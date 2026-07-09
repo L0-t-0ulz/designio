@@ -328,7 +328,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Cost sheet** — fabric yield × price + trims BOM + labour minutes → a landed cost/unit on the pack; pure `costRollup` unit-tested
 - [ ] **BOM CSV export** — the fabric + trims BOM as CSV (supplier / ref / qty / uom) beside the HTML pack; pure serialiser unit-tested
 - [ ] **ISO 3758 care symbols** — render the wash/bleach/dry/iron glyphs as SVG from the derived care lines (not just text); pure code→glyph map unit-tested
-- [ ] **Thread consumption** — total seam length × stitch density → thread metres for the BOM; pure `threadMetres` unit-tested
+- [x] **Thread consumption** — total seam length × the lockstitch consumption ratio (≈2.5×, +10% waste) → thread metres in the BOM + JSON; pure `threadMetres` unit-tested — PR #179
 
 **Performance & architecture**
 - [ ] **WASM solver hot loop** — compile the XPBD substep (integrate + constraint projection) to WASM for a 2–4× main-thread win over the JS loop; behaviour guarded by the solver tests

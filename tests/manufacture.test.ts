@@ -41,6 +41,7 @@ describe('manufacturing export', () => {
     expect(html).toContain('Bill of materials')
     expect(html).toContain('Marker (@ 140 cm)') // the nested-marker yield + efficiency
     expect(html).toContain('efficient') // the marker preview heading
+    expect(html).toContain('Thread (est.') // thread consumption in the BOM
     expect(html).toContain('<svg>') // the embedded flat pattern
     expect(html).toContain('size M')
     expect(html).toContain('TR-2050 Terracotta') // production colour reference in the BOM
@@ -59,6 +60,7 @@ describe('manufacturing export', () => {
     expect(json.garments[0].yardage_m).toBeGreaterThan(0)
     expect(json.garments[0].marker_efficiency_pct).toBeGreaterThan(0) // realistic nested yield
     expect(json.garments[0].marker_efficiency_pct).toBeLessThanOrEqual(100)
+    expect(json.garments[0].thread_m).toBeGreaterThan(0) // thread consumption
     expect(json.garments[0].color_ref).toBe('TR-2050 Terracotta')
   })
 })
