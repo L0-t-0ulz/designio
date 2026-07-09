@@ -23,6 +23,7 @@ import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
 import { TimelinePlayer } from './studio/TimelinePlayer'
 import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import { MeasureTool, type MeasureMode } from './studio/MeasureTool'
+import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPattern } from './export/patternImport'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
@@ -108,6 +109,7 @@ function initStudio(
   let windGust = 0 // gust amplitude (0 = steady); set by a wind preset
   const patternParams = { ...DEFAULT_PATTERN }
   let mode: DesignMode = 'templates'
+  let importedPattern: ImportedPattern | null = null // an imported DXF shown in the 2D pane
   let editPart: PartId = 'body' // which garment part colour/fabric edits target
 
   // The multi-garment stack (each layer = its own material · controller · fabric).
@@ -297,6 +299,7 @@ function initStudio(
 
   // Rebuild the whole studio from a document (undo/redo, open project).
   function applyDoc(doc: ProjectDoc): void {
+    importedPattern = null // a fresh doc → the live pattern, not a stale import
     patternCtl?.clear()
     patternCtl = null
     mode = 'templates'
@@ -498,15 +501,33 @@ function initStudio(
     measureTool?.setMode(m)
     statusHandles?.setSelection(measureLabel())
   }
-  // Templates → the real per-garment flat pattern; Pattern mode → the sewn top.
+  // Templates → the real per-garment flat pattern; Pattern mode → the sewn top;
+  // an imported DXF (if present) takes over the 2D preview.
   const patternSVG = (): string =>
-    mode === 'templates'
-      ? garmentPatternSVG(getGarment(stack.active.data.garmentType), gradeParams(stack.active.data), mannequin.measurements, mannequin.colliders, stack.active.prints)
-      : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
+    importedPattern
+      ? importedPatternToSVG(importedPattern)
+      : mode === 'templates'
+        ? garmentPatternSVG(getGarment(stack.active.data.garmentType), gradeParams(stack.active.data), mannequin.measurements, mannequin.colliders, stack.active.prints)
+        : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
+  // Read a DXF pattern file → parse → preview in the 2D pane (round-trips the export).
+  async function importPattern(): Promise<void> {
+    const r = await openFile([{ name: 'DXF pattern', extensions: ['dxf'] }])
+    if (!r) return
+    const parsed = parsePatternDXF(r.content)
+    if (!parsed.panels.length) {
+      window.alert('No pattern panels found in that DXF.')
+      return
+    }
+    importedPattern = parsed
+    centerTabs.show('pattern')
+    centerTabs.refresh()
+    statusHandles?.setSelection(`Imported pattern — ${patternSummary(parsed)} (edit a control to return to the live pattern)`)
+  }
 
   // Persist the edit buffer → active layer, rebuild + refresh everywhere. Shared by
   // the 3D Property Editor AND the 2D pattern tools, so 2D and 3D drive one design.
   function applyGarmentEdit(): void {
+    importedPattern = null // editing returns the 2D pane to the live garment pattern
     const l = stack.active
     l.data.garmentType = garment.type
     l.data.length = garment.length
@@ -867,6 +888,7 @@ function initStudio(
     onSaveProject: saveProject,
     onExportDio: () => void exportDio().catch((err) => console.error('Export failed', err)),
     onOpenProject: () => void openProject(),
+    onImportPattern: () => void importPattern(),
     onExport: (fmt) => void doExport(fmt).catch((err) => console.error('Export failed', err)),
     onRecordTurntable: recordTurntableSpin,
     onUndo: undo,

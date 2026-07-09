@@ -156,7 +156,10 @@ Renderer modules:
   construction), `careLabel` (**auto care label**: pure `fibreContent`/`careInstructions` derive fibre
   content % + laundering lines from a fabric's family/stretch — unit-tested; folded into the manufacturing
   pack), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM + care &
-  content + embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF), `techpack`, `save`.
+  content + embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF),
+  `patternImport` (**import a flat pattern** — `parsePatternDXF` reads a DXF's LWPOLYLINE panels
+  (CUT/SEW/PRINT layers) back into panels + bounds, round-tripping the export; `importedPatternToSVG`
+  previews them in the 2D pane via File → Import pattern; the pure parser is unit-tested), `techpack`, `save`.
 - `start/` — `Homepage` (launcher → New design · **Your projects** · templates), `ProjectsPage` (the
   **project gallery** — open · rename · delete · import/export `.dio`), `StartPage` (the "design your
   piece" builder — garment · colour/print · **neckline/sleeve/size** · quick-looks · surprise/spin ·

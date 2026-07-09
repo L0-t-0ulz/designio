@@ -8,6 +8,7 @@ export interface MenuActions {
   onSaveProject: () => void
   onExportDio: () => void
   onOpenProject: () => void
+  onImportPattern: () => void
   onExport: (fmt: ExportFormat) => void
   onRecordTurntable: () => void
   onUndo: () => void
@@ -104,6 +105,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Save project', run: a.onSaveProject },
     { label: 'Export project (.dio)', run: a.onExportDio },
     { label: 'Open project (.dio)…', run: a.onOpenProject },
+    { label: 'Import pattern (.dxf)…', run: a.onImportPattern },
     { sep: true },
     ex('glb', 'Export 3D — glTF (.glb)'),
     ex('usdz', 'Export 3D — USDZ (AR · iOS)'),
