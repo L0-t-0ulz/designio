@@ -129,7 +129,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 **More materials & finishes**
 
 **More avatar & scene**
-- [ ] **Group / runway line-up** — several avatars wearing different looks side by side for a collection shot
+- [x] **Group / runway line-up** — a collection shot of the garment across N colourways rendered side by side into one PNG (composited snapshots — the body/sim is a singleton); pure `lineupCells`/`lineupHues` unit-tested — PR #171
 - [x] **Contact shadows & SSAO** — a GTAO ambient-occlusion pass grounds the figure + darkens contact/fold areas (garment↔body, folds, under-arms, pockets); small world radius, no halos; transparent-backdrop path unaffected — PR #170
 
 **More production**
