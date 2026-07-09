@@ -1244,6 +1244,11 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return row
   }
   const fmtLen = (cm: number): string => (unit === 'cm' ? `${cm.toFixed(1)} cm` : `${(cm / 2.54).toFixed(1)} in`)
+  // Signed fit ease: + = loose, − = tight (negative ease). Honours the cm/in toggle.
+  const fmtEase = (cm: number): string => {
+    const v = unit === 'cm' ? cm : cm / 2.54
+    return `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)} ${unit}`
+  }
   function renderMetrics(): void {
     metricsBody.replaceChildren()
     const m = opts.getMetrics?.()
@@ -1255,6 +1260,15 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     metricsBody.append(el('div', 'dio-metric-sep'))
     metricsBody.append(metricLine('Fabric', `${m.fabricM2.toFixed(2)} m²`))
     metricsBody.append(metricLine('Seam length', fmtLen(m.seamCm)))
+    // Fit ease (garment − body) at chest/waist; tight (negative) ease flagged.
+    if (m.ease.length) {
+      metricsBody.append(el('div', 'dio-metric-sep'))
+      for (const e of m.ease) {
+        const row = metricLine(`${e.label} ease`, fmtEase(e.easeCm))
+        if (e.easeCm < 0) row.classList.add('dio-metric-neg')
+        metricsBody.append(row)
+      }
+    }
   }
   metricsSec.body.append(unitRow, metricsBody)
   if (opts.getMetrics) renderMetrics()
