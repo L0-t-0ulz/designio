@@ -224,6 +224,17 @@ export class GarmentController {
     }
   }
 
+  /** The torso body tube's live sim view (positions + grid), for girth measurement; null if none. */
+  bodySim(): { positions: Float32Array; nx: number; ny: number } | null {
+    const p = this.pieces.find((q) => !/sleeve|leg/i.test(q.name))
+    return p ? { positions: p.positions, nx: p.solver.nx, ny: p.solver.ny } : null
+  }
+
+  /** True once every piece has settled to rest — measure the fit on a stable drape. */
+  isSettled(): boolean {
+    return this.pieces.length > 0 && this.pieces.every((p) => p.solver.settled)
+  }
+
   /** Per-piece particle views for the global cloth-collision pass. */
   simPieces(): SimPieceView[] {
     return this.pieces.map((p) => ({

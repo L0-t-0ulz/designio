@@ -41,6 +41,7 @@ import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { pomTable } from './export/pom'
 import { nestMarker } from './export/marker'
+import { drapedGirths } from './export/drapeFit'
 import { careLabel, careInstructions } from './export/careLabel'
 import { careSymbols } from './export/careSymbols'
 import { saveFile, openFile } from './export/save'
@@ -450,6 +451,10 @@ function initStudio(
   let frames = 0
   let fpsT = performance.now()
   let measureTool: MeasureTool | null = null // the tape-measure / annotate tool (built after mount)
+  // Refresh the panel's live measurements once the drape settles (so the draped-fit
+  // readout reflects the final drape, not mid-fall). Assigned after the panel is built.
+  let onDrapeSettle: (() => void) | null = null
+  let drapeSettled = false
   const loop = new Loop(
     (dt) => {
       simTime += dt
@@ -468,6 +473,12 @@ function initStudio(
     () => {
       if (mode === 'templates') stack.updateMeshes()
       else patternCtl?.updateMeshes()
+      // When the active garment settles, refresh the live fit readout once.
+      if (mode === 'templates') {
+        const settled = stack.active?.controller.isSettled() ?? false
+        if (settled && !drapeSettled) onDrapeSettle?.()
+        drapeSettled = settled
+      }
       viewport.render()
       measureTool?.update() // reproject the measurement / note labels onto the canvas
       frames++
@@ -850,6 +861,12 @@ function initStudio(
   function activeMetrics(l = stack.active): ReturnType<typeof garmentMetrics> {
     const def = getGarment(l.data.garmentType)
     return garmentMetrics(def.name, l.data.size, def, gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+  }
+  /** Chest/waist/hip girth measured on the live *draped* garment (empty in pattern mode / no body tube). */
+  function drapedFit(): ReturnType<typeof drapedGirths> {
+    if (mode !== 'templates') return []
+    const body = stack.active?.controller.bodySim()
+    return body ? drapedGirths(body, mannequin.measurements) : []
   }
   function manufactureBundle(): ManufactureBundle {
     return {
@@ -1248,6 +1265,7 @@ function initStudio(
       }
     },
     getMetrics: () => activeMetrics(),
+    getDrapedFit: () => drapedFit(),
     bodySize,
     onBodySize: (b) => {
       Object.assign(bodySize, b)
@@ -1273,6 +1291,8 @@ function initStudio(
     onSelectContext: (label) => statusHandles?.setSelection(label),
     onBack: goBack
   })
+  // Refresh the live measurements (incl. the draped-fit readout) once the drape settles.
+  onDrapeSettle = () => api.refreshMetrics()
 
   // ---- Object Browser (garment layers) + docked control panel below ----
   const objBrowser = buildObjectBrowser(shell.right, {
