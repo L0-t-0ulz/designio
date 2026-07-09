@@ -3,14 +3,17 @@ import type { Measurements } from '../avatar/Mannequin'
 import type { GarmentParams, SleeveShape } from '../garment/templates'
 import {
   buildAxisTube,
+  buildScarf,
   buildTubeGarment,
   fillAxisTube,
+  fillScarf,
   fillTube,
   type AxisTubeSpec,
+  type ScarfSpec,
   type TubeBuild,
   type TubeSpec
 } from '../cloth/Garment'
-import type { BodyTubePiece, GarmentDefinition, HeadTubePiece } from './schema'
+import type { BodyTubePiece, GarmentDefinition, HeadTubePiece, ScarfPiece } from './schema'
 import { simTube, getResolutionScale, type SimResolution } from '../cloth/simQuality'
 
 const RADIAL = 60
@@ -85,6 +88,18 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   const rTop = baseR * pc.topScale + p.ease
   const rBot = baseR * pc.botScale + p.ease + p.flare
   return piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
+}
+
+/** A flat scarf panel spec (wrapped once around the neck, tails hanging) from a `scarfPanel` piece. */
+export function scarfToSpec(pc: ScarfPiece, p: GarmentParams, m: Measurements): ScarfSpec {
+  const wrapR = m.neckR + pc.wrapEase + p.ease
+  const tailLen = pc.tailHi + (pc.tailLo - pc.tailHi) * p.length
+  const width = pc.width
+  const len = 1.3 * Math.PI * wrapR + 2 * tailLen // ≈ total centreline length (~234° wrap + tails)
+  const nx = Math.max(24, Math.min(120, Math.round((len / 0.02) * simScale)))
+  const ny = Math.max(4, Math.min(24, Math.round((width / 0.03) * simScale)))
+  // tails hang in front of the chest, clear of the torso capsule
+  return { nx, ny, neckY: m.neckY, wrapR, width, tailLen, tailZ: m.chestR + 0.04 }
 }
 
 /** The two trouser legs (hip → knee/ankle by length). */
@@ -207,6 +222,8 @@ export interface SimPiece {
   build: TubeBuild
   refill: (pos: Float32Array) => void
   name: string
+  /** false for a flat open panel (a scarf) — the solver must not wrap X. Default true (tubes). */
+  wrapX?: boolean
 }
 
 /**
@@ -241,6 +258,9 @@ export function buildGarment(
     } else if (pc.kind === 'headTube') {
       const spec = headTubeToSpec(pc, params, m)
       out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: pc.anchor === 'crown' ? 'Head' : 'Cowl' })
+    } else if (pc.kind === 'scarfPanel') {
+      const spec = scarfToSpec(pc, params, m)
+      out.push({ build: buildScarf(spec), refill: (pos) => fillScarf(pos, spec), name: 'Scarf', wrapX: false })
     }
   }
   return out

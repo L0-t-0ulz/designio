@@ -184,7 +184,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Expose `headR`/`neckR` in `Measurements`** — added to the interface + `measurementsFor`/`applyBody` (scale with build), so `headTubeToSpec` + headwear fit read them — PR #184
 - [x] **Pin headwear to the head anchor** — `bindPinsToBody` routes a crown headwear piece (a beanie/hat) to the **head** anchor via a pure `pieceAnchor(name,…)` (head → head · sleeve → arm · else → nearer of torso/hip), so it turns/nods with the head; shipped a cloth-sim **beanie** catalog garment (crown `headTube`) that rides the head; `pieceAnchor` unit-tested + a headless drape-stability check — PR #185
 - [ ] **Snug-knit collision tuning** — a tighter `bodySkin`/offset for knits so a beanie hugs the crown without hovering
-- [ ] **Cloth-sim draping scarf** — a rectangular knit panel that wraps the neck once and hangs + drapes under gravity
+- [x] **Cloth-sim draping scarf** — a flat **open** knit panel (new `scarfPanel` piece → `buildScarf`/`fillScarf`, solved with `wrapX: false`) wrapped once around the neck: the collar is pinned as a stable band that follows the body, the two front tails hang + drape under gravity clear of the chest; a robust width frame (vertical on the collar → horizontal on the tails) so it can't collapse; `wrapX` threaded through `SimPiece`/`Piece`/solver; `fillScarf`/`buildScarf` + a headless drape-stability check unit-tested — PR #186
 - [ ] **Cloth-sim ski mask (balaclava)** — a conforming knit shell with a real **face-opening cut-out** (dead particles for eyes/mouth, reusing the cut-out mechanism)
 
 **Beanies & knit caps**

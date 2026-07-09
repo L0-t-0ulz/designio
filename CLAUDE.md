@@ -122,9 +122,10 @@ Renderer modules:
   `wrinkle` (**strain-driven micro-wrinkles** — pure `wrinkleAmount` unit-tested; `installWrinkle` injects a
   crease-normal perturbation into the fabric shader scaled by an `aStrain` vertex attribute).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces
-  (`bodyTube` · `legTubes` · `sleeves` · **`headTube`** — a head/neck cowl/beanie tube anchored at the
-  crown/neck) + `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem**
-  detail), `registry` (the garments, as data — incl. the **snood**, the first cloth-sim neckwear via `headTube`),
+  (`bodyTube` · `legTubes` · `sleeves` · **`headTube`** — a head/neck cowl/beanie tube anchored at the crown/neck ·
+  **`scarfPanel`** — a flat *open* panel (`wrapX: false`) wrapped once around the neck with hanging tails) +
+  `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem**
+  detail), `registry` (the garments, as data — incl. the **snood**/**beanie**/**scarf** cloth-sim headwear),
   `factory` (`buildGarment` composes pieces; `headTubeToSpec` builds a head/neck tube from `headR`/`neckR`
   measurements, colliding with the head/neck capsules for free; construction detail is
   folded into the tube/sleeve specs so the 3D silhouette + the 2D pattern both reflect it), `decor`

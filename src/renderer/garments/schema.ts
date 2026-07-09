@@ -57,7 +57,7 @@ export interface ConstructionCaps {
   princess?: boolean
 }
 
-export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece | HeadTubePiece
+export type PieceSpec = BodyTubePiece | LegTubesPiece | SleevesPiece | HeadTubePiece | ScarfPiece
 
 /**
  * A tube wrapped around the torso (top/dress/skirt). Anchored at a body landmark,
@@ -110,4 +110,20 @@ export interface HeadTubePiece {
   /** Radius multiples on the head/neck radius at the top / bottom edge. */
   topScale: number
   botScale: number
+}
+
+/**
+ * A **flat scarf panel** (a rectangular knit strip) draped once around the back of the
+ * neck with two ends hanging down the front — an *open* cloth panel (not a tube). Simulated
+ * with `wrapX: false`; the tails hang under gravity + collide with the shoulders.
+ */
+export interface ScarfPiece {
+  kind: 'scarfPanel'
+  /** Band width (m). */
+  width: number
+  /** Extra radius over the neck (wrap looseness). */
+  wrapEase: number
+  /** Tail length at length = 0 and length = 1. */
+  tailHi: number
+  tailLo: number
 }
