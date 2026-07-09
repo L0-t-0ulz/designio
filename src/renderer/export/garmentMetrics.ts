@@ -12,6 +12,7 @@ import type { GarmentDefinition } from '../garments/schema'
 import { garmentPatternSpecs } from '../garments/factory'
 import { garmentToPanels } from './garmentPattern'
 import { radiusAt } from '../cloth/Garment'
+import { fitEase, type EaseRow } from './ease'
 
 export interface MetricRow {
   label: string
@@ -22,6 +23,8 @@ export interface GarmentMetrics {
   garment: string
   size: string
   rows: MetricRow[]
+  /** Fit ease (garment − body girth) at the drafted points: chest + waist. */
+  ease: EaseRow[]
   /** Total cloth area across all panels (× copies), m². */
   fabricM2: number
   /** Total seam length across all panels, cm. */
@@ -88,6 +91,7 @@ export function garmentMetrics(
     garment: garmentName,
     size,
     rows: rows.map((r) => ({ label: r.label, cm: round1(r.cm) })),
+    ease: fitEase(specs, m),
     fabricM2: Math.round((areaMm2 / 1e6) * 1000) / 1000,
     seamCm: round1(seamMm / 10)
   }

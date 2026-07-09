@@ -45,6 +45,21 @@ function specRows(m: GarmentMetrics): string {
     .join('')
 }
 
+const signed = (cm: number): string => `${cm >= 0 ? '+' : '−'}${Math.abs(cm).toFixed(1)}`
+
+/** Fit-ease table (garment − body girth at chest/waist); omitted when empty. */
+function easeSection(m: GarmentMetrics): string {
+  if (!m.ease.length) return ''
+  const rows = m.ease
+    .map((e) => `<tr><td>${esc(e.label)}</td><td>${e.bodyCm.toFixed(1)}</td><td>${e.garmentCm.toFixed(1)}</td><td>${signed(e.easeCm)}</td></tr>`)
+    .join('')
+  return `<h3>Fit ease</h3>
+        <table>
+          <thead><tr><th>Point</th><th>Body cm</th><th>Garment cm</th><th>Ease cm</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`
+}
+
 function layerSection(l: ManufactureLayer): string {
   const lengthM = l.metrics.fabricM2 / FABRIC_WIDTH_M
   return `
@@ -57,6 +72,7 @@ function layerSection(l: ManufactureLayer): string {
           <thead><tr><th>Measurement</th><th>cm</th><th>in</th></tr></thead>
           <tbody>${specRows(l.metrics)}</tbody>
         </table>
+        ${easeSection(l.metrics)}
         <h3>Bill of materials</h3>
         <table>
           <tbody>
@@ -142,6 +158,7 @@ export function manufactureJSON(b: ManufactureBundle): string {
         color: hex(l.color),
         color_ref: l.colorRef ?? null,
         measurements_cm: Object.fromEntries(l.metrics.rows.map((r) => [r.label, r.cm])),
+        fit_ease_cm: Object.fromEntries(l.metrics.ease.map((e) => [e.label, e.easeCm])),
         fabric_area_m2: l.metrics.fabricM2,
         yardage_m: +(l.metrics.fabricM2 / FABRIC_WIDTH_M).toFixed(2),
         seam_length_cm: l.metrics.seamCm

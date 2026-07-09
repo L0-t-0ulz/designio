@@ -31,6 +31,16 @@ describe('garment metrics (production spec)', () => {
     expect(Math.abs((label('top', 'Chest') ?? 0) - expected)).toBeLessThan(1) // < 1 cm
   })
 
+  it('reports fit ease (garment − body) at chest/waist for a dress', () => {
+    const e = metrics('dress').ease
+    expect(e.map((r) => r.label)).toEqual(expect.arrayContaining(['Chest', 'Waist']))
+    // chest ease ≈ 2π·ease·100 (garment top = chestR + ease)
+    const p = paramsFor('dress')
+    const chest = e.find((r) => r.label === 'Chest')!
+    expect(Math.abs(chest.easeCm - 2 * Math.PI * p.ease * 100)).toBeLessThan(1)
+    expect(chest.easeCm).toBeCloseTo(chest.garmentCm - chest.bodyCm, 1)
+  })
+
   it('reports a positive fabric area + seam length', () => {
     const t = metrics('dress')
     expect(t.fabricM2).toBeGreaterThan(0)

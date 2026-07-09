@@ -140,7 +140,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 **Fit & simulation tools** _(arrange, fit, analyse — the pro fitting workflow)_
 - [ ] **Pin · tack · freeze** — pin cloth to the avatar, tack two points together, freeze a region while arranging — the CLO staples for layout + fitting
 - [ ] **Pressure / contact fit map** — colour where the garment **presses into** the body (contact force), distinct from the strain + stress views — real fit analysis
-- [ ] **Ease table** — the numeric girth **ease** at chest / waist / hip / bicep (garment − body) shown in the panel + on the tech pack
+- [x] **Ease table** — the numeric girth **ease** (garment − body) at the *drafted* points — **chest + waist** — in the Property panel (signed, tight ease flagged) + the manufacturing spec pack; pure `fitEase` unit-tested. Hip/bicep deferred: the tube has no drafted hip radius (hip clearance is emergent from the drape, not the draft), so a spec-level hip mis-reads — needs the draped-mesh fit measure — PR #176
 - [ ] **Fold arrangement** — pre-fold collars / lapels / cuffs before simulating so structured pieces settle the right way
 
 **More design & construction**
