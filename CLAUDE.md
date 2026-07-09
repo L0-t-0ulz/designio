@@ -83,7 +83,9 @@ Renderer modules:
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape),
   `weaveTexture` (procedural weave normal maps; pure math is unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
-  `paintTextile` tiles it across the albedo), `swatch` (**import a fabric photo → seamless tiling PBR**:
+  `paintTextile` tiles it across the albedo), `ombre` (**dip-dye / ombré gradient** — top-down · bottom-up ·
+  radial; pure `ombreT` blend field + `ombreDip` derived tone are unit-tested; `paintOmbre` bakes a
+  base→dipped-tone gradient into the albedo, behind any prints/textile), `swatch` (**import a fabric photo → seamless tiling PBR**:
   pure `makeSeamless`/`normalFromLuma`/`estimateRoughness` pixel math is unit-tested; `buildSwatchTextures`
   bakes an albedo + derived normal + roughness that clothe the whole garment), `sparkle` (**sequins /
   beading / metallic foil** eveningwear finishes — pure `sparkleNormal` facet field + `sparkleParams`
@@ -184,7 +186,8 @@ features — brows/eyes/lips) ·
 exports a PNG **with alpha**) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
-the garment, behind the prints) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
+the garment, behind the prints) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
+into the albedo) · `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
 procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?quilt=<channel|diamond|box>` (a quilted-loft finish) · `?prints=demo`
 (two body prints) · `?prints=parts` (a print on the body + sleeves + legs — each print sits on its own
