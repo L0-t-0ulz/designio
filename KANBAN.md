@@ -100,6 +100,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Click-to-type sliders** (exact values) — PR #48
 - [x] **Richer + cooler Preview** — neckline/sleeve/size · quick looks · surprise/spin · colour-tinted aurora — PR #44
 - [x] **Preview page glow-up** — holographic 3D stage (pedestal glow · colour wash · particles · hologram scanline) + neon-glass UI + juicy interactions (shimmer · glow ripple · slot-machine Surprise · sparkle · tilt · looks-styled counter) — PR #90
+- [x] **Measure & annotate** — a tape-measure (click two points on the garment/body → a cm reading) + pinned notes, from the View menu; pure `distanceCm`/`MeasureStore` unit-tested — PR #168
 
 **Stability**
 - [x] **Clothes never fly away / explode** — NaN guard + velocity/position stability net; the gown is fixed — PR #47
@@ -121,7 +122,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Draw-your-own panel** — sketch a custom 2D panel (freeform + mirror symmetry), then sew it onto the body
 
 **More design & construction**
-- [ ] **Measure & annotate** — a tape-measure tool (click two points in 3D → distance) + pin comments/notes on the garment for review
 - [ ] **Gathers, shirring & smocking** — elastic-gathered panels + honeycomb smocking detail (3D + a gathered-strip pattern piece)
 - [ ] **Functional openings** — a button placket / zip that actually *opens* (the garment gaps at the closure), not just a drawn line
 - [ ] **Convertible details** — wrap-dress ties + drawcords that knot, so one garment styles multiple ways

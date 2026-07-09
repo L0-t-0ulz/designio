@@ -142,7 +142,10 @@ Renderer modules:
   (the **shot-sequencer** — keyframe camera + avatar subject; pure `sampleTimeline`/`lerpCameraPose` are
   unit-tested; the player eases the camera via `Viewport.get/setCameraPose` + records a WebM clip),
   `turntable` (**one-click turntable spin → WebM**: pure `turntablePose` orbits the camera a full turn
-  around the subject, unit-tested; `recordTurntable` replays it against the live canvas via MediaRecorder).
+  around the subject, unit-tested; `recordTurntable` replays it against the live canvas via MediaRecorder),
+  `measure` + `MeasureTool` (**measure & annotate** — a tape-measure (click two points on the garment/body →
+  a cm reading) + pinned notes; pure `distanceCm`/`midpoint`/`MeasureStore` are unit-tested, the tool
+  raycasts the live meshes + reprojects HTML labels each frame; View-menu driven).
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ + **USDZ** for iOS AR Quick Look), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
