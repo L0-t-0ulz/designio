@@ -154,6 +154,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 ## 🔬 Refinements & polish _(deepen what's already shipped — each is a small, self-contained card)_
 
 **Cloth & drape realism** _(refine the XPBD solver — PRs #53 · #65 · #69 · #121)_
+- [x] **Adaptive remeshing** — spread a tube's fixed ring budget non-uniformly, packing rings where the silhouette bends (waist cinch · flare onset · puff-sleeve bell · neckline) and leaving straight runs uniform, so folds resolve where they nucleate at no extra particle cost; curvature-driven + clamped so no rest length degenerates (solver unchanged — rest lengths come from the geometry); ring-t drives the UVs so prints stay put; pure `adaptiveRingT` unit-tested — PR #173
 - [ ] **Weave-anisotropic bend** — cloth bends easier along the weave than across (warp vs weft) so twill/denim crease differently from plain weave
 - [ ] **Per-fabric self-collision thickness** — scale the particle-repulsion radius by the fabric's physical thickness (thick wool holds layers apart, chiffon nests close)
 - [ ] **Body friction / cling** — high-grip knits cling to the body, slippery satin slides down + pools at the hem

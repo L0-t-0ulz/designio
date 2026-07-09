@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { adaptiveRingT } from './adaptiveMesh'
 
 export type NecklineStyle = 'strapless' | 'scoop' | 'crew' | 'v'
 /** Pleat / gather styles (the pleats library; active when the `pleats` detail is on). */
@@ -83,17 +84,24 @@ export interface TubeBuild {
   pinnedTop: number[]
 }
 
+/** Adaptive-remeshing ring heights for a body tube (packs rings where the
+ *  silhouette bends — waist cinch / flare); uniform for a straight cone. */
+export function tubeRingT(spec: TubeSpec): number[] {
+  return adaptiveRingT((t) => radiusAt(spec, t), spec.rings)
+}
+
 /**
  * Writes tube particle positions: `rings` horizontal loops from `topY` to
  * `bottomY`, each a circle of `radial` points whose radius lerps top→bottom
- * (a slight A-line). Shared by the initial build and by respawn.
+ * (a slight A-line). Rings are placed by `tubeRingT` (adaptive remeshing).
+ * Shared by the initial build and by respawn.
  */
-export function fillTube(positions: Float32Array, spec: TubeSpec): void {
+export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[] = tubeRingT(spec)): void {
   const { rings, radial, bottomY } = spec
   const cx = spec.centerX ?? 0
   const cz = spec.centerZ ?? 0
   for (let iy = 0; iy < rings; iy++) {
-    const t = rings > 1 ? iy / (rings - 1) : 0
+    const t = ringT[iy]
     const r0 = radiusAt(spec, t)
     // pleats: fold the cross-section radially, opening toward the hem (cinched up top)
     const amp = spec.pleat ? 0.14 * t : 0
@@ -115,14 +123,17 @@ export function fillTube(positions: Float32Array, spec: TubeSpec): void {
  * body. Topologically an `nx(radial) * ny(rings)` grid that wraps in X; the
  * returned `positions` is the geometry's own buffer for zero-copy simulation.
  */
-/** Build the wrapped-tube geometry (uvs + closed-seam indices) + pinned top ring. */
-function finishTube(positions: Float32Array, nx: number, ny: number): TubeBuild {
+/** Build the wrapped-tube geometry (uvs + closed-seam indices) + pinned top ring.
+ *  `ringT` (adaptive ring heights) drives the vertical UV so a placed print stays
+ *  at its physical height even when the rings are packed non-uniformly. */
+function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: number[]): TubeBuild {
   const uvs = new Float32Array(nx * ny * 2)
   for (let iy = 0; iy < ny; iy++) {
+    const v = 1 - (ringT ? ringT[iy] : ny > 1 ? iy / (ny - 1) : 0)
     for (let ix = 0; ix < nx; ix++) {
       const k = iy * nx + ix
       uvs[k * 2] = ix / nx
-      uvs[k * 2 + 1] = 1 - iy / (ny - 1)
+      uvs[k * 2 + 1] = v
     }
   }
   const indices: number[] = []
@@ -162,8 +173,9 @@ function finishTube(positions: Float32Array, nx: number, ny: number): TubeBuild 
  */
 export function buildTubeGarment(spec: TubeSpec): TubeBuild {
   const positions = new Float32Array(spec.radial * spec.rings * 3)
-  fillTube(positions, spec)
-  return finishTube(positions, spec.radial, spec.rings)
+  const ringT = tubeRingT(spec)
+  fillTube(positions, spec, ringT)
+  return finishTube(positions, spec.radial, spec.rings, ringT)
 }
 
 /** A tube that follows an arbitrary segment a→b (e.g. a sleeve along the arm). */
@@ -179,20 +191,31 @@ export interface AxisTubeSpec {
   profile?: (t: number) => number
 }
 
+/** The radius along a sleeve's axis (the shaped `profile`, else a start→end lerp). */
+function axisRadius(spec: AxisTubeSpec, t: number): number {
+  return spec.profile ? spec.profile(t) : spec.radiusStart + (spec.radiusEnd - spec.radiusStart) * t
+}
+
+/** Adaptive-remeshing ring heights for a sleeve (packs rings along a shaped
+ *  profile — puff/bishop/bell); uniform for a straight lerp. */
+export function axisTubeRingT(spec: AxisTubeSpec): number[] {
+  return adaptiveRingT((t) => axisRadius(spec, t), spec.rings)
+}
+
 /** Writes rings perpendicular to the a→b axis, radius lerping start→end. */
-export function fillAxisTube(positions: Float32Array, spec: AxisTubeSpec): void {
-  const { rings, radial, a, b, radiusStart, radiusEnd } = spec
+export function fillAxisTube(positions: Float32Array, spec: AxisTubeSpec, ringT: number[] = axisTubeRingT(spec)): void {
+  const { rings, radial, a, b } = spec
   const axis = new THREE.Vector3().subVectors(b, a)
   axis.multiplyScalar(1 / (axis.length() || 1))
   const up = Math.abs(axis.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0)
   const u = new THREE.Vector3().crossVectors(up, axis).normalize()
   const v = new THREE.Vector3().crossVectors(axis, u).normalize()
   for (let iy = 0; iy < rings; iy++) {
-    const t = rings > 1 ? iy / (rings - 1) : 0
+    const t = ringT[iy]
     const cx = a.x + (b.x - a.x) * t
     const cy = a.y + (b.y - a.y) * t
     const cz = a.z + (b.z - a.z) * t
-    const r = spec.profile ? spec.profile(t) : radiusStart + (radiusEnd - radiusStart) * t
+    const r = axisRadius(spec, t)
     for (let ix = 0; ix < radial; ix++) {
       const ang = (ix / radial) * Math.PI * 2
       const c = Math.cos(ang) * r
@@ -207,6 +230,7 @@ export function fillAxisTube(positions: Float32Array, spec: AxisTubeSpec): void 
 
 export function buildAxisTube(spec: AxisTubeSpec): TubeBuild {
   const positions = new Float32Array(spec.radial * spec.rings * 3)
-  fillAxisTube(positions, spec)
-  return finishTube(positions, spec.radial, spec.rings)
+  const ringT = axisTubeRingT(spec)
+  fillAxisTube(positions, spec, ringT)
+  return finishTube(positions, spec.radial, spec.rings, ringT)
 }

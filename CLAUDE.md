@@ -77,7 +77,13 @@ Renderer modules:
   a thickness apart, skipping same-piece grid-adjacent pairs, so layered garments push off each other +
   a garment doesn't pass through itself), `ClothWorld` (general particle+constraint solver
   for sewn panels; seams are stitch constraints), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
-  reused by the 2D pattern), `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `windPresets`
+  reused by the 2D pattern; `tubeRingT`/`axisTubeRingT` place the rings via `adaptiveMesh`), `adaptiveMesh`
+  (**adaptive remeshing** — pure `adaptiveRingT` spreads a tube's fixed ring budget **non-uniformly**,
+  packing rings where the silhouette *bends* (waist cinch · flare onset · puff-sleeve bell · neckline) and
+  leaving straight runs uniform, so folds resolve where they nucleate at no extra particle cost; the density
+  is curvature-driven + clamped so no rest length degenerates; rest lengths are measured from the geometry
+  so the solver needs no change, and the ring-t also drives the UVs so prints stay put; unit-tested),
+  `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `windPresets`
   (**named wind presets** — still/breeze/gust/runway; pure `gustWind` pulse is unit-tested), `simQuality`
   (**dense-garment controls** — pure `simTube` scales a tube's radial/rings by a resolution, `qualityToSubsteps`
   maps the quality slider to solver substeps; unit-tested). Both
