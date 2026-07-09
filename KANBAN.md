@@ -182,7 +182,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **`headTube` piece kind** — a tube anchored at the crown/neck running down over the head/neck (`schema` `HeadTubePiece` + `factory` `headTubeToSpec`; denser rings so a short piece still drapes); collides with the head/neck capsules for free; wired through `buildGarment` + `garmentTubeSpecs`/`garmentPatternSpecs`. Shipped the first cloth-sim neckwear — a draping **snood** (cowl) catalog garment; `headTubeToSpec` + the build unit-tested + a headless drape-stability check — PR #184
 - [ ] **Headwear category** — add `accessory`/`headwear` to `GarmentCategory` + the Library picker + garment icons
 - [x] **Expose `headR`/`neckR` in `Measurements`** — added to the interface + `measurementsFor`/`applyBody` (scale with build), so `headTubeToSpec` + headwear fit read them — PR #184
-- [ ] **Pin headwear to the head/neck anchor** — `bindPinsToBody` head case (a beanie brim ring → head, a scarf → neck)
+- [x] **Pin headwear to the head anchor** — `bindPinsToBody` routes a crown headwear piece (a beanie/hat) to the **head** anchor via a pure `pieceAnchor(name,…)` (head → head · sleeve → arm · else → nearer of torso/hip), so it turns/nods with the head; shipped a cloth-sim **beanie** catalog garment (crown `headTube`) that rides the head; `pieceAnchor` unit-tested + a headless drape-stability check — PR #185
 - [ ] **Snug-knit collision tuning** — a tighter `bodySkin`/offset for knits so a beanie hugs the crown without hovering
 - [ ] **Cloth-sim draping scarf** — a rectangular knit panel that wraps the neck once and hangs + drapes under gravity
 - [ ] **Cloth-sim ski mask (balaclava)** — a conforming knit shell with a real **face-opening cut-out** (dead particles for eyes/mouth, reusing the cut-out mechanism)

@@ -12,7 +12,19 @@ import { getGarment } from '../garments/registry'
 import { Topstitch } from './Topstitch'
 
 /** Which body anchor a pin group follows (matrix keys of BodyAnchors). */
-type AnchorKey = 'head' | 'torso' | 'hip' | 'armL' | 'armR' | 'foreL' | 'foreR'
+export type AnchorKey = 'head' | 'torso' | 'hip' | 'armL' | 'armR' | 'foreL' | 'foreR'
+
+/**
+ * The body anchor a piece's top ring hangs from, by piece name + position: crown
+ * headwear (a beanie/hat) → the **head** (so it turns/nods with the head); a sleeve →
+ * its arm (−x = left); everything else → whichever of torso/hip its top ring is nearer.
+ * Pure, so it's unit-tested.
+ */
+export function pieceAnchor(name: string, pinnedX: number, pinnedY: number, torsoY: number, hipY: number): AnchorKey {
+  if (/head/i.test(name)) return 'head'
+  if (/sleeve/i.test(name)) return pinnedX < 0 ? 'armL' : 'armR'
+  return Math.abs(pinnedY - torsoY) <= Math.abs(pinnedY - hipY) ? 'torso' : 'hip'
+}
 
 interface Piece {
   geometry: THREE.BufferGeometry
@@ -142,13 +154,13 @@ export class GarmentController {
       return [x / m, y / m, z / m]
     }
     for (const p of this.pieces) {
-      const groups: { idx: number[]; kind: AnchorKey }[] = []
-      if (/sleeve/i.test(p.name)) {
-        groups.push({ idx: p.topRing, kind: p.pinnedX < 0 ? 'armL' : 'armR' })
+      const kind = pieceAnchor(p.name, p.pinnedX, p.pinnedY, torsoY, hipY)
+      const groups: { idx: number[]; kind: AnchorKey }[] = [{ idx: p.topRing, kind }]
+      if (kind === 'armL' || kind === 'armR') {
         // A long sleeve whose mid ring reaches the elbow also pins to the forearm, so it
         // bends with the arm (the forearm moves far less than the hand — no drag).
         if (a.rigged) {
-          const foreKind: AnchorKey = p.pinnedX < 0 ? 'foreL' : 'foreR'
+          const foreKind: AnchorKey = kind === 'armL' ? 'foreL' : 'foreR'
           const fore = a[foreKind]
           const [cx, cy, cz] = ringCentre(p, p.midRing)
           const dx = cx - fore.elements[12]
@@ -156,12 +168,10 @@ export class GarmentController {
           const dz = cz - fore.elements[14]
           if (dx * dx + dy * dy + dz * dz < 0.15 * 0.15) groups.push({ idx: p.midRing, kind: foreKind })
         }
-      } else {
-        const kind: AnchorKey = Math.abs(p.pinnedY - torsoY) <= Math.abs(p.pinnedY - hipY) ? 'torso' : 'hip'
-        groups.push({ idx: p.topRing, kind })
+      } else if (kind === 'torso' && p.waistRing.length) {
         // A top/dress bodice also clamps its waist to the pelvis, so it can't creep off
         // the shoulders during a walk; the skirt below the waist stays free to swing.
-        if (kind === 'torso' && p.waistRing.length) groups.push({ idx: p.waistRing, kind: 'hip' })
+        groups.push({ idx: p.waistRing, kind: 'hip' })
       }
       p.pinGroups = groups
       p.solver.bindPinGroups(groups.map((g) => ({ idx: g.idx, anchor: a[g.kind] })))

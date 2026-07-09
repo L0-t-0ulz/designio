@@ -77,7 +77,7 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
  */
 export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measurements): TubeSpec {
   const crown = pc.anchor === 'crown'
-  const baseY = crown ? m.neckY + m.headR * 1.9 : m.neckY // ≈ the crown, or the neck base
+  const baseY = crown ? m.neckY + m.headR * 2.7 : m.neckY // ≈ the visual crown, or the neck base
   const baseR = crown ? m.headR : m.neckR
   const topY = baseY + (pc.riseHi ?? 0)
   const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length
