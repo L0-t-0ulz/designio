@@ -4,6 +4,8 @@ import { DEFAULT_PARAMS } from '../src/renderer/garment/templates'
 import { getGarment } from '../src/renderer/garments/registry'
 import { garmentMetrics } from '../src/renderer/export/garmentMetrics'
 import { pomTable } from '../src/renderer/export/pom'
+import { garmentToPanels } from '../src/renderer/export/garmentPattern'
+import { nestMarker } from '../src/renderer/export/marker'
 import { defaultLayer } from '../src/renderer/studio/document'
 import { manufactureHTML, manufactureJSON, type ManufactureBundle } from '../src/renderer/export/manufacture'
 
@@ -24,6 +26,7 @@ const bundle = (): ManufactureBundle => {
         colorRef: 'TR-2050 Terracotta',
         metrics: garmentMetrics(def.name, 'M', def, params, mann.measurements, mann.colliders),
         pom: pomTable(def, defaultLayer('dress'), mann.measurements, mann.colliders),
+        marker: nestMarker(garmentToPanels(def, params, mann.measurements, mann.colliders).panels, 140),
         patternSVG: '<svg><rect/></svg>'
       }
     ]
@@ -36,7 +39,8 @@ describe('manufacturing export', () => {
     expect(html).toContain('<!doctype html>')
     expect(html).toContain('Spec sheet')
     expect(html).toContain('Bill of materials')
-    expect(html).toContain('Yardage')
+    expect(html).toContain('Marker (@ 140 cm)') // the nested-marker yield + efficiency
+    expect(html).toContain('efficient') // the marker preview heading
     expect(html).toContain('<svg>') // the embedded flat pattern
     expect(html).toContain('size M')
     expect(html).toContain('TR-2050 Terracotta') // production colour reference in the BOM
@@ -53,6 +57,8 @@ describe('manufacturing export', () => {
     expect(json.garments[0].points_of_measure.sizes).toContain('XL') // graded POM
     expect(json.garments[0].points_of_measure.rows[0]).toHaveProperty('point')
     expect(json.garments[0].yardage_m).toBeGreaterThan(0)
+    expect(json.garments[0].marker_efficiency_pct).toBeGreaterThan(0) // realistic nested yield
+    expect(json.garments[0].marker_efficiency_pct).toBeLessThanOrEqual(100)
     expect(json.garments[0].color_ref).toBe('TR-2050 Terracotta')
   })
 })

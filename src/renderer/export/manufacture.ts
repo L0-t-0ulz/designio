@@ -7,6 +7,7 @@
  */
 import type { GarmentMetrics } from './garmentMetrics'
 import type { PomSheet } from './pom'
+import { markerSVG, type MarkerLayout } from './marker'
 
 export interface ManufactureLayer {
   name: string
@@ -28,6 +29,8 @@ export interface ManufactureLayer {
   metrics: GarmentMetrics
   /** Graded points-of-measure across the size run (XS…XXL). */
   pom?: PomSheet
+  /** Nested marker (fabric layout) for the realistic yield + efficiency. */
+  marker?: MarkerLayout
   patternSVG: string
 }
 
@@ -80,6 +83,13 @@ function pomSection(pom?: PomSheet): string {
     </table>`
 }
 
+/** Nested-marker preview (fabric layout) + its efficiency; omitted when empty. */
+function markerSection(m?: MarkerLayout): string {
+  if (!m || !m.placements.length) return ''
+  return `<h3>Marker (@ ${m.widthCm.toFixed(0)} cm) — ${(m.lengthCm / 100).toFixed(2)} m · ${(m.efficiency * 100).toFixed(0)}% efficient</h3>
+    <div class="marker">${markerSVG(m)}</div>`
+}
+
 function layerSection(l: ManufactureLayer): string {
   const lengthM = l.metrics.fabricM2 / FABRIC_WIDTH_M
   return `
@@ -102,7 +112,11 @@ function layerSection(l: ManufactureLayer): string {
             ${l.trim ? `<tr><td>Trim</td><td colspan="2">${esc(l.trim)}</td></tr>` : ''}
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
             <tr><td>Cloth area</td><td colspan="2">${l.metrics.fabricM2.toFixed(2)} m²</td></tr>
-            <tr><td>Yardage (@ ${FABRIC_WIDTH_M * 100} cm)</td><td colspan="2">${lengthM.toFixed(2)} m · ${(lengthM * 1.094).toFixed(2)} yd</td></tr>
+            ${
+              l.marker
+                ? `<tr><td>Marker (@ ${FABRIC_WIDTH_M * 100} cm)</td><td colspan="2">${(l.marker.lengthCm / 100).toFixed(2)} m · ${((l.marker.lengthCm / 100) * 1.094).toFixed(2)} yd · ${(l.marker.efficiency * 100).toFixed(0)}% eff.</td></tr>`
+                : `<tr><td>Yardage (@ ${FABRIC_WIDTH_M * 100} cm)</td><td colspan="2">${lengthM.toFixed(2)} m · ${(lengthM * 1.094).toFixed(2)} yd</td></tr>`
+            }
             <tr><td>Total seam length</td><td colspan="2">${l.metrics.seamCm.toFixed(0)} cm</td></tr>
           </tbody>
         </table>
@@ -124,6 +138,7 @@ function layerSection(l: ManufactureLayer): string {
       </div>
     </div>
     ${pomSection(l.pom)}
+    ${markerSection(l.marker)}
   </section>`
 }
 
@@ -148,6 +163,8 @@ export function manufactureHTML(b: ManufactureBundle): string {
   .pattern svg { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; }
   .pom { margin-top: 8px; }
   .pom td:not(:first-child), .pom th:not(:first-child) { text-align: right; }
+  .marker { border: 1px solid #eee; border-radius: 8px; padding: 8px; max-width: 520px; }
+  .marker svg { display: block; max-height: 360px; }
   footer { color: #9aa0aa; font-size: 11px; margin-top: 28px; }
   @media print { body { padding: 0; } }
 </style></head>
@@ -186,7 +203,8 @@ export function manufactureJSON(b: ManufactureBundle): string {
           ? { sizes: l.pom.sizes, rows: l.pom.rows.map((r) => ({ point: r.label, tolerance_cm: r.tolCm, ...r.bySize })) }
           : null,
         fabric_area_m2: l.metrics.fabricM2,
-        yardage_m: +(l.metrics.fabricM2 / FABRIC_WIDTH_M).toFixed(2),
+        yardage_m: +((l.marker ? l.marker.lengthCm / 100 : l.metrics.fabricM2 / FABRIC_WIDTH_M).toFixed(2)),
+        marker_efficiency_pct: l.marker ? Math.round(l.marker.efficiency * 100) : null,
         seam_length_cm: l.metrics.seamCm
       }))
     },
