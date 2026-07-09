@@ -86,6 +86,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Split sleeves front/back** — per-panel fabric now splits the sleeves too (front +z / back −z), each half its own fabric + drape (colour-blocked / two-tone sleeves), matching the body + legs; `sleeveBack→sleeves→body` fallback (`?sleeveBackFabric=`) — PR #155
 - [x] **More garments (batch 2)** — Polo shirt · Slim trousers · **Joggers** (tapered + drawstring + a ribbed ankle cuff) · Leggings · Cardigan · Bomber jacket, all data-driven; ribbing now bands the leg hems too — PR #156
 - [x] **Turntable spin + AR export** — one-click File → "Record turntable spin" orbits the camera a full turn → a WebM clip (pure `turntablePose` + `recordTurntable`); + **USDZ** export (iOS AR Quick Look) alongside GLB — PR #157
+- [x] **Dip-dye / ombré gradient** — a top-down · bottom-up · radial colour gradient baked into the albedo (base → a deeper dipped tone; derived so it tracks a recolour); pure `ombreT`/`ombreDip` unit-tested (`?ombre=`) — PR #158
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -123,7 +124,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Iridescent / holographic & metallic-ombré** — colour-shifting eveningwear shaders beyond the sequin/foil sparkle
 - [ ] **Faux fur & shearling** — a fluffy pile shell for trims, collars + full coats (shell-layer fins or a fur normal)
 - [ ] **Lace & broderie** — alpha-cutout sheer lace panels you can actually see through, with a scalloped edge
-- [ ] **Dip-dye / ombré gradient** — a vertical (or radial) colour gradient baked into the albedo, per garment
 - [ ] **Distressed / washed / faded finish** — worn denim, acid wash, vintage fade (strain- or height-driven wear map)
 
 **More avatar & scene**

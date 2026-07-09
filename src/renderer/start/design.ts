@@ -4,6 +4,7 @@ import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
 import { paintTextile, type TextilePattern } from '../fabric/textile'
+import { paintOmbre, type OmbreDirection } from '../fabric/ombre'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { QuiltPattern } from '../fabric/quilt'
 
@@ -60,6 +61,8 @@ export interface DesignConfig {
   prints: Print[]
   /** A repeating textile pattern tiled across the whole garment (behind prints). */
   textile?: TextilePattern
+  /** A dip-dye / ombré gradient baked into the albedo (base → a deeper dipped tone). */
+  ombre?: OmbreDirection
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
   /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
@@ -152,13 +155,14 @@ export interface DesignArtInput {
   color: number
   prints: Print[]
   textile?: TextilePattern
+  ombre?: OmbreDirection
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 
-/** Whether the design needs an albedo map — any print with content, or a textile pattern. */
-export function hasArt(c: { prints: Print[]; textile?: TextilePattern }): boolean {
-  return !!c.textile || c.prints.some(printHasContent)
+/** Whether the design needs an albedo map — a print with content, a textile pattern, or an ombré. */
+export function hasArt(c: { prints: Print[]; textile?: TextilePattern; ombre?: OmbreDirection }): boolean {
+  return !!c.textile || !!c.ombre || c.prints.some(printHasContent)
 }
 
 /** Whether any placed motif is raised (embroidery / appliqué) → needs the bump map. */
@@ -273,6 +277,7 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
   art.redraw = (inp: DesignArtInput): void => {
     ctx.fillStyle = hex(inp.color)
     ctx.fillRect(0, 0, size, size)
+    if (inp.ombre) paintOmbre(ctx, size, inp.color, inp.ombre) // dip-dye gradient over the flat base
     if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color) // tiling pattern behind the prints
     for (const p of inp.prints) {
       if (!printHasContent(p)) continue

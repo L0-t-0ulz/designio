@@ -11,6 +11,7 @@ import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
 import type { TextilePattern } from '../fabric/textile'
+import type { OmbreDirection } from '../fabric/ombre'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { QuiltPattern } from '../fabric/quilt'
 import { getGarment } from '../garments/registry'
@@ -127,6 +128,7 @@ export interface GarmentLayerData {
   /** Placed prints (logos + text); uploaded PNGs are runtime-only (image dropped on save). */
   prints?: PrintSpec[]
   textile?: TextilePattern
+  ombre?: OmbreDirection
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
   /** Quilting finish — channel / diamond / box loft (puffers & jackets). */
@@ -149,6 +151,7 @@ export interface Colorway {
   trimFabricId?: string
   partFabrics?: PartFabrics
   textile?: TextilePattern
+  ombre?: OmbreDirection
   sparkle?: SparkleKind
   quilt?: QuiltPattern
 }
@@ -179,6 +182,7 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     trimFabricId: l.trimFabricId,
     partFabrics: clonePartFabrics(l.partFabrics),
     textile: l.textile,
+    ombre: l.ombre,
     sparkle: l.sparkle,
     quilt: l.quilt
   }
@@ -193,6 +197,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.trimFabricId = cw.trimFabricId
   l.partFabrics = clonePartFabrics(cw.partFabrics)
   l.textile = cw.textile
+  l.ombre = cw.ombre
   l.sparkle = cw.sparkle
   l.quilt = cw.quilt
 }
@@ -270,6 +275,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     color: c.color,
     prints: c.prints.map(printToSpec),
     textile: c.textile,
+    ombre: c.ombre,
     sparkle: c.sparkle,
     quilt: c.quilt,
     visible: true
@@ -313,6 +319,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     color: 0xc85a54,
     prints: [],
     textile: undefined,
+    ombre: undefined,
     sparkle: undefined,
     quilt: undefined,
     visible: true
@@ -343,6 +350,7 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     partFabrics: clonePartFabrics(l.partFabrics),
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined,
     textile: l.textile,
+    ombre: l.ombre,
     sparkle: l.sparkle,
     quilt: l.quilt,
     colorways: l.colorways ? l.colorways.map((cw) => ({ ...cw, partFabrics: clonePartFabrics(cw.partFabrics) })) : undefined

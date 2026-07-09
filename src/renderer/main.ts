@@ -39,6 +39,7 @@ import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
 import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
+import { OMBRE_DIRECTIONS, type OmbreDirection } from './fabric/ombre'
 import { demoSwatchCanvas } from './fabric/swatch'
 import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
 import { QUILT_PATTERNS, type QuiltPattern } from './fabric/quilt'
@@ -991,6 +992,13 @@ function initStudio(
         stack.refreshDesign(stack.active)
       }
     },
+    ombre: {
+      get: () => stack.active.data.ombre,
+      set: (d) => {
+        stack.active.data.ombre = d
+        stack.refreshDesign(stack.active)
+      }
+    },
     swatch: {
       active: () => stack.active.swatch != null,
       set: (img) => stack.setSwatch(stack.active, img),
@@ -1016,7 +1024,7 @@ function initStudio(
           id: cw.id,
           name: cw.name,
           color: cw.color,
-          tag: [cw.textile, cw.sparkle, cw.quilt, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
+          tag: [cw.textile, cw.ombre && 'ombré', cw.sparkle, cw.quilt, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
         })),
       add: () => {
         pushUndo()
@@ -1243,6 +1251,8 @@ if (skipStart) {
   if (entryParams.get('princess')) cfg.princess = true
   const tx = entryParams.get('textile')
   if (tx && (TEXTILE_PATTERNS as string[]).includes(tx)) cfg.textile = tx as TextilePattern
+  const omb = entryParams.get('ombre')
+  if (omb && (OMBRE_DIRECTIONS as string[]).includes(omb)) cfg.ombre = omb as OmbreDirection
   const spk = entryParams.get('sparkle')
   if (spk && (SPARKLE_KINDS as string[]).includes(spk)) cfg.sparkle = spk as SparkleKind
   const qlt = entryParams.get('quilt')

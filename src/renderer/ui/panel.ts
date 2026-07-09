@@ -31,6 +31,7 @@ import { SIZES, type SizeLabel } from '../studio/document'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
+import { OMBRE_DIRECTIONS, type OmbreDirection } from '../fabric/ombre'
 import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
 import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
 import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
@@ -179,6 +180,8 @@ export interface PanelOptions {
   prints?: PrintControls
   /** The repeating textile pattern tiled across the whole garment (optional). */
   textile?: { get: () => TextilePattern | undefined; set: (t: TextilePattern | undefined) => void }
+  /** A dip-dye / ombré gradient baked into the albedo (optional). */
+  ombre?: { get: () => OmbreDirection | undefined; set: (d: OmbreDirection | undefined) => void }
   /** Import a fabric-swatch photo → a seamless tiling PBR material (optional). */
   swatch?: { active: () => boolean; set: (img: HTMLImageElement) => void; clear: () => void }
   /** A sparkle finish — sequins / beading / metallic foil (optional). */
@@ -781,6 +784,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A dip-dye / ombré gradient baked into the albedo (base → a deeper dipped tone).
+  const OMBRE_LABELS: Record<OmbreDirection, string> = { 'top-down': 'Top-down', 'bottom-up': 'Bottom-up', radial: 'Radial' }
+  function ombreControls(o: NonNullable<PanelOptions['ombre']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, OmbreDirection | undefined][] = [['None', undefined], ...OMBRE_DIRECTIONS.map((d) => [OMBRE_LABELS[d], d] as [string, OmbreDirection])]
+    for (const [label, dir] of choices) {
+      const b = el('button', 'dio-seg-btn' + (o.get() === dir ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        o.set(dir)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Dip-dye / ombré'), row)
+    return wrap
+  }
+
   // A sparkle finish for eveningwear — sequins / beading / metallic foil.
   const SPARKLE_LABELS: Record<SparkleKind, string> = { sequins: 'Sequins', beading: 'Beading', foil: 'Foil' }
   function sparkleControls(sp: NonNullable<PanelOptions['sparkle']>): HTMLElement {
@@ -1050,6 +1073,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
   if (opts.textile) look.body.append(textileControls(opts.textile))
+  if (opts.ombre) look.body.append(ombreControls(opts.ombre))
   if (opts.sparkle) look.body.append(sparkleControls(opts.sparkle))
   if (opts.quilt) look.body.append(quiltControls(opts.quilt))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
