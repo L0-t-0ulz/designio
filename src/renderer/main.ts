@@ -22,6 +22,7 @@ import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/
 import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
 import { TimelinePlayer } from './studio/TimelinePlayer'
 import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
+import { MeasureTool, type MeasureMode } from './studio/MeasureTool'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
@@ -441,6 +442,7 @@ function initStudio(
   let statusHandles: StatusHandles | null = null
   let frames = 0
   let fpsT = performance.now()
+  let measureTool: MeasureTool | null = null // the tape-measure / annotate tool (built after mount)
   const loop = new Loop(
     (dt) => {
       simTime += dt
@@ -460,6 +462,7 @@ function initStudio(
       if (mode === 'templates') stack.updateMeshes()
       else patternCtl?.updateMeshes()
       viewport.render()
+      measureTool?.update() // reproject the measurement / note labels onto the canvas
       frames++
       const now = performance.now()
       if (now - fpsT >= 500) {
@@ -478,6 +481,23 @@ function initStudio(
   // ---- professional studio shell (menu bar · viewport · dock · status bar) ----
   const shell = createStudioShell(() => viewport.resize())
   viewport.mount(shell.center)
+  // Measure & annotate tool — raycasts against the live garment + body meshes.
+  measureTool = new MeasureTool(viewport.scene, viewport.camera, viewport.renderer.domElement, () => [
+    ...stack.getMeshesAll(),
+    mannequin.group
+  ])
+  measureTool.setOnChange(() => statusHandles?.setSelection(measureLabel()))
+  function measureLabel(): string {
+    const m = measureTool?.getMode()
+    if (m === 'measure') return 'Measure — click two points'
+    if (m === 'annotate') return 'Annotate — click a point'
+    const n = (measureTool?.store.measurements.length ?? 0) + (measureTool?.store.annotations.length ?? 0)
+    return n ? `${n} annotation${n === 1 ? '' : 's'} placed` : 'Ready'
+  }
+  function setMeasureMode(m: MeasureMode): void {
+    measureTool?.setMode(m)
+    statusHandles?.setSelection(measureLabel())
+  }
   // Templates → the real per-garment flat pattern; Pattern mode → the sewn top.
   const patternSVG = (): string =>
     mode === 'templates'
@@ -859,6 +879,12 @@ function initStudio(
     onAnim: setAnimMode,
     onToggleWireframe: () => stack.setWireframe(!stack.wireframe),
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
+    onMeasure: () => setMeasureMode(measureTool?.getMode() === 'measure' ? 'off' : 'measure'),
+    onAnnotate: () => setMeasureMode(measureTool?.getMode() === 'annotate' ? 'off' : 'annotate'),
+    onClearMeasure: () => {
+      measureTool?.clear()
+      setMeasureMode('off')
+    },
     onToggleLibrary: () => shell.toggleLeft(),
     onTogglePanel: () => shell.toggleRight(),
     onToggleSimple: () => {

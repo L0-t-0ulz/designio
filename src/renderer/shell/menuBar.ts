@@ -20,6 +20,9 @@ export interface MenuActions {
   onAnim: (mode: AnimationMode) => void
   onToggleWireframe: () => void
   onToggleMannequin: () => void
+  onMeasure: () => void
+  onAnnotate: () => void
+  onClearMeasure: () => void
   onToggleLibrary: () => void
   onTogglePanel: () => void
   onToggleSimple: () => void
@@ -136,6 +139,10 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Toggle Library', run: a.onToggleLibrary },
     { label: 'Toggle right panel', run: a.onTogglePanel },
     { label: 'Reset layout', run: a.onResetLayout },
+    { sep: true },
+    { label: 'Measure distances', run: a.onMeasure },
+    { label: 'Add annotation', run: a.onAnnotate },
+    { label: 'Clear measurements', run: a.onClearMeasure },
     { sep: true },
     { label: 'Wireframe', run: a.onToggleWireframe },
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }
