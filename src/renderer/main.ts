@@ -40,6 +40,7 @@ import { createControlPanel, type DesignMode, type ExportFormat, type GarmentSta
 import { showStartPage } from './start/StartPage'
 import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from './fabric/ombre'
+import { WEAR_KINDS, type WearKind } from './fabric/wear'
 import { demoSwatchCanvas } from './fabric/swatch'
 import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
 import { IRIDESCENT_KINDS, type IridescentKind } from './fabric/iridescent'
@@ -1000,6 +1001,13 @@ function initStudio(
         stack.refreshDesign(stack.active)
       }
     },
+    wear: {
+      get: () => stack.active.data.wear,
+      set: (w) => {
+        stack.active.data.wear = w
+        stack.refreshDesign(stack.active)
+      }
+    },
     swatch: {
       active: () => stack.active.swatch != null,
       set: (img) => stack.setSwatch(stack.active, img),
@@ -1032,7 +1040,7 @@ function initStudio(
           id: cw.id,
           name: cw.name,
           color: cw.color,
-          tag: [cw.textile, cw.ombre && 'ombré', cw.sparkle, cw.iridescent, cw.quilt, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
+          tag: [cw.textile, cw.ombre && 'ombré', cw.wear, cw.sparkle, cw.iridescent, cw.quilt, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
         })),
       add: () => {
         pushUndo()
@@ -1261,6 +1269,8 @@ if (skipStart) {
   if (tx && (TEXTILE_PATTERNS as string[]).includes(tx)) cfg.textile = tx as TextilePattern
   const omb = entryParams.get('ombre')
   if (omb && (OMBRE_DIRECTIONS as string[]).includes(omb)) cfg.ombre = omb as OmbreDirection
+  const wr = entryParams.get('wear')
+  if (wr && (WEAR_KINDS as string[]).includes(wr)) cfg.wear = wr as WearKind
   const spk = entryParams.get('sparkle')
   if (spk && (SPARKLE_KINDS as string[]).includes(spk)) cfg.sparkle = spk as SparkleKind
   const iri = entryParams.get('iridescent')
