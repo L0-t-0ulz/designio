@@ -37,7 +37,8 @@ Electron: `src/main` (window, native menu, CSP, `dialog:saveFile` IPC), `src/pre
 `src/renderer` (the app).
 
 Renderer modules:
-- `core/` — `Viewport` (renderer + camera + OrbitControls + post-processing: bloom, vignette, SMAA),
+- `core/` — `Viewport` (renderer + camera + OrbitControls + post-processing: **GTAO ambient occlusion**
+  (grounds the figure + darkens contact/fold areas), bloom, vignette, SMAA),
   `Environment` (IBL, key + rim rig, reflective floor + shadow-catcher; returns an `EnvironmentHandle`
   with `setLighting`/`setBackdrop` driven by `studioPresets` — **studio lighting presets** (Studio ·
   Softbox · Dramatic · High-key · Runway · Golden-hour: each an azimuth/elevation-described key + rims +

@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
@@ -26,6 +27,7 @@ export class Viewport {
   readonly controls: OrbitControls
   private readonly composer: EffectComposer
   private readonly bloom: UnrealBloomPass
+  private readonly gtao: GTAOPass
 
   constructor(private container: HTMLElement) {
     // `alpha: true` so a transparent backdrop exports a real cutout (PNG with alpha).
@@ -52,6 +54,13 @@ export class Viewport {
     // and applies them (plus sRGB) at the end, so the exposure control still works.
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.camera))
+    // Ambient occlusion (GTAO): grounds the figure + darkens contact areas — where
+    // the garment meets the body, inside folds, under the arms, and at the feet. A
+    // small world-space radius keeps it to real contact (no wide halos).
+    this.gtao = new GTAOPass(this.scene, this.camera, 1, 1)
+    this.gtao.blendIntensity = 0.85
+    this.gtao.updateGtaoMaterial({ radius: 0.09, distanceExponent: 1, thickness: 0.1, scale: 1, samples: 16, distanceFallOff: 1 })
+    this.composer.addPass(this.gtao)
     // Barely-there: only strong speculars (silk/satin sheen) get a soft glow.
     this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.14, 0.5, 1.9)
     this.composer.addPass(this.bloom)
@@ -83,6 +92,7 @@ export class Viewport {
     this.renderer.setSize(w, h)
     this.composer.setSize(w, h)
     this.bloom.setSize(w, h)
+    this.gtao.setSize(w, h)
   }
 
   render(): void {
@@ -139,6 +149,7 @@ export class Viewport {
     this.renderer.setSize(W, H, false) // grow the backing buffer, leave the CSS size (no flash)
     this.composer.setSize(W, H)
     this.bloom.setSize(W, H)
+    this.gtao.setSize(W, H)
     this.controls.update()
     this.renderScene() // honours a transparent backdrop → PNG with alpha
     const out = document.createElement('canvas')
