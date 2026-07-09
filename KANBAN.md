@@ -142,7 +142,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Polish / tech-debt** _(found while building the above)_
 - [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67
-- [ ] **Trim the renderer bundle** — code-split Three.js/addons; the renderer chunk is ~2.2 MB (Vite warns >500 KB)
+- [x] **Trim the renderer bundle** — rollup `manualChunks` splits three (+ addons) into its own vendor chunk; the app chunk drops ~2.47 MB → ~0.44 MB — PR #167
 - [x] **Free print textures on delete** — dispose the print `CanvasTexture`s on print removal / layer delete — PR #67
 - [x] **Fix blank prints/textiles in the studio** — the fabric-thickness lining shell was pushed *outward* over the printed surface (tube normals point inward); push it inward so the albedo map shows — PR #108
 - [x] **Wire the library search + filters** — fabric browser filters by family · weight · stretch (combined with the text search); pure `matchesFabric` unit-tested — PR #165
