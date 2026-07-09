@@ -133,7 +133,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Contact shadows & SSAO** — grounded contact shadows + ambient occlusion for richer, seated-in-the-scene shading
 
 **More production**
-- [ ] **Import an existing flat pattern** — read a DXF/AAMA pattern in and drape it onto the body (round-trips the export)
+- [x] **Import an existing flat pattern** — read a DXF pattern back in + preview it in the 2D pane (round-trips the export; pure `parsePatternDXF` unit-tested). Draping imported panels onto the body deferred — PR #169
 
 **AI-assisted design** _(uses the latest Claude models)_
 - [ ] **AI design assistant** — describe a garment in words → DesignIO builds the config (garment · fabric · colour · construction details)
