@@ -88,6 +88,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Turntable spin + AR export** — one-click File → "Record turntable spin" orbits the camera a full turn → a WebM clip (pure `turntablePose` + `recordTurntable`); + **USDZ** export (iOS AR Quick Look) alongside GLB — PR #157
 - [x] **Dip-dye / ombré gradient** — a top-down · bottom-up · radial colour gradient baked into the albedo (base → a deeper dipped tone; derived so it tracks a recolour); pure `ombreT`/`ombreDip` unit-tested (`?ombre=`) — PR #158
 - [x] **Iridescent / holographic finish** — colour-shifting thin-film eveningwear shaders (iridescent · holographic · oil-slick) driving `MeshPhysicalMaterial.iridescence`; pure `iridescentParams` unit-tested (`?iridescent=`) — PR #159
+- [x] **Distressed / washed / faded finish** — a procedural wear map (faded · acid-wash · distressed) bleached into the albedo; pure value-noise `wearValue` + `wearTone` unit-tested (`?wear=`) — PR #160
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -124,7 +125,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 **More materials & finishes**
 - [ ] **Faux fur & shearling** — a fluffy pile shell for trims, collars + full coats (shell-layer fins or a fur normal)
 - [ ] **Lace & broderie** — alpha-cutout sheer lace panels you can actually see through, with a scalloped edge
-- [ ] **Distressed / washed / faded finish** — worn denim, acid wash, vintage fade (strain- or height-driven wear map)
 
 **More avatar & scene**
 - [ ] **Skin-tone & complexion picker** — a range of skin tones + undertones for the default avatar (complements the body presets)
