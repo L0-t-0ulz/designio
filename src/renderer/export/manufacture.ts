@@ -6,6 +6,7 @@
  * Pure string builders (no DOM), so they're unit-testable.
  */
 import type { GarmentMetrics } from './garmentMetrics'
+import type { PomSheet } from './pom'
 
 export interface ManufactureLayer {
   name: string
@@ -25,6 +26,8 @@ export interface ManufactureLayer {
   fibre?: string
   care?: string[]
   metrics: GarmentMetrics
+  /** Graded points-of-measure across the size run (XS…XXL). */
+  pom?: PomSheet
   patternSVG: string
 }
 
@@ -58,6 +61,23 @@ function easeSection(m: GarmentMetrics): string {
           <thead><tr><th>Point</th><th>Body cm</th><th>Garment cm</th><th>Ease cm</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>`
+}
+
+/** Graded points-of-measure table across the size run; full width, omitted when empty. */
+function pomSection(pom?: PomSheet): string {
+  if (!pom || !pom.rows.length) return ''
+  const head = pom.sizes.map((s) => `<th>${esc(s)}</th>`).join('')
+  const rows = pom.rows
+    .map(
+      (r) =>
+        `<tr><td>${esc(r.label)}</td>${pom.sizes.map((s) => `<td>${(r.bySize[s] ?? 0).toFixed(1)}</td>`).join('')}<td>±${r.tolCm.toFixed(1)}</td></tr>`
+    )
+    .join('')
+  return `<h3>Graded spec — points of measure (cm)</h3>
+    <table class="pom">
+      <thead><tr><th>Point of measure</th>${head}<th>Tol</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`
 }
 
 function layerSection(l: ManufactureLayer): string {
@@ -103,6 +123,7 @@ function layerSection(l: ManufactureLayer): string {
         ${l.patternSVG}
       </div>
     </div>
+    ${pomSection(l.pom)}
   </section>`
 }
 
@@ -125,6 +146,8 @@ export function manufactureHTML(b: ManufactureBundle): string {
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
   .garment { break-inside: avoid; border-top: 2px solid #f0f0f2; padding-top: 6px; }
   .pattern svg { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; }
+  .pom { margin-top: 8px; }
+  .pom td:not(:first-child), .pom th:not(:first-child) { text-align: right; }
   footer { color: #9aa0aa; font-size: 11px; margin-top: 28px; }
   @media print { body { padding: 0; } }
 </style></head>
@@ -159,6 +182,9 @@ export function manufactureJSON(b: ManufactureBundle): string {
         color_ref: l.colorRef ?? null,
         measurements_cm: Object.fromEntries(l.metrics.rows.map((r) => [r.label, r.cm])),
         fit_ease_cm: Object.fromEntries(l.metrics.ease.map((e) => [e.label, e.easeCm])),
+        points_of_measure: l.pom
+          ? { sizes: l.pom.sizes, rows: l.pom.rows.map((r) => ({ point: r.label, tolerance_cm: r.tolCm, ...r.bySize })) }
+          : null,
         fabric_area_m2: l.metrics.fabricM2,
         yardage_m: +(l.metrics.fabricM2 / FABRIC_WIDTH_M).toFixed(2),
         seam_length_cm: l.metrics.seamCm
