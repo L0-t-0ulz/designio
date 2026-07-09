@@ -24,6 +24,7 @@ import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { iridescentParams } from '../fabric/iridescent'
 import { makeLaceAlphaMap } from '../fabric/lace'
+import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
@@ -370,6 +371,8 @@ export class GarmentStack {
     const ql = !l.data.sparkle && l.data.quilt ? quiltParams(l.data.quilt) : null
     const quiltNormalMap = ql && l.data.quilt ? makeQuiltNormalMap(l.data.quilt) : null
     const ir = !l.data.sparkle && l.data.iridescent ? iridescentParams(l.data.iridescent) : null
+    const fur = !l.data.sparkle && !l.data.quilt ? (l.data.fur ? furParams(l.data.fur) : null) : null
+    const furNormalMap = fur && l.data.fur ? makeFurNormalMap(l.data.fur) : null
     // Lace / broderie — a sheer alpha-cutout (real holes via alphaTest). Materials
     // are already DoubleSide, so the inside shows through the holes; the lining shell
     // is dropped for a lace garment (see updateLining) so it truly sees through.
@@ -398,6 +401,12 @@ export class GarmentStack {
         m.roughness = ql.roughness
       } else if (ir) {
         m.roughness = ir.roughness // glossy so the colour-shift reads
+      } else if (fur && furNormalMap) {
+        m.normalMap = furNormalMap
+        m.normalScale.set(fur.normalStrength, fur.normalStrength)
+        m.roughness = fur.roughness
+        m.sheen = fur.sheen
+        m.sheenRoughness = fur.sheenRoughness
       }
       m.needsUpdate = true
     }

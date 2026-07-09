@@ -101,7 +101,9 @@ Renderer modules:
   (**sheer lace / broderie** — chantilly · geometric · fishnet alpha-cutout you can see through, with a
   scalloped edge; pure `laceAlpha` field + `scallopValue` are unit-tested; `makeLaceAlphaMap` bakes a
   tiling alpha map the material cuts with `alphaTest` — the lining shell is dropped so it truly sees
-  through), `namedColors`
+  through), `fur` (**faux-fur / shearling / fleece** pile — pure `furNormal` directional-pile field +
+  `furParams` matte recipe are unit-tested; `makeFurNormalMap` bakes a tiling fur normal + high-roughness/
+  sheen for a fuzzy look, no extra geometry), `namedColors`
   (a curated **named textile colour library** — `TR-####` production refs; pure `nearestNamedColor`/
   `colorRefLabel` map any picked hue to its closest reference, shown in the panel + the tech-pack BOM),
   `heatmap` (**fit / tension heatmap** — pure `strainToColor` slack→blue→tight→red ramp is unit-tested;
@@ -206,7 +208,8 @@ into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed 
 procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
 `?quilt=<channel|diamond|box>` (a quilted-loft finish) ·
-`?lace=<chantilly|geometric|fishnet>` (a sheer alpha-cutout lace finish) · `?prints=demo`
+`?lace=<chantilly|geometric|fishnet>` (a sheer alpha-cutout lace finish) ·
+`?fur=<shearling|faux-fur|fleece>` (a fuzzy pile finish) · `?prints=demo`
 (two body prints) · `?prints=parts` (a print on the body + sleeves + legs — each print sits on its own
 piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·

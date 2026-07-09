@@ -48,6 +48,7 @@ import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
 import { IRIDESCENT_KINDS, type IridescentKind } from './fabric/iridescent'
 import { QUILT_PATTERNS, type QuiltPattern } from './fabric/quilt'
 import { LACE_PATTERNS, type LacePattern } from './fabric/lace'
+import { FUR_KINDS, type FurKind } from './fabric/fur'
 import { colorRefLabel } from './fabric/namedColors'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
@@ -1060,13 +1061,20 @@ function initStudio(
         stack.applyLook(stack.active)
       }
     },
+    fur: {
+      get: () => stack.active.data.fur,
+      set: (k) => {
+        stack.active.data.fur = k
+        stack.applyLook(stack.active)
+      }
+    },
     colorways: {
       list: () =>
         stack.colorways().map((cw) => ({
           id: cw.id,
           name: cw.name,
           color: cw.color,
-          tag: [cw.textile, cw.ombre && 'ombré', cw.wear, cw.sparkle, cw.iridescent, cw.quilt, cw.lace && 'lace', cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
+          tag: [cw.textile, cw.ombre && 'ombré', cw.wear, cw.sparkle, cw.iridescent, cw.quilt, cw.lace && 'lace', cw.fur, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
         })),
       add: () => {
         pushUndo()
@@ -1314,6 +1322,8 @@ if (skipStart) {
   if (qlt && (QUILT_PATTERNS as string[]).includes(qlt)) cfg.quilt = qlt as QuiltPattern
   const lc = entryParams.get('lace')
   if (lc && (LACE_PATTERNS as string[]).includes(lc)) cfg.lace = lc as LacePattern
+  const fr2 = entryParams.get('fur')
+  if (fr2 && (FUR_KINDS as string[]).includes(fr2)) cfg.fur = fr2 as FurKind
   const fr = entryParams.get('frillStyle')
   if (fr && (FRILL_STYLES as string[]).includes(fr)) { cfg.ruffles = true; cfg.frillStyle = fr as FrillStyle }
   if (entryParams.get('trim')) cfg.trim = true
