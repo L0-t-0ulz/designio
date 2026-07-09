@@ -130,7 +130,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **More avatar & scene**
 - [ ] **Group / runway line-up** — several avatars wearing different looks side by side for a collection shot
-- [ ] **Contact shadows & SSAO** — grounded contact shadows + ambient occlusion for richer, seated-in-the-scene shading
+- [x] **Contact shadows & SSAO** — a GTAO ambient-occlusion pass grounds the figure + darkens contact/fold areas (garment↔body, folds, under-arms, pockets); small world radius, no halos; transparent-backdrop path unaffected — PR #170
 
 **More production**
 - [x] **Import an existing flat pattern** — read a DXF pattern back in + preview it in the 2D pane (round-trips the export; pure `parsePatternDXF` unit-tested). Draping imported panels onto the body deferred — PR #169
