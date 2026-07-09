@@ -33,7 +33,7 @@ describe('cloth stability (never flies away / explodes)', () => {
   // The long / leg-wrapping garments are the ones that used to destabilise; the snood
   // is a short head/neck tube (a new piece kind) — confirm it drapes bounded too.
   it('the risky long/wide garments stay bounded on the mesh collider', () => {
-    for (const id of ['maxi-skirt', 'wide-leg', 'jumpsuit', 'snood'] as GarmentType[]) {
+    for (const id of ['maxi-skirt', 'wide-leg', 'jumpsuit', 'snood', 'beanie'] as GarmentType[]) {
       if (!GARMENT_IDS.includes(id)) continue
       const mx = drapeMaxAbs(id)
       expect(Number.isFinite(mx), `${id} went non-finite`).toBe(true)

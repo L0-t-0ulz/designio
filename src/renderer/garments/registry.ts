@@ -356,6 +356,17 @@ export const GARMENTS: GarmentDefinition[] = [
     supports: { length: true, ease: true, flare: true },
     defaults: { length: 0.55, ease: 0.02, flare: 0.03 },
     defaultFabric: 'cable-knit'
+  },
+  {
+    id: 'beanie',
+    name: 'Beanie',
+    category: 'outerwear',
+    icon: 'top',
+    // a knit cap over the crown, gathered at the top — pins to the head, so it turns/nods with it
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.22, dropLo: 0.3, topScale: 0.38, botScale: 1.3 }],
+    supports: { length: true, ease: true },
+    defaults: { length: 0.5, ease: 0.005, flare: 0 },
+    defaultFabric: 'rib-knit'
   }
 ]
 

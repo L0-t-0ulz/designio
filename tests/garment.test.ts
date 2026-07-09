@@ -5,6 +5,7 @@ import { DEFAULT_PARAMS, type GarmentType } from '../src/renderer/garment/templa
 import { getGarment, GARMENTS, GARMENT_IDS } from '../src/renderer/garments/registry'
 import { garmentTubeSpecs, headTubeToSpec, buildGarment } from '../src/renderer/garments/factory'
 import type { HeadTubePiece } from '../src/renderer/garments/schema'
+import { pieceAnchor } from '../src/renderer/garment/GarmentController'
 import { FABRIC_LIBRARY } from '../src/renderer/fabric/FabricLibrary'
 import { fillTube, fillAxisTube, buildTubeGarment } from '../src/renderer/cloth/Garment'
 import type { GarmentParams } from '../src/renderer/garment/templates'
@@ -195,5 +196,30 @@ describe('headTube (headwear / neckwear)', () => {
     const pieces = buildGarment(def, p, mann.measurements, mann.colliders)
     expect(pieces.map((pc) => pc.name)).toEqual(['Cowl'])
     expect(pieces[0].build.pinnedTop.length).toBeGreaterThan(0)
+  })
+
+  it('the beanie garment builds one crown piece (a Head) that routes to the head anchor', () => {
+    const mann = buildMannequin()
+    const def = getGarment('beanie')
+    const pieces = buildGarment(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements, mann.colliders)
+    expect(pieces.map((pc) => pc.name)).toEqual(['Head'])
+    expect(pieceAnchor('Head', 0, 1.7, mann.measurements.chestY, mann.measurements.hipY)).toBe('head')
+  })
+})
+
+describe('pieceAnchor (pin routing)', () => {
+  const torsoY = 1.34
+  const hipY = 0.95
+  it('crown headwear pins to the head, a neck cowl to the torso (rests on the shoulders)', () => {
+    expect(pieceAnchor('Head', 0, 1.72, torsoY, hipY)).toBe('head')
+    expect(pieceAnchor('Cowl', 0, 1.5, torsoY, hipY)).toBe('torso') // not head — sits on the body
+  })
+  it('sleeves pin to the near arm (−x = left)', () => {
+    expect(pieceAnchor('Left sleeve', -0.2, 1.4, torsoY, hipY)).toBe('armL')
+    expect(pieceAnchor('Right sleeve', 0.2, 1.4, torsoY, hipY)).toBe('armR')
+  })
+  it('a bodice pins to torso, a skirt to hip (by which is nearer)', () => {
+    expect(pieceAnchor('Body', 0, 1.4, torsoY, hipY)).toBe('torso')
+    expect(pieceAnchor('Body', 0, 1.0, torsoY, hipY)).toBe('hip')
   })
 })
