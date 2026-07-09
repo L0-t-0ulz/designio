@@ -274,4 +274,75 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 ---
 
+## 🛠 Engineering deep-dives _(concrete core-tech cards — solver / geometry / pipeline internals; each self-contained + unit-testable)_
+
+**Cloth solver — XPBD internals** _(refine `cloth/XPBDSolver`)_
+- [ ] **Structure-of-arrays constraints** — replace `Constraint[]` (array of objects) with parallel typed arrays (`i`/`j`/`region` `Int32Array`, `rest`/`compliance` `Float32Array`) so the Gauss-Seidel hot loop is cache-linear; existing solver tests guard behaviour, benchmark the step time
+- [ ] **Warm-start λ across frames** — persist `lambda` (decay-scaled) between frames instead of `fill(0)` every substep so constraints converge in fewer passes; unit-test faster settle on a stretched patch
+- [ ] **Long-range tethers (LRA)** — unstretchable tether constraints from each particle to its nearest pin (max rest = geodesic distance) to kill the gravity over-stretch of long gowns without stiffening bend; pure `tetherRest` unit-tested
+- [ ] **Strain limiting** — a post-projection clamp of per-edge stretch to a fabric max (woven ≈3 %, knit ≈30 %), decoupled from `stretchCompliance`; pure `clampStrain` unit-tested
+- [ ] **Dihedral bending constraint** — swap the skip-one distance "bend" for a real dihedral-angle bend across each shared edge (Bridson/Müller) with a controllable rest angle; pure angle+gradient math unit-tested
+- [ ] **Bending plasticity (wrinkle memory)** — once a bend passes a yield angle, shift its rest angle so the crease persists after the load lifts (permanent wrinkles / packed-in-a-suitcase look); pure `yieldRest` unit-tested
+- [ ] **Area-weighted particle mass** — set `invMass` from real GSM × the particle's Voronoi triangle area, not a flat `mass/count`, so adaptively-remeshed dense rings aren't artificially heavy; pure `voronoiAreas` unit-tested
+- [ ] **Air-pressure / volume constraint** — a signed-volume preservation constraint over a closed tube for puffers & balloon sleeves (implements the trapped-air puff); pure volume + gradient unit-tested
+- [ ] **CFL adaptive substeps** — scale substeps by the frame's max particle speed so fast body motion stays stable without over-solving at rest; pure `substepsForSpeed` unit-tested
+- [ ] **Consistent XPBD damping** — replace the `1 − damping·dt` velocity scale with Rayleigh/global damping that leaves rigid-body translation untouched (Baraff-Witkin); test free-fall stays undamped
+- [ ] **Per-triangle aero drag** — derive drag/lift from each triangle's area · normal · relative wind instead of a per-vertex normal, so billow scales with true surface area; pure `triAeroForce` unit-tested
+- [ ] **Solver iterations knob** — expose N Gauss-Seidel passes per substep (currently 1) as a quality axis distinct from substep count; unit-test convergence vs iteration count
+
+**Collision & contact** _(refine `cloth/ClothCollision`, `cloth/BodyCollider`, `XPBDSolver.solveCollisions`)_
+- [ ] **Continuous self-collision (CCD)** — swept particle-vs-particle test so fast layers don't tunnel in `ClothCollision`; pure segment closest-approach unit-tested
+- [ ] **Coulomb friction cone** — replace the `1 − friction` tangential scale with a proper static/kinetic friction cone at body + ground contacts; pure `applyFriction` unit-tested
+- [ ] **BVH refit, not rebuild** — refit the body `three-mesh-bvh` from the skinned positions each frame instead of rebuilding, so mesh-accurate collision is cheap on the walk; measure per-frame cost
+- [ ] **Collider broadphase binning** — bucket capsules in the spatial hash so `solveCollisions` tests only nearby capsules, not all of them; pure broadphase unit-tested
+- [ ] **Vertex–face body contact** — add triangle-face push-out (not just closest-point) so cloth can't poke a body corner through; pure point-in-triangle + push unit-tested
+- [ ] **Contact-pressure buffer** — accumulate per-particle contact impulse magnitude for the pressure/fit map; pure normalisation unit-tested
+- [ ] **Untangle pass** — a global sign/flood-fill resolve (ICM) to recover already-interpenetrating layers on load/edit; unit-test on a seeded tangle
+
+**Geometry & mesh** _(refine `cloth/Garment`, `finishTube`, `cloth/ClothMesh`)_
+- [ ] **Seam-UV duplication** — duplicate the wrap seam column (an extra u = 1 column sharing seam positions) so the texture doesn't run backwards across the back seam quad; test UV continuity
+- [ ] **Crease normals (hard edges)** — split normals at a marked ring (waistband / collar fold / pressed edge) so it reads as a crisp crease instead of a smooth roll; test normal split at the crease row
+- [ ] **Watertight export weld** — weld duplicated seam vertices (+ optional neck/hem caps) for a manifold glTF/OBJ/USDZ; unit-test edge-manifoldness
+- [ ] **Draped normal-map bake** — bake a dense drape's fold normals into a tangent-space normal map on a coarse mesh (fold detail without particles); pure bake math unit-tested
+- [ ] **Tangent attribute** — compute + store per-vertex tangents from the UVs so normal/anisotropy maps light correctly on the tube; test orthonormality
+- [ ] **Swept-frame sleeves** — rings perpendicular to a *curved* arm path (parallel-transport frames) so a bent-elbow sleeve doesn't kink; pure frame-transport unit-tested
+- [ ] **Quadric decimation LOD** — QEM edge-collapse to an export LOD budget; pure collapse-cost unit-tested
+
+**Pattern & flattening** _(refine `export/garmentPattern`, `pattern/pattern`)_
+- [ ] **LSCM mesh flattening** — flatten the *actually-draped* 3D garment to 2D via least-squares conformal maps (a true pattern from the sim, beyond the analytic tube unwrap); pure LSCM solve unit-tested on a known developable
+- [ ] **Seam-length matching + notches** — check sewn edge pairs are equal length (ease-adjusted) and drop balance notches at matched fractions; pure `matchSeam` unit-tested
+- [ ] **Seam-allowance polygon offset** — real inward/outward offset with miter/bevel joins per edge (honours per-edge SA), not a uniform scale; pure offset unit-tested
+- [ ] **Dart true manipulation** — pivot/close a dart about a point and redistribute the take-up (real pattern-making), reflected in 3D + 2D; pure dart-rotation unit-tested
+- [ ] **Grade-rule engine** — per-point X/Y grade increments driving the whole size run (feeds the size-run export + POM); pure `gradePoint` unit-tested
+- [ ] **AAMA/ASTM DXF layers** — emit the standard layer codes (1 cut · 8 notch · 13 grainline · 14 drill · internal) so the DXF opens right in Gerber/Lectra; unit-test layer assignment
+
+**Materials & shading** _(refine `cloth/FabricMaterial`, `fabric/*`)_
+- [ ] **Sheer transmission** — drive `MeshPhysicalMaterial.transmission`/`thickness` for chiffon/organza (real see-through), dropping the opaque lining shell; snapshot-verified
+- [ ] **Order-independent transparency** — weighted-blended OIT so stacked sheer layers don't flicker with draw order; verify with two overlapping sheer garments
+- [ ] **Distinct back-face shading** — a duller, print-free back-face material on `DoubleSide` fabric via back-face detection; test the two-material path
+- [ ] **Per-garment texture atlas** — pack per-part albedo/normal/rough into one atlas so a multi-part garment is one draw call; pure UV-repack unit-tested
+- [ ] **Procedural weave AO** — bake a self-shadow term into the weave map so the grain occludes itself; pure `weaveAO` unit-tested
+
+**Production pipeline** _(refine `export/manufacture`, `export/techpack`, `export/careLabel`)_
+- [ ] **Fabric yield estimate** — panel area ÷ marker efficiency → linear metres at the fabric's cuttable width, per size; pure `yieldMetres` unit-tested
+- [ ] **Cost sheet** — fabric yield × price + trims BOM + labour minutes → a landed cost/unit on the pack; pure `costRollup` unit-tested
+- [ ] **BOM CSV export** — the fabric + trims BOM as CSV (supplier / ref / qty / uom) beside the HTML pack; pure serialiser unit-tested
+- [ ] **ISO 3758 care symbols** — render the wash/bleach/dry/iron glyphs as SVG from the derived care lines (not just text); pure code→glyph map unit-tested
+- [ ] **Marker efficiency %** — the nesting layout reports used-area ÷ bounding-area so fabric waste is visible; pure `markerEfficiency` unit-tested
+- [ ] **Thread consumption** — total seam length × stitch density → thread metres for the BOM; pure `threadMetres` unit-tested
+
+**Performance & architecture**
+- [ ] **WASM solver hot loop** — compile the XPBD substep (integrate + constraint projection) to WASM for a 2–4× main-thread win over the JS loop; behaviour guarded by the solver tests
+- [ ] **Constraint graph colouring** — greedy-colour the constraint graph into independent batches (prereq for Jacobi / Worker / GPU parallelism); pure `colorGraph` unit-tested (no two same-colour constraints share a particle)
+- [ ] **Deterministic snapshot mode** — freeze wall-clock time + seed any RNG (turntable phase, surprise-me hues) so a deep-link renders bit-identically — unblocks the golden-image tests; test a bit-identical repeat
+- [ ] **Geometry lifecycle audit** — dispose geometries/materials/textures on garment rebuild + layer delete, with a `dispose()` on `GarmentController`; test no orphaned GPU resources across a build→delete loop
+- [ ] **Fixed-timestep accumulator** — decouple sim `dt` from the render frame rate with an accumulator + state interpolation in `core/Loop`, so drape is identical at 30/60/144 Hz; pure `accumulate` unit-tested
+
+**Robustness & testing**
+- [ ] **Energy / NaN guard** — a shared test asserting each catalog garment's kinetic energy stays finite + bounded across N steps (catches divergence the eye misses)
+- [ ] **`.dio` round-trip fuzz** — randomised project docs survive `serializeDoc` → `parseDoc` unchanged (fuzz the layer/colorway set); guards the save format
+- [ ] **Solver determinism test** — the same seeded state produces bit-identical positions on repeat (pairs with deterministic snapshot mode)
+
+---
+
 _Update this board as things ship — check the box + note the PR._
