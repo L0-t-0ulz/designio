@@ -166,6 +166,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67
 - [x] **Trim the renderer bundle** — rollup `manualChunks` splits three (+ addons) into its own vendor chunk; the app chunk drops ~2.47 MB → ~0.44 MB — PR #167
 - [x] **Free print textures on delete** — dispose the print `CanvasTexture`s on print removal / layer delete — PR #67
+- [x] **Resource-disposal hardening** — `clearSwatch` now resets the `sleeveBackMaterial` map too (was a stale-texture leak on back panels); `GarmentController.clear()` disposes the shared thread material (leaked per layer-delete); the two decor-dispose loops are one recursive helper (`clearDecorChildren`) that frees nested geometry too — PR #187
 - [x] **Fix blank prints/textiles in the studio** — the fabric-thickness lining shell was pushed *outward* over the printed surface (tube normals point inward); push it inward so the albedo map shows — PR #108
 - [x] **Wire the library search + filters** — fabric browser filters by family · weight · stretch (combined with the text search); pure `matchesFabric` unit-tested — PR #165
 - [x] **Autosave + crash recovery** — snapshots the working `.dio` doc to localStorage every 15 s + on close; a fresh launch offers to recover it via a non-blocking banner; pure `parseSnapshot`/`shouldOfferRestore` unit-tested — PR #166

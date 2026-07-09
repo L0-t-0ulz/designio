@@ -323,10 +323,13 @@ export class GarmentController {
     this.redrape()
   }
 
+  /** Tear the garment down for good (layer delete) — frees the shared thread material too. */
   clear(): void {
     this.dispose()
+    this.stitchMat.dispose()
   }
 
+  /** Drop the current pieces (rebuild) — keeps the shared `stitchMat` for the next build. */
   private dispose(): void {
     for (const p of this.pieces) {
       this.scene.remove(p.mesh)

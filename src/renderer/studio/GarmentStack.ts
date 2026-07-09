@@ -457,7 +457,7 @@ export class GarmentStack {
     if (!l.swatch) return
     disposeSwatch(l.swatch)
     l.swatch = null
-    for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial]) m.map = null
+    for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) m.map = null
     this.refreshDesign(l) // rebuild the normal fabric + any print/textile map
   }
 
@@ -490,13 +490,16 @@ export class GarmentStack {
     l.decor.visible = l.data.visible
   }
 
+  /** Dispose every decor mesh's geometry (recursively) + detach the children. Decor
+   *  materials are shared (module constants or the layer's own), so they're left alone. */
+  private clearDecorChildren(l: StackLayer): void {
+    for (const c of l.decor.children) c.traverse((n) => (n as THREE.Mesh).geometry?.dispose())
+    l.decor.clear()
+  }
+
   /** Rebuild a layer's non-sim decoration (patch pockets + contrast-trim bands). */
   private buildDecor(l: StackLayer): void {
-    for (const c of l.decor.children) {
-      const anyc = c as THREE.Mesh | THREE.LineSegments
-      anyc.geometry?.dispose()
-    }
-    l.decor.clear()
+    this.clearDecorChildren(l)
     const trimOn = !!l.data.trim
     const pocketMat = trimOn ? l.trimMaterial : l.material
 
@@ -1177,8 +1180,7 @@ export class GarmentStack {
   }
 
   private disposeDecor(l: StackLayer): void {
-    for (const c of l.decor.children) (c as THREE.Mesh).geometry?.dispose()
-    l.decor.clear()
+    this.clearDecorChildren(l)
     this.scene.remove(l.decor)
   }
 
