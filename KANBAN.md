@@ -84,6 +84,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [x] **Studio lighting & backdrop presets** — photo-studio looks the Environment applies live: lighting rigs (Studio · Softbox · Dramatic · High-key · Runway · Golden-hour — each an azimuth/elevation key + rims + hemi + exposure) + backdrop cycloramas (Studio grey · White · Charcoal · Black · Blush · Sky; Black hides the stage for a floating product shot) (`?light=`, `?backdrop=`) — PR #152
 - [x] **Product-shot backdrops** — a **transparent** backdrop (renders a real alpha cutout — the Render tab exports a PNG with alpha, bypassing the composer so bloom/vignette don't clobber the edges) + a flat **product-white** sweep (`?backdrop=transparent|product-white`) — PR #154
 - [x] **Split sleeves front/back** — per-panel fabric now splits the sleeves too (front +z / back −z), each half its own fabric + drape (colour-blocked / two-tone sleeves), matching the body + legs; `sleeveBack→sleeves→body` fallback (`?sleeveBackFabric=`) — PR #155
+- [x] **More garments (batch 2)** — Polo shirt · Slim trousers · **Joggers** (tapered + drawstring + a ribbed ankle cuff) · Leggings · Cardigan · Bomber jacket, all data-driven; ribbing now bands the leg hems too — PR #156
 
 **Editing UX**
 - [x] **Universal 2D↔3D editing** — the 2D pane drives the same garment — PR #44
@@ -109,7 +110,6 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Features**
 - [ ] **Drop in a real photoreal skin (asset)** — the fallback now renders as warm skin (PR #128) + the GLB slot is the default; the remaining step is dropping an actual CC0 photoreal human `.glb` at `assets/mannequin.glb` (a binary asset)
-- [ ] **More garments** — cargo/tapered variants, more structured jackets (blazer · hoodie · cargo · coat · blouse shipped — PR #70; the hoodie's real hood — PR #71)
 - [ ] **Turntable / clip + AR export** — record a spin to MP4/GIF, and export a USDZ/GLB to view the piece on a phone / in AR
 - [ ] **Draw-your-own panel** — sketch a custom 2D panel (freeform + mirror symmetry), then sew it onto the body
 

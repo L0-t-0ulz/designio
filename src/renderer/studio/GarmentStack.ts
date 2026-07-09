@@ -615,6 +615,14 @@ export class GarmentStack {
       const inner = new V().copy(sv.b).addScaledVector(axis, -0.05) // 5 cm up from the cuff
       this.ribbedBand(l, sv.b.clone(), inner, sv.radiusEnd, mat) // cuff band
     }
+    // Leg-hem cuffs (joggers / track pants) — a ribbed ankle band on each leg.
+    // The pattern keeps one leg (mirror is cut 2), so band it at ±centerX.
+    for (const leg of specs.legs) {
+      const xs = leg.centerX ? [leg.centerX, -leg.centerX] : [0]
+      for (const sx of xs) {
+        this.ribbedBand(l, new V(sx, leg.bottomY + 0.05, 0), new V(sx, leg.bottomY - 0.002, 0), leg.radiusBottom, mat)
+      }
+    }
   }
 
   /**
