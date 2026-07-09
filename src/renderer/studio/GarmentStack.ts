@@ -183,12 +183,12 @@ export class GarmentStack {
    * placed on *that* part + the (whole-garment) textile pattern. */
   private artInputFor(l: StackLayer, part: PrintPart): DesignArtInput {
     const color = part === 'body' ? l.data.color : this.partFabric(l, part).color
-    return { color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile, ombre: l.data.ombre }
+    return { color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile, ombre: l.data.ombre, wear: l.data.wear }
   }
   /** The albedo input for a back panel — its own colour + the owning part's prints. */
   private artInputForBack(l: StackLayer, panel: 'back' | 'legBack' | 'sleeveBack'): DesignArtInput {
     const part: PrintPart = panel === 'back' ? 'body' : panel === 'legBack' ? 'legs' : 'sleeves'
-    return { color: this.panelFabric(l, panel).color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile, ombre: l.data.ombre }
+    return { color: this.panelFabric(l, panel).color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile, ombre: l.data.ombre, wear: l.data.wear }
   }
   /** Whether the live garment actually has pieces for a part (skip building unused maps). */
   private hasPart(l: StackLayer, part: 'sleeves' | 'legs'): boolean {

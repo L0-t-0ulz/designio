@@ -32,6 +32,7 @@ import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from '../fabric/ombre'
+import { WEAR_KINDS, type WearKind } from '../fabric/wear'
 import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
 import { IRIDESCENT_KINDS, type IridescentKind } from '../fabric/iridescent'
 import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
@@ -183,6 +184,8 @@ export interface PanelOptions {
   textile?: { get: () => TextilePattern | undefined; set: (t: TextilePattern | undefined) => void }
   /** A dip-dye / ombré gradient baked into the albedo (optional). */
   ombre?: { get: () => OmbreDirection | undefined; set: (d: OmbreDirection | undefined) => void }
+  /** A distressed / washed / faded wear finish (optional). */
+  wear?: { get: () => WearKind | undefined; set: (w: WearKind | undefined) => void }
   /** Import a fabric-swatch photo → a seamless tiling PBR material (optional). */
   swatch?: { active: () => boolean; set: (img: HTMLImageElement) => void; clear: () => void }
   /** A sparkle finish — sequins / beading / metallic foil (optional). */
@@ -807,6 +810,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A distressed / washed / faded wear finish bleached into the albedo.
+  const WEAR_LABELS: Record<WearKind, string> = { faded: 'Faded', 'acid-wash': 'Acid-wash', distressed: 'Distressed' }
+  function wearControls(w: NonNullable<PanelOptions['wear']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, WearKind | undefined][] = [['None', undefined], ...WEAR_KINDS.map((k) => [WEAR_LABELS[k], k] as [string, WearKind])]
+    for (const [label, kind] of choices) {
+      const b = el('button', 'dio-seg-btn' + (w.get() === kind ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        w.set(kind)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Wash / distress'), row)
+    return wrap
+  }
+
   // A sparkle finish for eveningwear — sequins / beading / metallic foil.
   const SPARKLE_LABELS: Record<SparkleKind, string> = { sequins: 'Sequins', beading: 'Beading', foil: 'Foil' }
   function sparkleControls(sp: NonNullable<PanelOptions['sparkle']>): HTMLElement {
@@ -1097,6 +1120,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   )
   if (opts.textile) look.body.append(textileControls(opts.textile))
   if (opts.ombre) look.body.append(ombreControls(opts.ombre))
+  if (opts.wear) look.body.append(wearControls(opts.wear))
   if (opts.sparkle) look.body.append(sparkleControls(opts.sparkle))
   if (opts.iridescent) look.body.append(iridescentControls(opts.iridescent))
   if (opts.quilt) look.body.append(quiltControls(opts.quilt))

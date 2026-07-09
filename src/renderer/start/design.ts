@@ -5,6 +5,7 @@ import type { BodyType } from '../avatar/Mannequin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
 import { paintTextile, type TextilePattern } from '../fabric/textile'
 import { paintOmbre, type OmbreDirection } from '../fabric/ombre'
+import { paintWear, type WearKind } from '../fabric/wear'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
@@ -64,6 +65,8 @@ export interface DesignConfig {
   textile?: TextilePattern
   /** A dip-dye / ombré gradient baked into the albedo (base → a deeper dipped tone). */
   ombre?: OmbreDirection
+  /** A distressed / washed / faded wear finish bleached into the albedo. */
+  wear?: WearKind
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
   /** Iridescent finish — soap-bubble / holographic / oil-slick colour shift. */
@@ -159,13 +162,14 @@ export interface DesignArtInput {
   prints: Print[]
   textile?: TextilePattern
   ombre?: OmbreDirection
+  wear?: WearKind
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 
-/** Whether the design needs an albedo map — a print with content, a textile pattern, or an ombré. */
-export function hasArt(c: { prints: Print[]; textile?: TextilePattern; ombre?: OmbreDirection }): boolean {
-  return !!c.textile || !!c.ombre || c.prints.some(printHasContent)
+/** Whether the design needs an albedo map — a print, a textile, an ombré, or a wear finish. */
+export function hasArt(c: { prints: Print[]; textile?: TextilePattern; ombre?: OmbreDirection; wear?: WearKind }): boolean {
+  return !!c.textile || !!c.ombre || !!c.wear || c.prints.some(printHasContent)
 }
 
 /** Whether any placed motif is raised (embroidery / appliqué) → needs the bump map. */
@@ -281,6 +285,7 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
     ctx.fillStyle = hex(inp.color)
     ctx.fillRect(0, 0, size, size)
     if (inp.ombre) paintOmbre(ctx, size, inp.color, inp.ombre) // dip-dye gradient over the flat base
+    if (inp.wear) paintWear(ctx, size, inp.color, inp.wear) // distressed / washed / faded bleach
     if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color) // tiling pattern behind the prints
     for (const p of inp.prints) {
       if (!printHasContent(p)) continue
