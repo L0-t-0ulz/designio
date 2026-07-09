@@ -356,6 +356,7 @@ export function showStartPage(
       drop.replaceChildren(thumb)
       preview?.applyLook(config)
     }
+    img.onerror = () => URL.revokeObjectURL(url) // a corrupt image never reaches the thumbnail; free the blob URL here
     img.src = url
   }
   drop.addEventListener('click', () => fileInput.click())

@@ -1022,6 +1022,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         render()
         URL.revokeObjectURL(url) // the decoded bitmap is kept; free the blob URL
       }
+      img.onerror = () => URL.revokeObjectURL(url) // a corrupt image still frees the blob URL
       img.src = url
     })
     render()
@@ -1198,6 +1199,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         renderEditor()
         URL.revokeObjectURL(url)
       }
+      img.onerror = () => URL.revokeObjectURL(url) // a corrupt image still frees the blob URL
       img.src = url
     }
     fileInput.addEventListener('change', () => {
