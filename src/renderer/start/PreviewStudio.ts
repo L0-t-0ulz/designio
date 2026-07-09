@@ -255,6 +255,7 @@ export class PreviewStudio {
     this.colorLight.color.setHex(config.color)
     this.colorLight.intensity = 3.2
     ;(this.ring.material as THREE.MeshBasicMaterial).color.setHex(config.color).lerp(new THREE.Color(0x9a8cff), 0.4)
+    this.disposeDesign() // free the previous design's canvas textures before rebuilding / dropping art
     if (hasArt(config)) {
       this.design = buildDesignArt(config)
       this.material.map = this.design.texture
@@ -264,6 +265,13 @@ export class PreviewStudio {
       this.material.needsUpdate = true
     }
     this.ctl.setFabricPhysics()
+  }
+
+  /** Free the current design's albedo + bump canvas textures (they're rebuilt on each look change). */
+  private disposeDesign(): void {
+    this.design?.texture.dispose()
+    this.design?.bump?.dispose()
+    this.design = null
   }
 
   private holdRotate = (): void => {
@@ -313,6 +321,7 @@ export class PreviewStudio {
     ;(this.ring.material as THREE.Material).dispose()
     this.particles.geometry.dispose()
     ;(this.particles.material as THREE.Material).dispose()
+    this.disposeDesign()
     this.env.dispose()
     this.renderer.dispose()
     dom.remove()
