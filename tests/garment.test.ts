@@ -4,6 +4,7 @@ import { MEASUREMENTS } from '../src/renderer/avatar/Mannequin'
 import { DEFAULT_PARAMS, type GarmentType } from '../src/renderer/garment/templates'
 import { getGarment, GARMENTS, GARMENT_IDS } from '../src/renderer/garments/registry'
 import { garmentTubeSpecs } from '../src/renderer/garments/factory'
+import { FABRIC_LIBRARY } from '../src/renderer/fabric/FabricLibrary'
 import { fillTube, fillAxisTube, buildTubeGarment } from '../src/renderer/cloth/Garment'
 import type { GarmentParams } from '../src/renderer/garment/templates'
 
@@ -115,5 +116,43 @@ describe('garment registry + factory', () => {
     const [l, r] = specs('pants')
     expect(Math.sign(l.centerX ?? 0)).toBe(-Math.sign(r.centerX ?? 0))
     expect(Math.abs(l.centerX ?? 0)).toBeCloseTo(MEASUREMENTS.hipHalfX, 6)
+  })
+})
+
+describe('catalog additions — tapered bottoms + new silhouettes', () => {
+  // Each garment built with its OWN defaults (which drive the taper/fit).
+  const withDefaults = (t: GarmentType): GarmentParams => ({ ...DEFAULT_PARAMS, ...getGarment(t).defaults })
+  const ankleR = (t: GarmentType): number => specs(t, withDefaults(t))[0].radiusBottom
+
+  it('registers the new garments in their categories', () => {
+    const ids = new Set(GARMENT_IDS)
+    for (const id of ['polo', 'slim-pants', 'joggers', 'leggings', 'cardigan', 'bomber']) {
+      expect(ids.has(id)).toBe(true)
+    }
+    expect(getGarment('slim-pants').category).toBe('bottom')
+    expect(getGarment('polo').category).toBe('top')
+    expect(getGarment('cardigan').category).toBe('outerwear')
+    expect(getGarment('bomber').category).toBe('outerwear')
+  })
+
+  it('every defaultFabric refers to a real fabric (no typos)', () => {
+    for (const g of GARMENTS) {
+      if (g.defaultFabric) expect(FABRIC_LIBRARY.some((f) => f.id === g.defaultFabric)).toBe(true)
+    }
+  })
+
+  it('slim trousers + leggings taper narrower at the ankle than wide-leg', () => {
+    const wide = ankleR('wide-leg')
+    expect(ankleR('slim-pants')).toBeLessThan(wide)
+    expect(ankleR('leggings')).toBeLessThan(wide)
+    expect(ankleR('leggings')).toBeLessThan(ankleR('slim-pants')) // leggings the tightest (zero ease)
+  })
+
+  it('joggers taper + expose a ribbed ankle cuff and drawstring waistband', () => {
+    const j = getGarment('joggers')
+    expect(j.supports.ribbing).toBe(true)
+    expect(j.defaults.ribbing).toBe(true)
+    expect(j.defaults.waistband).toBe(true)
+    expect(ankleR('joggers')).toBeLessThan(ankleR('wide-leg'))
   })
 })

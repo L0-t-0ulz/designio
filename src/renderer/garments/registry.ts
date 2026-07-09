@@ -87,6 +87,17 @@ export const GARMENTS: GarmentDefinition[] = [
     defaults: { length: 0.62, ease: 0.02, flare: 0.04, neckline: 'crew', sleeve: 'long' }
   },
   {
+    id: 'polo',
+    name: 'Polo shirt',
+    category: 'top',
+    icon: 'top',
+    pieces: [upperTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    // knit collared tee: a shirt collar + a short button placket.
+    defaults: { length: 0.6, ease: 0.025, flare: 0.03, neckline: 'crew', sleeve: 'short', collar: true, collarStyle: 'shirt', closure: true },
+    defaultFabric: 'oxford'
+  },
+  {
     id: 'tube-top',
     name: 'Tube top',
     category: 'top',
@@ -193,6 +204,38 @@ export const GARMENTS: GarmentDefinition[] = [
     defaults: { length: 0.62, ease: 0.045, flare: 0.06, pocket: true, pocketStyle: 'bellows', waistband: true },
     defaultFabric: 'chino-twill'
   },
+  {
+    id: 'slim-pants',
+    name: 'Slim trousers',
+    category: 'bottom',
+    icon: 'pants',
+    pieces: [{ kind: 'legTubes' }],
+    supports: lowerCaps,
+    // tapered straight leg — low ease + no flare narrows to the ankle.
+    defaults: { length: 1.0, ease: 0.008, flare: 0, hem: true }
+  },
+  {
+    id: 'joggers',
+    name: 'Joggers',
+    category: 'bottom',
+    icon: 'pants',
+    pieces: [{ kind: 'legTubes' }],
+    supports: { ...lowerCaps, ribbing: true },
+    // tapered sweatpant: drawstring waistband + a ribbed knit ankle cuff.
+    defaults: { length: 0.97, ease: 0.045, flare: 0, waistband: true, drawstring: true, ribbing: true },
+    defaultFabric: 'french-terry'
+  },
+  {
+    id: 'leggings',
+    name: 'Leggings',
+    category: 'bottom',
+    icon: 'pants',
+    pieces: [{ kind: 'legTubes' }],
+    supports: lowerCaps,
+    // second-skin stretch — zero ease hugs the leg to the ankle.
+    defaults: { length: 1.0, ease: 0, flare: 0 },
+    defaultFabric: 'spandex'
+  },
 
   // ---- dresses ----
   {
@@ -278,6 +321,29 @@ export const GARMENTS: GarmentDefinition[] = [
     supports: upperCaps,
     defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'flap', closure: true, lined: true, interfaced: true },
     defaultFabric: 'wool-flannel'
+  },
+  {
+    id: 'cardigan',
+    name: 'Cardigan',
+    category: 'outerwear',
+    icon: 'top',
+    pieces: [upperTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    // open-front knit: a button front, ribbed hem/cuffs + patch pockets.
+    defaults: { length: 0.74, ease: 0.06, flare: 0.05, neckline: 'v', sleeve: 'long', closure: true, ribbing: true, pocket: true, pocketStyle: 'patch' },
+    defaultFabric: 'cable-knit'
+  },
+  {
+    id: 'bomber',
+    name: 'Bomber jacket',
+    category: 'outerwear',
+    icon: 'top',
+    closureStyle: 'zip',
+    pieces: [upperTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    // cropped zip jacket with a ribbed hem + cuffs and welt pockets.
+    defaults: { length: 0.34, ease: 0.07, flare: 0.03, neckline: 'crew', sleeve: 'long', closure: true, ribbing: true, pocket: true, pocketStyle: 'welt' },
+    defaultFabric: 'leather'
   }
 ]
 
