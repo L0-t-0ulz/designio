@@ -10,6 +10,7 @@ import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
 import { threadMetres } from './thread'
 import { careSymbolsSVG, type CareSymbol } from './careSymbols'
+import { escapeHtml as esc } from './html'
 
 export interface ManufactureLayer {
   name: string
@@ -47,7 +48,6 @@ export interface ManufactureBundle {
 const inch = (cm: number): string => (cm / 2.54).toFixed(1)
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 const FABRIC_WIDTH_M = 1.4 // bolt width for the yardage estimate
-const esc = (s: string): string => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!)
 
 function specRows(m: GarmentMetrics): string {
   return m.rows
