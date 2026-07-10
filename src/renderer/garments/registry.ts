@@ -363,7 +363,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'outerwear',
     icon: 'top',
     // a knit cap over the crown, gathered at the top — pins to the head, so it turns/nods with it
-    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.22, dropLo: 0.3, topScale: 0.38, botScale: 1.3 }],
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.26, dropLo: 0.32, topScale: 0.13, botScale: 1.28 }],
     supports: { length: true, ease: true },
     defaults: { length: 0.5, ease: 0.005, flare: 0 },
     defaultFabric: 'rib-knit'
