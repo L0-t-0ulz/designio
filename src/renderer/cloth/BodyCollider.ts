@@ -53,6 +53,7 @@ export class BodyCollider {
   /** Extract the MarchingCubes active triangles into world space, then build. */
   buildFromMarchingCubes(mc: MarchingCubes): void {
     const posAttr = mc.geometry.getAttribute('position') as THREE.BufferAttribute | undefined
+    // MarchingCubes.count (the number of live vertices this frame) isn't in three's typings.
     const count = (mc as unknown as { count: number }).count
     if (!posAttr || count < 3) {
       this.invalidate()
