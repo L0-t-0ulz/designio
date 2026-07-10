@@ -116,7 +116,7 @@ export const FABRIC_LIBRARY: Fabric[] = [
 
   // ---- silks & smooth (flowy → liquid) ----
   { id: 'silk-charmeuse', name: 'Silk charmeuse', family: 'silk', gsm: 80, stretch: 0.06, bendiness: 0.9, friction: 0.32, color: 0xd9c27e, roughness: 0.32, sheen: 1.0, sheenRoughness: 0.25, weave: 'satin', weaveScale: 260, normalStrength: 0.25, anisotropy: 0.7, transmission: 0 },
-  { id: 'satin', name: 'Satin', family: 'silk', gsm: 120, stretch: 0.05, bendiness: 0.75, friction: 0.3, color: 0x7a3b6b, roughness: 0.28, sheen: 1.0, sheenRoughness: 0.3, weave: 'satin', weaveScale: 240, normalStrength: 0.3, anisotropy: 0.8, transmission: 0 },
+  { id: 'satin', name: 'Satin', family: 'silk', gsm: 120, stretch: 0.05, bendiness: 0.75, friction: 0.3, color: 0x7a3b6b, roughness: 0.36, sheen: 0.85, sheenRoughness: 0.42, weave: 'satin', weaveScale: 240, normalStrength: 0.3, anisotropy: 0.5, transmission: 0 },
   { id: 'crepe', name: 'Crepe de chine', family: 'silk', gsm: 110, stretch: 0.07, bendiness: 0.82, friction: 0.34, color: 0x9aa0a6, roughness: 0.5, sheen: 0.7, sheenRoughness: 0.4, weave: 'plain', weaveScale: 240, normalStrength: 0.35, anisotropy: 0.2, transmission: 0 },
   { id: 'organza', name: 'Organza (sheer)', family: 'silk', gsm: 50, stretch: 0.03, bendiness: 0.55, friction: 0.3, color: 0xe6e0f0, roughness: 0.35, sheen: 0.95, sheenRoughness: 0.3, weave: 'plain', weaveScale: 300, normalStrength: 0.25, anisotropy: 0.3, transmission: 0.55 },
   { id: 'chiffon', name: 'Chiffon (sheer)', family: 'silk', gsm: 45, stretch: 0.1, bendiness: 1.0, friction: 0.28, color: 0xd98ca8, roughness: 0.55, sheen: 0.9, sheenRoughness: 0.4, weave: 'plain', weaveScale: 320, normalStrength: 0.2, anisotropy: 0, transmission: 0.45 },
