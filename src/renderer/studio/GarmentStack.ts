@@ -1072,9 +1072,11 @@ export class GarmentStack {
       }
       return
     }
-    // A real lining reads thicker at the openings (so the contrast layer shows).
+    // A real lining reads thicker at the openings (so the contrast layer shows). Clamp the
+    // inward offset small — a large offset on a folded/coarse mesh (whose averaged normals
+    // point "between" the fold faces) pushes the shell THROUGH the outer surface → speckle.
     const lined = !!l.data.lined
-    const thickness = fabricThickness(l.fabric) * (lined ? 1.7 : 1)
+    const thickness = Math.min(0.0012, fabricThickness(l.fabric) * (lined ? 1.3 : 1))
     if (!l.lining) l.lining = this.makeLiningMaterial(thickness)
     const lm = l.lining
     if (lined) {

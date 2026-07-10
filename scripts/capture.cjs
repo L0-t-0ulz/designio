@@ -14,8 +14,12 @@ app.whenReady().then(async () => {
   const win = new BrowserWindow({
     width: 1440,
     height: 900,
-    show: true,
-    webPreferences: { preload: PRELOAD, sandbox: false }
+    // Offscreen by default (no window pops up); `CAPTURE_SHOW=1` forces a visible window.
+    // `paintWhenInitiallyHidden` keeps the renderer painting so the WebGL canvas + sim run
+    // while hidden (the app's loop keeps stepping — capturePage still gets a live frame).
+    show: process.env.CAPTURE_SHOW === '1',
+    paintWhenInitiallyHidden: true,
+    webPreferences: { preload: PRELOAD, sandbox: false, backgroundThrottling: false }
   })
   await win.loadFile(INDEX, SEARCH ? { search: SEARCH } : undefined)
   await new Promise((r) => setTimeout(r, WAIT)) // let the cloth fall & drape
