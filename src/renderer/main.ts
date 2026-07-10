@@ -923,9 +923,14 @@ function initStudio(
   }
   document.addEventListener('keydown', onKey)
 
+  // Pause the render/sim loop while the window is hidden/minimised (nothing to draw).
+  const onVisibility = (): void => loop.setVisible(!document.hidden)
+  document.addEventListener('visibilitychange', onVisibility)
+
   // ---- navigation out of the studio ----
   function teardown(): void {
     document.removeEventListener('keydown', onKey)
+    document.removeEventListener('visibilitychange', onVisibility)
     closeShortcuts()
     loop.stop()
     shell.dispose()
