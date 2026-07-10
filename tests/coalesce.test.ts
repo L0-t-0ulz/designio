@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { rafCoalesce, type FrameScheduler } from '../src/renderer/ui/coalesce'
+import { rafCoalesce, type FrameScheduler } from '../src/renderer/core/coalesce'
 
 /** A controllable stand-in for requestAnimationFrame: nothing runs until `flush()`. */
 function fakeScheduler(): { sched: FrameScheduler; flush: () => void; pending: () => number } {
