@@ -234,7 +234,7 @@ function initStudio(
   function setAnimMode(m: AnimationMode): void {
     anim.mode = m
     viewport.controls.autoRotate = m === 'turn'
-    viewport.controls.autoRotateSpeed = anim.speed * 2.2
+    viewport.controls.autoRotateSpeed = anim.speed * 4 // ~15 s per orbit at speed 1 (steady, frame-rate-independent)
   }
   let uiPose: PoseName = 'stand' // the current static pose (for timeline keyframe capture)
   function setPose(name: PoseName): void {
@@ -1211,7 +1211,7 @@ function initStudio(
     },
     onAnimSpeed: (v) => {
       anim.speed = v
-      viewport.controls.autoRotateSpeed = v * 2.2
+      viewport.controls.autoRotateSpeed = v * 4
     },
     onColor: onColorEdit,
     prints: {

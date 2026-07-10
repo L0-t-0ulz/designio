@@ -34,6 +34,7 @@ export class Viewport {
   // composite is the same pixels, so re-running it 60×/s while nothing changes is wasted GPU.
   private renderRequested = true // draw the first frame
   private idleFrames = 0
+  private lastFrameT = 0 // for a real-time delta → frame-rate-independent autoRotate (turntable)
   private static readonly IDLE_STRIDE = 3 // idle heartbeat: still repaint ~20 fps so nothing can ever look frozen
 
   constructor(private container: HTMLElement) {
@@ -123,7 +124,12 @@ export class Viewport {
    * idle heartbeat so a settled scene costs almost nothing while never appearing frozen.
    */
   render(active = false): void {
-    this.controls.update() // always: process input + damping + autoRotate (fires `change` → requestRender)
+    // Real elapsed time → OrbitControls autoRotate spins at a steady rate regardless of the
+    // (adaptive) frame rate. Clamped so a stall doesn't jump the turntable.
+    const now = performance.now() / 1000
+    const dt = this.lastFrameT ? Math.min(0.05, now - this.lastFrameT) : 1 / 60
+    this.lastFrameT = now
+    this.controls.update(dt) // always: process input + damping + autoRotate (fires `change` → requestRender)
     if (active || this.renderRequested || ++this.idleFrames >= Viewport.IDLE_STRIDE) {
       this.renderScene()
       this.renderRequested = false
