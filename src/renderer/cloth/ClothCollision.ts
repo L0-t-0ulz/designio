@@ -30,10 +30,12 @@ const P2 = 19349663
 const P3 = 83492791
 
 export class ClothCollision {
-  /** Half the keep-apart distance — the cloth's effective thickness (m). */
-  radius = 0.012
-  /** Structural-neighbour skip: same-piece particles this close in the grid don't repel. */
-  gridSkip = 2
+  /** Half the keep-apart distance — the cloth's effective thickness (m). Kept below the
+   *  mesh rest spacing so a single piece's own folds settle smoothly instead of lumping. */
+  radius = 0.009
+  /** Structural-neighbour skip: same-piece particles this close in the grid don't repel
+   *  (their distance constraints already hold them — repelling them just makes lumps). */
+  gridSkip = 3
   iterations = 2
 
   private readonly grid = new Map<number, number[]>()
