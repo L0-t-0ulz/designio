@@ -77,6 +77,8 @@ export class XPBDSolver {
   private restFrames = 0
   private framesSinceWake = 0
   private asleep = false
+  /** Whether the last `step()` integrated (particle positions changed this frame). */
+  private stepped = true
   private colliderSig = 0
   private static readonly SLEEP_VEL = 0.02 // m/s — below this the cloth is "at rest"
   private static readonly SLEEP_FRAMES = 24 // consecutive still frames before it sleeps
@@ -291,6 +293,14 @@ export class XPBDSolver {
     return this.asleep
   }
 
+  /** Whether the render mesh needs a refresh this frame: true when this step integrated
+   *  (`stepped`) OR the cloth is awake — the latter catches a piece a post-step collision
+   *  woke (`ClothCollision` calls `wake()` on any particle it moves). False only while
+   *  fully at rest, so the per-frame normals recompute + GPU re-upload is skipped then. */
+  get advanced(): boolean {
+    return this.stepped || !this.asleep
+  }
+
   /** Re-activate the solver after any change (wind, gravity, fabric, respawn, body move). */
   wake(): void {
     this.asleep = false
@@ -396,7 +406,11 @@ export class XPBDSolver {
       this.colliderSig = sig
       this.wake()
     }
-    if (this.asleep) return // resting: hold the settled drape, spend no cycles
+    if (this.asleep) {
+      this.stepped = false // resting: hold the settled drape, spend no cycles
+      return
+    }
+    this.stepped = true
 
     if (this.params.aero > 0) this.computeNormals() // once per frame, reused across substeps
     const sub = dt / this.substeps

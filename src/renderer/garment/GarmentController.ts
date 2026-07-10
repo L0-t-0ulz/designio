@@ -291,6 +291,7 @@ export class GarmentController {
 
   updateMeshes(): void {
     for (const p of this.pieces) {
+      if (!p.solver.advanced) continue // resting: the mesh already holds the settled drape — skip the recompute + re-upload
       p.geometry.attributes.position.needsUpdate = true
       p.geometry.computeVertexNormals()
       p.topstitch.update(p.positions, p.geometry.attributes.normal.array as Float32Array)

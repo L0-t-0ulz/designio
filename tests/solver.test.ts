@@ -209,6 +209,19 @@ describe('XPBDSolver rest / sleep', () => {
     expect(maxDelta).toBe(0) // asleep → not a single particle drifts
   })
 
+  it('reports `advanced` while moving and stops once it sleeps (gates the mesh refresh)', () => {
+    const { solver } = drape()
+    solver.step(1 / 60)
+    expect(solver.advanced).toBe(true) // falling/draping → mesh needs a refresh
+    for (let i = 0; i < 800; i++) solver.step(1 / 60) // settle to a dead stop
+    expect(solver.settled).toBe(true)
+    expect(solver.advanced).toBe(false) // asleep → skip the per-frame recompute
+    solver.wind.set(8, 0, 0)
+    solver.wake()
+    solver.step(1 / 60)
+    expect(solver.advanced).toBe(true) // woken → refresh again
+  })
+
   it('wakes back up when the wind picks up', () => {
     const { solver, positions } = drape()
     for (let i = 0; i < 800; i++) solver.step(1 / 60)
