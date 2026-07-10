@@ -41,7 +41,11 @@ const coatTube = {
   neckline: true
 }
 const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true, closure: true, lined: true, interfaced: true, facing: true, drawstring: true, ruffles: true, boning: true, ribbing: true, yoke: true, princess: true }
-const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true, waistband: true, drawstring: true, ruffles: true }
+// Sleeveless tops/dresses (no `sleeves` piece) — everything the body tube can render but sleeve/cuff.
+const sleevelessCaps = { ...upperCaps, sleeve: false, cuff: false }
+// Strapless (tube top) — also drop the neckline + collar (there's no shoulder edge to shape).
+const straplessCaps = { ...sleevelessCaps, neckline: false, collar: false }
+const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true, waistband: true, drawstring: true, ruffles: true, closure: true, lined: true, interfaced: true }
 
 /**
  * The garment catalog (data). Each entry composes parametric pieces; the factory
@@ -65,7 +69,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'top',
     icon: 'top',
     pieces: [upperTube],
-    supports: { neckline: true, length: true, ease: true, flare: true },
+    supports: sleevelessCaps,
     defaults: { length: 0.5, ease: 0.01, flare: 0.04, neckline: 'scoop', sleeve: 'none' }
   },
   {
@@ -103,7 +107,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'top',
     icon: 'top',
     pieces: [upperTube],
-    supports: { length: true, ease: true, flare: true, boning: true },
+    supports: straplessCaps,
     defaults: { length: 0.22, ease: 0.008, flare: 0.02, neckline: 'strapless', sleeve: 'none' }
   },
   {
@@ -262,7 +266,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'dress',
     icon: 'dress',
     pieces: [dressTube],
-    supports: { neckline: true, length: true, ease: true, flare: true },
+    supports: sleevelessCaps,
     defaults: { length: 0.72, ease: 0.012, flare: 0.05, neckline: 'strapless', sleeve: 'none' },
     defaultFabric: 'silk-charmeuse'
   },
@@ -272,7 +276,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'dress',
     icon: 'dress',
     pieces: [dressTube],
-    supports: { neckline: true, length: true, ease: true, flare: true, boning: true },
+    supports: sleevelessCaps,
     defaults: { length: 0.98, ease: 0.02, flare: 0.2, neckline: 'strapless', sleeve: 'none', boning: true },
     defaultFabric: 'satin'
   },
@@ -365,7 +369,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     // a knit cap over the crown, gathered at the top — pins to the head, so it turns/nods with it
     pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.26, dropLo: 0.32, topScale: 0.13, botScale: 1.28 }],
-    supports: { length: true, ease: true },
+    supports: { length: true, ease: true, flare: true }, // flare widens the brim (headTube rBot)
     defaults: { length: 0.5, ease: 0.005, flare: 0 },
     defaultFabric: 'rib-knit'
   },

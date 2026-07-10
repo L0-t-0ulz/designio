@@ -111,6 +111,30 @@ describe('garment registry + factory', () => {
     }
   })
 
+  it('every garment builds valid geometry with each of its supported detail toggles on', () => {
+    // Guards the `supports` caps: a garment must never claim a construction option that
+    // renders broken (throws / degenerate / NaN) when the user toggles it on.
+    const mann = buildMannequin()
+    const BOOL_DETAILS = ['collar', 'cuff', 'pleats', 'dart', 'pocket', 'hem', 'closure', 'lined', 'interfaced', 'facing', 'drawstring', 'ruffles', 'boning', 'ribbing', 'yoke', 'princess'] as const
+    for (const t of GARMENT_IDS) {
+      const def = getGarment(t)
+      const supports = def.supports as Record<string, boolean | undefined>
+      const base = { ...DEFAULT_PARAMS, ...def.defaults }
+      for (const d of BOOL_DETAILS) {
+        if (!supports[d]) continue
+        const p = { ...base, [d]: true } as GarmentParams
+        const pieces = buildGarment(def, p, mann.measurements, mann.colliders)
+        expect(pieces.length, `${t} + ${d} built no pieces`).toBeGreaterThan(0)
+        for (const pc of pieces) {
+          const pos = pc.build.positions
+          let ok = pos.length > 0
+          for (let k = 0; k < pos.length; k++) if (!Number.isFinite(pos[k])) ok = false
+          expect(ok, `${t} + ${d} produced a non-finite / empty build`).toBe(true)
+        }
+      }
+    }
+  }, 20000)
+
   it('length makes the hem lower', () => {
     const short = specs('dress', { ...DEFAULT_PARAMS, length: 0.1 })[0]
     const long = specs('dress', { ...DEFAULT_PARAMS, length: 0.95 })[0]
