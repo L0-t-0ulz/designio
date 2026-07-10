@@ -40,6 +40,10 @@ export class ClothCollision {
   // Flat per-global-particle scratch (grown as needed): which piece + local index.
   private gPiece = new Int32Array(0)
   private gLocal = new Int32Array(0)
+  // Reused across frames so the hot path allocates nothing: a pool of cell buckets
+  // (lengths reset, not reallocated) + the moved-pieces set.
+  private readonly cellPool: number[][] = []
+  private readonly moved = new Set<number>()
 
   private key(ix: number, iy: number, iz: number): number {
     return ((ix * P1) ^ (iy * P2) ^ (iz * P3)) | 0
@@ -80,19 +84,26 @@ export class ClothCollision {
       }
     }
 
-    // 2. hash into the grid.
+    // 2. hash into the grid. Buckets come from a reused pool (cleared, not reallocated).
     this.grid.clear()
+    let poolUsed = 0
     for (let i = 0; i < n; i++) {
       const p = pieces[gPiece[i]]
       const o = gLocal[i] * 3
       const key = this.key(Math.floor(p.positions[o] / cell), Math.floor(p.positions[o + 1] / cell), Math.floor(p.positions[o + 2] / cell))
       let arr = this.grid.get(key)
-      if (!arr) this.grid.set(key, (arr = []))
+      if (!arr) {
+        arr = this.cellPool[poolUsed] ?? (this.cellPool[poolUsed] = [])
+        arr.length = 0
+        poolUsed++
+        this.grid.set(key, arr)
+      }
       arr.push(i)
     }
 
     // 3. resolve overlaps (Gauss–Seidel).
-    const moved = new Set<number>()
+    const moved = this.moved
+    moved.clear()
     for (let iter = 0; iter < this.iterations; iter++) {
       for (let a = 0; a < n; a++) {
         const pa = pieces[gPiece[a]]

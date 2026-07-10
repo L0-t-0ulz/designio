@@ -247,6 +247,12 @@ export class GarmentController {
     return this.pieces.length > 0 && this.pieces.every((p) => p.solver.settled)
   }
 
+  /** True if any piece integrated this frame or is awake — the global collision pass is
+   *  only worth running when something moved (at full rest pieces are stably separated). */
+  anyAdvanced(): boolean {
+    return this.pieces.some((p) => p.solver.advanced)
+  }
+
   /** Per-piece particle views for the global cloth-collision pass. */
   simPieces(): SimPieceView[] {
     return this.pieces.map((p) => ({
