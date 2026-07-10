@@ -124,6 +124,8 @@ export interface StackLayer {
   swatch: SwatchTextures | null
   /** Non-simulated decoration (patch pockets + trim bands) parented to the layer. */
   decor: THREE.Group
+  /** Patch-pocket groups, each tracked to the live draped surface (raycast per frame) at (x,y). */
+  pockets: { grp: THREE.Group; x: number; y: number }[]
   /** Placed prints (logos + text) — runtime (images live here). */
   prints: Print[]
 }
@@ -495,6 +497,7 @@ export class GarmentStack {
   private clearDecorChildren(l: StackLayer): void {
     for (const c of l.decor.children) c.traverse((n) => (n as THREE.Mesh).geometry?.dispose())
     l.decor.clear()
+    l.pockets.length = 0
   }
 
   /** Rebuild a layer's non-sim decoration (patch pockets + contrast-trim bands). */
@@ -872,45 +875,72 @@ export class GarmentStack {
    */
   private buildPocket(l: StackLayer, mat: THREE.Material): void {
     const style = l.data.pocketStyle ?? 'patch'
-    const add = (geo: THREE.BufferGeometry, x: number, y: number, z: number): void => {
-      const m = new THREE.Mesh(geo, mat)
-      m.position.set(x, y, z)
-      m.castShadow = true
-      m.receiveShadow = true
-      l.decor.add(m)
-    }
-    const stitch = (geo: THREE.BufferGeometry, x: number, y: number, z: number): void => {
-      const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), POCKET_LINE)
-      e.position.set(x, y, z)
-      l.decor.add(e)
-    }
     for (const p of pocketPlacements(getGarment(l.data.garmentType), this.measurements)) {
+      // One group per pocket, sub-meshes positioned RELATIVE to the pocket centre (local +z =
+      // outward). `updatePockets` places the group on the live draped surface each frame, so
+      // the whole pocket rides the cloth (position + normal) instead of floating at a fixed z.
+      const grp = new THREE.Group()
+      const add = (geo: THREE.BufferGeometry, x: number, y: number, z: number): void => {
+        const m = new THREE.Mesh(geo, mat)
+        m.position.set(x, y, z)
+        m.castShadow = true
+        m.receiveShadow = true
+        grp.add(m)
+      }
+      const stitch = (geo: THREE.BufferGeometry, x: number, y: number, z: number): void => {
+        const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), POCKET_LINE)
+        e.position.set(x, y, z)
+        grp.add(e)
+      }
       if (style === 'welt' || style === 'jetted') {
         const lipH = style === 'jetted' ? 0.007 : 0.014
-        const oy = p.y + p.h * 0.2
+        const oy = p.h * 0.2
         const top = new THREE.PlaneGeometry(p.w, lipH)
-        add(top, p.x, oy, p.z + 0.001)
-        stitch(top, p.x, oy, p.z + 0.0025)
+        add(top, 0, oy, 0.001)
+        stitch(top, 0, oy, 0.0025)
         if (style === 'jetted') {
           const bot = new THREE.PlaneGeometry(p.w, lipH)
-          add(bot, p.x, oy - lipH - 0.006, p.z + 0.001)
-          stitch(bot, p.x, oy - lipH - 0.006, p.z + 0.0025)
+          add(bot, 0, oy - lipH - 0.006, 0.001)
+          stitch(bot, 0, oy - lipH - 0.006, 0.0025)
         }
       } else {
         const bellows = style === 'bellows'
         const body = bellows ? new THREE.BoxGeometry(p.w, p.h, 0.022) : new THREE.PlaneGeometry(p.w, p.h)
-        const bz = bellows ? p.z + 0.011 : p.z
-        add(body, p.x, p.y, bz)
-        stitch(body, p.x, p.y, bz + 0.0015)
+        const bz = bellows ? 0.011 : 0
+        add(body, 0, 0, bz)
+        stitch(body, 0, 0, bz + 0.0015)
         if (style === 'flap' || bellows) {
           const flapH = p.h * 0.4
           const flap = new THREE.PlaneGeometry(p.w * 1.04, flapH)
-          const fy = p.y + p.h / 2 - flapH / 2 + 0.006
-          const fz = bellows ? p.z + 0.023 : p.z + 0.003
-          add(flap, p.x, fy, fz)
-          stitch(flap, p.x, fy, fz + 0.0015)
+          const fy = p.h / 2 - flapH / 2 + 0.006
+          const fz = bellows ? 0.023 : 0.003
+          add(flap, 0, fy, fz)
+          stitch(flap, 0, fy, fz + 0.0015)
         }
       }
+      grp.position.set(p.x, p.y, p.z) // initial static pose — refined onto the surface each frame
+      l.decor.add(grp)
+      l.pockets.push({ grp, x: p.x, y: p.y })
+    }
+  }
+
+  private readonly _pocketRay = new THREE.Raycaster()
+  private static readonly POCKET_FWD = new THREE.Vector3(0, 0, 1)
+  /** Ride each patch pocket on the live draped garment surface: raycast straight back at the
+   *  pocket's (x,y) against the garment's own piece meshes, then sit the group on the hit +
+   *  lift/orient along the surface normal. So the pocket follows folds instead of floating. */
+  private updatePockets(l: StackLayer): void {
+    if (!l.pockets.length) return
+    const meshes = l.controller.getPieces().map((pc) => pc.mesh)
+    if (!meshes.length) return
+    for (const { grp, x, y } of l.pockets) {
+      this._pocketRay.set(new THREE.Vector3(x, y, 0.6), new THREE.Vector3(0, 0, -1))
+      const hit = this._pocketRay.intersectObjects(meshes, false)[0]
+      if (!hit || !hit.face) continue
+      const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()
+      if (n.z < 0) n.negate() // face outward (toward the front / camera-side)
+      grp.position.copy(hit.point).addScaledVector(n, 0.004)
+      grp.quaternion.setFromUnitVectors(GarmentStack.POCKET_FWD, n)
     }
   }
 
@@ -1166,6 +1196,7 @@ export class GarmentStack {
       sleeveBackDesign: null,
       swatch: null,
       decor,
+      pockets: [],
       prints: (data.prints ?? []).map(printFromSpec)
     }
     this.layers.push(layer)
@@ -1230,6 +1261,7 @@ export class GarmentStack {
   }
   updateMeshes(): void {
     for (const l of this.layers) if (l.data.visible) l.controller.updateMeshes()
+    for (const l of this.layers) if (l.data.visible && l.pockets.length) this.updatePockets(l)
     if (this.strainView !== 'none') for (const l of this.layers) if (l.data.visible) l.controller.updateHeatmap(this.layerColorFn(l))
     if (this.wrinklesOn) for (const l of this.layers) if (l.data.visible) l.controller.updateWrinkle(wrinkleAmount)
   }
