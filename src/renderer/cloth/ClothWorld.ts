@@ -309,7 +309,7 @@ export class ClothWorld {
         let ny = this._p.y - this._c.y
         let nz = this._p.z - this._c.z
         let dist = Math.sqrt(nx * nx + ny * ny + nz * nz)
-        if (dist >= cap.radius) continue
+        if (dist >= cap.radius + this.bodySkin) continue // rest a garment-thickness off the body (matches solveBody + XPBDSolver)
         if (dist < 1e-6) {
           nx = 0
           ny = 1
@@ -320,7 +320,7 @@ export class ClothWorld {
         nx *= inv
         ny *= inv
         nz *= inv
-        const pen = cap.radius - dist
+        const pen = cap.radius + this.bodySkin - dist // push out to the skin offset, not the bare surface
         pos[i] += nx * pen
         pos[i + 1] += ny * pen
         pos[i + 2] += nz * pen
