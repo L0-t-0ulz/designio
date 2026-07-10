@@ -167,11 +167,17 @@ function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: S
     [colliders[9], colliders[10]]
   ]
   return arms.map(([upper, fore]) => {
-    const a = upper.a.clone() // shoulder
     // wrist (long) or a true short sleeve at mid-bicep. Dolman/bishop/bell read as
     // full-length even when "short" (they're statement sleeves) → run to the wrist.
     const fullLen = long || shape === 'dolman' || shape === 'bishop' || shape === 'bell'
     const b = fullLen ? fore.b.clone() : upper.a.clone().lerp(upper.b, 0.62)
+    // Start the cap lifted up + inboard over the deltoid (toward the shoulder line / neck) so
+    // the sleeve overlaps the body's shoulder and closes the bare armhole gap — the body and
+    // sleeve are separate meshes with no seam, so without this overlap the deltoid shows through.
+    const rr = upper.radius
+    const a = upper.a.clone()
+    a.y += rr * 0.7
+    a.x += (a.x >= 0 ? -1 : 1) * rr * 0.55
     const len = a.distanceTo(b)
     const { radiusStart, radiusEnd, profile } = sleeveShapeSpec(shape, upper.radius, fullLen ? fore.radius : upper.radius, cuff)
     const t = simTube(26, len, 0.03, simScale)
