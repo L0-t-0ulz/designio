@@ -482,7 +482,11 @@ function initStudio(
         if (settled && !drapeSettled) onDrapeSettle?.()
         drapeSettled = settled
       }
-      viewport.render()
+      // Adaptive rendering: full frame rate while anything moves (cloth settling, the avatar
+      // animating, the timeline driving the camera), idle heartbeat otherwise. Camera drags +
+      // programmatic camera moves + edits request their own repaint inside Viewport.
+      const moving = (mode === 'templates' ? stack.anyAdvanced() : true) || anim.mode !== 'static' || player.playing
+      viewport.render(moving)
       measureTool?.update() // reproject the measurement / note labels onto the canvas
       frames++
       const now = performance.now()

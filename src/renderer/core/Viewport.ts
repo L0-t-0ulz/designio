@@ -29,6 +29,12 @@ export class Viewport {
   private readonly composer: EffectComposer
   private readonly bloom: UnrealBloomPass
   private readonly gtao: GTAOPass
+  // Adaptive rendering: draw every frame while anything moves (cloth, animation, the
+  // camera), but when the scene is fully idle repaint only every Nth frame — the AO/bloom
+  // composite is the same pixels, so re-running it 60×/s while nothing changes is wasted GPU.
+  private renderRequested = true // draw the first frame
+  private idleFrames = 0
+  private static readonly IDLE_STRIDE = 3 // idle heartbeat: still repaint ~20 fps so nothing can ever look frozen
 
   constructor(private container: HTMLElement) {
     // `alpha: true` so a transparent backdrop exports a real cutout (PNG with alpha).
@@ -50,6 +56,8 @@ export class Viewport {
     this.controls.maxDistance = 8
     this.controls.target.set(0, 1.0, 0)
     this.controls.update()
+    // Any camera change (drag, zoom, damping settle, autoRotate) → repaint.
+    this.controls.addEventListener('change', this.requestRender)
 
     // Post-processing. OutputPass reads tone mapping + exposure from the renderer
     // and applies them (plus sRGB) at the end, so the exposure control still works.
@@ -101,9 +109,26 @@ export class Viewport {
   // frame (both the window listener and the shell's resize callback funnel through here).
   private readonly scheduleResize = rafCoalesce(this.applyResize)
 
-  render(): void {
-    this.controls.update()
-    this.renderScene()
+  /** Request a repaint next frame (call after any programmatic scene change that isn't a
+   *  camera/cloth/animation move — e.g. an appearance edit). Arrow so it doubles as the
+   *  OrbitControls `change` listener. */
+  readonly requestRender = (): void => {
+    this.renderRequested = true
+  }
+
+  /**
+   * Render the frame — but only actually run the (expensive) post-processing composite when
+   * something changed: `active` (cloth/animation moving), a pending `requestRender`, or a
+   * camera move (the controls `change` listener sets the flag). Otherwise repaint on a slow
+   * idle heartbeat so a settled scene costs almost nothing while never appearing frozen.
+   */
+  render(active = false): void {
+    this.controls.update() // always: process input + damping + autoRotate (fires `change` → requestRender)
+    if (active || this.renderRequested || ++this.idleFrames >= Viewport.IDLE_STRIDE) {
+      this.renderScene()
+      this.renderRequested = false
+      this.idleFrames = 0
+    }
   }
 
   /**
@@ -140,6 +165,7 @@ export class Viewport {
     this._off.setFromSpherical(this._sph)
     this.camera.position.copy(this.controls.target).add(this._off)
     this.camera.lookAt(this.controls.target)
+    this.requestRender() // programmatic move (timeline / turntable) — doesn't fire controls `change`
   }
 
   /**

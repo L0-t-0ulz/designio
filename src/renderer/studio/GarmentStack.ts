@@ -1220,6 +1220,12 @@ export class GarmentStack {
     for (const l of this.layers) if (l.data.visible && l.controller.anyAdvanced()) { active = true; break }
     if (active) this.collision.resolve(this.layers.flatMap((l) => (l.data.visible ? l.controller.simPieces() : [])))
   }
+
+  /** True if any visible garment moved this frame — the viewport needs a repaint. */
+  anyAdvanced(): boolean {
+    for (const l of this.layers) if (l.data.visible && l.controller.anyAdvanced()) return true
+    return false
+  }
   updateMeshes(): void {
     for (const l of this.layers) if (l.data.visible) l.controller.updateMeshes()
     if (this.strainView !== 'none') for (const l of this.layers) if (l.data.visible) l.controller.updateHeatmap(this.layerColorFn(l))
