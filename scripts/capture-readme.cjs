@@ -26,6 +26,11 @@ const shots = [
   ['docs/detail.png', 6000, 'garment=long-sleeve&fabric=oxford&start=0&collar=1&cuff=1&dart=1&pocket=1'],
   ['docs/parts.png', 6000, 'garment=long-sleeve&fabric=denim&start=0&sleeveFabric=leather&trim=1&trimColor=d9c27e'],
   ['docs/prints.png', 6000, 'garment=dress&fabric=jersey&start=0&prints=demo&closeup=1'],
+  ['docs/catalog-coat.png', 7000, 'garment=coat&fabric=wool-flannel&start=0'],
+  ['docs/body-glb.png', 7000, 'garment=dress&fabric=silk-charmeuse&start=0'],
+  ['docs/panels.png', 6000, 'garment=dress&fabric=jersey-knit&backFabric=leather&start=0'],
+  ['docs/outfit.png', 6000, 'garment=skirt&fabric=denim&layers=top&start=0'],
+  ['docs/walk.png', 3200, 'garment=dress&fabric=satin&anim=walk&start=0'],
   // Avatar customization
   ['docs/body-curvy.png', 6000, 'garment=dress&fabric=crepe&bodyPreset=curvy&start=0'],
   ['docs/skin-tone.png', 5000, 'garment=tank&fabric=jersey-knit&skin=deep&undertone=warm&start=0'],
