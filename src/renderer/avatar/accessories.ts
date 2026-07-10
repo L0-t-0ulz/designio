@@ -130,10 +130,19 @@ export class Accessories {
   }
 
   private buildShoes(): Item {
-    const shoe = (): THREE.Mesh => {
-      const g = new THREE.BoxGeometry(0.1, 0.06, 0.26)
-      g.translate(0, 0, 0.05) // toe forward of the ankle
-      return new THREE.Mesh(g, LEATHER)
+    // a real shoe: a flat sole + a rounded instep/heel + a toe cap (not a flat slab)
+    const shoe = (): THREE.Group => {
+      const g = new THREE.Group()
+      const sole = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.028, 0.27), LEATHER)
+      sole.position.set(0, -0.012, 0.05)
+      const instep = new THREE.Mesh(new THREE.SphereGeometry(0.058, 16, 12), LEATHER)
+      instep.scale.set(0.82, 1.05, 1.7) // domed over the heel + instep
+      instep.position.set(0, 0.012, -0.005)
+      const toe = new THREE.Mesh(new THREE.SphereGeometry(0.05, 14, 10), LEATHER)
+      toe.scale.set(0.92, 0.62, 1.15) // low rounded toe box
+      toe.position.set(0, -0.006, 0.15)
+      g.add(sole, instep, toe)
+      return g
     }
     const l = shoe()
     const r = shoe()
@@ -177,7 +186,7 @@ export class Accessories {
       obj,
       place: (a) => {
         const r = a.headR
-        obj.position.set(a.headTop.x, a.headTop.y - r * 0.3, a.headTop.z)
+        obj.position.set(a.headTop.x, a.headTop.y - r * 0.45, a.headTop.z) // brim settles onto the head
         brim.scale.set(r * 2.3, 1, r * 2.3)
         const crownH = r * 1.5
         crown.scale.set(r * 2.3, crownH, r * 2.3)
@@ -254,14 +263,17 @@ export class Accessories {
 
   private buildBalaclava(): Item {
     const mat = knit(0x1b1e25)
-    // a tall ovoid shell covering the cranium down past the jaw to the neck base
-    const shell = new THREE.Mesh(new THREE.SphereGeometry(1.12, 28, 26, 0, TAU, 0, Math.PI * 0.98), mat)
-    shell.position.y = -0.3
-    shell.scale.set(1.02, 1.5, 1.06)
+    // a tall ovoid shell domed over the WHOLE cranium (crown included) and down past the
+    // jaw to the neck base. Centred near the cranium centre (HC) so the crown is covered.
+    // Centred at the cranium centre (~HC) so its widest part covers the crown (like the
+    // beanie dome), then elongated downward to reach past the jaw to the neck base.
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(1.16, 28, 26, 0, TAU, 0, Math.PI), mat)
+    shell.position.y = 0.32
+    shell.scale.set(1.08, 1.36, 1.1)
     // face-opening cue: a darker recessed oval on the front (a real cut-out is a cloth-sim card)
     const face = new THREE.Mesh(new THREE.CircleGeometry(0.5, 22), new THREE.MeshStandardMaterial({ color: 0x0f1116, roughness: 0.9 }))
     face.scale.set(0.9, 0.74, 1)
-    face.position.set(0, -0.25, 1.12)
+    face.position.set(0, -0.04, 1.18)
     const obj = new THREE.Group()
     obj.add(shell, face)
     return this.headItem('balaclava', obj)
@@ -284,8 +296,8 @@ export class Accessories {
   }
 
   private buildGaiter(): Item {
-    const tube = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.4, 4.4, 24, 1, true), knit(0x565c67))
-    tube.position.y = 0.3
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.4, 5.2, 24, 1, true), knit(0x565c67))
+    tube.position.y = 0.9 // sit up around the neck (toward the jaw), not down at the collarbone
     const obj = new THREE.Group()
     obj.add(tube)
     return this.neckItem('gaiter', obj)
