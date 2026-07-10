@@ -25,7 +25,36 @@ const shots = [
   ['docs/pattern-2d.png', 4000, 'garment=dress&fabric=satin&start=0&view=pattern'],
   ['docs/detail.png', 6000, 'garment=long-sleeve&fabric=oxford&start=0&collar=1&cuff=1&dart=1&pocket=1'],
   ['docs/parts.png', 6000, 'garment=long-sleeve&fabric=denim&start=0&sleeveFabric=leather&trim=1&trimColor=d9c27e'],
-  ['docs/prints.png', 6000, 'garment=dress&fabric=jersey&start=0&prints=demo&closeup=1']
+  ['docs/prints.png', 6000, 'garment=dress&fabric=jersey&start=0&prints=demo&closeup=1'],
+  // Avatar customization
+  ['docs/body-curvy.png', 6000, 'garment=dress&fabric=crepe&bodyPreset=curvy&start=0'],
+  ['docs/skin-tone.png', 5000, 'garment=tank&fabric=jersey-knit&skin=deep&undertone=warm&start=0'],
+  ['docs/hair-face.png', 5000, 'garment=top&fabric=jersey-knit&hair=afro&face=1&start=0'],
+  ['docs/pose.png', 6000, 'garment=gown&fabric=satin&pose=weight-shift&start=0'],
+  // Accessories, headwear & neckwear
+  ['docs/accessories.png', 4500, 'garment=dress&fabric=satin&accessories=hat,belt,shoes,bag&start=0'],
+  ['docs/headwear.png', 4500, 'garment=long-sleeve&fabric=wool-flannel&accessories=beanie,scarf&start=0'],
+  ['docs/balaclava.png', 4500, 'garment=long-sleeve&fabric=jersey-knit&accessories=balaclava&start=0'],
+  ['docs/beanie-cloth.png', 6000, 'garment=beanie&fabric=rib-knit&start=0'],
+  // Surface finishes
+  ['docs/textile-plaid.png', 6000, 'garment=dress&fabric=wool-flannel&textile=plaid&start=0'],
+  ['docs/ombre.png', 6500, 'garment=gown&fabric=chiffon&ombre=top-down&start=0'],
+  ['docs/wear.png', 6000, 'garment=top&fabric=denim&wear=acid-wash&start=0'],
+  ['docs/sequins.png', 6000, 'garment=gown&fabric=satin&sparkle=sequins&start=0'],
+  ['docs/iridescent.png', 6000, 'garment=dress&fabric=satin&iridescent=holographic&start=0'],
+  ['docs/lace.png', 6000, 'garment=dress&fabric=organza&lace=chantilly&start=0'],
+  ['docs/quilt.png', 6000, 'garment=bomber&fabric=satin&quilt=diamond&start=0'],
+  ['docs/fur.png', 6000, 'garment=coat&fabric=wool-flannel&fur=shearling&start=0'],
+  // Lighting & backdrops
+  ['docs/light-dramatic.png', 6000, 'garment=gown&fabric=satin&light=dramatic&start=0'],
+  ['docs/light-runway.png', 6000, 'garment=dress&fabric=crepe&light=runway&start=0'],
+  ['docs/backdrop.png', 6000, 'garment=dress&fabric=satin&backdrop=blush&start=0'],
+  // Analysis & fit tools
+  ['docs/heatmap.png', 6000, 'garment=dress&fabric=denim&heatmap=1&start=0'],
+  ['docs/wrinkles.png', 6000, 'garment=dress&fabric=linen&wrinkles=1&start=0'],
+  // Motion & shots
+  ['docs/render-tab.png', 5000, 'garment=gown&fabric=satin&light=runway&view=render&start=0'],
+  ['docs/wind.png', 3500, 'garment=dress&fabric=chiffon&wind=runway&anim=idle&start=0']
 ]
 
 let failed = 0
