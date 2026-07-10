@@ -281,13 +281,15 @@ export class Accessories {
 
   private buildScarf(): Item {
     const mat = new THREE.MeshStandardMaterial({ color: 0x7a2233, roughness: 0.7, metalness: 0, side: THREE.DoubleSide })
-    // wide enough to wrap *over* the garment neckline (neckR is thin), sitting toward the jaw
-    const loop = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.85, 12, 28), mat)
+    // a soft knit loop wrapping over the garment neckline (neckR is thin), sitting toward the jaw
+    const loop = new THREE.Mesh(new THREE.TorusGeometry(2.05, 0.55, 14, 32), mat)
     loop.rotation.x = Math.PI / 2
-    loop.position.y = 0.4
+    loop.position.y = 0.35
+    // a long, flat, gently-tapering tail (narrower + thinner than a stiff box → reads like cloth)
     const tail = (x: number): THREE.Mesh => {
-      const t = new THREE.Mesh(new THREE.BoxGeometry(1.1, 5.2, 0.25), mat)
-      t.position.set(x, -2.4, 2.0)
+      const t = new THREE.Mesh(new THREE.BoxGeometry(0.85, 5.6, 0.12), mat)
+      t.scale.set(1, 1, 1)
+      t.position.set(x, -2.6, 1.95)
       return t
     }
     const obj = new THREE.Group()
