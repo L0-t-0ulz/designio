@@ -8,6 +8,7 @@ export class Loop {
   private accumulator = 0
   private lastTime = 0
   private running = true
+  private visible = true
   private started = false
 
   constructor(
@@ -36,6 +37,17 @@ export class Loop {
     return this.running
   }
 
+  /** Pause all step + render work while the window is hidden/minimised (no point drawing
+   *  or simulating a scene nobody can see); resume — resetting the clock so a long hide
+   *  doesn't dump a burst of catch-up steps — when it's shown again. */
+  setVisible(visible: boolean): void {
+    this.visible = visible
+    if (visible) {
+      this.lastTime = performance.now() / 1000
+      this.accumulator = 0
+    }
+  }
+
   /** Permanently stop the RAF loop (e.g. when disposing a preview scene). */
   stop(): void {
     this.stopped = true
@@ -45,6 +57,11 @@ export class Loop {
 
   private frame = (): void => {
     if (this.stopped) return
+    if (!this.visible) {
+      // Hidden: do no step/render work, but keep the loop alive to resume when shown.
+      requestAnimationFrame(this.frame)
+      return
+    }
     const now = performance.now() / 1000
     let frameTime = now - this.lastTime
     this.lastTime = now
