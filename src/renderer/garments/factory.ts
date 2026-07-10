@@ -122,28 +122,41 @@ function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
  */
 export function sleeveShapeSpec(
   shape: SleeveShape,
-  armR: number,
+  shoulderR: number, // the upper-arm radius (the sleeve cap sits over the shoulder)
+  hemR: number, // the arm radius at the hem (forearm for long, upper-arm for short)
   cuff: boolean
 ): { radiusStart: number; radiusEnd: number; profile?: (t: number) => number } {
-  const base = armR + (cuff ? 0.004 : 0.02) // set-in cuff/hem radius
+  // Everything is expressed as a MULTIPLE of the arm radius (not absolute metres) so a sleeve
+  // reads the same — and stays stable — on any body size. Bulges are kept modest so the puff
+  // gather can't balloon into a self-intersecting ring that the solver blows up.
+  const base = hemR + (cuff ? 0.004 : 0.02) // cuff / hem radius: a little ease over the arm
   const lerp = (s: number, e: number, t: number): number => s + (e - s) * t
   switch (shape) {
     case 'raglan': // seam runs to the neck → a wider top over the shoulder
-      return { radiusStart: 0.09, radiusEnd: base }
-    case 'dolman': // batwing — very wide, deep armhole tapering to the wrist
-      return { radiusStart: 0.15, radiusEnd: base, profile: (t) => 0.15 + (base - 0.15) * Math.pow(t, 1.5) }
-    case 'bishop': { // full sleeve, gathered into a tight cuff
-      const end = armR + 0.004
-      return { radiusStart: 0.072, radiusEnd: end, profile: (t) => lerp(0.072, end, t) + 0.05 * Math.sin(Math.PI * Math.min(t / 0.94, 1)) }
+      return { radiusStart: shoulderR * 1.7, radiusEnd: base }
+    case 'dolman': { // batwing — very wide, deep armhole tapering to the wrist
+      const start = shoulderR * 3.4
+      return { radiusStart: start, radiusEnd: base, profile: (t) => start + (base - start) * Math.pow(t, 1.5) }
     }
-    case 'puff': // gathered puff at the shoulder, normal below
-      return { radiusStart: 0.078, radiusEnd: base, profile: (t) => lerp(0.078, base, t) + 0.06 * Math.pow(Math.max(0, 1 - t / 0.34), 1.6) }
+    case 'bishop': { // full sleeve, gathered into a tight cuff
+      const end = hemR + 0.004
+      const start = shoulderR * 1.4
+      const bulge = shoulderR * 0.7 // a modest mid-sleeve gather (was a fixed 0.05 m → too full)
+      return { radiusStart: start, radiusEnd: end, profile: (t) => lerp(start, end, t) + bulge * Math.sin(Math.PI * Math.min(t / 0.94, 1)) }
+    }
+    case 'puff': { // gathered puff at the shoulder, normal below
+      const start = shoulderR * 1.3
+      const bulge = shoulderR * 0.6 // cap ≈ 1.9× the arm — a soft puff, not the old ~4× balloon
+      // spread the gather over the top ~45% of the sleeve so the cap reads round, not a sharp peak
+      return { radiusStart: start, radiusEnd: base, profile: (t) => lerp(start, base, t) + bulge * Math.pow(Math.max(0, 1 - t / 0.45), 1.5) }
+    }
     case 'bell': { // narrow upper arm, flaring out at the cuff
-      const end = armR + 0.085
-      return { radiusStart: 0.062, radiusEnd: end, profile: (t) => 0.062 + (end - 0.062) * Math.pow(t, 2.5) }
+      const start = shoulderR * 1.15
+      const end = hemR + shoulderR * 1.7
+      return { radiusStart: start, radiusEnd: end, profile: (t) => start + (end - start) * Math.pow(t, 2.5) }
     }
     default: // set-in — hugs the shoulder/arm, tapers to the hem
-      return { radiusStart: 0.072, radiusEnd: base }
+      return { radiusStart: shoulderR * 1.35, radiusEnd: base }
   }
 }
 
@@ -160,7 +173,7 @@ function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: S
     const fullLen = long || shape === 'dolman' || shape === 'bishop' || shape === 'bell'
     const b = fullLen ? fore.b.clone() : upper.a.clone().lerp(upper.b, 0.62)
     const len = a.distanceTo(b)
-    const { radiusStart, radiusEnd, profile } = sleeveShapeSpec(shape, fullLen ? fore.radius : upper.radius, cuff)
+    const { radiusStart, radiusEnd, profile } = sleeveShapeSpec(shape, upper.radius, fullLen ? fore.radius : upper.radius, cuff)
     const t = simTube(26, len, 0.03, simScale)
     return { rings: t.rings, radial: t.radial, a, b, radiusStart, radiusEnd, profile }
   })
