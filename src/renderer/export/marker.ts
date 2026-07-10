@@ -11,6 +11,7 @@
  * geometry, so it's unit-tested; the manufacturing pack prints the numbers + a preview.
  */
 import type { Pt, PatternPanel } from './garmentPattern'
+import { escapeHtml as esc } from './html'
 
 export interface MarkerPlacement {
   name: string
@@ -96,7 +97,6 @@ export function nestMarker(panels: PatternPanel[], widthCm: number, gapCm = 1): 
   return { widthCm, lengthCm, placements, panelAreaCm2, efficiency }
 }
 
-const esc = (s: string): string => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!)
 
 /** A preview of the nested marker (fabric strip + placed panels), as an inline SVG in cm units. */
 export function markerSVG(m: MarkerLayout): string {

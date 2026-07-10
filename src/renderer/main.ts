@@ -6,6 +6,7 @@ import { Viewport } from './core/Viewport'
 import { createStudioShell } from './shell/StudioShell'
 import { buildMenuBar } from './shell/menuBar'
 import { showToast } from './ui/toast'
+import { rafCoalesce } from './ui/coalesce'
 import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOverlay'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { buildLibrary } from './shell/library'
@@ -541,6 +542,44 @@ function initStudio(
     statusHandles?.setSelection(`Imported pattern — ${patternSummary(parsed)} (edit a control to return to the live pattern)`)
   }
 
+  // Coalesce a burst of slider `input` events into one expensive rebuild per animation
+  // frame: the cheap buffer writes stay synchronous (undo/save/2D always see the latest
+  // state), but the heavy work — garment rebuild, body resize / MarchingCubes, redrape,
+  // canvas repaint — runs at most once per frame with the newest value, so dragging a
+  // control stays smooth instead of rebuilding on every pixel. `rafCoalesce` is unit-tested;
+  // every scheduler is cancelled on teardown so a rebuild can't fire against a cleared stack.
+  const scheduleRebuild = rafCoalesce(() => {
+    stack.rebuild(stack.active)
+    centerTabs.refresh()
+    api.refreshMetrics()
+    syncBrowsers()
+  })
+  const scheduleApplyLook = rafCoalesce(() => stack.applyLook(stack.active))
+  const schedulePhysics = rafCoalesce(() => {
+    if (mode === 'templates') stack.setActivePhysics()
+    else patternCtl?.setFabricPhysics()
+  })
+  const scheduleRefreshDesign = rafCoalesce(() => stack.refreshDesign(stack.active))
+  const scheduleBodyResize = rafCoalesce(() => {
+    setBody(bodySize)
+    centerTabs.refresh()
+    api.refreshMetrics()
+    syncBrowsers()
+  })
+  const onColorEdit = rafCoalesce((h: number) => {
+    current.color = h
+    if (editPart !== 'body') {
+      stack.setPart(editPart, { color: h })
+      syncBrowsers()
+      return
+    }
+    stack.active.fabric.color = h
+    stack.active.data.color = h
+    stack.applyLook(stack.active)
+    syncBrowsers()
+  })
+  const coalescedEdits = [scheduleRebuild, scheduleApplyLook, schedulePhysics, scheduleRefreshDesign, scheduleBodyResize, onColorEdit]
+
   // Persist the edit buffer → active layer, rebuild + refresh everywhere. Shared by
   // the 3D Property Editor AND the 2D pattern tools, so 2D and 3D drive one design.
   function applyGarmentEdit(): void {
@@ -578,10 +617,7 @@ function initStudio(
     l.data.seam = garment.seam
     l.data.notches = garment.notches
     l.data.trim = garment.trim
-    stack.rebuild(l)
-    centerTabs.refresh()
-    api.refreshMetrics()
-    syncBrowsers()
+    scheduleRebuild() // coalesced: the buffer copy above is synchronous, the rebuild runs once per frame
   }
   const clampN = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v))
   // Editing from the 2D pane → same edit path, then re-sync the 3D panel controls.
@@ -931,6 +967,7 @@ function initStudio(
   function teardown(): void {
     document.removeEventListener('keydown', onKey)
     document.removeEventListener('visibilitychange', onVisibility)
+    for (const s of coalescedEdits) s.cancel() // drop any pending coalesced rebuild before the stack clears
     closeShortcuts()
     loop.stop()
     shell.dispose()
@@ -1059,12 +1096,11 @@ function initStudio(
     },
     onVisualEdit: () => {
       Object.assign(stack.active.fabric, current)
-      stack.applyLook(stack.active)
+      scheduleApplyLook()
     },
     onPhysicsEdit: () => {
       Object.assign(stack.active.fabric, current)
-      if (mode === 'templates') stack.setActivePhysics()
-      else patternCtl?.setFabricPhysics()
+      schedulePhysics()
     },
     onGarmentEdit: applyGarmentEdit,
     onPatternEdit: () => {
@@ -1162,18 +1198,7 @@ function initStudio(
       anim.speed = v
       viewport.controls.autoRotateSpeed = v * 2.2
     },
-    onColor: (h) => {
-      current.color = h
-      if (editPart !== 'body') {
-        stack.setPart(editPart, { color: h })
-        syncBrowsers()
-        return
-      }
-      stack.active.fabric.color = h
-      stack.active.data.color = h
-      stack.applyLook(stack.active)
-      syncBrowsers()
-    },
+    onColor: onColorEdit,
     prints: {
       list: () => stack.active.prints.map((p) => ({ id: p.id, kind: p.kind, label: p.kind === 'image' ? (p.imageName ?? 'logo') : p.text || 'text' })),
       get: (id) => {
@@ -1196,7 +1221,7 @@ function initStudio(
         const p = stack.active.prints.find((q) => q.id === id)
         if (p) {
           Object.assign(p, patch)
-          stack.refreshDesign(stack.active)
+          scheduleRefreshDesign()
         }
       },
       remove: (id) => {
@@ -1295,10 +1320,7 @@ function initStudio(
     bodySize,
     onBodySize: (b) => {
       Object.assign(bodySize, b)
-      setBody(bodySize)
-      centerTabs.refresh()
-      api.refreshMetrics()
-      syncBrowsers()
+      scheduleBodyResize()
     },
     onBodyMode: (realistic) => {
       mannequin.setBodyMode(realistic)
