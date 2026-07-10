@@ -557,30 +557,41 @@ function initStudio(
     centerTabs.refresh()
     api.refreshMetrics()
     syncBrowsers()
+    viewport.requestRender()
   })
-  const scheduleApplyLook = rafCoalesce(() => stack.applyLook(stack.active))
+  const scheduleApplyLook = rafCoalesce(() => {
+    stack.applyLook(stack.active)
+    viewport.requestRender()
+  })
   const schedulePhysics = rafCoalesce(() => {
     if (mode === 'templates') stack.setActivePhysics()
     else patternCtl?.setFabricPhysics()
+    viewport.requestRender()
   })
-  const scheduleRefreshDesign = rafCoalesce(() => stack.refreshDesign(stack.active))
+  const scheduleRefreshDesign = rafCoalesce(() => {
+    stack.refreshDesign(stack.active)
+    viewport.requestRender()
+  })
   const scheduleBodyResize = rafCoalesce(() => {
     setBody(bodySize)
     centerTabs.refresh()
     api.refreshMetrics()
     syncBrowsers()
+    viewport.requestRender()
   })
   const onColorEdit = rafCoalesce((h: number) => {
     current.color = h
     if (editPart !== 'body') {
       stack.setPart(editPart, { color: h })
       syncBrowsers()
+      viewport.requestRender()
       return
     }
     stack.active.fabric.color = h
     stack.active.data.color = h
     stack.applyLook(stack.active)
     syncBrowsers()
+    viewport.requestRender()
   })
   const coalescedEdits = [scheduleRebuild, scheduleApplyLook, schedulePhysics, scheduleRefreshDesign, scheduleBodyResize, onColorEdit]
 
