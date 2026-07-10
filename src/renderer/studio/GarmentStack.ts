@@ -1213,8 +1213,12 @@ export class GarmentStack {
   step(dt: number): void {
     for (const l of this.layers) if (l.data.visible) l.controller.step(dt)
     // Global cloth self / inter collision over every visible garment (layered outfits
-    // push off each other; a garment doesn't pass through itself).
-    this.collision.resolve(this.layers.flatMap((l) => (l.data.visible ? l.controller.simPieces() : [])))
+    // push off each other; a garment doesn't pass through itself). Skip it entirely when
+    // nothing moved this frame — at full rest every piece is asleep and stably separated
+    // (a collision move wakes the piece it touches, so a real overlap can't go unresolved).
+    let active = false
+    for (const l of this.layers) if (l.data.visible && l.controller.anyAdvanced()) { active = true; break }
+    if (active) this.collision.resolve(this.layers.flatMap((l) => (l.data.visible ? l.controller.simPieces() : [])))
   }
   updateMeshes(): void {
     for (const l of this.layers) if (l.data.visible) l.controller.updateMeshes()
