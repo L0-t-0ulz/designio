@@ -7,6 +7,7 @@ import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { rafCoalesce } from './coalesce'
 
 /** Subtle vignette for a cinematic frame. */
 const VignetteShader = {
@@ -68,23 +69,25 @@ export class Viewport {
     this.composer.addPass(new OutputPass())
     this.composer.addPass(new SMAAPass())
 
-    window.addEventListener('resize', this.onResize)
-    this.onResize()
+    window.addEventListener('resize', this.scheduleResize)
+    this.applyResize()
   }
 
   /** Move the canvas into a new container (e.g. the shell's centre pane) + resize. */
   mount(container: HTMLElement): void {
     container.appendChild(this.renderer.domElement)
     this.container = container
-    this.onResize()
+    this.applyResize() // synchronous: the canvas just moved, size it now
   }
 
-  /** Re-fit to the current container (call after a splitter drag / panel collapse). */
+  /** Re-fit to the current container (call after a splitter drag / panel collapse). Coalesced
+   *  to one resize per frame so a window/splitter drag doesn't reallocate the post-processing
+   *  render targets on every event. */
   resize(): void {
-    this.onResize()
+    this.scheduleResize()
   }
 
-  private onResize = (): void => {
+  private readonly applyResize = (): void => {
     const w = this.container.clientWidth || window.innerWidth
     const h = this.container.clientHeight || window.innerHeight
     this.camera.aspect = w / h
@@ -94,6 +97,9 @@ export class Viewport {
     this.bloom.setSize(w, h)
     this.gtao.setSize(w, h)
   }
+  // Coalesce the rapid window/splitter resize storm into a single render-target resize per
+  // frame (both the window listener and the shell's resize callback funnel through here).
+  private readonly scheduleResize = rafCoalesce(this.applyResize)
 
   render(): void {
     this.controls.update()
@@ -158,7 +164,7 @@ export class Viewport {
     out.getContext('2d')?.drawImage(this.renderer.domElement, 0, 0)
     const url = out.toDataURL('image/png')
     this.renderer.setPixelRatio(ratio)
-    this.resize() // restore size + composer/bloom to the container
+    this.applyResize() // restore synchronously — we render immediately below
     this.render()
     return url
   }

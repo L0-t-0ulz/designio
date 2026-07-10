@@ -1,11 +1,12 @@
 /**
- * Frame-coalescing for continuous UI input.
+ * Frame-coalescing for bursty callbacks.
  *
- * A slider drag fires an `input` event on every pixel; if each one triggers an expensive
- * rebuild (garment geometry, body MarchingCubes, cloth redrape, a canvas repaint) the drag
- * janks. `rafCoalesce` collapses a burst of calls within one animation frame into a single
- * deferred call carrying the **latest** arguments, so the heavy work runs at most once per
- * frame and always lands on the final value.
+ * A slider drag fires an `input` event on every pixel, and a window drag-resize fires
+ * `resize` continuously; if each one triggers expensive work (garment geometry, body
+ * MarchingCubes, a cloth redrape, a canvas repaint, reallocating post-processing render
+ * targets) it janks. `rafCoalesce` collapses a burst of calls within one animation frame
+ * into a single deferred call carrying the **latest** arguments, so the heavy work runs at
+ * most once per frame and always lands on the final value.
  */
 
 /** A frame scheduler — real `requestAnimationFrame` in the app, a fake one in tests. */
