@@ -287,8 +287,9 @@ export const GARMENTS: GarmentDefinition[] = [
       {
         kind: 'bodyTube',
         topAnchor: 'shoulder',
-        hemDropHi: 0.52,
-        hemDropLo: 0.52,
+        // the torso extends past the hip so it overlaps the leg-tube tops (no bare crotch gap)
+        hemDropHi: 0.58,
+        hemDropLo: 0.58,
         topR: 'chest',
         botR: 'hip',
         neckline: true
