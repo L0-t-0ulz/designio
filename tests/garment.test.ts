@@ -208,6 +208,16 @@ describe('headTube (headwear / neckwear)', () => {
     expect(pieces.map((pc) => pc.name)).toEqual(['Head'])
     expect(pieceAnchor('Head', 0, 1.7, mann.measurements.chestY, mann.measurements.hipY)).toBe('head')
   })
+
+  it('the beanie caps the crown — a well-gathered top so the head dome is covered (not an open cone)', () => {
+    const mann = buildMannequin()
+    const def = getGarment('beanie')
+    const spec = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+    // Gathered small at the crown + widening over the head. A ratio near ~0.1 caps the dome;
+    // the old open cone (topScale 0.38 → ratio ~0.29) left the crown bare, so guard below it.
+    expect(spec.radiusTop).toBeLessThan(spec.radiusBottom * 0.22)
+    expect(spec.topY).toBeGreaterThan(mann.measurements.neckY + mann.measurements.headR) // up at the crown, not the neck
+  })
 })
 
 describe('scarf (flat draped panel)', () => {
