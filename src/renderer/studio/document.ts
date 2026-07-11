@@ -51,6 +51,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     lined: l.lined,
     interfaced: l.interfaced,
     wet: l.wet,
+    puff: l.puff,
     waistband: l.waistband,
     facing: l.facing,
     drawstring: l.drawstring,
@@ -113,6 +114,8 @@ export interface GarmentLayerData {
   interfaced?: boolean
   /** Waterlogged rain/swim look — heavier + limp physics + a wet glossy sheen. */
   wet?: boolean
+  /** Trapped-air loft — inflate the garment off the body (a puffer), even without quilting. */
+  puff?: boolean
   waistband?: boolean
   facing?: boolean
   drawstring?: boolean
@@ -284,6 +287,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     lined: c.lined,
     interfaced: c.interfaced,
     wet: c.wet,
+    puff: c.puff,
     waistband: c.waistband,
     facing: c.facing,
     drawstring: c.drawstring,
@@ -339,6 +343,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     lined: d.lined,
     interfaced: d.interfaced,
     wet: d.wet,
+    puff: d.puff,
     waistband: d.waistband,
     facing: d.facing,
     drawstring: d.drawstring,

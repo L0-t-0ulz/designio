@@ -58,6 +58,8 @@ export interface GarmentParams {
   interfaced?: boolean
   /** Waterlogged rain/swim look — heavier + limp + clinging physics + a wet glossy sheen. */
   wet?: boolean
+  /** Trapped-air loft — inflate the garment off the body (a puffer), even without quilting. */
+  puff?: boolean
   /** Constructed waistband at the top of a skirt/trouser. */
   waistband?: boolean
   /** Neckline facing — a clean inner finish at the neck. */

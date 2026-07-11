@@ -71,4 +71,16 @@ describe('wetParams (waterlogged rain/swim look)', () => {
     copy.wet = false
     expect(layer.wet).toBe(true) // original untouched
   })
+
+  it('the puff (trapped-air loft) flag round-trips through save/parse and cloneLayer', () => {
+    const c = defaultConfig()
+    c.puff = true
+    expect(parseDoc(serializeDoc(docFromConfig(c))).layers[0].puff).toBe(true)
+
+    const layer = defaultLayer('coat')
+    layer.puff = true
+    const copy = cloneLayer(layer)
+    copy.puff = false
+    expect(layer.puff).toBe(true) // original untouched
+  })
 })
