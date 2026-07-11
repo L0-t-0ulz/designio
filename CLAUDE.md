@@ -130,7 +130,9 @@ Renderer modules:
   strain-view machinery also does `stress` — a **fabric-aware fit-failure** colouring, `stressThreshold`
   scaling by the fabric's stretch so a stiff woven reds out sooner than a knit),
   `wrinkle` (**strain-driven micro-wrinkles** — pure `wrinkleAmount` unit-tested; `installWrinkle` injects a
-  crease-normal perturbation into the fabric shader scaled by an `aStrain` vertex attribute).
+  crease-normal perturbation into the fabric shader scaled by an `aStrain` vertex attribute + **fold-valley
+  cavity darkening** (pure `cavityFactor`) that shadows the diffuse in the compressed creases so folds read
+  deep — a fabric-*compression* cue, unlike GTAO's geometric AO).
 - `garments/` — **data-driven catalog**: `schema` (`GarmentDefinition` = category + composable pieces
   (`bodyTube` · `legTubes` · `sleeves` · **`headTube`** — a head/neck cowl/beanie tube anchored at the crown/neck ·
   **`scarfPanel`** — a flat *open* panel (`wrapX: false`) wrapped once around the neck with hanging tails) +

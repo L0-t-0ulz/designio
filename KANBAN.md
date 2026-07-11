@@ -516,7 +516,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Fabric fuzz Fresnel rim** — a grazing-angle Schlick-fuzz term so knit edges pick up a soft lint halo under the rim light; pure `fuzzFresnel` unit-tested
 - [x] **Specular AA (Toksvig/LEAN)** — lift base roughness by the weave's normal strength so high-frequency weave normals stop shimmering at distance; pure `toksvigRoughness` unit-tested — PR #216
 - [x] **Sheen tint/roughness from fabric** — auto-set sheen + `sheenColor` + `sheenRoughness` from the fabric family (muted woven · lustrous silk · soft knit · velvet nap) instead of a global; pure `sheenRecipeFromFabric` unit-tested — PR #216
-- [ ] **Strain cavity darkening** — darken fold valleys using solver strain + curvature so creases read deep without a baked AO map; pure `cavityTerm` unit-tested
+- [x] **Strain cavity darkening** — the strain-driven wrinkle shader now also darkens the diffuse in the compressed fold valleys (reads fabric *compression*, unlike screen-space GTAO's geometric occlusion) so bunched creases read deep without a baked AO map; pure `cavityFactor` unit-tested — PR #219
 - [ ] **Retroreflective trim lobe** — a back-toward-source reflection term for hi-vis / 3M scotchlite tape + reflective piping; pure `retroLobe` unit-tested
 
 **Procedural fabric textures — GPU** _(extend `fabric/weaveTexture` + finish maps beyond normal-only)_
