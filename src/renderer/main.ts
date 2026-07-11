@@ -34,7 +34,7 @@ import type { NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
-import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, type Fabric } from './fabric/FabricLibrary'
+import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordTurntable } from './studio/turntable'
 import { patternToSVG, patternToDXF } from './export/patternExport'
@@ -44,6 +44,8 @@ import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { pomTable } from './export/pom'
 import { nestMarker } from './export/marker'
+import { costRollup, estimateLabourMinutes } from './export/cost'
+import { threadMetres } from './export/thread'
 import { drapedGirths } from './export/drapeFit'
 import { careLabel, careInstructions } from './export/careLabel'
 import { careSymbols } from './export/careSymbols'
@@ -940,6 +942,8 @@ function initStudio(
         if (l.data.partFabrics?.legs) parts.push({ part: 'legs', fabric: getFabric(l.data.partFabrics.legs.fabricId).name })
         if (l.data.partFabrics?.back) parts.push({ part: 'back', fabric: getFabric(l.data.partFabrics.back.fabricId).name })
         if (l.data.partFabrics?.legBack) parts.push({ part: 'legs back', fabric: getFabric(l.data.partFabrics.legBack.fabricId).name })
+        const metrics = activeMetrics(l)
+        const markerLayout = nestMarker(garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels, 140)
         return {
           name: def.name,
           size: l.data.size,
@@ -953,9 +957,16 @@ function initStudio(
           fibre: careLabel(l.fabric).fibre,
           care: careLabel(l.fabric).care,
           careSymbols: careSymbols(careInstructions(l.fabric)),
-          metrics: activeMetrics(l),
+          metrics,
           pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders),
-          marker: nestMarker(garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels, 140),
+          marker: markerLayout,
+          cost: costRollup({
+            fabricM: markerLayout ? markerLayout.lengthCm / 100 : metrics.fabricM2 / 1.4,
+            pricePerM: estimatedFabricPrice(l.fabric),
+            threadM: threadMetres(metrics.seamCm),
+            labourMin: estimateLabourMinutes(metrics.seamCm),
+            labourRate: 15
+          }),
           patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
         }
       })
