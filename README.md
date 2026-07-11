@@ -76,8 +76,8 @@ If you are unsure whether something is allowed, **ask first.**
 | **Garments** | 31 data-driven garments across tops · bottoms · dresses · one-pieces · outerwear · headwear |
 | **Fabrics** | 24 real fabrics with physical **and** visual properties that drive both drape and look |
 | **Body** | imported photoreal GLB avatar (default) or a sculpted metaball body — female/male, fully shapeable |
-| **Simulation** | XPBD cloth · mesh-accurate BVH body collision · cloth self/inter-collision · 4D per-fabric motion |
-| **Surface** | textiles · ombré · distressing · sequins · iridescence · quilting · lace · faux-fur · photo→PBR swatch |
+| **Simulation** | XPBD cloth · mesh-accurate BVH body collision · cloth self/inter-collision · 4D motion · trapped-air puffer loft |
+| **Surface** | textiles · ombré · distressing · sequins · iridescence · quilting · lace · faux-fur · wet look · photo→PBR swatch |
 | **Customize** | skin tones · hair · face · body presets · lookbook poses · accessories · headwear & neckwear |
 | **Studio** | dockable CAD shell · 3D + 2D pattern + Render tabs · lighting & backdrop presets · fit heatmaps |
 | **Output** | glTF · OBJ · USDZ (AR) · SVG/DXF pattern · tech-pack · manufacturing pack · PNG stills · WebM clips |
@@ -238,13 +238,20 @@ they simulate and export with it:
 | ![A sequined eveningwear gown](docs/sequins.png) | ![An oil-slick iridescent dress](docs/iridescent.png) | ![A see-through chantilly lace dress](docs/lace.png) |
 | glittering eveningwear finishes | colour-shifting thin-film | chantilly · geometric · fishnet (real see-through cutout) |
 
-| Quilting | Faux-fur / shearling / fleece |
-| --- | --- |
-| ![A diamond-quilted bomber](docs/quilt.png) | ![A shearling fur coat with a fuzzy pile](docs/fur.png) |
-| channel · diamond · box pillow-loft | directional fuzzy pile, no extra geometry |
+| Quilting | Faux-fur / shearling / fleece | Wet look |
+| --- | --- | --- |
+| ![A diamond-quilted bomber](docs/quilt.png) | ![A shearling fur coat with a fuzzy pile](docs/fur.png) | ![A waterlogged wet-look dress](docs/wet.png) |
+| channel · diamond · box pillow-loft | directional fuzzy pile, no extra geometry | waterlogged: darker + glossy, clings limp |
+
+The **iridescent** finish flows a real oil-on-water swirl across the surface (a procedural thin-film
+thickness map), not a flat colour shift. The **Wet look** toggle (in the Appearance panel) makes the fabric
+heavier + limp + clinging *and* darker + glossy — a rain / swim / beach preview.
 
 You can also **import a fabric photo** and DesignIO bakes it into a **seamless tiling PBR material** (albedo
-+ derived normal + roughness) that clothes the whole garment.
++ derived normal + roughness) that clothes the whole garment. Every fabric renders with a **procedural
+weave** (a paired normal **and** roughness map so yarn crowns catch the light and valleys stay matte),
+per-family **cloth sheen**, and a warp-aligned **anisotropic** highlight — so satins streak and wovens read
+matte, not plastic.
 
 ---
 
@@ -335,8 +342,15 @@ than interpenetrating.
 
 Under the hood: **adaptive remeshing** packs solver rings where the silhouette bends (waist cinch, flare
 onset, puff-sleeve bell) at no extra particle cost; per-fabric **aerodynamic drag** gives real secondary
-motion; and both solvers **sleep** to a dead stop when there's no wind and the body is still — so at default
-settings a garment hangs **perfectly still**, no drift or jitter, and any wind / body-move / edit wakes it.
+motion; contact is **inelastic**, so cloth settles onto the body instead of springing off; and both solvers
+**sleep** to a dead stop when there's no wind and the body is still — so at default settings a garment hangs
+**perfectly still**, no drift or jitter, and any wind / body-move / edit wakes it.
+
+**Trapped-air loft** turns a garment into a real **puffer** — a quilted coat (or any garment with the
+**Puffer loft** toggle) inflates off the body with an outward pressure that the stretch constraints cap, so
+it stands proud instead of hanging flat.
+
+![A quilted canvas coat lofted into a puffer](docs/puffer.png)
 
 ---
 
@@ -381,7 +395,10 @@ close. **Colorways** save appearance-only colour/fabric variants of one design.
 Light the shot like a photographer. Pick a **studio lighting preset** — **Studio · Softbox · Dramatic ·
 High-key · Runway · Golden-hour** (each an azimuth/elevation-described key + rims + hemi + exposure) — and a
 **backdrop**: Studio grey · White · Product-white (flat, no floor) · Charcoal · Black (floating shot) ·
-Blush · Sky cyclorama, or **Transparent** (the Render tab then exports a PNG **with alpha**).
+Blush · Sky cyclorama, or **Transparent** (the Render tab then exports a PNG **with alpha**). Every backdrop
+gradient is dithered so it never bands behind the figure. Pick the **tone-mapping** operator too — **ACES ·
+AgX · Neutral · Filmic · Reinhard** — to roll bright highlights (white satin, sequins, bloom) off with more
+or less saturation.
 
 | Dramatic lighting | Runway lighting | Blush backdrop |
 | --- | --- | --- |
@@ -565,7 +582,10 @@ drape-following **topstitch** · **surface finishes** (textiles · ombré · dis
 **GLB avatar as the default body** · female/male shaping + **body presets** · **skin tones · hair · face ·
 lookbook poses** · **accessories, headwear & neckwear** · mesh-accurate **BVH body collision** + **cloth
 self/inter-collision** · **body-pinned garments** — the avatar **walks in place with its clothes on** ·
-**4D per-fabric secondary motion** · **lighting & backdrop presets** · **fit heatmap / stress / wrinkles** ·
+**4D per-fabric secondary motion** · **trapped-air puffer loft** · **wet-look finish** · **PBR surface
+realism** (procedural weave roughness + per-family sheen + warp-aligned anisotropy + angle-weighted normals)
+· **lighting & backdrop presets** + **selectable tone-mapping** (ACES/AgX/Neutral/Filmic/Reinhard) · **fit
+heatmap / stress / wrinkles** ·
 **measure & annotate** · **timeline shot-sequencer · turntable · runway line-up** · **adaptive rendering** ·
 autosave + crash recovery · glTF/OBJ/**USDZ**/SVG/DXF/tech-pack/manufacturing-pack export · a
 production-grade, consistent UI.
