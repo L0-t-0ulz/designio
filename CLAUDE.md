@@ -77,7 +77,9 @@ Renderer modules:
   an outward acceleration along each particle's surface normal (capped by the stretch constraints, so it's
   stable) so a quilted garment inflates into a **puffer** that stands off the body (opt-in, wired from the
   quilt finish); **weighted hems** — `hemWeight` ramps the bottom rows heavier (pure `hemMassScale`) so a
-  gown/skirt hem hangs plumb like a couture chain-weight (pinned cuffs ignore it); **per-panel physics** — each particle/constraint
+  gown/skirt hem hangs plumb like a couture chain-weight (pinned cuffs ignore it); **body friction / cling** —
+  the mesh-accurate `solveBody` damps tangential slide by the fabric's friction so a grippy knit clings to the
+  true body while satin slides; **per-panel physics** — each particle/constraint
   is tagged front/back by column (matching `finishTube`), so `setPanelFabric(front, back)` drapes the two
   halves with their own stiffness + mass), `ClothCollision` (a global **spatial-hash
   particle repulsion** run by `GarmentStack.step` after the solvers — keeps every visible garment particle

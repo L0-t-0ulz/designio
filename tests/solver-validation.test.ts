@@ -100,6 +100,28 @@ describe('cross-resolution drape invariance', () => {
   }, 30000)
 })
 
+describe('body friction / cling', () => {
+  it('fabric friction changes how a garment settles on the true body surface', () => {
+    const drapeWithFriction = (friction: number): Float32Array => {
+      const def = getGarment('dress')
+      const spec = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+      const build = buildTubeGarment(spec)
+      const params: FabricParams = { ...FABRICS.cotton, friction }
+      const solver = new XPBDSolver(build.nx, build.ny, build.positions, params, { pinned: build.pinnedTop, wrapX: true })
+      solver.colliders = mann.colliders
+      solver.bodyCollider = mann.bodyCollider
+      for (let i = 0; i < 180; i++) solver.step(1 / 60)
+      return build.positions.slice()
+    }
+    const grippy = drapeWithFriction(0.95)
+    const slippery = drapeWithFriction(0.05)
+    let maxDiff = 0
+    for (let i = 0; i < grippy.length; i++) maxDiff = Math.max(maxDiff, Math.abs(grippy[i] - slippery[i]))
+    // before the fix `solveBody` ignored friction → the two drapes were ~identical
+    expect(maxDiff).toBeGreaterThan(0.003) // ≥ 3 mm: friction now grips/slides on the mesh body
+  }, 30000)
+})
+
 describe('momentum conservation (internal forces cancel)', () => {
   it('the centre of mass does not drift with no gravity / damping / drag', () => {
     const nx = 6
