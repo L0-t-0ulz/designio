@@ -572,4 +572,74 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 ---
 
+## 🌟 Roadmap — next 50 _(forward-looking features beyond the shipped core — bigger product bets, grouped by area)_
+
+**Menswear & tailoring**
+- [ ] **Menswear suit block** — a canvas-fronted blazer + trousers with a fly, welt pockets, and a structured shoulder
+- [ ] **Lapel geometry** — notch / peak / shawl lapels with a configurable width + roll line
+- [ ] **Shirt tailoring** — back yoke + box pleat, a button placket, and a structured two-piece collar + barrel cuff
+- [ ] **Vest / waistcoat** — a shaped back with an adjustable buckle strap + welt pockets
+- [ ] **Overcoat blocks** — trench · peacoat · topcoat with a storm flap + set-in belt
+- [ ] **Trouser break + crease** — a rendered front crease line and a configurable hem break (full/half/no break)
+
+**Activewear, swim & foundation**
+- [ ] **Compression fit** — negative-ease garments that stretch taut over the body (second-skin activewear)
+- [ ] **Mesh / perforated panels** — alpha-cutout ventilation zones placed on a garment part
+- [ ] **Bonded / heat-sealed seams** — a no-stitch-line seam finish for performance wear
+- [ ] **Swimwear block** — lined, ruched, elastic-edged one- and two-piece
+- [ ] **Sports bra / bralette** — moulded cups + a racerback + an elastic underband
+- [ ] **High-waist leggings** — a compression waistband + a gusset panel
+
+**Fabrics & finishes**
+- [ ] **Metallic / lamé / foil** — a bright anisotropic metal-sheen fabric family
+- [ ] **Neoprene / scuba** — thick, matte, structured hand that holds a sculpted shape
+- [ ] **Sequin-base fabric** — an all-over sequinned base cloth (not just a finish overlay)
+- [ ] **Fringe / tassel / feather trim** — a hanging edge trim that simulates its own sway
+- [ ] **Piping & corded edges** — a contrast-core piped seam/edge
+- [ ] **Digital print on the weave** — a photo print that follows the grain + distorts with the drape
+- [ ] **Thermochromic preview** — a colour-change fabric under a temperature slider
+
+**Fit & made-to-measure**
+- [ ] **3D body-scan import** — bring in an OBJ/PLY scan as a custom avatar to fit onto
+- [ ] **Photo-to-avatar** — estimate a body shape from two photos (front + side)
+- [ ] **Size recommendation** — suggest a size from a customer's measurements + the garment's grade
+- [ ] **Per-customer fit profile** — a saved measurement set + fit map per person
+- [ ] **Asymmetric fit** — one shoulder/hip higher, a limb-length delta
+- [ ] **Posture presets** — slouch · athletic · swayback stances that reshape the fit
+- [ ] **Ease-by-zone editor** — set chest / waist / hip ease independently and see it drape
+
+**Animation & motion**
+- [ ] **Mocap clip import** — drive the avatar from a BVH / FBX motion clip
+- [ ] **Cloth tearing** — seams rip once strain passes a fabric threshold (dramatic action shots)
+- [ ] **Turbulent wind field** — spatially-varying gusts + vortices, not one global vector
+- [ ] **Walk-cycle library** — editorial · commercial · sport runway walks
+- [ ] **Slow-motion capture** — a high-substep fabric-flow clip at reduced playback speed
+- [ ] **Two-avatar scene** — a pair walking / interacting for a campaign shot
+
+**Rendering & output**
+- [ ] **Path-traced hero render** — an offline high-quality still (three-gpu-pathtracer)
+- [ ] **Ghost-mannequin flat-lay** — an invisible-body product render mode
+- [ ] **360° product viewer** — export a web-embeddable spin (glb + a viewer)
+- [ ] **Multi-angle contact sheet** — front · back · ¾ · side composited into one PNG
+- [ ] **Social video presets** — 9:16 · 1:1 · 16:9 clips with safe margins
+- [ ] **Motion-blurred turntable** — a smooth spin video with real motion blur
+- [ ] **Focus-pull on the Render tab** — depth-of-field with an animatable focus distance
+
+**Collaboration, catalog & business**
+- [ ] **Cloud sync + share-by-link** — a project lives in the cloud, shareable read-only
+- [ ] **Design comments & review pins** — annotate a spot on the garment, resolve threads
+- [ ] **Version compare** — a visual diff of two saved designs (geometry + appearance)
+- [ ] **Line sheet / lookbook PDF** — a collection catalog generated across saved designs
+- [ ] **Public portfolio page** — a hosted gallery of your designs
+- [ ] **Tech-pack approval workflow** — submit → comment → approve, with a status trail
+
+**AI-assist & smart tools**
+- [ ] **AI silhouette generator** — a garment block from a text prompt
+- [ ] **AI colourway + print pairing** — palette/print suggestions from a mood image
+- [ ] **AI drape critique** — flag fit issues + suggest ease changes from the strain map
+- [ ] **AI fabric matcher** — pick the closest library fabric from a reference garment photo
+- [ ] **Auto-grade from samples** — learn a grade rule from two graded samples
+
+---
+
 _Update this board as things ship — check the box + note the PR._
