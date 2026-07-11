@@ -288,6 +288,21 @@ export class XPBDSolver {
     for (let k = 0; k < n; k++) if (counts[k] > 0) out[k] /= counts[k]
   }
 
+  /**
+   * The **max stretch-constraint residual** `|currentLen − rest|` in metres over the
+   * (non-bending) distance constraints — how far the solve is from satisfying them.
+   * A convergence gauge: more substeps/iterations should drive it down. Read-only.
+   */
+  maxResidual(): number {
+    let mx = 0
+    for (const con of this.constraints) {
+      if (con.bend || con.rest <= 1e-9) continue
+      const r = Math.abs(this.restLength(con.i, con.j) - con.rest)
+      if (r > mx) mx = r
+    }
+    return mx
+  }
+
   /** True once the cloth has settled to rest (drape is stable) — for measuring a settled fit. */
   get settled(): boolean {
     return this.asleep

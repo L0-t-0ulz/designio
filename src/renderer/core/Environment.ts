@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js'
+import { bayerDither } from '../fabric/dither'
 import {
   LIGHTING_PRESETS,
   BACKDROP_PRESETS,
@@ -19,16 +20,52 @@ export interface EnvironmentHandle {
   dispose: () => void
 }
 
-/** Vertical gradient backdrop (a soft studio cyclorama), as a texture. */
+/**
+ * Vertical gradient backdrop (a soft studio cyclorama), as a texture. Baked
+ * **per-pixel with ordered (Bayer) dithering** so the smooth ramp doesn't 8-bit band
+ * (stair-step contours across the sweep) — the same fix as the ombré finish. Wider
+ * than a 2-px strip so the dither has room to break up horizontally too.
+ */
 function gradientBackground(stops: [number, string][]): THREE.Texture {
+  const W = 64
+  const H = 512
   const canvas = document.createElement('canvas')
-  canvas.width = 2
-  canvas.height = 512
+  canvas.width = W
+  canvas.height = H
   const ctx = canvas.getContext('2d')!
-  const grad = ctx.createLinearGradient(0, 0, 0, 512)
-  for (const [at, color] of stops) grad.addColorStop(at, color)
-  ctx.fillStyle = grad
-  ctx.fillRect(0, 0, 2, 512)
+  // parse the sorted stops into sRGB byte triples
+  const cols = stops.map(([at, css]) => {
+    const h = new THREE.Color(css).getHexString()
+    return { at, r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) }
+  })
+  const clamp = (n: number): number => (n < 0 ? 0 : n > 255 ? 255 : Math.round(n))
+  const img = ctx.createImageData(W, H)
+  for (let y = 0; y < H; y++) {
+    const t = y / (H - 1)
+    let a = cols[0]
+    let b = cols[cols.length - 1]
+    for (let s = 0; s < cols.length - 1; s++) {
+      if (t >= cols[s].at && t <= cols[s + 1].at) {
+        a = cols[s]
+        b = cols[s + 1]
+        break
+      }
+    }
+    const span = b.at - a.at || 1
+    const f = Math.min(1, Math.max(0, (t - a.at) / span))
+    const r = a.r + (b.r - a.r) * f
+    const g = a.g + (b.g - a.g) * f
+    const bl = a.b + (b.b - a.b) * f
+    for (let x = 0; x < W; x++) {
+      const d = bayerDither(x, y)
+      const i = (y * W + x) * 4
+      img.data[i] = clamp(r + d)
+      img.data[i + 1] = clamp(g + d)
+      img.data[i + 2] = clamp(bl + d)
+      img.data[i + 3] = 255
+    }
+  }
+  ctx.putImageData(img, 0, 0)
   const tex = new THREE.CanvasTexture(canvas)
   tex.colorSpace = THREE.SRGBColorSpace
   return tex

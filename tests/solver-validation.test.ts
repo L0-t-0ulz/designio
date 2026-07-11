@@ -53,6 +53,52 @@ describe('golden-drape determinism (regression-ready)', () => {
   }, 20000)
 })
 
+describe('constraint-residual divergence guard', () => {
+  it('no stretch constraint diverges — the settled residual stays finite + bounded', () => {
+    // maxResidual() is the worst |len − rest| over the distance constraints. A healthy
+    // settle keeps it small (a seam/pin edge is the outlier); a diverging solve would
+    // send it to metres/∞. Guards the solve the same way the energy/NaN checks do.
+    for (const id of ['dress', 'gown', 'wide-leg']) {
+      const { solver } = drape(id, 220)
+      const r = solver.maxResidual()
+      expect(Number.isFinite(r), `${id} residual non-finite`).toBe(true)
+      expect(r, `${id} residual diverged to ${r} m`).toBeLessThan(0.5)
+    }
+  }, 20000)
+})
+
+describe('cross-resolution drape invariance', () => {
+  it('a coarser vs finer sim of the same garment agree on gross size (resolution refines, not changes)', () => {
+    // Build the same garment tube at two ring counts and drape both; the overall
+    // extent (length/width envelope) must match within tolerance — raising resolution
+    // sharpens folds, it must not move the garment.
+    const grossExtent = (ringScale: number): [number, number, number] => {
+      const def = getGarment('dress')
+      const spec = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+      spec.rings = Math.max(6, Math.round(spec.rings * ringScale)) // re-resolution
+      const build = buildTubeGarment(spec)
+      const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+      solver.colliders = mann.colliders
+      solver.bodyCollider = mann.bodyCollider
+      for (let i = 0; i < 200; i++) solver.step(1 / 60)
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity
+      const p = build.positions
+      for (let k = 0; k < p.length; k += 3) {
+        minX = Math.min(minX, p[k]); maxX = Math.max(maxX, p[k])
+        minY = Math.min(minY, p[k + 1]); maxY = Math.max(maxY, p[k + 1])
+        minZ = Math.min(minZ, p[k + 2]); maxZ = Math.max(maxZ, p[k + 2])
+      }
+      return [maxX - minX, maxY - minY, maxZ - minZ]
+    }
+    const coarse = grossExtent(0.7)
+    const fine = grossExtent(1.3)
+    for (let a = 0; a < 3; a++) {
+      expect(Number.isFinite(coarse[a]) && Number.isFinite(fine[a])).toBe(true)
+      expect(Math.abs(coarse[a] - fine[a])).toBeLessThan(0.08) // ≤ 8 cm envelope drift
+    }
+  }, 20000)
+})
+
 describe('momentum conservation (internal forces cancel)', () => {
   it('the centre of mass does not drift with no gravity / damping / drag', () => {
     const nx = 6
