@@ -283,6 +283,8 @@ function initStudio(
     garment.closure = l.data.closure
     garment.lined = l.data.lined
     garment.interfaced = l.data.interfaced
+    garment.wet = l.data.wet
+    garment.puff = l.data.puff
     garment.waistband = l.data.waistband
     garment.facing = l.data.facing
     garment.drawstring = l.data.drawstring
@@ -622,6 +624,8 @@ function initStudio(
     l.data.closure = garment.closure
     l.data.lined = garment.lined
     l.data.interfaced = garment.interfaced
+    l.data.wet = garment.wet
+    l.data.puff = garment.puff
     l.data.waistband = garment.waistband
     l.data.facing = garment.facing
     l.data.drawstring = garment.drawstring

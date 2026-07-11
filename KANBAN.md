@@ -284,7 +284,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Body friction / cling** — high-grip knits cling to the body, slippery satin slides down + pools at the hem
 - [ ] **Weighted hems** — a heavier bottom ring so gowns/drapes hang plumb (chain-weight couture look)
 - [ ] **Seam pucker** — a slight gather right at the seams for a hand-finished read
-- [x] **Trapped-air puff (pressure loft)** — `XPBDSolver.pressure` adds an outward acceleration along each particle's surface normal (opt-in, capped by the stretch constraints so it's stable). A **quilted** garment turns it on, and a first-class **`?puff=1`** toggle (persisted, parallel to `wet`) lofts *any* garment — a quilted coat / a smooth bomber now inflates into a real **puffer** that stands off the body instead of hanging flat; unit-tested (inflates outward + no-op at 0, round-trips) — PR #225, #226
+- [x] **Trapped-air puff (pressure loft)** — `XPBDSolver.pressure` adds an outward acceleration along each particle's surface normal (opt-in, capped by the stretch constraints so it's stable). A **quilted** garment turns it on, and a first-class **`?puff=1`** toggle (persisted, parallel to `wet`) lofts *any* garment — a quilted coat / a smooth bomber now inflates into a real **puffer** that stands off the body instead of hanging flat; a **"Puffer loft"** toggle in the Appearance panel; unit-tested (inflates outward + no-op at 0, round-trips) — PR #225, #226, #227
 - [ ] **Body wind occlusion** — the leeward side of the garment catches less wind than the windward side
 - [ ] **Spring pins** — a little give where garments pin to the shoulders/hips so they don't look glued on
 
@@ -477,7 +477,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Flexural rigidity from thickness** — compute bend compliance from `D = E·t³ / 12(1−ν²)` so thick felt is stiff and thin silk floppy from one physical-thickness input; pure `flexuralRigidity` unit-tested
 - [ ] **Bend ratio from weave float length** — derive the warp/weft bend anisotropy from the weave's float length (satin floppier than plain) so `weaveTexture` and the solver agree; pure `floatToBendRatio` unit-tested
 - [ ] **Plastic stretch (permanent set)** — knits over-stretched past a yield keep a longer rest length (bagged-out knees/elbows); pure `plasticStretchRest` unit-tested
-- [x] **Hygroscopic weight shift** — a `?wet=1` toggle: pure `wetParams` makes the drape heavier + limp + barely billows (clings to the body) and the material goes darker + glossy (clearcoat sheen) for rain/swim/beach previews; composes on top of interfacing/boning, persists through save/parse; unit-tested — PR #223
+- [x] **Hygroscopic weight shift** — a `?wet=1` toggle (+ a **"Wet look"** toggle in the Appearance panel): pure `wetParams` makes the drape heavier + limp + barely billows (clings to the body) and the material goes darker + glossy (clearcoat sheen) for rain/swim/beach previews; composes on top of interfacing/boning, persists through save/parse; unit-tested — PR #223, #227
 
 **Collision & contact — advanced** _(beyond the capsule + BVH + spatial-hash baseline)_
 - [ ] **Precomputed body SDF field** — bake the mannequin into a 3D signed-distance texture per pose so per-particle body collision is an O(1) trilinear lookup + analytic gradient (no BVH traversal); pure `sdfSample` unit-tested
@@ -540,7 +540,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Half-res GTAO + bilateral upsample** — run the AO at half-res with a depth-aware upsample so the budget buys more samples / wider radius; benchmark vs the current full-res GTAO
 - [ ] **Screen-space reflections on the floor** — SSR for the reflective studio floor so the garment's reflection tracks the real drape, not a mirrored proxy; verify against the shadow-catcher
 - [ ] **Bloom lens-dirt + luminance knee** — a subtle lens-dirt texture + soft-knee luminance threshold so only true speculars bloom (sequins/satin), not bright cloth; snapshot-verify
-- [x] **AgX / Filmic tonemap options** — `Viewport.setToneMapping` + pure `toneMappingMode` select AgX · Neutral · Filmic (Cineon) · Reinhard beside ACES (via `?tonemap=`), for a film-neutral, less-saturated highlight rolloff on white satin/sequins; pure map unit-tested — PR #222
+- [x] **AgX / Filmic tonemap options** — `Viewport.setToneMapping` + pure `toneMappingMode` select AgX · Neutral · Filmic (Cineon) · Reinhard beside ACES (via `?tonemap=` **and a Tone-map picker in the Scene panel**), for a film-neutral, less-saturated highlight rolloff on white satin/sequins; pure map unit-tested — PR #222, #227
 - [ ] **Histogram auto-exposure** — a metered exposure from the frame luminance histogram so dark/bright fabrics both sit mid-key without a manual tweak; pure `histogramEV` unit-tested
 - [x] **Dithered backdrop gradient** — the studio cyclorama gradient is now baked per-pixel with the 8×8 `bayerDither` (and widened) so the smooth sweep no longer 8-bit bands behind the figure — the main on-screen banding source; reuses the tested dither — PR #221
 - [ ] **Half-res sheer pass** — composite sheer layers at half-res with a depth-aware upscale to afford heavier sheer stacks without full-res overdraw; benchmark overdraw
