@@ -447,4 +447,128 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 ---
 
+## 🎮 GPU · cloth math · rendering physics _(deep engine work — advanced solver/FEM · collision · geometry · cloth BRDF · procedural textures · WebGPU · validation; each self-contained + unit-testable)_
+
+_100 concrete cards to push the math/physics/GPU behind every garment past the current XPBD + `MeshPhysicalMaterial` baseline. Distinct from the deep-dives above — this is the next layer._
+
+**Solver core & constraint math** _(refine `cloth/XPBDSolver` integrate + project)_
+- [ ] **Projective Dynamics (local-global) solver** — reformulate the step as a prefactored global linear solve (Cholesky of `M/dt² + Σ wᵢAᵢᵀAᵢ`) + cheap local per-constraint projections, converging far tighter than one Gauss-Seidel pass for stiff wovens at fixed cost; behaviour guarded by the solver tests, benchmark settle-vs-quality
+- [ ] **Chebyshev semi-iterative acceleration** — wrap the projection sweep in Chebyshev over-relaxation (spectral-radius-tuned ωₖ) to roughly halve the passes to a residual target; pure `chebyshevOmega` unit-tested
+- [ ] **SOR relaxation factor** — add a tunable ω > 1 to the constraint projection (successive over-relaxation) for faster convergence than plain Gauss-Seidel (ω = 1); unit-test residual decay vs ω on a hanging patch
+- [ ] **Anisotropic in-plane stretch** — separate warp vs weft *stretch* compliance (not just bend) so a bias-cut panel gives diagonally while grain-aligned edges stay taut; pure per-edge grain-projection unit-tested
+- [ ] **Explicit shear-angle constraint** — resist the warp↔weft skew angle directly (Baraff-Witkin shear energy) instead of leaning on the diagonal springs, so cloth resists racking under load; pure shear-gradient unit-tested
+- [ ] **Isometric (quadratic) bending** — Bergou/Wardetzky cotangent bending energy with a constant-Hessian linear gradient — cheaper + more stable than trig dihedral for near-flat rest; pure `isoBendW` unit-tested
+- [ ] **Substep budget by conditioning** — pick the substep count from the stiffest `compliance ÷ mass ÷ dt²` ratio per fabric, not a flat 14, so silk under-solves less and denim doesn't over-solve at rest; pure `substepsForStiffness` unit-tested
+- [ ] **Jacobi + under-relaxation mode** — a parallel-friendly Jacobi projection with mass-weighted averaging (prereq for the Worker/GPU path), selectable vs Gauss-Seidel; unit-test it matches G-S at convergence
+- [ ] **Velocity-Verlet position update** — second-order position integration in place of symplectic-Euler for lower energy drift on long drapes; test energy stays flatter over N idle steps
+- [ ] **Midpoint external-force impulse** — apply gravity/wind with the analytic ½·a·dt² split instead of one lumped kick, cutting the initial over-shoot when a garment is dropped onto the body; pure impulse-split unit-tested
+- [ ] **Slack (tension-only) constraints** — let a constraint go force-free below rest and only resist stretch, so pleats/gathers fold flat without ballooning; pure `slackForce` unit-tested
+- [ ] **Per-region compliance overrides** — a compliance multiplier per named region (yoke stiffer · skirt looser · cuff rigid) layered on the fabric base, driven from the construction caps; pure region-lookup unit-tested
+- [ ] **Mass-scaled energy clamp** — replace the hard 8 m/s magnitude clip with a per-particle kinetic-energy ceiling scaled by mass, so a heavy hem isn't clipped at chiffon's speed; pure `energyClamp` unit-tested
+- [ ] **Residual convergence gate** — stop the substep loop early once the max constraint violation drops below a fabric tolerance (vs a fixed pass count), saving passes at rest; pure `residualMax` unit-tested
+
+**Cloth material model & FEM** _(a physically-grounded constitutive layer over the mass-spring lattice)_
+- [ ] **Co-rotational StVK triangle FEM** — an alt in-plane model: per-triangle deformation gradient F, polar-decompose the rotation out, penalise the Green strain — grain-accurate stretch/shear a distance lattice can't capture; pure `coRotStress` unit-tested
+- [ ] **Compliance from physical spec** — derive `stretch`/`bendCompliance` from Young's modulus × thickness × areal density × edge length (not hand-tuned) so a mill spec maps straight to a solver preset; pure `complianceFromSpec` unit-tested
+- [ ] **Kawabata (KES-F) hand import** — map the standard Kawabata tensile/shear/bending lab numbers to the solver params so a measured fabric drapes true; pure `kawabataToParams` unit-tested
+- [ ] **Nonlinear (J-curve) tensile response** — real cloth stiffens as it stretches: make compliance strain-dependent (soft near rest, stiff past a knee) instead of linear; pure `tensileResponse` unit-tested
+- [ ] **Viscoelastic (strain-rate) damping** — a Kelvin-Voigt element per edge that resists fast deformation more than slow, so a snapped hem settles without a rubbery bounce; pure `viscoForce` unit-tested
+- [ ] **Rest-shape from the flat pattern** — seed particle rest lengths from the developable 2D panel (isometric embedding) rather than the analytic tube, so a bias seam relaxes to the true cut; pure `patternRestLengths` unit-tested
+- [ ] **Flexural rigidity from thickness** — compute bend compliance from `D = E·t³ / 12(1−ν²)` so thick felt is stiff and thin silk floppy from one physical-thickness input; pure `flexuralRigidity` unit-tested
+- [ ] **Bend ratio from weave float length** — derive the warp/weft bend anisotropy from the weave's float length (satin floppier than plain) so `weaveTexture` and the solver agree; pure `floatToBendRatio` unit-tested
+- [ ] **Plastic stretch (permanent set)** — knits over-stretched past a yield keep a longer rest length (bagged-out knees/elbows); pure `plasticStretchRest` unit-tested
+- [ ] **Hygroscopic weight shift** — a "wet" toggle raises areal mass + drops bend stiffness (limp, clinging) for rain/swim previews; pure `wetParams` unit-tested
+
+**Collision & contact — advanced** _(beyond the capsule + BVH + spatial-hash baseline)_
+- [ ] **Precomputed body SDF field** — bake the mannequin into a 3D signed-distance texture per pose so per-particle body collision is an O(1) trilinear lookup + analytic gradient (no BVH traversal); pure `sdfSample` unit-tested
+- [ ] **GPU SDF collision resolve** — sample the body SDF in a compute/fragment pass so collision scales to ultra-res cloth without CPU BVH queries; benchmark vs the CPU path
+- [ ] **Edge–edge continuous collision** — the missing CCD case: solve the cubic coplanarity time-of-impact between two moving cloth edges (Bridson) so thin folds don't scissor through each other; pure `edgeEdgeTOI` root-find unit-tested
+- [ ] **Vertex–triangle cloth CCD** — swept point-vs-moving-triangle TOI so a fast sleeve can't punch through the bodice sheet; pure `vertexTriTOI` unit-tested
+- [ ] **Per-region × per-fabric friction table** — a μ lookup by (body part × fabric) so silk slides off the shoulder while denim grips the hip; pure `frictionMu` table unit-tested
+- [ ] **Collision layer ordering** — tag each garment layer with a wear-order index and bias repulsion so the outer piece stays outside the inner (a jacket never sinks under the shirt); pure `layerBias` unit-tested
+- [ ] **Contact islands + local budget** — flood-fill the contact graph into islands and spend more solver passes where penetration is deep, fewer where shallow; pure `island` labelling unit-tested
+- [ ] **Signed self-collision side** — give the sheet a front/back sign from its normal so repulsion knows which side a neighbour belongs on (kills the "sticky wrong-side" pin after a deep fold); pure `signedRepel` unit-tested
+- [ ] **Swept-capsule broadphase (CCD)** — expand each capsule by its per-substep displacement before the narrow-phase test so a fast limb captures cloth it would otherwise skip; pure `sweptCapsule` unit-tested
+- [ ] **Curvature-scaled skin offset** — vary the 0.011 m body skin gap by local surface curvature (larger over knees/elbows, tighter on flats) so cloth neither hovers nor pokes; pure `offsetFromCurvature` unit-tested
+- [ ] **Contact restitution damping** — kill the micro-bounce when cloth lands on the body/ground by zeroing normal restitution + damping the residual normal velocity; pure `contactDamp` unit-tested
+- [ ] **Ground friction + hem pooling** — a real tangential-friction floor with per-surface μ so a train/hem pools and stays instead of sliding; pure `groundFriction` unit-tested
+
+**Geometry & mesh math** _(refine `cloth/Garment`, normals, adaptive mesh)_
+- [ ] **Decoupled subdivision render mesh** — drive a fine Loop/Catmull–Clark render surface from the coarse sim mesh so silhouettes are smooth without simulating every vertex; pure limit-position stencil unit-tested
+- [ ] **Sim→render barycentric skinning** — bind each render vertex to its host sim triangle by barycentric coords + normal offset so render detail follows the drape at near-zero cost; pure `baryBind` unit-tested
+- [ ] **ARAP UV parametrisation** — an as-rigid-as-possible unwrap so a waist-cinched tube's texture doesn't shear (isometric-leaning UVs); pure ARAP local-global step unit-tested on a cone
+- [ ] **Angle-weighted vertex normals** — replace area-weighted with angle-weighted (Max) normals so sharp darts/gathers don't skew the shading; pure `angleWeightedNormal` unit-tested
+- [ ] **Discrete mean/Gaussian curvature** — cotangent-Laplacian curvature per vertex to drive adaptive detail, wrinkle shading, and the fit map; pure `meanCurvature` unit-tested
+- [ ] **Laplacian normal fairing** — one cotangent-weighted smoothing pass on the normal field (not positions) to quiet triangle-flip shading noise at coarse resolution; pure `laplacianSmoothNormals` unit-tested
+- [ ] **Quality quad triangulation** — split each grid quad along its shorter diagonal + flag sliver aspect ratios so cinched rings don't make degenerate thin triangles with bad normals; pure `bestDiagonal` unit-tested
+- [ ] **Geodesic ring reprojection** — when adaptive remeshing moves rings, keep arc-length (geodesic) spacing along the profile so rest lengths stay physical; pure `geodesicRingT` unit-tested
+- [ ] **Previous-frame motion-vector attribute** — output per-vertex prior-frame position so the renderer can build screen-space velocity for temporal AA + motion blur; test it tracks the pin transform
+- [ ] **Half-edge topology for the tube** — a compact half-edge structure so neighbour/edge/face queries (bending · CCD · curvature) are O(1) not index arithmetic; pure adjacency-build unit-tested
+
+**Cloth BRDF & shading** _(refine `cloth/FabricMaterial` via `onBeforeCompile`)_
+- [ ] **Estévez–Kulla sheen BRDF** — swap three.js's ad-hoc sheen lobe for the energy-conserving Imageworks cloth sheen (inverted-GGX + albedo-scaling LUT); snapshot-verify velvet/satin rim
+- [ ] **Ashikhmin–Shirley velvet lobe** — a dedicated retroreflective velvet BRDF (bright grazing rim, dark facing) for true velvet/velour; pure lobe-eval unit-tested against reference angles
+- [ ] **Weave-steered anisotropic GGX** — feed the woven warp direction into `anisotropy` + a tangent-direction map so satin's highlight streaks along the grain and bends over folds; pure tangent-rotation unit-tested
+- [ ] **Dual-lobe fuzz + specular** — a tight base specular plus a broad fuzz lobe with energy compensation so cotton/wool read matte-fuzzy, not plastic; pure energy-split unit-tested
+- [ ] **Procedural iridescence thickness map** — drive `iridescenceThicknessMap` from a field so holographic/oil-slick shifts vary across the panel instead of one flat thickness; pure thickness-field unit-tested
+- [ ] **Multi-scattering GGX compensation** — add the Kulla-Conty multiscatter term so rough dark fabrics don't lose energy (no muddy velvet); pure `msFresnel` LUT unit-tested
+- [ ] **Back-lit translucency (wrap)** — a wrap/translucency term so back-lit chiffon/organza glows without full transmission cost; pure `wrapDiffuse` unit-tested
+- [ ] **Fabric fuzz Fresnel rim** — a grazing-angle Schlick-fuzz term so knit edges pick up a soft lint halo under the rim light; pure `fuzzFresnel` unit-tested
+- [ ] **Specular AA (Toksvig/LEAN)** — derive roughness from the normal-map mip variance so high-frequency weave normals stop shimmering at distance; pure `toksvigRoughness` unit-tested
+- [ ] **Sheen tint/roughness from fabric** — auto-set sheen colour + `sheenRoughness` from the fabric family (matte cotton vs lustrous silk) instead of a global; pure `sheenFromFabric` unit-tested
+- [ ] **Strain cavity darkening** — darken fold valleys using solver strain + curvature so creases read deep without a baked AO map; pure `cavityTerm` unit-tested
+- [ ] **Retroreflective trim lobe** — a back-toward-source reflection term for hi-vis / 3M scotchlite tape + reflective piping; pure `retroLobe` unit-tested
+
+**Procedural fabric textures — GPU** _(extend `fabric/weaveTexture` + finish maps beyond normal-only)_
+- [ ] **Procedural weave roughness map** — a per-texel roughness derived from the weave height (yarn crowns glossier, valleys matte) alongside the normal map; pure `weaveRoughness` unit-tested
+- [ ] **Procedural weave height/displacement** — a tiling height map for parallax + optional tessellation so the weave has real relief at macro close-up; pure `weaveHeight` unit-tested
+- [ ] **Weave anisotropy-direction map** — bake the local warp-tangent angle per texel so the anisotropic-GGX lobe knows the grain everywhere; pure `weaveTangentMap` unit-tested
+- [ ] **Two-scale normal blend (RNM)** — combine a coarse fold normal with the fine weave normal via reoriented-normal-mapping so both read at once; pure `blendNormalsRNM` unit-tested
+- [ ] **Parallax-occlusion weave** — POM the weave height so grazing views show yarn self-occlusion/parallax, not a flat decal; pure `pomOffset` unit-tested
+- [ ] **Mip + anisotropic filtering on procedural maps** — generate mip chains + set max-anisotropy on the CanvasTexture weave/finish maps so they don't alias into moiré at distance; test mip + filter flags
+- [ ] **Blue-noise dithered finish fields** — dither the sparkle/wear/ombré value fields with a blue-noise mask so 8-bit banding disappears on gradients; pure `blueNoiseDither` unit-tested
+- [ ] **GPU-baked weave synthesis** — move `weaveTexture` synthesis onto a render-to-texture fragment pass so 2K/4K weave maps bake in a frame instead of a slow CPU canvas loop; benchmark bake time
+- [ ] **Macro albedo × tiled detail map** — a low-freq print/albedo times a high-freq tiled detail-normal so a big garment stays crisp without a huge texture; pure `detailUV` unit-tested
+- [ ] **Curvature-driven fuzz mask** — write a fuzz/lint intensity map from mesh curvature so edges/seams pick up more pile than flats (procedural, no hand-paint); pure `fuzzMask` unit-tested
+
+**Rendering pipeline & post** _(refine `core/Viewport` composer + `core/Environment`)_
+- [ ] **Temporal AA (TAA)** — accumulate jittered frames with motion-vector reprojection (needs the motion-vector attribute) for far cleaner edges + sub-pixel weave than SMAA on the still Render tab; verify no ghosting on the turntable
+- [ ] **FXAA fallback path** — a cheap FXAA option for low-end GPUs where SMAA's cost hurts; toggle + verify parity on a still
+- [ ] **PCSS contact-hardening shadows** — variable-penumbra soft shadows (blocker search + PCF) so contact points are crisp and the shadow softens with distance; verify the penumbra widens with the gap
+- [ ] **Cascaded shadow maps** — split the view frustum into cascades so a full-length gown gets crisp foot shadows and soft far shadows from one directional key; verify resolution at the hem
+- [ ] **Screen-space contact shadows** — a short depth-buffer ray-march for the tiny contact occlusion under collars/folds the 2048 shadow map misses; verify on a layered collar
+- [ ] **Half-res GTAO + bilateral upsample** — run the AO at half-res with a depth-aware upsample so the budget buys more samples / wider radius; benchmark vs the current full-res GTAO
+- [ ] **Screen-space reflections on the floor** — SSR for the reflective studio floor so the garment's reflection tracks the real drape, not a mirrored proxy; verify against the shadow-catcher
+- [ ] **Bloom lens-dirt + luminance knee** — a subtle lens-dirt texture + soft-knee luminance threshold so only true speculars bloom (sequins/satin), not bright cloth; snapshot-verify
+- [ ] **AgX / Filmic tonemap options** — selectable AgX and Filmic tone-mapping beside ACES for a film-neutral, less-saturated render; verify highlight rolloff on white satin
+- [ ] **Histogram auto-exposure** — a metered exposure from the frame luminance histogram so dark/bright fabrics both sit mid-key without a manual tweak; pure `histogramEV` unit-tested
+- [ ] **Dithered 10→8-bit output** — ordered/blue-noise dither at the OutputPass so smooth backdrop gradients + soft shadows don't band on 8-bit displays; pure `outputDither` unit-tested
+- [ ] **Half-res sheer pass** — composite sheer layers at half-res with a depth-aware upscale to afford heavier sheer stacks without full-res overdraw; benchmark overdraw
+
+**GPU performance & parallelism** _(scale the sim + draw to ultra-res garments)_
+- [ ] **WebGPU compute XPBD solver** — port the substep (integrate + coloured-batch projection) to a WGSL compute shader so ultra-res garments solve on the GPU; feature-detect + fall back, benchmark vs JS/Worker
+- [ ] **WebGPU renderer backend** — a `WebGPURenderer` path behind a flag for lower-overhead draw submission + compute↔graphics interop with the GPU solver; verify visual parity
+- [ ] **GPU normals + aero pass** — compute per-frame vertex normals + per-triangle aero in a compute pass so the CPU stops recomputing them each frame; benchmark the transfer saved
+- [ ] **SharedArrayBuffer zero-copy worker** — run the solver in a Worker over a `SharedArrayBuffer` so positions are read by the render thread with no structured-clone copy; measure the copy eliminated
+- [ ] **Runtime geometry LOD swap** — swap a coarse/fine sim+render mesh by camera distance / on-screen size (distinct from the export-only quadric LOD) so far garments cost less; pure `lodForDistance` unit-tested
+- [ ] **Instanced sequin/bead/button fields** — one `InstancedMesh` (per-instance transform + colour) for beading, studs, and button rows so a beaded gown is a handful of draw calls; pure instance-matrix build unit-tested
+- [ ] **Frustum + small-feature culling** — cull off-screen accessories/decor and skip sub-pixel instances so off-camera detail costs nothing; pure `cull` predicate unit-tested
+- [ ] **KTX2 / Basis texture compression** — transcode the baked albedo/normal/rough to GPU-compressed KTX2 (async transcoder) to cut VRAM + upload time on multi-part garments; benchmark VRAM
+- [ ] **GPU-resident resting geometry** — keep a sleeping garment's position buffer GPU-resident (skip the per-frame re-upload the sleep state implies) and only re-upload on wake; measure uploads avoided
+- [ ] **Interleaved vertex buffer** — pack position/normal/uv/tangent/strain into one `InterleavedBuffer` so a garment is a single VBO with fewer attribute binds; verify attribute offsets
+- [ ] **Async shader precompile** — `compileAsync` the garment + finish material variants during load so the first drape frame doesn't hitch on shader compilation; measure the first-frame stall
+- [ ] **Draw-call + overdraw HUD** — a dev overlay reporting draw calls, triangles, texture memory, and overdraw per frame so perf regressions surface while editing; pure counter-rollup unit-tested
+
+**Numerical robustness & validation** _(guard the math the eye can't)_
+- [ ] **Finite-difference gradient checks** — assert every constraint's analytic gradient matches a central-difference numeric one (dihedral · shear · volume · tether) so a bad derivative can't ship; pure `gradCheck` harness unit-tested
+- [ ] **Convergence benchmark in CI** — measure constraint residual vs iteration/substep count on a fixed hanging-patch scene and assert monotone decrease below a bound; guards a solver regression
+- [ ] **Golden-drape regression** — snapshot each catalog garment's settled positions after N steps and assert epsilon-stable across commits (pairs with deterministic snapshot mode); catches silent drape drift
+- [ ] **Per-frame CFL + energy monitor** — log max particle speed vs the CFL limit and total mechanical energy each frame with a dev assertion flagging any frame over budget; pure `cflNumber` unit-tested
+- [ ] **Momentum-conservation test** — with gravity/wind off, assert a free garment's linear + angular momentum is conserved across steps (no phantom forces from the projection); pure invariant check
+- [ ] **Stiffness / condition monitor** — flag fabric presets whose compliance/mass/dt combo is numerically stiff (needs more substeps than budgeted) at load, before they jitter on screen; pure `stiffnessRatio` unit-tested
+- [ ] **Rest-state settle test** — assert every garment reaches the sleep threshold within a bounded frame count at wind-off (guards the "hangs perfectly still" promise + the sleep logic); measured in CI
+- [ ] **Cross-resolution drape invariance** — assert the coarse vs fine (`simRes`) drape of a garment agrees within tolerance on gross measurements (length/width) so raising resolution refines, not changes, the piece; pure metric-compare unit-tested
+
+---
+
 _Update this board as things ship — check the box + note the PR._
