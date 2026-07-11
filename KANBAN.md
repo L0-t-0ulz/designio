@@ -514,13 +514,13 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Multi-scattering GGX compensation** — add the Kulla-Conty multiscatter term so rough dark fabrics don't lose energy (no muddy velvet); pure `msFresnel` LUT unit-tested
 - [ ] **Back-lit translucency (wrap)** — a wrap/translucency term so back-lit chiffon/organza glows without full transmission cost; pure `wrapDiffuse` unit-tested
 - [ ] **Fabric fuzz Fresnel rim** — a grazing-angle Schlick-fuzz term so knit edges pick up a soft lint halo under the rim light; pure `fuzzFresnel` unit-tested
-- [ ] **Specular AA (Toksvig/LEAN)** — derive roughness from the normal-map mip variance so high-frequency weave normals stop shimmering at distance; pure `toksvigRoughness` unit-tested
-- [ ] **Sheen tint/roughness from fabric** — auto-set sheen colour + `sheenRoughness` from the fabric family (matte cotton vs lustrous silk) instead of a global; pure `sheenFromFabric` unit-tested
+- [x] **Specular AA (Toksvig/LEAN)** — lift base roughness by the weave's normal strength so high-frequency weave normals stop shimmering at distance; pure `toksvigRoughness` unit-tested — PR #216
+- [x] **Sheen tint/roughness from fabric** — auto-set sheen + `sheenColor` + `sheenRoughness` from the fabric family (muted woven · lustrous silk · soft knit · velvet nap) instead of a global; pure `sheenRecipeFromFabric` unit-tested — PR #216
 - [ ] **Strain cavity darkening** — darken fold valleys using solver strain + curvature so creases read deep without a baked AO map; pure `cavityTerm` unit-tested
 - [ ] **Retroreflective trim lobe** — a back-toward-source reflection term for hi-vis / 3M scotchlite tape + reflective piping; pure `retroLobe` unit-tested
 
 **Procedural fabric textures — GPU** _(extend `fabric/weaveTexture` + finish maps beyond normal-only)_
-- [ ] **Procedural weave roughness map** — a per-texel roughness derived from the weave height (yarn crowns glossier, valleys matte) alongside the normal map; pure `weaveRoughness` unit-tested
+- [x] **Procedural weave roughness map** — a per-texel roughness derived from the weave height (yarn crowns glossier, valleys matte) baked into a cached `roughnessMap` alongside the normal map, on every garment part (finishes/swatch keep their own); pure `weaveRoughness` unit-tested — PR #216
 - [ ] **Procedural weave height/displacement** — a tiling height map for parallax + optional tessellation so the weave has real relief at macro close-up; pure `weaveHeight` unit-tested
 - [ ] **Weave anisotropy-direction map** — bake the local warp-tangent angle per texel so the anisotropic-GGX lobe knows the grain everywhere; pure `weaveTangentMap` unit-tested
 - [ ] **Two-scale normal blend (RNM)** — combine a coarse fold normal with the fine weave normal via reoriented-normal-mapping so both read at once; pure `blendNormalsRNM` unit-tested

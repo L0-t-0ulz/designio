@@ -53,6 +53,27 @@ export function weaveHeight(weave: WeaveType, u: number, v: number, threads: num
   }
 }
 
+/**
+ * Relative roughness at (u, v): yarn **crowns** sit proud and catch a sharper
+ * highlight (glossier → lower roughness), thread **valleys** are matte (≈ full
+ * roughness). Returned as a multiplier in (0, 1] so it can be baked straight into a
+ * `roughnessMap` (which three.js multiplies onto `material.roughness`). Pure.
+ */
+const ROUGH_CONTRAST = 0.22
+export function weaveRoughness(weave: WeaveType, u: number, v: number, threads: number): number {
+  return 1 - ROUGH_CONTRAST * weaveHeight(weave, u, v, threads)
+}
+
+/**
+ * Specular anti-aliasing (Toksvig): lift a fabric's base roughness in proportion to
+ * how strong its weave normal map is, so the sub-texel normal variance reads as extra
+ * roughness instead of shimmering, aliasing highlights at distance. Monotonic in
+ * `normalStrength`, never below the input, clamped ≤ 1. Pure.
+ */
+export function toksvigRoughness(roughness: number, normalStrength: number): number {
+  return Math.min(1, roughness + 0.14 * normalStrength)
+}
+
 /** Unit surface normal from the height field via central differences. */
 export function weaveNormal(
   weave: WeaveType,
@@ -112,5 +133,44 @@ export function makeWeaveNormalMap(
   tex.wrapT = THREE.RepeatWrapping
   tex.anisotropy = 4
   cache.set(key, tex)
+  return tex
+}
+
+const roughCache = new Map<string, THREE.CanvasTexture>()
+
+/**
+ * Bakes a tiling roughness map for a weave into a CanvasTexture (renderer only) —
+ * the crown/valley `weaveRoughness` field, so a flat fabric gains yarn-crown gloss
+ * highlights instead of a uniform plastic sheen. Cached per (weave, size, threads).
+ */
+export function makeWeaveRoughnessMap(weave: WeaveType, size = 256, threads = 16): THREE.CanvasTexture {
+  const key = `${weave}:${size}:${threads}`
+  const cached = roughCache.get(key)
+  if (cached) return cached
+
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const img = ctx.createImageData(size, size)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const r = weaveRoughness(weave, x / size, y / size, threads)
+      const c = Math.max(0, Math.min(255, Math.round(r * 255)))
+      const i = (y * size + x) * 4
+      img.data[i] = c
+      img.data[i + 1] = c
+      img.data[i + 2] = c
+      img.data[i + 3] = 255
+    }
+  }
+  ctx.putImageData(img, 0, 0)
+
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.NoColorSpace // roughness is linear data
+  tex.wrapS = THREE.RepeatWrapping
+  tex.wrapT = THREE.RepeatWrapping
+  tex.anisotropy = 4
+  roughCache.set(key, tex)
   return tex
 }

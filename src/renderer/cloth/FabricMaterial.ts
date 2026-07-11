@@ -1,6 +1,6 @@
 import * as THREE from 'three'
-import type { Fabric } from '../fabric/FabricLibrary'
-import { makeWeaveNormalMap } from '../fabric/weaveTexture'
+import { type Fabric, sheenRecipeFromFabric } from '../fabric/FabricLibrary'
+import { makeWeaveNormalMap, makeWeaveRoughnessMap, toksvigRoughness } from '../fabric/weaveTexture'
 
 /**
  * A physically-based fabric material driven by a `Fabric`: sheen for the soft
@@ -21,19 +21,28 @@ export function createFabricMaterial(fabric: Fabric): THREE.MeshPhysicalMaterial
 /** Update an existing material in place to match `fabric` (look only). */
 export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): void {
   mat.color.set(fabric.color)
-  mat.roughness = fabric.roughness
-  mat.sheen = fabric.sheen
-  mat.sheenRoughness = fabric.sheenRoughness
-  mat.sheenColor = new THREE.Color(fabric.color).offsetHSL(0, -0.05, 0.12)
+  // Toksvig specular-AA: a stronger weave normal lifts the base roughness so the
+  // micro-detail reads as roughness, not a shimmering highlight, at distance.
+  mat.roughness = toksvigRoughness(fabric.roughness, fabric.normalStrength)
+  // Per-family cloth-sheen recipe — silk glows, wovens mute, velvet lusters.
+  const sh = sheenRecipeFromFabric(fabric)
+  mat.sheen = sh.sheen
+  mat.sheenRoughness = sh.sheenRoughness
+  mat.sheenColor = new THREE.Color(fabric.color).offsetHSL(0, -sh.tintSat, sh.tintLift)
   mat.anisotropy = fabric.anisotropy
   mat.transmission = fabric.transmission
   mat.thickness = fabric.transmission > 0 ? 0.5 : 0
 
-  const normalMap = makeWeaveNormalMap(fabric.weave)
   const repeat = Math.max(1, Math.round(fabric.weaveScale / 16))
+  const normalMap = makeWeaveNormalMap(fabric.weave)
   normalMap.repeat.set(repeat, repeat)
   mat.normalMap = normalMap
   mat.normalScale.set(fabric.normalStrength, fabric.normalStrength)
+  // Procedural roughness map — yarn crowns glossier, valleys matte — so the surface
+  // has micro-variation instead of one flat plastic roughness (tiles with the weave).
+  const roughnessMap = makeWeaveRoughnessMap(fabric.weave)
+  roughnessMap.repeat.set(repeat, repeat)
+  mat.roughnessMap = roughnessMap
 
   mat.needsUpdate = true
 }
