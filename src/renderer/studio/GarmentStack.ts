@@ -358,6 +358,7 @@ export class GarmentStack {
         m.normalMap = l.swatch.normal
         m.normalScale.set(1, 1)
         m.roughness = l.swatch.roughness
+        m.roughnessMap = null // the swatch's own roughness owns the surface, not the weave map
         m.bumpMap = null // the swatch owns the whole surface (no raised-motif relief under it)
         m.color.set(0xffffff)
         m.needsUpdate = true
@@ -392,6 +393,9 @@ export class GarmentStack {
       // lace cutout (or reset when off)
       m.alphaMap = laceMap
       m.alphaTest = laceMap ? 0.5 : 0
+      // a surface finish sets its own scalar roughness — drop the weave roughness map
+      // (set by applyFabric) so it doesn't modulate the sequin/quilt/foil/fur surface.
+      if (sp || ql || ir || fur) m.roughnessMap = null
       if (sp && sparkleNormalMap) {
         m.normalMap = sparkleNormalMap
         m.normalScale.set(sp.normalStrength, sp.normalStrength)

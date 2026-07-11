@@ -102,6 +102,38 @@ export function fabricThickness(fabric: Fabric): number {
   return Math.max(MIN, Math.min(MAX, t))
 }
 
+/**
+ * Cloth-sheen recipe by fabric **family** — the soft retroreflective glow that reads
+ * as "textile" instead of "plastic". Silks glow bright + specular, wovens are muted,
+ * knits soft-matte, napped specialty (velvet/velour) the most lustrous. Returns plain
+ * numbers (no THREE dependency) so it's unit-testable in Node; the caller builds the
+ * `sheenColor` from `tintSat`/`tintLift` via `Color.offsetHSL`. Pure.
+ */
+export function sheenRecipeFromFabric(fabric: Fabric): {
+  sheen: number
+  sheenRoughness: number
+  tintSat: number
+  tintLift: number
+} {
+  const clamp01 = (x: number): number => Math.max(0, Math.min(1, x))
+  switch (fabric.family) {
+    case 'silk':
+      // liquid lustre — brighter, sharper sheen, cool bright tint
+      return { sheen: clamp01(fabric.sheen * 1.05 + 0.1), sheenRoughness: clamp01(fabric.sheenRoughness - 0.08), tintSat: 0.07, tintLift: 0.18 }
+    case 'knit':
+      // soft, diffuse glow
+      return { sheen: clamp01(fabric.sheen * 0.8), sheenRoughness: clamp01(fabric.sheenRoughness + 0.08), tintSat: 0.04, tintLift: 0.08 }
+    case 'specialty':
+      // napped pile (velvet/velour) is the most lustrous; smooth specialty (leather/tulle) muted
+      return fabric.nap
+        ? { sheen: clamp01(fabric.sheen * 1.15 + 0.18), sheenRoughness: clamp01(fabric.sheenRoughness - 0.03), tintSat: 0.09, tintLift: 0.2 }
+        : { sheen: clamp01(fabric.sheen * 0.9), sheenRoughness: clamp01(fabric.sheenRoughness), tintSat: 0.05, tintLift: 0.1 }
+    default:
+      // wovens — present but muted, holds the classic desaturated lift
+      return { sheen: clamp01(fabric.sheen * 0.85), sheenRoughness: clamp01(fabric.sheenRoughness + 0.05), tintSat: 0.05, tintLift: 0.1 }
+  }
+}
+
 export const FABRIC_LIBRARY: Fabric[] = [
   // ---- wovens (crisp → structured) ----
   { id: 'cotton-poplin', name: 'Cotton poplin', family: 'woven', gsm: 130, stretch: 0.04, bendiness: 0.42, friction: 0.5, color: 0xc85a54, roughness: 0.78, sheen: 0.7, sheenRoughness: 0.5, weave: 'plain', weaveScale: 220, normalStrength: 0.5, anisotropy: 0, transmission: 0 },

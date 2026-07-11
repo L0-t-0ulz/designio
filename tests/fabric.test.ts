@@ -3,9 +3,10 @@ import {
   FABRIC_LIBRARY,
   fabricToSolverParams,
   getFabric,
+  sheenRecipeFromFabric,
   type Fabric
 } from '../src/renderer/fabric/FabricLibrary'
-import { weaveHeight, weaveNormal } from '../src/renderer/fabric/weaveTexture'
+import { weaveHeight, weaveNormal, weaveRoughness, toksvigRoughness } from '../src/renderer/fabric/weaveTexture'
 
 const base: Fabric = {
   id: 'x',
@@ -105,6 +106,75 @@ describe('weave texture math', () => {
     const h1 = weaveHeight('plain', 0.3, 0.3, 16)
     const h2 = weaveHeight('twill', 0.3, 0.3, 16)
     expect(h1).not.toBeCloseTo(h2, 3)
+  })
+})
+
+describe('weaveRoughness (procedural roughness map)', () => {
+  it('makes yarn crowns glossier than valleys, all encodable in [0,1]', () => {
+    // scan a tile: the crown (max height) must be glossier (lower roughness) than
+    // the valley (min height); every value must be a valid roughnessMap multiplier.
+    let crownRough = Infinity
+    let valleyRough = -Infinity
+    let hiH = -Infinity
+    let loH = Infinity
+    for (let i = 0; i < 64; i++) {
+      const u = (i + 0.5) / 64
+      for (let j = 0; j < 64; j++) {
+        const v = (j + 0.5) / 64
+        const r = weaveRoughness('plain', u, v, 16)
+        expect(r).toBeGreaterThan(0)
+        expect(r).toBeLessThanOrEqual(1)
+        const h = weaveHeight('plain', u, v, 16)
+        if (h > hiH) { hiH = h; crownRough = r }
+        if (h < loH) { loH = h; valleyRough = r }
+      }
+    }
+    expect(crownRough).toBeLessThan(valleyRough)
+  })
+
+  it('differentiates by weave type', () => {
+    const plain = weaveRoughness('plain', 0.3, 0.3, 16)
+    const twill = weaveRoughness('twill', 0.3, 0.3, 16)
+    expect(plain).not.toBeCloseTo(twill, 2)
+  })
+})
+
+describe('toksvigRoughness (specular AA)', () => {
+  it('lifts roughness with normal strength, never below the input, clamped ≤ 1', () => {
+    const weak = toksvigRoughness(0.5, 0.2)
+    const strong = toksvigRoughness(0.5, 0.9)
+    expect(strong).toBeGreaterThan(weak)
+    expect(weak).toBeGreaterThanOrEqual(0.5)
+    expect(toksvigRoughness(0.98, 1)).toBeLessThanOrEqual(1)
+  })
+})
+
+describe('sheenRecipeFromFabric', () => {
+  it('silk glows brighter + sharper than a woven with the same inputs', () => {
+    const silk = sheenRecipeFromFabric({ ...base, family: 'silk' })
+    const woven = sheenRecipeFromFabric({ ...base, family: 'woven' })
+    expect(silk.sheen).toBeGreaterThan(woven.sheen)
+    expect(silk.sheenRoughness).toBeLessThan(woven.sheenRoughness)
+  })
+
+  it('napped specialty (velvet) is the most lustrous family', () => {
+    const velvet = sheenRecipeFromFabric({ ...base, family: 'specialty', nap: true })
+    for (const fam of ['woven', 'silk', 'knit'] as const) {
+      expect(velvet.sheen).toBeGreaterThan(sheenRecipeFromFabric({ ...base, family: fam }).sheen)
+    }
+  })
+
+  it('returns finite, in-range numbers for every library fabric', () => {
+    for (const f of FABRIC_LIBRARY) {
+      const r = sheenRecipeFromFabric(f)
+      for (const v of [r.sheen, r.sheenRoughness, r.tintSat, r.tintLift]) {
+        expect(Number.isFinite(v)).toBe(true)
+      }
+      expect(r.sheen).toBeGreaterThanOrEqual(0)
+      expect(r.sheen).toBeLessThanOrEqual(1)
+      expect(r.sheenRoughness).toBeGreaterThanOrEqual(0)
+      expect(r.sheenRoughness).toBeLessThanOrEqual(1)
+    }
   })
 })
 
