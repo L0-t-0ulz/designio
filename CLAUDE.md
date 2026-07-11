@@ -218,7 +218,9 @@ Renderer modules:
   quick-edit toolbar over both** — size/neckline/sleeve/length/width/hem `PatternEditor` steppers that run
   the same `applyGarmentEdit` path, so 2D↔3D stay in sync), `layoutStore`.
 - `ui/` — `panel` (the **context-sensitive Property Editor** — Garment/Avatar/Scene; returns `{panel, api}`
-  the Library drives), `controls` (DOM helpers), `thumbnails` (shared swatch/silhouette), `patternSchematic`,
+  the Library drives; the Appearance section carries the **Wet look** + **Puffer loft** toggles and the Scene
+  section a **Tone-map** picker (ACES/AgX/Neutral/Filmic/Reinhard)), `controls` (DOM helpers), `thumbnails`
+  (shared swatch/silhouette), `patternSchematic`,
   `tokens.css` / `styles.css` / `shell.css`.
 - `main.ts` — `initStudio(config)` builds the shell + a `GarmentStack`, mounts the viewport + Library +
   Object Browser + Property Editor; the panel edits the **active layer** via buffers; owns undo/redo

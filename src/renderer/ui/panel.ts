@@ -12,6 +12,7 @@ import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
+import { TONE_MAPS, toneMappingMode, type ToneMapName } from '../core/tonemap'
 import { WIND_PRESETS } from '../cloth/windPresets'
 import {
   bodyToMeasurements,
@@ -1228,6 +1229,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   look.body.append(
     partBlock,
     track(toggle({ label: 'Contrast trim', get: () => !!garment.trim, set: (v) => { garment.trim = v; opts.onGarmentEdit() } })),
+    track(toggle({ label: 'Wet look', get: () => !!garment.wet, set: (v) => { garment.wet = v; opts.onGarmentEdit() } })),
+    track(toggle({ label: 'Puffer loft', get: () => !!garment.puff, set: (v) => { garment.puff = v; opts.onGarmentEdit() } })),
     track(colorField({ label: 'Colour', get: () => current.color, set: (v) => opts.onColor(v) })),
     track(colorLibrary()),
     track(slider({ label: 'Roughness', min: 0, max: 1, step: 0.01, get: () => current.roughness, set: (v) => { current.roughness = v; opts.onVisualEdit() } })),
@@ -1374,6 +1377,20 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       backdropRow.append(b)
     }
   }
+  // Tone-mapping operator — ACES (default) · AgX · Neutral · Filmic · Reinhard.
+  const TONEMAP_LABELS: Record<ToneMapName, string> = { aces: 'ACES', agx: 'AgX', neutral: 'Neutral', filmic: 'Filmic', reinhard: 'Reinhard' }
+  const toneRow = el('div', 'dio-actions')
+  toneRow.style.flexWrap = 'wrap'
+  const toneBtns = new Map<ToneMapName, HTMLButtonElement>()
+  for (const name of TONE_MAPS) {
+    const b = button(TONEMAP_LABELS[name], () => {
+      viewport.setToneMapping(name)
+      for (const [id, btn] of toneBtns) btn.classList.toggle('primary', id === name)
+    }, toneMappingMode(name) === viewport.renderer.toneMapping)
+    b.style.flex = '1 1 30%'
+    toneBtns.set(name, b)
+    toneRow.append(b)
+  }
   const exposureSlider = slider({ label: 'Exposure', min: 0.4, max: 2, step: 0.01, get: () => viewport.renderer.toneMappingExposure, set: (v) => (viewport.renderer.toneMappingExposure = v) })
   exposureRefresh.push(exposureSlider)
   env.body.append(
@@ -1382,6 +1399,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     ...(opts.onSetWindPreset ? [el('div', 'dio-field-label', 'Wind'), windRow] : []),
     windXs.row,
     windZs.row,
+    el('div', 'dio-field-label', 'Tone-map'),
+    toneRow,
     exposureSlider.row
   )
   // ---- animation ----
