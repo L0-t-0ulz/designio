@@ -12,7 +12,7 @@ import type { BodyCollider } from '../cloth/BodyCollider'
 import { GarmentController } from '../garment/GarmentController'
 import { ClothCollision } from '../cloth/ClothCollision'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
-import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, corsetParams, type Fabric } from '../fabric/FabricLibrary'
+import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, corsetParams, wetParams, type Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs, garmentSleeveSpecs, setSimResolution as setFactoryResolution } from '../garments/factory'
 import type { SimResolution } from '../cloth/simQuality'
@@ -236,10 +236,13 @@ export class GarmentStack {
     return part === 'body' ? l.fabric : this.partFabric(l, part)
   }
 
-  /** Fold garment-wide stiffeners (boning bodice · interfacing) into solver params. */
+  /** Fold garment-wide stiffeners (boning bodice · interfacing) + a wet finish into solver params. */
   private solverModifiers(l: StackLayer, name: string, base: FabricParams): FabricParams {
-    if (l.data.boning && !/sleeve|leg/i.test(name)) return corsetParams(base) // rigid bodice only
-    return l.data.interfaced ? interfaceParams(base) : base
+    let p = base
+    if (l.data.boning && !/sleeve|leg/i.test(name)) p = corsetParams(base) // rigid bodice only
+    else if (l.data.interfaced) p = interfaceParams(base)
+    if (l.data.wet) p = wetParams(p) // waterlogged: heavier + limp + clings, composes on top
+    return p
   }
   /** Front/body solver params for a piece. */
   private pieceSolverParams(l: StackLayer, name: string): FabricParams {
@@ -418,6 +421,19 @@ export class GarmentStack {
         m.sheenRoughness = fur.sheenRoughness
       }
       m.needsUpdate = true
+    }
+    // Wet look — waterlogged fabric goes darker + glossy with a clearcoat sheen and
+    // loses its dry fuzz (physics handled in solverModifiers). Applied last so it sits
+    // over the fabric + any finish.
+    if (l.data.wet) {
+      for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial, l.trimMaterial]) {
+        m.roughness = Math.max(0.06, m.roughness * 0.45)
+        m.clearcoat = Math.max(m.clearcoat, 0.6)
+        m.clearcoatRoughness = 0.12
+        m.sheen = Math.min(1, m.sheen * 0.5)
+        m.color.multiplyScalar(0.78)
+        m.needsUpdate = true
+      }
     }
     l.material.needsUpdate = true
     l.backMaterial.needsUpdate = true

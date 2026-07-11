@@ -64,6 +64,7 @@ export interface GarmentState {
   closure?: boolean
   lined?: boolean
   interfaced?: boolean
+  wet?: boolean
   waistband?: boolean
   facing?: boolean
   drawstring?: boolean

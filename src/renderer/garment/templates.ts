@@ -56,6 +56,8 @@ export interface GarmentParams {
   lined?: boolean
   /** Interfacing — a structured, crisper drape that holds its shape. */
   interfaced?: boolean
+  /** Waterlogged rain/swim look — heavier + limp + clinging physics + a wet glossy sheen. */
+  wet?: boolean
   /** Constructed waistband at the top of a skirt/trouser. */
   waistband?: boolean
   /** Neckline facing — a clean inner finish at the neck. */

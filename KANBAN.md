@@ -477,7 +477,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Flexural rigidity from thickness** — compute bend compliance from `D = E·t³ / 12(1−ν²)` so thick felt is stiff and thin silk floppy from one physical-thickness input; pure `flexuralRigidity` unit-tested
 - [ ] **Bend ratio from weave float length** — derive the warp/weft bend anisotropy from the weave's float length (satin floppier than plain) so `weaveTexture` and the solver agree; pure `floatToBendRatio` unit-tested
 - [ ] **Plastic stretch (permanent set)** — knits over-stretched past a yield keep a longer rest length (bagged-out knees/elbows); pure `plasticStretchRest` unit-tested
-- [ ] **Hygroscopic weight shift** — a "wet" toggle raises areal mass + drops bend stiffness (limp, clinging) for rain/swim previews; pure `wetParams` unit-tested
+- [x] **Hygroscopic weight shift** — a `?wet=1` toggle: pure `wetParams` makes the drape heavier + limp + barely billows (clings to the body) and the material goes darker + glossy (clearcoat sheen) for rain/swim/beach previews; composes on top of interfacing/boning, persists through save/parse; unit-tested — PR #223
 
 **Collision & contact — advanced** _(beyond the capsule + BVH + spatial-hash baseline)_
 - [ ] **Precomputed body SDF field** — bake the mannequin into a 3D signed-distance texture per pose so per-particle body collision is an O(1) trilinear lookup + analytic gradient (no BVH traversal); pure `sdfSample` unit-tested
