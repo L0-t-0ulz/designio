@@ -91,12 +91,19 @@ Renderer modules:
   maps the quality slider to solver substeps; unit-tested). Both
   solvers **sleep** (dead-stop) when windless + still, so at default settings garments hang perfectly
   still (any wind/body-move/edit wakes them).
-- `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape),
-  `weaveTexture` (procedural weave normal maps; pure math is unit-tested), `textile` (repeating textile
+- `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape; **per-family
+  cloth-sheen** — pure `sheenRecipeFromFabric` maps the fabric family (muted woven · lustrous silk · soft
+  knit · velvet nap) to sheen + tint + sheenRoughness, unit-tested),
+  `weaveTexture` (procedural weave **normal + roughness** maps — yarn crowns glossier, valleys matte via the
+  pure `weaveRoughness` field baked into a cached `roughnessMap`; **specular-AA** `toksvigRoughness` lifts the
+  base roughness by the weave's normal strength so strong weaves don't shimmer at distance; pure math
+  unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
+  finish gradients so they don't 8-bit band; unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
   `paintTextile` tiles it across the albedo), `ombre` (**dip-dye / ombré gradient** — top-down · bottom-up ·
-  radial; pure `ombreT` blend field + `ombreDip` derived tone are unit-tested; `paintOmbre` bakes a
-  base→dipped-tone gradient into the albedo, behind any prints/textile), `wear` (**distressed / washed /
+  radial; pure `ombreT` blend field + `ombreDip` derived tone are unit-tested; `paintOmbre` bakes the
+  base→dipped-tone gradient **per-pixel through `ombreT` with `bayerDither`** — no gradient banding — into the
+  albedo, behind any prints/textile), `wear` (**distressed / washed /
   faded** finishes — pure value-noise `wearValue` field + `wearTone` bleached tone are unit-tested;
   `paintWear` bleaches the albedo where the cloth is worn), `swatch` (**import a fabric photo → seamless tiling PBR**:
   pure `makeSeamless`/`normalFromLuma`/`estimateRoughness` pixel math is unit-tested; `buildSwatchTextures`

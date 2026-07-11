@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { bayerDither } from './dither'
 
 /** Dip-dye / ombré gradient direction across the garment. */
 export type OmbreDirection = 'top-down' | 'bottom-up' | 'radial'
@@ -33,21 +34,33 @@ export function ombreDip(base: number): THREE.Color {
   return new THREE.Color().setHSL(hsl.h, Math.min(1, hsl.s + 0.06), Math.max(0.03, hsl.l - 0.3))
 }
 
-/** Paint a dip-dye / ombré gradient (base → dipped tone) across the albedo canvas. */
+/** sRGB byte triple `[r,g,b]` (0–255) of a colour, matching CSS/canvas space. */
+function srgbBytes(c: THREE.Color): [number, number, number] {
+  const h = c.getHexString()
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+}
+
+/**
+ * Paint a dip-dye / ombré gradient (base → dipped tone) across the albedo canvas —
+ * baked **per-pixel** through the unit-tested `ombreT` field (so the 3D bake matches
+ * the tested blend), with **ordered dithering** so the smooth ramp doesn't 8-bit band
+ * (stair-step contours). Lerps in sRGB bytes to match the old canvas-gradient look.
+ */
 export function paintOmbre(ctx: CanvasRenderingContext2D, size: number, base: number, direction: OmbreDirection): void {
-  const b = '#' + new THREE.Color(base).getHexString()
-  const d = '#' + ombreDip(base).getHexString()
-  let grad: CanvasGradient
-  if (direction === 'radial') {
-    grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
-    grad.addColorStop(0, b) // base at the centre
-    grad.addColorStop(1, d) // dip at the edges
-  } else {
-    const topDown = direction === 'top-down'
-    grad = ctx.createLinearGradient(0, 0, 0, size)
-    grad.addColorStop(0, topDown ? b : d)
-    grad.addColorStop(1, topDown ? d : b)
+  const [br, bg, bb] = srgbBytes(new THREE.Color(base))
+  const [dr, dg, db] = srgbBytes(ombreDip(base))
+  const img = ctx.createImageData(size, size)
+  const clamp = (n: number): number => (n < 0 ? 0 : n > 255 ? 255 : Math.round(n))
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const t = ombreT(direction, x / size, y / size)
+      const dd = bayerDither(x, y)
+      const i = (y * size + x) * 4
+      img.data[i] = clamp(br + (dr - br) * t + dd)
+      img.data[i + 1] = clamp(bg + (dg - bg) * t + dd)
+      img.data[i + 2] = clamp(bb + (db - bb) * t + dd)
+      img.data[i + 3] = 255
+    }
   }
-  ctx.fillStyle = grad
-  ctx.fillRect(0, 0, size, size)
+  ctx.putImageData(img, 0, 0)
 }
