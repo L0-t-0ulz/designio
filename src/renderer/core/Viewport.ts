@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { toneMappingMode } from './tonemap'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -115,6 +116,12 @@ export class Viewport {
    *  OrbitControls `change` listener. */
   readonly requestRender = (): void => {
     this.renderRequested = true
+  }
+
+  /** Switch the final tone-mapping operator (aces · agx · neutral · filmic · reinhard). */
+  setToneMapping(name: string): void {
+    this.renderer.toneMapping = toneMappingMode(name)
+    this.requestRender()
   }
 
   /**

@@ -22,7 +22,7 @@ import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type 
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
-import { iridescentParams } from '../fabric/iridescent'
+import { iridescentParams, makeIridescenceThicknessMap } from '../fabric/iridescent'
 import { makeLaceAlphaMap } from '../fabric/lace'
 import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
@@ -390,6 +390,9 @@ export class GarmentStack {
       m.iridescence = ir ? ir.iridescence : 0
       m.iridescenceIOR = ir ? ir.iridescenceIOR : 1.3
       m.iridescenceThicknessRange = ir ? ir.thicknessRange : [100, 400]
+      // a procedural thickness map swirls the film thickness across the surface so the
+      // colour bands flow (oil-slick / hologram) instead of a single flat shift.
+      m.iridescenceThicknessMap = ir && l.data.iridescent ? makeIridescenceThicknessMap(l.data.iridescent) : null
       // lace cutout (or reset when off)
       m.alphaMap = laceMap
       m.alphaTest = laceMap ? 0.5 : 0

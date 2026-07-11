@@ -746,6 +746,8 @@ function initStudio(
   if (lightParam) env.setLighting(lightParam)
   const backdropParam = params.get('backdrop')
   if (backdropParam) env.setBackdrop(backdropParam)
+  const tonemapParam = params.get('tonemap')
+  if (tonemapParam) viewport.setToneMapping(tonemapParam)
   const srParam = params.get('simRes')
   if (srParam && SIM_RESOLUTIONS.some((r) => r.name === srParam)) {
     simRes = srParam as SimResolution

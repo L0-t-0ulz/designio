@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { iridescentParams, IRIDESCENT_KINDS, type IridescentKind } from '../src/renderer/fabric/iridescent'
+import { iridescentParams, iridescentThickness, IRIDESCENT_KINDS, type IridescentKind } from '../src/renderer/fabric/iridescent'
 import { defaultConfig } from '../src/renderer/start/design'
 import { docFromConfig, defaultLayer, cloneLayer, serializeDoc, parseDoc } from '../src/renderer/studio/document'
 
@@ -28,6 +28,25 @@ describe('iridescent / holographic finish', () => {
 
   it('exposes exactly the three kinds', () => {
     expect(IRIDESCENT_KINDS).toEqual(['iridescent', 'holographic', 'oil-slick'])
+  })
+
+  it('the thickness field stays in [0,1], varies across the surface, and differs by kind', () => {
+    let lo = Infinity
+    let hi = -Infinity
+    for (const k of IRIDESCENT_KINDS) {
+      for (let i = 0; i < 40; i++) {
+        const u = (i * 7 % 40) / 40
+        const v = (i * 13 % 40) / 40
+        const t = iridescentThickness(k, u, v)
+        expect(t).toBeGreaterThanOrEqual(0)
+        expect(t).toBeLessThanOrEqual(1)
+        lo = Math.min(lo, t)
+        hi = Math.max(hi, t)
+      }
+    }
+    expect(hi - lo).toBeGreaterThan(0.3) // genuinely swirls, not flat
+    // busier finishes read differently at the same point
+    expect(iridescentThickness('oil-slick', 0.3, 0.7)).not.toBeCloseTo(iridescentThickness('iridescent', 0.3, 0.7), 3)
   })
 
   it('round-trips through save/parse and cloneLayer deep-copies it', () => {
