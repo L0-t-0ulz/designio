@@ -193,7 +193,9 @@ Renderer modules:
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
 - `export/` — `exporters3d` (glTF/OBJ + **USDZ** for iOS AR Quick Look), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
-  A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF; pure `placePrints` maps
+  A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF; the cut line uses a
+  **per-edge seam allowance** (`offsetPolygonPerEdge` + `seamAllowancePerEdge` + `cutLine`) — a deep folded
+  hem, a shallow neckline/waist, the base allowance on seams, classified by edge geometry; pure `placePrints` maps
   placed logos/text onto their panel to scale — a dashed placement box + label in SVG, a PRINT layer in
   DXF), `garmentMetrics` (**live
   production spec**: real chest/waist/hip/length/sleeve/inseam + fabric area + seam length from the same

@@ -360,6 +360,72 @@ export function offsetPolygon(pts: Pt[], d: number): Pt[] {
   return out
 }
 
+/** Intersection of two lines (each a point + unit direction); null if ~parallel. */
+function lineIntersect(a: { px: number; py: number; dx: number; dy: number }, b: { px: number; py: number; dx: number; dy: number }): Pt | null {
+  const den = a.dx * b.dy - a.dy * b.dx
+  if (Math.abs(den) < 1e-9) return null
+  const t = ((b.px - a.px) * b.dy - (b.py - a.py) * b.dx) / den
+  return { x: a.px + a.dx * t, y: a.py + a.dy * t }
+}
+
+/**
+ * Offset a closed polygon outward with a **different distance per edge** (a real
+ * variable-width seam allowance). Each edge is pushed out along its own outward normal
+ * to a parallel line, and every new corner is the intersection of its two neighbouring
+ * offset lines — so a deep hem and a shallow neckline meet cleanly. Pure. */
+export function offsetPolygonPerEdge(pts: Pt[], dPerEdge: number[]): Pt[] {
+  const n = pts.length
+  const c = centroid(pts)
+  const lines = pts.map((a, i) => {
+    const b = pts[(i + 1) % n]
+    let ex = b.x - a.x
+    let ey = b.y - a.y
+    const el = Math.hypot(ex, ey) || 1
+    ex /= el
+    ey /= el
+    let nx = ey
+    let ny = -ex // edge normal
+    const mx = (a.x + b.x) / 2
+    const my = (a.y + b.y) / 2
+    if (nx * (mx - c.x) + ny * (my - c.y) < 0) {
+      nx = -nx
+      ny = -ny
+    } // outward
+    return { px: a.x + nx * dPerEdge[i], py: a.y + ny * dPerEdge[i], dx: ex, dy: ey }
+  })
+  return pts.map((_, i) => {
+    const prev = lines[(i - 1 + n) % n]
+    const cur = lines[i]
+    return lineIntersect(prev, cur) ?? { x: cur.px, y: cur.py } // collinear (same SA) → the offset point
+  })
+}
+
+/**
+ * Per-edge seam allowance (mm) classified by geometry — a mostly-horizontal edge in the
+ * lower half is a **hem** (deep), one in the upper half is a **neckline/waist** (shallow),
+ * everything else is a construction **seam** (the base). No manual edge tags needed. Pure. */
+export function seamAllowancePerEdge(pts: Pt[], sa: { seam: number; hem: number; neckline: number }): number[] {
+  const n = pts.length
+  const ys = pts.map((p) => p.y)
+  const midY = (Math.min(...ys) + Math.max(...ys)) / 2
+  return pts.map((a, i) => {
+    const b = pts[(i + 1) % n]
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    if (Math.abs(dy) > Math.abs(dx)) return sa.seam // steeper than 45° ⇒ a side seam
+    return (a.y + b.y) / 2 > midY ? sa.hem : sa.neckline // lower half = hem, upper = neckline
+  })
+}
+
+/**
+ * The cut line for a panel = the sew outline offset by a **per-edge** seam allowance:
+ * a deep hem (the base + 3 cm, for a folded hem), a shallow neckline/waist, and the
+ * base allowance on the construction seams. Used by both the SVG and DXF exports. */
+export function cutLine(outline: Pt[], seam: number): Pt[] {
+  const sa = { seam, hem: seam + 30, neckline: Math.max(4, Math.min(seam, 6)) }
+  return offsetPolygonPerEdge(outline, seamAllowancePerEdge(outline, sa))
+}
+
 // ---- SVG ------------------------------------------------------------------
 const path = (pts: Pt[], dx: number, dy: number): string =>
   pts.map((p, i) => `${i ? 'L' : 'M'}${(p.x + dx).toFixed(1)} ${(p.y + dy).toFixed(1)}`).join(' ') + ' Z'
@@ -413,7 +479,7 @@ export function panelsToSVG(res: PatternResult): string {
   const margin = 24
   const gap = 34
   const cutOf = (p: PatternPanel): { minX: number; minY: number; maxX: number; maxY: number } =>
-    bounds(offsetPolygon(p.outline, seam))
+    bounds(cutLine(p.outline, seam))
   const maxH = Math.max(0, ...panels.map((p) => cutOf(p).maxY - cutOf(p).minY))
   let totalW = margin
   for (const p of panels) {
@@ -442,7 +508,7 @@ export function panelsToSVG(res: PatternResult): string {
   let x = margin
   const parts: string[] = []
   for (const p of panels) {
-    const cut = offsetPolygon(p.outline, seam)
+    const cut = cutLine(p.outline, seam)
     const cb = bounds(cut)
     const dx = x - cb.minX // seat the cut bbox at the running x
     const dy = margin - cb.minY
@@ -514,7 +580,7 @@ export function panelsToDXF(res: PatternResult): string {
   }
   let x = 0
   for (const p of panels) {
-    const cut = offsetPolygon(p.outline, seam)
+    const cut = cutLine(p.outline, seam)
     const cb = bounds(cut)
     const dx = x - cb.minX
     poly(cut, dx, 'CUT')
