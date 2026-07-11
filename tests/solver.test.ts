@@ -1,9 +1,27 @@
 import { describe, it, expect } from 'vitest'
 import * as THREE from 'three'
-import { XPBDSolver } from '../src/renderer/cloth/XPBDSolver'
+import { XPBDSolver, contactNormalVelocity } from '../src/renderer/cloth/XPBDSolver'
 import { fillFlatGrid } from '../src/renderer/cloth/ClothMesh'
 import { FABRICS } from '../src/renderer/cloth/fabricPresets'
 import { closestPointOnSegment, type Capsule } from '../src/renderer/avatar/colliders'
+
+describe('contactNormalVelocity (inelastic contact)', () => {
+  it('kills the inbound (into-surface) normal component', () => {
+    expect(contactNormalVelocity(-2, 0.3)).toBe(0)
+    expect(contactNormalVelocity(-0.001, 0.3)).toBe(0)
+  })
+
+  it('scales the outbound (separating) component by the restitution', () => {
+    expect(contactNormalVelocity(2, 0.3)).toBeCloseTo(0.6, 10)
+    expect(contactNormalVelocity(2, 0)).toBe(0) // fully inelastic — no bounce
+    expect(contactNormalVelocity(2, 1)).toBe(2) // fully elastic — the old behaviour
+  })
+
+  it('is monotonic in restitution and never exceeds the input', () => {
+    expect(contactNormalVelocity(3, 0.5)).toBeGreaterThan(contactNormalVelocity(3, 0.2))
+    expect(contactNormalVelocity(3, 0.5)).toBeLessThanOrEqual(3)
+  })
+})
 
 describe('closestPointOnSegment', () => {
   const out = new THREE.Vector3()
