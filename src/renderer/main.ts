@@ -39,6 +39,7 @@ import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordTurntable } from './studio/turntable'
 import { patternToSVG, patternToDXF } from './export/patternExport'
 import { garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
+import { tiledPatternHTML } from './export/tiledPrint'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
@@ -840,6 +841,12 @@ function initStudio(
             ? garmentPatternDXF(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
             : patternToDXF(dims)
         await saveFile('pattern.dxf', dxf, [{ name: 'DXF', extensions: ['dxf'] }])
+        break
+      }
+      case 'pattern-tiled': {
+        // tile the flat pattern across A4 pages at 1:1 for home printing (Print → Save as PDF)
+        const res = garmentToPanels(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+        await saveFile('pattern-tiled-A4.html', tiledPatternHTML(res), [{ name: 'HTML', extensions: ['html'] }])
         break
       }
       case 'techpack':

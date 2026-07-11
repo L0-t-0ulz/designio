@@ -124,6 +124,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('obj', 'Export 3D — OBJ'),
     ex('svg', 'Export pattern — SVG'),
     ex('dxf', 'Export pattern — DXF'),
+    ex('pattern-tiled', 'Print pattern — tiled A4 (to scale)'),
     ex('techpack', 'Export tech-pack (HTML)'),
     ex('json', 'Export design (JSON)'),
     { sep: true },

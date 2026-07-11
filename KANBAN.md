@@ -346,6 +346,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **MP4 / GIF export** — transcode the recorded WebM clip
 
 **Pattern & production** _(refine PRs #39 · #41 · #114 · #169)_
+- [x] **Tiled print-to-scale PDF** — File → "Print pattern — tiled A4": the pattern tiles across A4/Letter pages at 1:1 with an assembly map + registration crosshairs + R·C labels for taping; pure `tilePlan` + `tiledPatternHTML` (print-CSS, mm viewBox per tile), unit-tested — PR #237
 - [ ] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern
 - [ ] **Marker / nesting layout** — auto-arrange panels to minimise fabric on the DXF/SVG
 - [x] **Per-edge seam allowance** — the cut line now offsets each edge by its own allowance (deep folded hem · shallow neckline/waist · base seam), classified by edge geometry; pure `offsetPolygonPerEdge` (variable-width offset via offset-line intersection) + `seamAllowancePerEdge` + `cutLine`, unit-tested — PR #236
