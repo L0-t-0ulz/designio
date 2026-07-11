@@ -505,14 +505,15 @@ export class XPBDSolver {
 
   /**
    * Mesh-accurate body contact (once per frame): push any particle that has
-   * penetrated the true body surface back out to the skin offset, and remove only
-   * the velocity heading *further into* the body — tangential drape/slide is kept,
-   * so the garment hugs the body without freezing or collapsing onto it.
+   * penetrated the true body surface back out to the skin offset, remove the velocity
+   * heading *further into* the body, and damp the **tangential** slide by the fabric's
+   * friction — so a grippy knit **clings** to the body while a slippery satin slides.
    */
   private solveBody(): void {
     const { positions: pos, vel, invMass: im, count } = this
     const bc = this.bodyCollider!
     const skin = this.bodySkin
+    const keep = 1 - this.params.friction // grippy fabric grips the body; slippery slides
     const out = this._bodyOut
     for (let k = 0; k < count; k++) {
       if (im[k] === 0) continue
@@ -535,11 +536,10 @@ export class XPBDSolver {
         ny /= l
         nz /= l
         const vn = vel[i] * nx + vel[i + 1] * ny + vel[i + 2] * nz
-        if (vn < 0) {
-          vel[i] -= vn * nx
-          vel[i + 1] -= vn * ny
-          vel[i + 2] -= vn * nz
-        }
+        const vnOut = vn > 0 ? vn : 0 // remove the inward component, keep any outward
+        vel[i] = (vel[i] - vn * nx) * keep + vnOut * nx
+        vel[i + 1] = (vel[i + 1] - vn * ny) * keep + vnOut * ny
+        vel[i + 2] = (vel[i + 2] - vn * nz) * keep + vnOut * nz
       }
     }
   }
