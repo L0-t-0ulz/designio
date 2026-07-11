@@ -85,6 +85,9 @@ Renderer modules:
   leaving straight runs uniform, so folds resolve where they nucleate at no extra particle cost; the density
   is curvature-driven + clamped so no rest length degenerates; rest lengths are measured from the geometry
   so the solver needs no change, and the ring-t also drives the UVs so prints stay put; unit-tested),
+  `normals` (**angle-weighted vertex normals** — pure `angleWeightedNormals`/`computeAngleWeightedNormals`
+  weight each face by its interior angle (Max) instead of area, so the adaptive remesh's uneven triangle
+  sizes don't skew the shading; a drop-in for `computeVertexNormals` on the garment pieces, unit-tested),
   `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `windPresets`
   (**named wind presets** — still/breeze/gust/runway; pure `gustWind` pulse is unit-tested), `simQuality`
   (**dense-garment controls** — pure `simTube` scales a tube's radial/rings by a resolution, `qualityToSubsteps`
