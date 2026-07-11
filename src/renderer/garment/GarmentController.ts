@@ -5,6 +5,7 @@ import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
 import type { TubeBuild } from '../cloth/Garment'
 import { XPBDSolver } from '../cloth/XPBDSolver'
+import { computeAngleWeightedNormals } from '../cloth/normals'
 import type { SimPieceView } from '../cloth/ClothCollision'
 import type { GarmentParams, GarmentType } from './templates'
 import { buildGarment } from '../garments/factory'
@@ -125,7 +126,7 @@ export class GarmentController {
     const n = pinnedTop.length || 1
     const topstitch = new Topstitch(nx, ny, this.stitchMat)
     mesh.add(topstitch.object) // parent to the mesh so it inherits visibility
-    geometry.computeVertexNormals()
+    computeAngleWeightedNormals(geometry)
     topstitch.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
     this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, wrapX })
   }
@@ -299,7 +300,7 @@ export class GarmentController {
     for (const p of this.pieces) {
       if (!p.solver.advanced) continue // resting: the mesh already holds the settled drape — skip the recompute + re-upload
       p.geometry.attributes.position.needsUpdate = true
-      p.geometry.computeVertexNormals()
+      computeAngleWeightedNormals(p.geometry)
       p.topstitch.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
     }
   }
@@ -309,7 +310,7 @@ export class GarmentController {
       p.refill()
       p.solver.reset()
       p.geometry.attributes.position.needsUpdate = true
-      p.geometry.computeVertexNormals()
+      computeAngleWeightedNormals(p.geometry)
       p.geometry.computeBoundingSphere()
     }
     this.bindPinsToBody() // re-hang from the body at the fresh drape
