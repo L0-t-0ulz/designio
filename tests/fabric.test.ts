@@ -5,6 +5,7 @@ import {
   getFabric,
   sheenRecipeFromFabric,
   anisotropyAngleForFabric,
+  envIntensityForFabric,
   type Fabric
 } from '../src/renderer/fabric/FabricLibrary'
 import { weaveHeight, weaveNormal, weaveRoughness, toksvigRoughness } from '../src/renderer/fabric/weaveTexture'
@@ -175,6 +176,24 @@ describe('sheenRecipeFromFabric', () => {
       expect(r.sheen).toBeLessThanOrEqual(1)
       expect(r.sheenRoughness).toBeGreaterThanOrEqual(0)
       expect(r.sheenRoughness).toBeLessThanOrEqual(1)
+    }
+  })
+})
+
+describe('envIntensityForFabric', () => {
+  it('a smooth silk reflects the room more than a matte cotton or canvas', () => {
+    const silk = envIntensityForFabric(getFabric('silk-charmeuse'))
+    const cotton = envIntensityForFabric(getFabric('cotton-poplin'))
+    const canvas = envIntensityForFabric(getFabric('canvas'))
+    expect(silk).toBeGreaterThan(cotton)
+    expect(cotton).toBeGreaterThan(canvas)
+  })
+
+  it('stays in a sane band for every library fabric', () => {
+    for (const f of FABRIC_LIBRARY) {
+      const v = envIntensityForFabric(f)
+      expect(v).toBeGreaterThanOrEqual(0.7)
+      expect(v).toBeLessThanOrEqual(1.6)
     }
   })
 })

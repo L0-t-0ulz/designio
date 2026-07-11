@@ -301,6 +301,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Structured shoulders** — a shoulder-pad toggle for blazers/coats
 
 **Materials & finish controls** _(refine PRs #108 · #110 · #116 · #118 · #120 · #158 · #159 · #160 · #163 · #164)_
+- [x] **Per-fabric environment reflectivity** — pure `envIntensityForFabric` sets `MeshPhysicalMaterial.envMapIntensity` from the surface: a smooth silk/satin/leather catches the studio IBL and glistens, a matte cotton/wool/canvas barely reflects — completes the roughness-map + sheen + anisotropy material realism; unit-tested — PR #231
 - [ ] **Ombré: pick the dip colour + a diagonal direction** — not just a derived tone / vertical-radial only
 - [ ] **Textile pattern scale + rotation + grainline align** — resize/rotate stripes & plaids to the cut
 - [ ] **Textile: pick both tones** — choose the pattern's two colours instead of deriving from the base
