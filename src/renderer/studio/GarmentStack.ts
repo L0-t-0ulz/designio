@@ -35,8 +35,6 @@ import { gradeParams, captureColorway, applyColorway, type GarmentLayerData, typ
 const EMPTY_ART: DesignArtInput = { color: 0xffffff, prints: [] }
 /** Bump strength for raised embroidery / appliqué relief. */
 const RAISED_BUMP_SCALE = 6
-/** Default garment envMapIntensity (matches `createFabricMaterial`) — restored when a sparkle finish is cleared. */
-const FABRIC_ENV_INTENSITY = 1.1
 /** Outward trapped-air acceleration (m/s²) for a quilted puffer garment — lofts it off the body. */
 const PUFF_PRESSURE = 6
 
@@ -390,7 +388,7 @@ export class GarmentStack {
       m.metalness = sp ? sp.metalness : ir ? ir.metalness : 0
       m.clearcoat = sp ? sp.clearcoat : ir ? ir.clearcoat : 0
       m.clearcoatRoughness = sp ? sp.clearcoatRoughness : ir ? ir.clearcoatRoughness : 0
-      m.envMapIntensity = sp ? sp.envMapIntensity : ir ? ir.envMapIntensity : FABRIC_ENV_INTENSITY
+      m.envMapIntensity = sp ? sp.envMapIntensity : ir ? ir.envMapIntensity : m.envMapIntensity // keep the per-fabric value applyFabric set
       // thin-film iridescence — reset to off (0) unless an iridescent finish is on.
       m.iridescence = ir ? ir.iridescence : 0
       m.iridescenceIOR = ir ? ir.iridescenceIOR : 1.3

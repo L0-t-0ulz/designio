@@ -154,6 +154,16 @@ export function anisotropyAngleForFabric(fabric: Fabric): number {
   return fabric.anisotropy > 0 ? Math.PI / 2 : 0
 }
 
+/**
+ * How strongly a fabric reflects the studio environment (IBL) — a smooth, low-roughness
+ * silk/satin/leather catches the room and glistens (high), a matte cotton/wool/canvas
+ * barely does (low). Derived from roughness so it tracks the surface, clamped to a sane
+ * band. Pure, unit-tested; the material layer sets `MeshPhysicalMaterial.envMapIntensity`. */
+export function envIntensityForFabric(fabric: Fabric): number {
+  const v = 0.8 + (1 - fabric.roughness) * 0.95 // glossier ⇒ reflects the room more
+  return Math.max(0.7, Math.min(1.6, v))
+}
+
 export const FABRIC_LIBRARY: Fabric[] = [
   // ---- wovens (crisp → structured) ----
   { id: 'cotton-poplin', name: 'Cotton poplin', family: 'woven', gsm: 130, stretch: 0.04, bendiness: 0.42, friction: 0.5, color: 0xc85a54, roughness: 0.78, sheen: 0.7, sheenRoughness: 0.5, weave: 'plain', weaveScale: 220, normalStrength: 0.5, anisotropy: 0, transmission: 0 },

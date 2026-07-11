@@ -107,7 +107,8 @@ Renderer modules:
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape; **per-family
   cloth-sheen** — pure `sheenRecipeFromFabric` maps the fabric family (muted woven · lustrous silk · soft
   knit · velvet nap) to sheen + tint + sheenRoughness, + `anisotropyAngleForFabric` streaks a satin/silk's
-  anisotropic highlight along the warp (V grain); unit-tested),
+  anisotropic highlight along the warp (V grain), + `envIntensityForFabric` sets `envMapIntensity` from
+  roughness so smooth silks catch the studio IBL and matte cotton doesn't; unit-tested),
   `weaveTexture` (procedural weave **normal + roughness** maps — yarn crowns glossier, valleys matte via the
   pure `weaveRoughness` field baked into a cached `roughnessMap`; **specular-AA** `toksvigRoughness` lifts the
   base roughness by the weave's normal strength so strong weaves don't shimmer at distance; pure math
