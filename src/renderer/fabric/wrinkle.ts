@@ -6,7 +6,8 @@ import * as THREE from 'three'
  * close-ups show crisp micro-folds where the cloth compresses — without any extra
  * geometry. The CPU computes a per-particle wrinkle amount from `XPBDSolver.strain`
  * (pure + unit-tested) and writes it to an `aStrain` attribute; the shader draws the
- * creases.
+ * creases and, from the same signal, **darkens the fold valleys** (`cavityFactor`) so
+ * the bunched cloth self-shadows and the folds read deep.
  */
 
 /** Wrinkle intensity 0…1 from a particle's signed strain — cloth creases mostly
@@ -15,6 +16,18 @@ export function wrinkleAmount(strain: number): number {
   const compress = Math.max(0, -strain) * 12 // bunching = strong wrinkles
   const any = Math.abs(strain) * 2.5
   return Math.max(0, Math.min(1, compress + any))
+}
+
+/**
+ * **Fold-valley (cavity) darkening**: bunched cloth self-shadows down in the crease
+ * valleys, so scale the diffuse down where the wrinkle amount is high. Distinct from
+ * the screen-space GTAO (which reads geometric occlusion) — this reads fabric
+ * *compression*, so a flat-but-bunched panel still darkens. A multiply in [1−k, 1],
+ * monotonically decreasing in the wrinkle amount. Pure — mirrored in the shader. */
+const CAVITY_STRENGTH = 0.28
+export function cavityFactor(strainW: number, strength = CAVITY_STRENGTH): number {
+  const s = strainW < 0 ? 0 : strainW > 1 ? 1 : strainW
+  return 1 - strength * s
 }
 
 const VERT_HEAD = 'attribute float aStrain;\nvarying float vStrainW;\nvarying vec3 vWPosW;'
@@ -40,6 +53,8 @@ const FRAG_PERTURB = `
     vec3 grad = hx * r1 + hy * r2;
     normal = normalize(normal - sign(det) * vStrainW * 1.1 * grad);
   }`
+// Darken the diffuse in the compressed crease valleys — mirrors `cavityFactor`.
+const FRAG_CAVITY = '\n  diffuseColor.rgb *= (1.0 - ' + CAVITY_STRENGTH.toFixed(2) + ' * clamp(vStrainW, 0.0, 1.0));'
 
 /** Install the strain-driven wrinkle perturbation on a fabric material. Idempotent. */
 export function installWrinkle(mat: THREE.MeshPhysicalMaterial): void {
@@ -51,6 +66,7 @@ export function installWrinkle(mat: THREE.MeshPhysicalMaterial): void {
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY)
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\n' + FRAG_HEAD)
+      .replace('#include <color_fragment>', '#include <color_fragment>' + FRAG_CAVITY)
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + FRAG_PERTURB)
   }
   mat.needsUpdate = true
