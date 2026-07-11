@@ -331,6 +331,15 @@ export class GarmentController {
     this.redrape()
   }
 
+  /** Set the trapped-air pressure (outward loft) on every piece — a quilted/puffer
+   *  garment inflates off the body. Wakes the solvers so the change takes effect. */
+  setPressure(pressure: number): void {
+    for (const p of this.pieces) {
+      p.solver.pressure = pressure
+      p.solver.wake()
+    }
+  }
+
   /** Tear the garment down for good (layer delete) — frees the shared thread material too. */
   clear(): void {
     this.dispose()

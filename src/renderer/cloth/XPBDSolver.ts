@@ -49,6 +49,11 @@ export class XPBDSolver {
   gravity = new THREE.Vector3(0, -9.81, 0)
   /** Wind as a force (not acceleration): lighter fabrics flutter more. */
   wind = new THREE.Vector3(0, 0, 0)
+  /** Trapped-air pressure — an outward acceleration (m/s²) along each particle's
+   *  surface normal, so a quilted/puffer panel or a puff sleeve **lofts** off the body
+   *  instead of hanging flat. 0 = off (the default); the stretch constraints cap how
+   *  far it inflates, so it's stable. */
+  pressure = 0
   substeps = 14
   colliders: Capsule[] = []
   /** Optional mesh-accurate body collision (the true surface); capsules are the
@@ -437,7 +442,7 @@ export class XPBDSolver {
     }
     this.stepped = true
 
-    if (this.params.aero > 0) this.computeNormals() // once per frame, reused across substeps
+    if (this.params.aero > 0 || this.pressure > 0) this.computeNormals() // once per frame, reused across substeps + pressure
     const sub = dt / this.substeps
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
     if (this.bodyCollider?.ready) this.solveBody()
@@ -522,6 +527,7 @@ export class XPBDSolver {
     const { positions: pos, prev, vel, invMass: im, count, aeroN } = this
     this.time += dt
     const aero = this.params.aero
+    const press = this.pressure
 
     // Gravity is a pure (mass-independent) acceleration.
     const gx = this.gravity.x
@@ -558,6 +564,14 @@ export class XPBDSolver {
         vel[i] -= f * n0
         vel[i + 1] -= f * n1
         vel[i + 2] -= f * n2
+      }
+      // Trapped-air pressure — a sustained outward push along the surface normal so
+      // quilted/puffer panels + puff sleeves loft off the body (applied after aero so
+      // the drag doesn't cancel it; capped by the stretch constraints at equilibrium).
+      if (press > 0) {
+        vel[i] += aeroN[i] * press * dt
+        vel[i + 1] += aeroN[i + 1] * press * dt
+        vel[i + 2] += aeroN[i + 2] * press * dt
       }
       prev[i] = pos[i]
       prev[i + 1] = pos[i + 1]

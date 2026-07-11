@@ -73,7 +73,10 @@ Renderer modules:
 - `cloth/` — `XPBDSolver` (grid/tube cloth; pinned particles can **follow a moving body anchor** —
   `bindPins`/`setAnchor` — so garments stay on the animated avatar; per-fabric **aerodynamic drag** —
   `FabricParams.aero` removes the broadside/normal velocity so light+sheer fabrics billow/float/lag and
-  heavy ones follow near-rigid — **4D secondary motion**; **per-panel physics** — each particle/constraint
+  heavy ones follow near-rigid — **4D secondary motion**; **trapped-air pressure** — `solver.pressure` adds
+  an outward acceleration along each particle's surface normal (capped by the stretch constraints, so it's
+  stable) so a quilted garment inflates into a **puffer** that stands off the body (opt-in, wired from the
+  quilt finish); **per-panel physics** — each particle/constraint
   is tagged front/back by column (matching `finishTube`), so `setPanelFabric(front, back)` drapes the two
   halves with their own stiffness + mass), `ClothCollision` (a global **spatial-hash
   particle repulsion** run by `GarmentStack.step` after the solvers — keeps every visible garment particle
