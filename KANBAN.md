@@ -490,7 +490,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Signed self-collision side** — give the sheet a front/back sign from its normal so repulsion knows which side a neighbour belongs on (kills the "sticky wrong-side" pin after a deep fold); pure `signedRepel` unit-tested
 - [ ] **Swept-capsule broadphase (CCD)** — expand each capsule by its per-substep displacement before the narrow-phase test so a fast limb captures cloth it would otherwise skip; pure `sweptCapsule` unit-tested
 - [ ] **Curvature-scaled skin offset** — vary the 0.011 m body skin gap by local surface curvature (larger over knees/elbows, tighter on flats) so cloth neither hovers nor pokes; pure `offsetFromCurvature` unit-tested
-- [ ] **Contact restitution damping** — kill the micro-bounce when cloth lands on the body/ground by zeroing normal restitution + damping the residual normal velocity; pure `contactDamp` unit-tested
+- [x] **Contact restitution damping** — body/ground contact now scales the *outbound* normal velocity by a 0.3 restitution (inelastic) so cloth settles onto the surface instead of springing off + jittering; pure `contactNormalVelocity` unit-tested, stability guarded — PR #224
 - [ ] **Ground friction + hem pooling** — a real tangential-friction floor with per-surface μ so a train/hem pools and stays instead of sliding; pure `groundFriction` unit-tested
 
 **Geometry & mesh math** _(refine `cloth/Garment`, normals, adaptive mesh)_

@@ -15,6 +15,15 @@ interface Constraint {
 }
 
 /**
+ * Post-contact **normal velocity** for a particle: the inbound (into-surface)
+ * component is already removed by the push-out, and any outbound (separating)
+ * component is scaled by `restitution` (< 1 = inelastic) so the cloth settles onto the
+ * body/ground instead of springing away and jittering. Pure. */
+export function contactNormalVelocity(vn: number, restitution: number): number {
+  return vn > 0 ? vn * restitution : 0
+}
+
+/**
  * Extended Position-Based Dynamics (XPBD) cloth solver — the same family of
  * technique used by real garment simulators.
  *
@@ -84,6 +93,7 @@ export class XPBDSolver {
   private static readonly SLEEP_FRAMES = 24 // consecutive still frames before it sleeps
   private static readonly FORCE_SLEEP_FRAMES = 300 // ~5 s: force a rest even if it keeps swaying
   private static readonly VMAX = 8 // m/s velocity cap (stability net; real cloth stays well under)
+  private static readonly CONTACT_RESTITUTION = 0.3 // inelastic body/ground contact — cloth settles, doesn't spring off
 
   // scratch vectors (no per-particle allocation)
   private readonly _p = new THREE.Vector3()
@@ -667,9 +677,10 @@ export class XPBDSolver {
         pos[i + 2] += nz * pen
         this._p.set(pos[i], pos[i + 1], pos[i + 2])
 
-        // split velocity into normal / tangential; kill inward normal, damp tangent
+        // split velocity into normal / tangential; kill inward normal, damp the
+        // outbound normal (inelastic contact) so cloth settles onto the body, damp tangent
         const vn = vel[i] * nx + vel[i + 1] * ny + vel[i + 2] * nz
-        const vnOut = vn > 0 ? vn : 0
+        const vnOut = contactNormalVelocity(vn, XPBDSolver.CONTACT_RESTITUTION)
         const keep = 1 - friction
         const tx = (vel[i] - vn * nx) * keep
         const ty = (vel[i + 1] - vn * ny) * keep
