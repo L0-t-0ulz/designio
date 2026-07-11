@@ -526,7 +526,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Two-scale normal blend (RNM)** — combine a coarse fold normal with the fine weave normal via reoriented-normal-mapping so both read at once; pure `blendNormalsRNM` unit-tested
 - [ ] **Parallax-occlusion weave** — POM the weave height so grazing views show yarn self-occlusion/parallax, not a flat decal; pure `pomOffset` unit-tested
 - [ ] **Mip + anisotropic filtering on procedural maps** — generate mip chains + set max-anisotropy on the CanvasTexture weave/finish maps so they don't alias into moiré at distance; test mip + filter flags
-- [ ] **Blue-noise dithered finish fields** — dither the sparkle/wear/ombré value fields with a blue-noise mask so 8-bit banding disappears on gradients; pure `blueNoiseDither` unit-tested
+- [x] **Ordered-dithered finish gradients** — `paintOmbre` now bakes **per-pixel through the tested `ombreT` field** + an 8×8 Bayer `bayerDither` offset, so the dip-dye ramp no longer 8-bit bands (stair-steps); pure `bayerDither` unit-tested — PR #217
 - [ ] **GPU-baked weave synthesis** — move `weaveTexture` synthesis onto a render-to-texture fragment pass so 2K/4K weave maps bake in a frame instead of a slow CPU canvas loop; benchmark bake time
 - [ ] **Macro albedo × tiled detail map** — a low-freq print/albedo times a high-freq tiled detail-normal so a big garment stays crisp without a huge texture; pure `detailUV` unit-tested
 - [ ] **Curvature-driven fuzz mask** — write a fuzz/lint intensity map from mesh curvature so edges/seams pick up more pile than flats (procedural, no hand-paint); pure `fuzzMask` unit-tested
