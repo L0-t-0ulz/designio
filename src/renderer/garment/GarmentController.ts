@@ -12,6 +12,9 @@ import { buildGarment } from '../garments/factory'
 import { getGarment } from '../garments/registry'
 import { Topstitch } from './Topstitch'
 
+/** Weighted-hem multiplier for every piece — the free hem hangs plumb (couture chain-weight). */
+const HEM_WEIGHT = 2.2
+
 /** Which body anchor a pin group follows (matrix keys of BodyAnchors). */
 export type AnchorKey = 'head' | 'torso' | 'hip' | 'armL' | 'armR' | 'foreL' | 'foreR'
 
@@ -97,6 +100,8 @@ export class GarmentController {
     solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)
     solver.wind.set(this.windX, 0, this.windZ)
+    solver.hemWeight = HEM_WEIGHT // couture chain-weight: the free hem hangs plumb (pinned cuffs ignore it)
+    solver.applyMass()
     const topRing = [...pinnedTop]
     const midY = Math.floor((ny - 1) / 2)
     const midRing = Array.from({ length: nx }, (_, ix) => midY * nx + ix) // mid ring (a sleeve's elbow)

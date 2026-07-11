@@ -24,6 +24,19 @@ export function contactNormalVelocity(vn: number, restitution: number): number {
 }
 
 /**
+ * Per-row mass multiplier for a **weighted hem** — real couture hangs a chain-weight in
+ * the hem so a gown/skirt falls plumb instead of the light edge kicking out. Rows above
+ * the bottom band (`t ≤ RAMP`) are unchanged; the bottom band ramps up to `weight` at the
+ * hem (`iy = ny−1`). Pinned rows ignore mass, so a wrist-pinned cuff is untouched. Pure. */
+export function hemMassScale(iy: number, ny: number, weight: number): number {
+  if (weight <= 1 || ny < 2) return 1
+  const t = iy / (ny - 1) // 0 = top (pinned edge) … 1 = hem
+  const RAMP = 0.85
+  if (t <= RAMP) return 1
+  return 1 + (weight - 1) * ((t - RAMP) / (1 - RAMP))
+}
+
+/**
  * Extended Position-Based Dynamics (XPBD) cloth solver — the same family of
  * technique used by real garment simulators.
  *
@@ -54,6 +67,9 @@ export class XPBDSolver {
    *  instead of hanging flat. 0 = off (the default); the stretch constraints cap how
    *  far it inflates, so it's stable. */
   pressure = 0
+  /** Weighted-hem multiplier — scales the bottom rows' mass so a hem hangs plumb
+   *  (couture chain-weight). 1 = uniform (default); set before `applyMass`. */
+  hemWeight = 1
   substeps = 14
   colliders: Capsule[] = []
   /** Optional mesh-accurate body collision (the true surface); capsules are the
@@ -138,12 +154,17 @@ export class XPBDSolver {
     this.syncPrev()
   }
 
-  /** Recompute per-particle inverse mass from the current fabric mass. */
+  /** Recompute per-particle inverse mass from the current fabric mass (+ a weighted hem). */
   applyMass(): void {
-    const perParticle = this.params.mass / this.count
-    const inv = perParticle > 0 ? 1 / perParticle : 0
+    const base = this.params.mass / this.count
     for (let k = 0; k < this.count; k++) {
-      this.invMass[k] = this.pinned.has(k) || this.dead.has(k) ? 0 : inv
+      if (this.pinned.has(k) || this.dead.has(k)) {
+        this.invMass[k] = 0
+        continue
+      }
+      const iy = (k / this.nx) | 0
+      const m = base * hemMassScale(iy, this.ny, this.hemWeight)
+      this.invMass[k] = m > 0 ? 1 / m : 0
     }
   }
 

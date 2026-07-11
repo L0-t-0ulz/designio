@@ -282,7 +282,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Weave-anisotropic bend** — cloth bends easier along the weave than across (warp vs weft) so twill/denim crease differently from plain weave
 - [ ] **Per-fabric self-collision thickness** — scale the particle-repulsion radius by the fabric's physical thickness (thick wool holds layers apart, chiffon nests close)
 - [ ] **Body friction / cling** — high-grip knits cling to the body, slippery satin slides down + pools at the hem
-- [ ] **Weighted hems** — a heavier bottom ring so gowns/drapes hang plumb (chain-weight couture look)
+- [x] **Weighted hems** — the bottom rows of every piece ramp up to a heavier mass (`hemWeight`) so a gown/skirt hem falls plumb like a couture chain-weight instead of the light edge kicking out; pinned cuffs ignore it (pinned particles have no mass); pure `hemMassScale` unit-tested, stability guarded — PR #229
 - [ ] **Seam pucker** — a slight gather right at the seams for a hand-finished read
 - [x] **Trapped-air puff (pressure loft)** — `XPBDSolver.pressure` adds an outward acceleration along each particle's surface normal (opt-in, capped by the stretch constraints so it's stable). A **quilted** garment turns it on, and a first-class **`?puff=1`** toggle (persisted, parallel to `wet`) lofts *any* garment — a quilted coat / a smooth bomber now inflates into a real **puffer** that stands off the body instead of hanging flat; a **"Puffer loft"** toggle in the Appearance panel; unit-tested (inflates outward + no-op at 0, round-trips) — PR #225, #226, #227
 - [ ] **Body wind occlusion** — the leeward side of the garment catches less wind than the windward side

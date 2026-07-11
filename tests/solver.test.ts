@@ -1,6 +1,29 @@
 import { describe, it, expect } from 'vitest'
 import * as THREE from 'three'
-import { XPBDSolver, contactNormalVelocity } from '../src/renderer/cloth/XPBDSolver'
+import { XPBDSolver, contactNormalVelocity, hemMassScale } from '../src/renderer/cloth/XPBDSolver'
+
+describe('hemMassScale (weighted hem)', () => {
+  it('leaves the top/body rows unchanged and ramps to full weight at the hem', () => {
+    const ny = 20
+    expect(hemMassScale(0, ny, 2.2)).toBe(1) // top edge
+    expect(hemMassScale((ny - 1) * 0.5, ny, 2.2)).toBe(1) // mid body — above the ramp band
+    expect(hemMassScale(ny - 1, ny, 2.2)).toBeCloseTo(2.2, 6) // the hem gets the full weight
+  })
+
+  it('is monotonically non-decreasing toward the hem', () => {
+    let prev = 0
+    for (let iy = 0; iy < 30; iy++) {
+      const s = hemMassScale(iy, 30, 3)
+      expect(s).toBeGreaterThanOrEqual(prev)
+      prev = s
+    }
+  })
+
+  it('is a no-op at weight ≤ 1 or a degenerate row count', () => {
+    expect(hemMassScale(9, 10, 1)).toBe(1)
+    expect(hemMassScale(0, 1, 2)).toBe(1)
+  })
+})
 import { fillFlatGrid } from '../src/renderer/cloth/ClothMesh'
 import { FABRICS } from '../src/renderer/cloth/fabricPresets'
 import { closestPointOnSegment, type Capsule } from '../src/renderer/avatar/colliders'
