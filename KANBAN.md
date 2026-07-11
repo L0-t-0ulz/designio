@@ -348,7 +348,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 **Pattern & production** _(refine PRs #39 · #41 · #114 · #169)_
 - [ ] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern
 - [ ] **Marker / nesting layout** — auto-arrange panels to minimise fabric on the DXF/SVG
-- [ ] **Per-edge seam allowance** — different SA on hems vs seams
+- [x] **Per-edge seam allowance** — the cut line now offsets each edge by its own allowance (deep folded hem · shallow neckline/waist · base seam), classified by edge geometry; pure `offsetPolygonPerEdge` (variable-width offset via offset-line intersection) + `seamAllowancePerEdge` + `cutLine`, unit-tested — PR #236
 - [ ] **Full size-run export** — the graded pattern XS–XXL in one file
 - [ ] **Drape the imported pattern onto the body** — the deferred half of PR #169
 - [ ] **Tech-pack: colourway pages + a notions/trims BOM** (thread, zips, buttons)

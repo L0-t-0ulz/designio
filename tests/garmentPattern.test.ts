@@ -8,6 +8,9 @@ import {
   panelsToSVG,
   panelsToDXF,
   offsetPolygon,
+  offsetPolygonPerEdge,
+  seamAllowancePerEdge,
+  cutLine,
   placePrints,
   type Pt,
   type PatternPrintInput
@@ -237,5 +240,45 @@ describe('real per-garment 2D pattern', () => {
     const cutW = width(offsetPolygon(front.outline, res.seam))
     expect(stitchW).toBeLessThan(sewW)
     expect(sewW).toBeLessThan(cutW)
+  })
+})
+
+describe('per-edge seam allowance', () => {
+  // a rectangle: top edge y=0 (neckline), bottom y=200 (hem), sides vertical (seams)
+  const rect: Pt[] = [
+    { x: 0, y: 0 }, { x: 100, y: 0 }, // top
+    { x: 100, y: 200 }, { x: 0, y: 200 } // bottom
+  ]
+
+  it('classifies the bottom edge as hem, the top as neckline, the sides as seam', () => {
+    const sa = seamAllowancePerEdge(rect, { seam: 10, hem: 40, neckline: 6 })
+    // edges: [0]=top (neckline), [1]=right (seam), [2]=bottom (hem), [3]=left (seam)
+    expect(sa[0]).toBe(6) // top → neckline
+    expect(sa[1]).toBe(10) // right side → seam
+    expect(sa[2]).toBe(40) // bottom → hem
+    expect(sa[3]).toBe(10) // left side → seam
+  })
+
+  it('offsets each edge outward by its own allowance (variable-width offset)', () => {
+    const sa = seamAllowancePerEdge(rect, { seam: 10, hem: 40, neckline: 6 })
+    const off = offsetPolygonPerEdge(rect, sa)
+    // top edge pushed up by 6, bottom down by 40, sides out by 10
+    const minY = Math.min(...off.map((p) => p.y))
+    const maxY = Math.max(...off.map((p) => p.y))
+    const minX = Math.min(...off.map((p) => p.x))
+    const maxX = Math.max(...off.map((p) => p.x))
+    expect(minY).toBeCloseTo(-6, 3) // neckline
+    expect(maxY).toBeCloseTo(240, 3) // hem (200 + 40)
+    expect(minX).toBeCloseTo(-10, 3) // left seam
+    expect(maxX).toBeCloseTo(110, 3) // right seam
+  })
+
+  it('cutLine gives a deeper hem than neckline allowance', () => {
+    const cut = cutLine(rect, 10)
+    const hemSA = Math.max(...cut.map((p) => p.y)) - 200 // bottom pushed past y=200
+    const neckSA = 0 - Math.min(...cut.map((p) => p.y)) // top pushed past y=0
+    expect(hemSA).toBeGreaterThan(neckSA) // hem allowance deeper than the neckline
+    expect(hemSA).toBeCloseTo(40, 3) // seam(10) + 30
+    expect(neckSA).toBeCloseTo(6, 3) // min(seam, 6)
   })
 })
