@@ -642,4 +642,78 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 ---
 
+## 🧭 Roadmap — 50 more _(deeper product bets — new categories, engineering & platform)_
+
+**Kids, maternity & adaptive**
+- [ ] **Kids' size range** — toddler → teen blocks with age-appropriate proportions
+- [ ] **Maternity fit** — an expandable belly panel + a drape that adjusts through trimesters
+- [ ] **Adaptive wear** — seated-fit patterns, magnetic closures, one-hand fastenings
+- [ ] **Petite / tall / plus auto-proportioning** — re-grade the whole catalog per body archetype
+- [ ] **Unisex / gender-neutral blocks** — a shared block that fits across bodies
+
+**Footwear & bags**
+- [ ] **Shoe last + upper designer** — sneaker / heel / boot uppers over a parametric last
+- [ ] **Sole & tread designer** — a 3D-printable outsole with a tread pattern
+- [ ] **Handbag / tote builder** — panels, gussets, straps, and placed hardware
+- [ ] **Strap & buckle hardware library** — buckles, D-rings, clasps, sliders
+- [ ] **Bag lining + pocket layout** — an interior editor with zip/slip pockets
+
+**Hardware & notions**
+- [ ] **Buttons & closures designer** — custom shanks, materials, engraving
+- [ ] **Zipper builder** — tape colour, teeth style, pull + slider options
+- [ ] **Rivet / eyelet / snap placement** — snap hardware dropped onto a seam/edge
+- [ ] **Enamel pin / patch designer** — a raised badge with a stitched-edge preview
+
+**Print & graphics studio**
+- [ ] **In-app vector print editor** — draw shapes/paths, not just import a file
+- [ ] **Repeat-pattern engine** — half-drop · brick · mirror tiling of a custom motif
+- [ ] **Print warp-to-seamline** — a placement print that wraps cleanly across seams
+- [ ] **Gradient-mesh + duotone** print effects
+- [ ] **Puff / discharge / foil** print simulation (raised + specialty inks)
+- [ ] **Layered print with registration** — knockout layers + a registration preview
+
+**Textile & knit engineering**
+- [ ] **Knit stitch designer** — a cable/rib/jacquard chart → the 3D knit surface
+- [ ] **Weave draft designer** — threading/treadling → the procedural weave map
+- [ ] **Yarn library** — count · ply · twist that change the fabric hand
+- [ ] **Fully-fashioned knit shaping** — shaped panels with no cut edges
+- [ ] **Intarsia / colourwork** — placed colour blocks in the knit
+
+**Sustainability & materials**
+- [ ] **Material passport** — fibre content, origin, recyclability on every fabric
+- [ ] **Water / CO₂ footprint** — a per-garment environmental estimate
+- [ ] **Deadstock / recycled flags** — surface eco-materials in the library
+- [ ] **Circular-design score** — mono-material + disassembly rating
+- [ ] **Longevity care guidance** — repair/wash tips that extend garment life
+
+**Manufacturing & sourcing**
+- [ ] **Factory-format tech-pack** — export to Gerber / Lectra / Optitex
+- [ ] **BOM with suppliers + lead times** — sourceable materials, not just a list
+- [ ] **Sample-order generator** — a spec + quantity request for a sample run
+- [ ] **Production size-set exporter** — the graded run laid out for cutting
+- [ ] **QC spec sheet** — measurement points + tolerances for inspection
+
+**Retail & e-commerce**
+- [ ] **Storefront product page export** — images + 360° + a spec block
+- [ ] **Virtual try-on widget** — a shopper picks a body and sees the fit
+- [ ] **Made-to-order configurator** — a customer customizes colour/fabric/fit
+- [ ] **Pricing calculator** — cost → margin → suggested retail
+- [ ] **Shopify / Etsy listing export** — a ready-to-publish product listing
+
+**Education & community**
+- [ ] **Interactive tutorial mode** — a guided first design, step by step
+- [ ] **Pattern-making lessons** — overlaid teaching on the real tool
+- [ ] **Template marketplace** — buy/sell blocks + finished designs
+- [ ] **Community challenges** — themed prompts + a featured gallery
+- [ ] **In-app term glossary** — hover any construction term for a definition
+
+**Platform & infrastructure**
+- [ ] **Plugin API** — third-party fabrics, tools, and exporters
+- [ ] **Headless render API** — batch renders through a job queue
+- [ ] **Mobile companion** — view + present a design on a phone/tablet
+- [ ] **Real-time collaboration** — multiple editors, live cursors, presence
+- [ ] **Design version control** — branch / merge a design like code
+
+---
+
 _Update this board as things ship — check the box + note the PR._
