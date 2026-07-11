@@ -90,6 +90,15 @@ export function corsetParams(p: FabricParams): FabricParams {
 }
 
 /**
+ * Solver params for a **wet** garment (rain / swim / beach) — waterlogged, so it's
+ * heavier, clings limp to the body (softer bend), barely catches the air, and settles
+ * fast (more damping). Pure, so it's unit tested. Composes on top of any stiffener.
+ */
+export function wetParams(p: FabricParams): FabricParams {
+  return { ...p, mass: p.mass * 1.5, bendCompliance: p.bendCompliance * 1.8, damping: p.damping + 0.5, aero: p.aero * 0.35 }
+}
+
+/**
  * Physical fabric thickness in metres, from areal weight — feeds the render-side
  * thickness shell so hems/edges aren't paper-thin. A light chiffon reads ~0.6 mm,
  * a heavy wool coat ~3.2 mm. Slightly exaggerated over reality so the depth reads

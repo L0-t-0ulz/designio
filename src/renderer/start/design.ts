@@ -39,6 +39,8 @@ export interface DesignConfig {
   closure?: boolean
   lined?: boolean
   interfaced?: boolean
+  /** Waterlogged rain/swim look — physics (heavier + limp + clings) + a wet glossy sheen. */
+  wet?: boolean
   waistband?: boolean
   facing?: boolean
   drawstring?: boolean

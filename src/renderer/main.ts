@@ -149,6 +149,7 @@ function initStudio(
     closure: l0.closure,
     lined: l0.lined,
     interfaced: l0.interfaced,
+    wet: l0.wet,
     waistband: l0.waistband,
     facing: l0.facing,
     drawstring: l0.drawstring,
@@ -1539,6 +1540,7 @@ if (skipStart) {
   if (entryParams.get('closure')) cfg.closure = true
   if (entryParams.get('lined')) cfg.lined = true
   if (entryParams.get('interfaced')) cfg.interfaced = true
+  if (entryParams.get('wet')) cfg.wet = true
   if (entryParams.get('waistband')) cfg.waistband = true
   if (entryParams.get('facing')) cfg.facing = true
   if (entryParams.get('drawstring')) cfg.drawstring = true

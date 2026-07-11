@@ -50,6 +50,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     closure: l.closure,
     lined: l.lined,
     interfaced: l.interfaced,
+    wet: l.wet,
     waistband: l.waistband,
     facing: l.facing,
     drawstring: l.drawstring,
@@ -110,6 +111,8 @@ export interface GarmentLayerData {
   closure?: boolean
   lined?: boolean
   interfaced?: boolean
+  /** Waterlogged rain/swim look — heavier + limp physics + a wet glossy sheen. */
+  wet?: boolean
   waistband?: boolean
   facing?: boolean
   drawstring?: boolean
@@ -280,6 +283,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     closure: c.closure,
     lined: c.lined,
     interfaced: c.interfaced,
+    wet: c.wet,
     waistband: c.waistband,
     facing: c.facing,
     drawstring: c.drawstring,
@@ -334,6 +338,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     closure: d.closure,
     lined: d.lined,
     interfaced: d.interfaced,
+    wet: d.wet,
     waistband: d.waistband,
     facing: d.facing,
     drawstring: d.drawstring,
