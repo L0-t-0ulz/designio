@@ -38,7 +38,8 @@ Electron: `src/main` (window, native menu, CSP, `dialog:saveFile` IPC), `src/pre
 
 Renderer modules:
 - `core/` — `Viewport` (renderer + camera + OrbitControls + post-processing: **GTAO ambient occlusion**
-  (grounds the figure + darkens contact/fold areas), bloom, vignette, SMAA),
+  (grounds the figure + darkens contact/fold areas), bloom, vignette, SMAA; **selectable tone-mapping**
+  via `setToneMapping` + pure `tonemap.toneMappingMode` — ACES · AgX · Neutral · Filmic · Reinhard),
   `Environment` (IBL, key + rim rig, reflective floor + shadow-catcher; returns an `EnvironmentHandle`
   with `setLighting`/`setBackdrop` driven by `studioPresets` — **studio lighting presets** (Studio ·
   Softbox · Dramatic · High-key · Runway · Golden-hour: each an azimuth/elevation-described key + rims +
@@ -118,7 +119,9 @@ Renderer modules:
   beading / metallic foil** eveningwear finishes — pure `sparkleNormal` facet field + `sparkleParams`
   metallic recipe are unit-tested; `makeSparkleNormalMap` bakes the tiling glint normal map), `iridescent`
   (**iridescent / holographic / oil-slick** colour-shifting finishes — pure `iridescentParams` thin-film
-  recipe is unit-tested; the stack drives `MeshPhysicalMaterial.iridescence` per part), `quilt`
+  recipe + `iridescentThickness` swirl field are unit-tested; the stack drives
+  `MeshPhysicalMaterial.iridescence` per part + a baked `iridescenceThicknessMap` so the bands flow across
+  the surface), `quilt`
   (**channel / diamond / box quilting** — pure `quiltHeight` pillow-loft field + `quiltNormal` are
   unit-tested; `makeQuiltNormalMap` bakes the tiling loft normal map for puffers/jackets), `lace`
   (**sheer lace / broderie** — chantilly · geometric · fishnet alpha-cutout you can see through, with a
@@ -241,6 +244,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
 features — brows/eyes/lips) ·
 `?light=<studio|softbox|dramatic|high-key|runway|golden-hour>` (a studio lighting preset) ·
+`?tonemap=<aces|agx|neutral|filmic|reinhard>` (the final tone-mapping operator; default ACES) ·
 `?backdrop=<studio-grey|white|product-white|charcoal|black|blush|sky|transparent>` (a backdrop preset;
 **product-white** = flat white no-floor product sweep, **transparent** = no backdrop → the Render tab
 exports a PNG **with alpha**) · `?text=<print>`
