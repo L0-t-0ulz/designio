@@ -37,6 +37,8 @@ const EMPTY_ART: DesignArtInput = { color: 0xffffff, prints: [] }
 const RAISED_BUMP_SCALE = 6
 /** Default garment envMapIntensity (matches `createFabricMaterial`) — restored when a sparkle finish is cleared. */
 const FABRIC_ENV_INTENSITY = 1.1
+/** Outward trapped-air acceleration (m/s²) for a quilted puffer garment — lofts it off the body. */
+const PUFF_PRESSURE = 6
 
 const POCKET_LINE = new THREE.LineBasicMaterial({ color: 0x2c2c33 }) // topstitch outline
 /** Fit / tension heatmap surface — vertex-coloured strain (soft-lit so the form still reads). */
@@ -435,6 +437,9 @@ export class GarmentStack {
         m.needsUpdate = true
       }
     }
+    // Trapped-air loft — a quilted garment is a puffer: inflate it off the body so it
+    // stands proud instead of hanging flat (opt-in; plain garments get 0 = unchanged).
+    l.controller.setPressure(ql ? PUFF_PRESSURE : 0)
     l.material.needsUpdate = true
     l.backMaterial.needsUpdate = true
     this.applyPartMaterials(l)

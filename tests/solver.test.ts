@@ -5,6 +5,69 @@ import { fillFlatGrid } from '../src/renderer/cloth/ClothMesh'
 import { FABRICS } from '../src/renderer/cloth/fabricPresets'
 import { closestPointOnSegment, type Capsule } from '../src/renderer/avatar/colliders'
 
+describe('pressure loft (trapped-air puff)', () => {
+  it('inflates a closed tube outward (correct normal sign), stably', () => {
+    const nx = 16
+    const ny = 8
+    const R0 = 0.15
+    const pos = new Float32Array(nx * ny * 3)
+    for (let iy = 0; iy < ny; iy++) {
+      for (let ix = 0; ix < nx; ix++) {
+        const a = (ix / nx) * Math.PI * 2
+        const k = (iy * nx + ix) * 3
+        pos[k] = Math.cos(a) * R0
+        pos[k + 1] = 1.5 - iy * 0.05
+        pos[k + 2] = Math.sin(a) * R0
+      }
+    }
+    const params = { stretchCompliance: 3e-3, bendCompliance: 5e-3, mass: 0.3, damping: 0.8, friction: 0, aero: 0, color: 0 }
+    const solver = new XPBDSolver(nx, ny, pos, params, { pinned: [], wrapX: true })
+    solver.colliders = []
+    solver.gravity.set(0, 0, 0) // isolate the pressure
+    solver.pressure = 8
+    const meanRadius = (): number => {
+      let s = 0
+      for (let iy = 0; iy < ny; iy++) for (let ix = 0; ix < nx; ix++) { const k = (iy * nx + ix) * 3; s += Math.hypot(pos[k], pos[k + 2]) }
+      return s / (nx * ny)
+    }
+    const r0 = meanRadius()
+    for (let i = 0; i < 40; i++) solver.step(1 / 60)
+    const r1 = meanRadius()
+    expect(r1).toBeGreaterThan(r0) // lofted outward, not collapsed inward
+    expect(Number.isFinite(r1)).toBe(true)
+    expect(r1).toBeLessThan(R0 * 3) // capped by the stretch constraints — no runaway balloon
+  })
+
+  it('does nothing when pressure is 0 (opt-in, no regression)', () => {
+    const nx = 12
+    const ny = 6
+    const R0 = 0.15
+    const pos = new Float32Array(nx * ny * 3)
+    for (let iy = 0; iy < ny; iy++) {
+      for (let ix = 0; ix < nx; ix++) {
+        const a = (ix / nx) * Math.PI * 2
+        const k = (iy * nx + ix) * 3
+        pos[k] = Math.cos(a) * R0
+        pos[k + 1] = 1.5 - iy * 0.05
+        pos[k + 2] = Math.sin(a) * R0
+      }
+    }
+    const params = { stretchCompliance: 3e-3, bendCompliance: 5e-3, mass: 0.3, damping: 0.8, friction: 0, aero: 0, color: 0 }
+    const solver = new XPBDSolver(nx, ny, pos, params, { pinned: [], wrapX: true })
+    solver.colliders = []
+    solver.gravity.set(0, 0, 0)
+    // pressure stays 0
+    const meanRadius = (): number => {
+      let s = 0
+      for (let iy = 0; iy < ny; iy++) for (let ix = 0; ix < nx; ix++) { const k = (iy * nx + ix) * 3; s += Math.hypot(pos[k], pos[k + 2]) }
+      return s / (nx * ny)
+    }
+    const r0 = meanRadius()
+    for (let i = 0; i < 30; i++) solver.step(1 / 60)
+    expect(meanRadius()).toBeCloseTo(r0, 4) // unchanged
+  })
+})
+
 describe('contactNormalVelocity (inelastic contact)', () => {
   it('kills the inbound (into-surface) normal component', () => {
     expect(contactNormalVelocity(-2, 0.3)).toBe(0)
