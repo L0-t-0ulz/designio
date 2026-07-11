@@ -82,7 +82,7 @@ export interface GarmentState {
 }
 
 export type DesignMode = 'templates' | 'pattern'
-export type ExportFormat = 'glb' | 'usdz' | 'obj' | 'svg' | 'dxf' | 'techpack' | 'json' | 'manufacture'
+export type ExportFormat = 'glb' | 'usdz' | 'obj' | 'svg' | 'dxf' | 'pattern-tiled' | 'techpack' | 'json' | 'manufacture'
 
 /** A placed print (logo/text) as shown in the Prints manager. */
 export interface PrintItem {

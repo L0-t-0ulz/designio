@@ -204,7 +204,11 @@ Renderer modules:
   pack), `cost` (**landed cost sheet**: pure `costRollup` (fabric yield × price + thread + trims + labour +
   overhead → cost/unit) + `estimateLabourMinutes`, with `estimatedFabricPrice` from the fabric library;
   unit-tested), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM + a
-  **cost sheet** + care & content + embedded flat patterns for the whole outfit), `patternExport` (sewn-pattern SVG/DXF),
+  **cost sheet** + care & content + embedded flat patterns for the whole outfit), `tiledPrint` (**tiled
+  print-to-scale**: pure `tilePlan` splits the pattern's mm layout into overlapping A4/Letter tiles;
+  `tiledPatternHTML` renders a print-CSS doc — an assembly map + one to-scale (mm) page per tile with corner
+  registration crosshairs + R·C labels, so a home sewer prints at 100% and tapes it together (File → Print
+  pattern — tiled A4); unit-tested), `patternExport` (sewn-pattern SVG/DXF),
   `patternImport` (**import a flat pattern** — `parsePatternDXF` reads a DXF's LWPOLYLINE panels
   (CUT/SEW/PRINT layers) back into panels + bounds, round-tripping the export; `importedPatternToSVG`
   previews them in the 2D pane via File → Import pattern; the pure parser is unit-tested), `techpack`, `save`.
