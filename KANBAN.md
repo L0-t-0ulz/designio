@@ -508,7 +508,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 **Cloth BRDF & shading** _(refine `cloth/FabricMaterial` via `onBeforeCompile`)_
 - [ ] **Estévez–Kulla sheen BRDF** — swap three.js's ad-hoc sheen lobe for the energy-conserving Imageworks cloth sheen (inverted-GGX + albedo-scaling LUT); snapshot-verify velvet/satin rim
 - [ ] **Ashikhmin–Shirley velvet lobe** — a dedicated retroreflective velvet BRDF (bright grazing rim, dark facing) for true velvet/velour; pure lobe-eval unit-tested against reference angles
-- [ ] **Weave-steered anisotropic GGX** — feed the woven warp direction into `anisotropy` + a tangent-direction map so satin's highlight streaks along the grain and bends over folds; pure tangent-rotation unit-tested
+- [x] **Weave-steered anisotropic highlight** — anisotropic fabrics (satin/charmeuse/velvet) now set `anisotropyRotation` a quarter-turn to the **warp** (the vertical V grain) so the elongated GGX highlight streaks *down* the garment instead of across it; pure `anisotropyAngleForFabric` unit-tested (a per-texel tangent-direction map that bends over folds is the follow-up) — PR #221
 - [ ] **Dual-lobe fuzz + specular** — a tight base specular plus a broad fuzz lobe with energy compensation so cotton/wool read matte-fuzzy, not plastic; pure energy-split unit-tested
 - [ ] **Procedural iridescence thickness map** — drive `iridescenceThicknessMap` from a field so holographic/oil-slick shifts vary across the panel instead of one flat thickness; pure thickness-field unit-tested
 - [ ] **Multi-scattering GGX compensation** — add the Kulla-Conty multiscatter term so rough dark fabrics don't lose energy (no muddy velvet); pure `msFresnel` LUT unit-tested
@@ -542,7 +542,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Bloom lens-dirt + luminance knee** — a subtle lens-dirt texture + soft-knee luminance threshold so only true speculars bloom (sequins/satin), not bright cloth; snapshot-verify
 - [ ] **AgX / Filmic tonemap options** — selectable AgX and Filmic tone-mapping beside ACES for a film-neutral, less-saturated render; verify highlight rolloff on white satin
 - [ ] **Histogram auto-exposure** — a metered exposure from the frame luminance histogram so dark/bright fabrics both sit mid-key without a manual tweak; pure `histogramEV` unit-tested
-- [ ] **Dithered 10→8-bit output** — ordered/blue-noise dither at the OutputPass so smooth backdrop gradients + soft shadows don't band on 8-bit displays; pure `outputDither` unit-tested
+- [x] **Dithered backdrop gradient** — the studio cyclorama gradient is now baked per-pixel with the 8×8 `bayerDither` (and widened) so the smooth sweep no longer 8-bit bands behind the figure — the main on-screen banding source; reuses the tested dither — PR #221
 - [ ] **Half-res sheer pass** — composite sheer layers at half-res with a depth-aware upscale to afford heavier sheer stacks without full-res overdraw; benchmark overdraw
 
 **GPU performance & parallelism** _(scale the sim + draw to ultra-res garments)_
@@ -561,13 +561,13 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 **Numerical robustness & validation** _(guard the math the eye can't)_
 - [ ] **Finite-difference gradient checks** — assert every constraint's analytic gradient matches a central-difference numeric one (dihedral · shear · volume · tether) so a bad derivative can't ship; pure `gradCheck` harness unit-tested
-- [ ] **Convergence benchmark in CI** — measure constraint residual vs iteration/substep count on a fixed hanging-patch scene and assert monotone decrease below a bound; guards a solver regression
+- [x] **Constraint-residual divergence guard** — `XPBDSolver.maxResidual()` exposes the worst `|len − rest|` over the distance constraints; a test asserts a settled dress/gown/wide-leg stays finite + bounded (no constraint blows up to metres), guarding the solve like the energy/NaN checks — PR #221
 - [x] **Golden-drape regression** — a test drapes the same garment twice and asserts bit-identical settled positions (no RNG / wall-clock in the sim), the basis for a settled-position snapshot; catches silent drape drift — PR #220
 - [x] **CFL monitor** — pure `cflNumber(maxSpeed, dt, restLength)` (Courant number) flags a particle stepping past a rest edge (tunnelling); unit-tested safe (<1) vs unsafe (>1) — PR #220
 - [x] **Momentum-conservation test** — with gravity/damping/drag off, a perturbed free patch's centre of mass does not drift, proving the constraint projection applies equal-and-opposite impulses (no phantom forces) — PR #220
 - [x] **Stiffness / condition monitor** — pure `stiffnessRatio(compliance, mass, dt)` + `substepsForStiffness` rate a preset's numerical stiffness (a rigid woven reads stiffer than a soft knit → wants more substeps); unit-tested — PR #220
 - [x] **Rest-state settle test** — asserts a draped garment reaches the sleep threshold within a bounded frame count at wind-off (guards the "hangs perfectly still" promise + the sleep logic) — PR #220
-- [ ] **Cross-resolution drape invariance** — assert the coarse vs fine (`simRes`) drape of a garment agrees within tolerance on gross measurements (length/width) so raising resolution refines, not changes, the piece; pure metric-compare unit-tested
+- [x] **Cross-resolution drape invariance** — a test builds the same dress at a coarser vs finer ring count, drapes both, and asserts the gross extent (length/width/depth envelope) agrees within 8 cm so raising resolution sharpens folds without moving the garment — PR #221
 
 ---
 

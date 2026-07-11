@@ -134,6 +134,17 @@ export function sheenRecipeFromFabric(fabric: Fabric): {
   }
 }
 
+/**
+ * Anisotropic-highlight rotation (radians) for a fabric — the elongated GGX highlight
+ * of a satin/charmeuse should streak along the **warp** (the vertical grain running
+ * down a garment, = the tube's V texture axis), not across it. three.js's default
+ * `anisotropyRotation` of 0 aligns the streak to the U (around-the-body) tangent, so
+ * anisotropic fabrics get a quarter-turn to the warp; isotropic ones stay at 0. Pure.
+ */
+export function anisotropyAngleForFabric(fabric: Fabric): number {
+  return fabric.anisotropy > 0 ? Math.PI / 2 : 0
+}
+
 export const FABRIC_LIBRARY: Fabric[] = [
   // ---- wovens (crisp → structured) ----
   { id: 'cotton-poplin', name: 'Cotton poplin', family: 'woven', gsm: 130, stretch: 0.04, bendiness: 0.42, friction: 0.5, color: 0xc85a54, roughness: 0.78, sheen: 0.7, sheenRoughness: 0.5, weave: 'plain', weaveScale: 220, normalStrength: 0.5, anisotropy: 0, transmission: 0 },

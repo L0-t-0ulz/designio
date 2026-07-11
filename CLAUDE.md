@@ -43,8 +43,8 @@ Renderer modules:
   with `setLighting`/`setBackdrop` driven by `studioPresets` — **studio lighting presets** (Studio ·
   Softbox · Dramatic · High-key · Runway · Golden-hour: each an azimuth/elevation-described key + rims +
   hemi + exposure, positioned by the pure, unit-tested `lampPosition`) + **backdrop presets** (Studio grey ·
-  White · Charcoal · Black · Blush · Sky cyclorama gradients; `black` hides the stage floor for a floating
-  shot)), `Loop` (fixed-timestep).
+  White · Charcoal · Black · Blush · Sky cyclorama gradients, baked per-pixel with `bayerDither` so the sweep
+  doesn't 8-bit band; `black` hides the stage floor for a floating shot)), `Loop` (fixed-timestep).
 - `avatar/` — `Mannequin` (poseable **and** resizable capsule skeleton; capsules are the cloth
   colliders — plus **visual-only shaping metaballs** for bust/pecs, deltoids, chest/back depth, knees; it
   exposes `anchors()` = torso/hip world frames garments pin to, and drives the GLB), `BodyMesh` (smooth
@@ -99,7 +99,8 @@ Renderer modules:
   still (any wind/body-move/edit wakes them).
 - `fabric/` — `FabricLibrary` (physical + visual fabrics; `fabricToSolverParams` derives drape; **per-family
   cloth-sheen** — pure `sheenRecipeFromFabric` maps the fabric family (muted woven · lustrous silk · soft
-  knit · velvet nap) to sheen + tint + sheenRoughness, unit-tested),
+  knit · velvet nap) to sheen + tint + sheenRoughness, + `anisotropyAngleForFabric` streaks a satin/silk's
+  anisotropic highlight along the warp (V grain); unit-tested),
   `weaveTexture` (procedural weave **normal + roughness** maps — yarn crowns glossier, valleys matte via the
   pure `weaveRoughness` field baked into a cached `roughnessMap`; **specular-AA** `toksvigRoughness` lifts the
   base roughness by the weave's normal strength so strong weaves don't shimmer at distance; pure math

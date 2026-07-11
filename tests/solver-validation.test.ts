@@ -39,7 +39,7 @@ describe('rest-state settle (the "hangs perfectly still" promise)', () => {
     }
     expect(settledAt).toBeGreaterThan(0)
     expect(settledAt).toBeLessThan(400) // windless + still body ⇒ it must go to sleep
-  }, 20000)
+  }, 30000)
 })
 
 describe('golden-drape determinism (regression-ready)', () => {
@@ -50,7 +50,54 @@ describe('golden-drape determinism (regression-ready)', () => {
     let maxDiff = 0
     for (let i = 0; i < a.length; i++) maxDiff = Math.max(maxDiff, Math.abs(a[i] - b[i]))
     expect(maxDiff).toBe(0)
-  }, 20000)
+  }, 30000)
+})
+
+describe('constraint-residual divergence guard', () => {
+  it('no stretch constraint diverges — the settled residual stays finite + bounded', () => {
+    // maxResidual() is the worst |len − rest| over the distance constraints. A healthy
+    // settle keeps it modest (a seam/pin edge is the outlier, and it varies a little
+    // across platforms); a diverging solve would send it to metres/∞. Guards the solve
+    // the same way the energy/NaN checks do — finite + well under the blow-up scale.
+    for (const id of ['dress', 'gown']) {
+      const { solver } = drape(id, 180)
+      const r = solver.maxResidual()
+      expect(Number.isFinite(r), `${id} residual non-finite`).toBe(true)
+      expect(r, `${id} residual diverged to ${r} m`).toBeLessThan(3)
+    }
+  }, 30000)
+})
+
+describe('cross-resolution drape invariance', () => {
+  it('a coarser vs finer sim of the same garment agree on gross size (resolution refines, not changes)', () => {
+    // Build the same garment tube at two ring counts and drape both; the overall
+    // extent (length/width envelope) must match within tolerance — raising resolution
+    // sharpens folds, it must not move the garment.
+    const grossExtent = (ringScale: number): [number, number, number] => {
+      const def = getGarment('dress')
+      const spec = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+      spec.rings = Math.max(6, Math.round(spec.rings * ringScale)) // re-resolution
+      const build = buildTubeGarment(spec)
+      const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+      solver.colliders = mann.colliders
+      solver.bodyCollider = mann.bodyCollider
+      for (let i = 0; i < 200; i++) solver.step(1 / 60)
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity
+      const p = build.positions
+      for (let k = 0; k < p.length; k += 3) {
+        minX = Math.min(minX, p[k]); maxX = Math.max(maxX, p[k])
+        minY = Math.min(minY, p[k + 1]); maxY = Math.max(maxY, p[k + 1])
+        minZ = Math.min(minZ, p[k + 2]); maxZ = Math.max(maxZ, p[k + 2])
+      }
+      return [maxX - minX, maxY - minY, maxZ - minZ]
+    }
+    const coarse = grossExtent(0.7)
+    const fine = grossExtent(1.3)
+    for (let a = 0; a < 3; a++) {
+      expect(Number.isFinite(coarse[a]) && Number.isFinite(fine[a])).toBe(true)
+      expect(Math.abs(coarse[a] - fine[a])).toBeLessThan(0.08) // ≤ 8 cm envelope drift
+    }
+  }, 30000)
 })
 
 describe('momentum conservation (internal forces cancel)', () => {

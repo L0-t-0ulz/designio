@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { type Fabric, sheenRecipeFromFabric } from '../fabric/FabricLibrary'
+import { type Fabric, sheenRecipeFromFabric, anisotropyAngleForFabric } from '../fabric/FabricLibrary'
 import { makeWeaveNormalMap, makeWeaveRoughnessMap, toksvigRoughness } from '../fabric/weaveTexture'
 
 /**
@@ -30,6 +30,7 @@ export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): vo
   mat.sheenRoughness = sh.sheenRoughness
   mat.sheenColor = new THREE.Color(fabric.color).offsetHSL(0, -sh.tintSat, sh.tintLift)
   mat.anisotropy = fabric.anisotropy
+  mat.anisotropyRotation = anisotropyAngleForFabric(fabric) // streak the highlight along the warp
   mat.transmission = fabric.transmission
   mat.thickness = fabric.transmission > 0 ? 0.5 : 0
 

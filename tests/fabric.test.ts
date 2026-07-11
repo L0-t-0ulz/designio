@@ -4,6 +4,7 @@ import {
   fabricToSolverParams,
   getFabric,
   sheenRecipeFromFabric,
+  anisotropyAngleForFabric,
   type Fabric
 } from '../src/renderer/fabric/FabricLibrary'
 import { weaveHeight, weaveNormal, weaveRoughness, toksvigRoughness } from '../src/renderer/fabric/weaveTexture'
@@ -175,6 +176,15 @@ describe('sheenRecipeFromFabric', () => {
       expect(r.sheenRoughness).toBeGreaterThanOrEqual(0)
       expect(r.sheenRoughness).toBeLessThanOrEqual(1)
     }
+  })
+})
+
+describe('anisotropyAngleForFabric', () => {
+  it('rotates an anisotropic fabric a quarter-turn to the warp; isotropic stays 0', () => {
+    expect(anisotropyAngleForFabric({ ...base, anisotropy: 0 })).toBe(0)
+    expect(anisotropyAngleForFabric({ ...base, anisotropy: 0.5 })).toBeCloseTo(Math.PI / 2, 10)
+    expect(anisotropyAngleForFabric(getFabric('silk-charmeuse'))).toBeCloseTo(Math.PI / 2, 10) // satin sheen streaks down the warp
+    expect(anisotropyAngleForFabric(getFabric('cotton-poplin'))).toBe(0) // isotropic weave
   })
 })
 
