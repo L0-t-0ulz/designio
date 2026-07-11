@@ -164,6 +164,16 @@ export function envIntensityForFabric(fabric: Fabric): number {
   return Math.max(0.7, Math.min(1.6, v))
 }
 
+/**
+ * A rough **wholesale price** estimate for a fabric, in USD per linear metre (at bolt
+ * width) — silks + specialty cost most, wovens least, and a heavier weight nudges it up.
+ * Used by the costing rollup; a placeholder until real supplier prices are wired. Pure. */
+export function estimatedFabricPrice(fabric: Fabric): number {
+  const base: Record<FabricFamily, number> = { woven: 9, silk: 24, knit: 13, specialty: 30 }
+  const weightFactor = 0.7 + 0.6 * Math.min(1, fabric.gsm / 400) // heavier ⇒ a touch pricier
+  return Math.round(base[fabric.family] * weightFactor * 100) / 100
+}
+
 export const FABRIC_LIBRARY: Fabric[] = [
   // ---- wovens (crisp → structured) ----
   { id: 'cotton-poplin', name: 'Cotton poplin', family: 'woven', gsm: 130, stretch: 0.04, bendiness: 0.42, friction: 0.5, color: 0xc85a54, roughness: 0.78, sheen: 0.7, sheenRoughness: 0.5, weave: 'plain', weaveScale: 220, normalStrength: 0.5, anisotropy: 0, transmission: 0 },

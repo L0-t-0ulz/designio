@@ -9,6 +9,7 @@ import type { GarmentMetrics } from './garmentMetrics'
 import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
 import { threadMetres } from './thread'
+import type { CostBreakdown } from './cost'
 import { careSymbolsSVG, type CareSymbol } from './careSymbols'
 import { escapeHtml as esc } from './html'
 
@@ -36,6 +37,8 @@ export interface ManufactureLayer {
   pom?: PomSheet
   /** Nested marker (fabric layout) for the realistic yield + efficiency. */
   marker?: MarkerLayout
+  /** Landed cost breakdown (fabric + thread + labour + overhead). */
+  cost?: CostBreakdown
   patternSVG: string
 }
 
@@ -94,6 +97,23 @@ function markerSection(m?: MarkerLayout): string {
     <div class="marker">${markerSVG(m)}</div>`
 }
 
+/** Landed-cost breakdown table (fabric + thread + trims + labour + overhead → cost/unit). */
+function costSection(c?: CostBreakdown): string {
+  if (!c) return ''
+  const usd = (v: number): string => `$${v.toFixed(2)}`
+  return `<h3>Cost sheet <span style="font-weight:400;opacity:.6">(estimate)</span></h3>
+        <table>
+          <tbody>
+            <tr><td>Fabric</td><td colspan="2">${usd(c.fabric)}</td></tr>
+            <tr><td>Thread</td><td colspan="2">${usd(c.thread)}</td></tr>
+            ${c.trims > 0 ? `<tr><td>Trims / notions</td><td colspan="2">${usd(c.trims)}</td></tr>` : ''}
+            <tr><td>Labour</td><td colspan="2">${usd(c.labour)}</td></tr>
+            <tr><td>Overhead / waste</td><td colspan="2">${usd(c.overhead)}</td></tr>
+            <tr><td><strong>Landed cost / unit</strong></td><td colspan="2"><strong>${usd(c.total)} ${c.currency}</strong></td></tr>
+          </tbody>
+        </table>`
+}
+
 function layerSection(l: ManufactureLayer): string {
   const lengthM = l.metrics.fabricM2 / FABRIC_WIDTH_M
   return `
@@ -125,6 +145,7 @@ function layerSection(l: ManufactureLayer): string {
             <tr><td>Thread (est., lockstitch)</td><td colspan="2">${threadMetres(l.metrics.seamCm).toFixed(1)} m</td></tr>
           </tbody>
         </table>
+        ${costSection(l.cost)}
         ${
           l.fibre || l.care
             ? `<h3>Care &amp; content</h3>
@@ -216,7 +237,8 @@ export function manufactureJSON(b: ManufactureBundle): string {
         yardage_m: +((l.marker ? l.marker.lengthCm / 100 : l.metrics.fabricM2 / FABRIC_WIDTH_M).toFixed(2)),
         marker_efficiency_pct: l.marker ? Math.round(l.marker.efficiency * 100) : null,
         seam_length_cm: l.metrics.seamCm,
-        thread_m: threadMetres(l.metrics.seamCm)
+        thread_m: threadMetres(l.metrics.seamCm),
+        cost: l.cost ?? null
       }))
     },
     null,
