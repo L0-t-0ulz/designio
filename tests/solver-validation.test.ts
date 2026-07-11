@@ -27,7 +27,7 @@ function buildDrape(id: string, opts: { ringScale?: number; radialScale?: number
   return { solver, positions: build.positions }
 }
 
-function drape(id: string, steps: number, opts: { ringScale?: number; friction?: number } = {}): { solver: XPBDSolver; positions: Float32Array } {
+function drape(id: string, steps: number, opts: { ringScale?: number; radialScale?: number; friction?: number } = {}): { solver: XPBDSolver; positions: Float32Array } {
   const d = buildDrape(id, opts)
   for (let i = 0; i < steps; i++) d.solver.step(1 / 60)
   return d
