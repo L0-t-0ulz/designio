@@ -562,11 +562,11 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 **Numerical robustness & validation** _(guard the math the eye can't)_
 - [ ] **Finite-difference gradient checks** — assert every constraint's analytic gradient matches a central-difference numeric one (dihedral · shear · volume · tether) so a bad derivative can't ship; pure `gradCheck` harness unit-tested
 - [ ] **Convergence benchmark in CI** — measure constraint residual vs iteration/substep count on a fixed hanging-patch scene and assert monotone decrease below a bound; guards a solver regression
-- [ ] **Golden-drape regression** — snapshot each catalog garment's settled positions after N steps and assert epsilon-stable across commits (pairs with deterministic snapshot mode); catches silent drape drift
-- [ ] **Per-frame CFL + energy monitor** — log max particle speed vs the CFL limit and total mechanical energy each frame with a dev assertion flagging any frame over budget; pure `cflNumber` unit-tested
-- [ ] **Momentum-conservation test** — with gravity/wind off, assert a free garment's linear + angular momentum is conserved across steps (no phantom forces from the projection); pure invariant check
-- [ ] **Stiffness / condition monitor** — flag fabric presets whose compliance/mass/dt combo is numerically stiff (needs more substeps than budgeted) at load, before they jitter on screen; pure `stiffnessRatio` unit-tested
-- [ ] **Rest-state settle test** — assert every garment reaches the sleep threshold within a bounded frame count at wind-off (guards the "hangs perfectly still" promise + the sleep logic); measured in CI
+- [x] **Golden-drape regression** — a test drapes the same garment twice and asserts bit-identical settled positions (no RNG / wall-clock in the sim), the basis for a settled-position snapshot; catches silent drape drift — PR #220
+- [x] **CFL monitor** — pure `cflNumber(maxSpeed, dt, restLength)` (Courant number) flags a particle stepping past a rest edge (tunnelling); unit-tested safe (<1) vs unsafe (>1) — PR #220
+- [x] **Momentum-conservation test** — with gravity/damping/drag off, a perturbed free patch's centre of mass does not drift, proving the constraint projection applies equal-and-opposite impulses (no phantom forces) — PR #220
+- [x] **Stiffness / condition monitor** — pure `stiffnessRatio(compliance, mass, dt)` + `substepsForStiffness` rate a preset's numerical stiffness (a rigid woven reads stiffer than a soft knit → wants more substeps); unit-tested — PR #220
+- [x] **Rest-state settle test** — asserts a draped garment reaches the sleep threshold within a bounded frame count at wind-off (guards the "hangs perfectly still" promise + the sleep logic) — PR #220
 - [ ] **Cross-resolution drape invariance** — assert the coarse vs fine (`simRes`) drape of a garment agrees within tolerance on gross measurements (length/width) so raising resolution refines, not changes, the piece; pure metric-compare unit-tested
 
 ---

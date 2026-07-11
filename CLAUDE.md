@@ -88,7 +88,10 @@ Renderer modules:
   `normals` (**angle-weighted vertex normals** — pure `angleWeightedNormals`/`computeAngleWeightedNormals`
   weight each face by its interior angle (Max) instead of area, so the adaptive remesh's uneven triangle
   sizes don't skew the shading; a drop-in for `computeVertexNormals` on the garment pieces, unit-tested),
-  `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `windPresets`
+  `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `diagnostics` (**pure solver diagnostics**
+  — `cflNumber` (Courant/tunnelling check), `stiffnessRatio`/`substepsForStiffness` (a preset's numerical
+  stiffness vs the timestep); unit-tested, + solver-validation tests: rest-state settle · golden-drape
+  determinism · momentum conservation), `windPresets`
   (**named wind presets** — still/breeze/gust/runway; pure `gustWind` pulse is unit-tested), `simQuality`
   (**dense-garment controls** — pure `simTube` scales a tube's radial/rings by a resolution, `qualityToSubsteps`
   maps the quality slider to solver substeps; unit-tested). Both
