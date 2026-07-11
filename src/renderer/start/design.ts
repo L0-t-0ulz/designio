@@ -41,6 +41,8 @@ export interface DesignConfig {
   interfaced?: boolean
   /** Waterlogged rain/swim look — physics (heavier + limp + clings) + a wet glossy sheen. */
   wet?: boolean
+  /** Trapped-air loft — inflate the garment off the body (a puffer), even without quilting. */
+  puff?: boolean
   waistband?: boolean
   facing?: boolean
   drawstring?: boolean

@@ -284,7 +284,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Body friction / cling** — high-grip knits cling to the body, slippery satin slides down + pools at the hem
 - [ ] **Weighted hems** — a heavier bottom ring so gowns/drapes hang plumb (chain-weight couture look)
 - [ ] **Seam pucker** — a slight gather right at the seams for a hand-finished read
-- [x] **Trapped-air puff (pressure loft)** — `XPBDSolver.pressure` adds an outward acceleration along each particle's surface normal (opt-in, capped by the stretch constraints so it's stable), and a **quilted** garment turns it on — a quilted coat now inflates into a real **puffer** that stands off the body instead of hanging flat; unit-tested (inflates outward + no-op at 0) — PR #225
+- [x] **Trapped-air puff (pressure loft)** — `XPBDSolver.pressure` adds an outward acceleration along each particle's surface normal (opt-in, capped by the stretch constraints so it's stable). A **quilted** garment turns it on, and a first-class **`?puff=1`** toggle (persisted, parallel to `wet`) lofts *any* garment — a quilted coat / a smooth bomber now inflates into a real **puffer** that stands off the body instead of hanging flat; unit-tested (inflates outward + no-op at 0, round-trips) — PR #225, #226
 - [ ] **Body wind occlusion** — the leeward side of the garment catches less wind than the windward side
 - [ ] **Spring pins** — a little give where garments pin to the shoulders/hips so they don't look glued on
 

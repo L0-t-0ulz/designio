@@ -437,9 +437,9 @@ export class GarmentStack {
         m.needsUpdate = true
       }
     }
-    // Trapped-air loft — a quilted garment is a puffer: inflate it off the body so it
-    // stands proud instead of hanging flat (opt-in; plain garments get 0 = unchanged).
-    l.controller.setPressure(ql ? PUFF_PRESSURE : 0)
+    // Trapped-air loft — a quilted garment (a puffer) or an explicit puff toggle inflates
+    // off the body so it stands proud instead of hanging flat (opt-in; else 0 = unchanged).
+    l.controller.setPressure(ql || l.data.puff ? PUFF_PRESSURE : 0)
     l.material.needsUpdate = true
     l.backMaterial.needsUpdate = true
     this.applyPartMaterials(l)

@@ -267,6 +267,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?lined/interfaced/waistband/facing/drawstring/ruffles/boning/ribbing/yoke/princess=1` (more construction detail) ·
 `?wet=1` (a **waterlogged rain/swim look** — heavier + limp + clinging drape via `wetParams` + a darker glossy sheen) ·
+`?puff=1` (**trapped-air loft** — inflate any garment off the body into a puffer via `XPBDSolver.pressure`; auto-on for a quilted garment) ·
 `?sleeveShape=<set-in|raglan|dolman|bishop|puff|bell>` · `?collarStyle=<…>` · `?pleatStyle=<knife|box|accordion|cartridge|gather>` ·
 `?pocketStyle=<…>` · `?frillStyle=<…>` · `?closureStyle=<button|zip>` (construction *style* pickers) ·
 `?embroidery=1` · `?applique=1` (raised print styles — same as `?prints=embroidery|applique`) ·
