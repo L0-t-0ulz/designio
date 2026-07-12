@@ -617,7 +617,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Cloth tearing** — seams rip once strain passes a fabric threshold (dramatic action shots)
 - [x] **Turbulent wind field** — the Storm preset: a deterministic noise field sampled per particle (`cloth/turbulence`, scaled by |wind| so Still stays still); classic presets byte-identical (`?wind=storm`) — PR #264
 - [x] **Walk-cycle library** — commercial (byte-compat default) · editorial · sport walk styles driving both body paths (`avatar/walkStyles`, Avatar panel, `?walk=`) — PR #266
-- [ ] **Slow-motion capture** — a high-substep fabric-flow clip at reduced playback speed
+- [x] **Slow-motion capture** — `Loop.setTimeScale(0.25)` while recording: full-resolution fixed steps at quarter playback = 4× temporal cloth detail (File → Record slow-motion clip) — PR #271
 - [ ] **Two-avatar scene** — a pair walking / interacting for a campaign shot
 
 **Rendering & output**
@@ -626,7 +626,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [x] **360° product viewer** — a self-contained drag-to-spin HTML sprite viewer (24 pre-rendered angles, autoplay + drag + arrows; File → Export 360° viewer) — PR #257 _(glb-based viewer later; USDZ AR export already covers 3D handoff)_
 - [x] **Multi-angle contact sheet** — 6 labelled angles around the current view composited into one 3×2 grid PNG (pure `contactViews`/`contactGrid`; File → Export contact sheet) — PR #256
 - [x] **Social video presets** — 9:16 / 1:1 / 4:5 turntable recordings via a centre-cropped offscreen recording canvas (`studio/socialPresets`, File menu variants) — PR #270
-- [ ] **Motion-blurred turntable** — a smooth spin video with real motion blur
+- [x] **Motion-blurred turntable** — accumulation-trail blur on the offscreen recording canvas (pure `trailAlpha`; composes with the social crops) — PR #271
 - [x] **Focus-pull on the Render tab** — a rack-focus toggle + slider (near → subject → far, exponential `core/focus`) re-rendering the still live — PR #269
 
 **Collaboration, catalog & business**
