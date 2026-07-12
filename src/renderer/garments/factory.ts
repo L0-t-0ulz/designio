@@ -50,10 +50,11 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
   const hemDrop = pc.hemDropHi + (pc.hemDropLo - pc.hemDropHi) * p.length - (p.hem ? 0.03 : 0) + (p.lengthGradeM ?? 0) // rolled hem = shorter; grade rules drop/raise the hem per size
   const hemY = Math.max(0.14, topY - hemDrop)
   const rTop = (pc.topR === 'chest' ? m.chestR : m.waistR) + p.ease
-  const hipBase = pc.botR === 'hip90' ? m.hipR * 0.9 : m.hipR
+  const hipBase = pc.botR === 'chest90' ? m.chestR * 0.9 : pc.botR === 'hip90' ? m.hipR * 0.9 : m.hipR
   const pleatBoost = p.pleats ? 0.07 : 0 // fuller, pleated hem
   const rBot = hipBase + p.ease + p.flare * (pc.flareScale ?? 1) + pleatBoost
-  const spec = piece(topY, hemY, rTop, rBot)
+  // short pieces (a bra band, a high-rise panel) get denser rings so they still drape
+  const spec = piece(topY, hemY, rTop, rBot, 0, RADIAL, topY - hemY < 0.4 ? 0.015 : 0.022)
   if (pc.neckline) {
     spec.neckline = p.collar ? 'crew' : (p.neckline ?? 'scoop') // a collar closes/raises the neck
     spec.shoulderY = m.shoulderY

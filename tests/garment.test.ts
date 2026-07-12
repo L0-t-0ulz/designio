@@ -186,6 +186,51 @@ describe('catalog additions — tapered bottoms + new silhouettes', () => {
   })
 })
 
+describe('activewear — sports bra · high-waist leggings · swimsuit', () => {
+  const withDefaults = (t: GarmentType): GarmentParams => ({ ...DEFAULT_PARAMS, ...getGarment(t).defaults })
+
+  it('registers the three garments in their categories with a stretch default fabric', () => {
+    expect(getGarment('sports-bra').category).toBe('top')
+    expect(getGarment('high-waist-leggings').category).toBe('bottom')
+    expect(getGarment('swimsuit').category).toBe('onepiece')
+    for (const id of ['sports-bra', 'high-waist-leggings', 'swimsuit'] as GarmentType[]) {
+      expect(getGarment(id).defaultFabric).toBe('spandex')
+    }
+  })
+
+  it('sports bra: a short band ending near the underbust (chest90), snugger than a tank', () => {
+    const bra = specs('sports-bra', withDefaults('sports-bra'))[0]
+    const tank = specs('tank', withDefaults('tank'))[0]
+    expect(bra.bottomY).toBeGreaterThan(tank.bottomY) // cropped well above a tank's hem
+    expect(bra.radiusBottom).toBeCloseTo(MEASUREMENTS.chestR * 0.9, 5) // underbust band, not a hip flare
+    expect(bra.radiusBottom).toBeLessThan(tank.radiusBottom)
+  })
+
+  it('high-waist leggings: a waist-anchored rise panel over two snug legs (3 tubes)', () => {
+    const tubes = specs('high-waist-leggings', withDefaults('high-waist-leggings'))
+    expect(tubes.length).toBe(3) // rise panel + 2 legs
+    const rise = tubes[0]
+    expect(rise.topY).toBeCloseTo(MEASUREMENTS.waistY, 5) // sits at the natural waist
+    expect(rise.bottomY).toBeLessThan(MEASUREMENTS.hipY) // overlaps past the hip — no gap to the legs
+    const legs = tubes.slice(1)
+    expect(legs[0].centerX).toBeLessThan(0)
+    expect(legs[1].centerX).toBeGreaterThan(0)
+    // second-skin: same zero-ease taper as classic leggings
+    expect(legs[0].radiusBottom).toBeCloseTo(specs('leggings', withDefaults('leggings'))[0].radiusBottom, 5)
+  })
+
+  it('swimsuit: one snug cinched tube from the shoulders past the hip — no trailing length', () => {
+    const suit = specs('swimsuit', withDefaults('swimsuit'))[0]
+    expect(suit.radiusWaist).toBeDefined() // hourglass cinch
+    expect(suit.bottomY).toBeLessThan(MEASUREMENTS.hipY)
+    expect(suit.bottomY).toBeGreaterThan(MEASUREMENTS.hipY - 0.25) // …but stops near the seat, not a dress
+    expect(getGarment('swimsuit').supports.length).toBeUndefined() // fixed hem — no length slider
+    // fixed drop: length has no effect
+    const long = specs('swimsuit', { ...withDefaults('swimsuit'), length: 1 })[0]
+    expect(long.bottomY).toBeCloseTo(suit.bottomY, 10)
+  })
+})
+
 describe('headTube (headwear / neckwear)', () => {
   const neckPiece: HeadTubePiece = { kind: 'headTube', anchor: 'neck', dropHi: 0.14, dropLo: 0.34, topScale: 1.6, botScale: 2.8 }
   const crownPiece: HeadTubePiece = { kind: 'headTube', anchor: 'crown', dropHi: 0.1, dropLo: 0.2, topScale: 0.5, botScale: 1.2 }
