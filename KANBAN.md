@@ -609,7 +609,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Size recommendation** — suggest a size from a customer's measurements + the garment's grade
 - [ ] **Per-customer fit profile** — a saved measurement set + fit map per person
 - [ ] **Asymmetric fit** — one shoulder/hip higher, a limb-length delta
-- [ ] **Posture presets** — slouch · athletic · swayback stances that reshape the fit
+- [x] **Posture presets** — athletic · slouch · swayback carriage layered on any pose; bends colliders + visual shaping + anchors in lock-step so garments re-drape onto the new carriage (`avatar/posture`, Avatar panel, `?posture=`) — PR #261
 - [ ] **Ease-by-zone editor** — set chest / waist / hip ease independently and see it drape
 
 **Animation & motion**
