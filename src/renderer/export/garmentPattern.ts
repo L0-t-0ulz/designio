@@ -575,8 +575,11 @@ export function panelsToSVG(res: PatternResult): string {
 }
 
 // ---- DXF ------------------------------------------------------------------
-export function panelsToDXF(res: PatternResult): string {
+export function panelsToDXF(res: PatternResult, opts: { aama?: boolean } = {}): string {
   const { panels, seam } = res
+  // AAMA/ASTM interchange layers (what Gerber · Lectra · Optitex import): 1 = piece
+  // boundary, 8 = internal lines/drawings. Default = the app's named CUT/SEW/PRINT.
+  const L = opts.aama ? { CUT: '1', SEW: '8', PRINT: '8' } : { CUT: 'CUT', SEW: 'SEW', PRINT: 'PRINT' }
   const lines: string[] = ['0', 'SECTION', '2', 'ENTITIES']
   const poly = (pts: Pt[], dx: number, layer: string): void => {
     lines.push('0', 'LWPOLYLINE', '8', layer, '90', String(pts.length), '70', '1')
@@ -587,8 +590,8 @@ export function panelsToDXF(res: PatternResult): string {
     const cut = cutLine(p.outline, seam)
     const cb = bounds(cut)
     const dx = x - cb.minX
-    poly(cut, dx, 'CUT')
-    poly(p.outline, dx, 'SEW')
+    poly(cut, dx, L.CUT)
+    poly(p.outline, dx, L.SEW)
     // print placement footprints (axis-aligned box in panel-local mm) on a PRINT layer
     for (const pp of res.prints ?? []) {
       if (pp.panel !== p.name) continue
@@ -602,7 +605,7 @@ export function panelsToDXF(res: PatternResult): string {
           { x: pp.cx - hw, y: pp.cy + hh }
         ],
         dx,
-        'PRINT'
+        L.PRINT
       )
     }
     x += cb.maxX - cb.minX + 30

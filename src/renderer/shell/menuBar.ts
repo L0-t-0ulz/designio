@@ -158,7 +158,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Export QC inspection sheet (HTML)', run: a.onQcSheet },
     { label: 'Export sample order (HTML)', run: a.onSampleOrder },
     { label: 'Batch render colourways (ZIP)', run: a.onBatchRender },
-    ex('manufacture', 'Export for manufacturing (HTML)')
+    ex('manufacture', 'Export for manufacturing (HTML)'),
+    ex('factory-json', 'Export factory pack (JSON · DXF-AAMA embedded)')
   ])
   menu('Edit', [
     { label: 'Undo', run: a.onUndo, enabled: a.canUndo },
