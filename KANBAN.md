@@ -590,9 +590,9 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Compression fit** — negative-ease garments that stretch taut over the body (second-skin activewear)
 - [ ] **Mesh / perforated panels** — alpha-cutout ventilation zones placed on a garment part
 - [ ] **Bonded / heat-sealed seams** — a no-stitch-line seam finish for performance wear
-- [ ] **Swimwear block** — lined, ruched, elastic-edged one- and two-piece
-- [ ] **Sports bra / bralette** — moulded cups + a racerback + an elastic underband
-- [ ] **High-waist leggings** — a compression waistband + a gusset panel
+- [x] **Swimwear block** — a snug hourglass-cinched one-piece (`swimsuit`, spandex compression fit; lining/boning supported) — PR #248 _(two-piece/ruching later)_
+- [x] **Sports bra / bralette** — an underbust band via `botR: 'chest90'` + ribbing as the elastic underband, cropped → longline by length (`sports-bra`) — PR #248 _(moulded cups/racerback later)_
+- [x] **High-waist leggings** — a waist-anchored high-rise panel over second-skin leg tubes + waistband detail (`high-waist-leggings`) — PR #248 _(gusset later)_
 
 **Fabrics & finishes**
 - [ ] **Metallic / lamé / foil** — a bright anisotropic metal-sheen fabric family
