@@ -144,7 +144,10 @@ Renderer modules:
   `heatmap` (**fit / tension heatmap** — pure `strainToColor` slack→blue→tight→red ramp is unit-tested;
   the stack bakes `XPBDSolver.strain` into mesh vertex colours so you see where a garment pulls; the same
   strain-view machinery also does `stress` — a **fabric-aware fit-failure** colouring, `stressThreshold`
-  scaling by the fabric's stretch so a stiff woven reds out sooner than a knit),
+  scaling by the fabric's stretch so a stiff woven reds out sooner than a knit — and `pressure` — the
+  **pressure / contact fit map**: pure `pressureColor` cold→hot ramp over `XPBDSolver.contactPressure`,
+  the per-frame body-collision push-out tallied in both collision paths + EMA-smoothed, so you see where
+  the garment actually **presses into** the body, distinct from strain),
   `wrinkle` (**strain-driven micro-wrinkles** — pure `wrinkleAmount` unit-tested; `installWrinkle` injects a
   crease-normal perturbation into the fabric shader scaled by an `aStrain` vertex attribute + **fold-valley
   cavity darkening** (pure `cavityFactor`) that shadows the diffuse in the compressed creases so folds read
@@ -292,6 +295,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` · `?sleeveBackFabric=<id>` (per-panel fabric — the body/leg/sleeve **back** panel) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?stress=1` (fit-failure viz) ·
+`?pressure=1` (pressure / contact fit map — where the garment presses into the body) ·
 `?wrinkles=1` (strain-driven micro-wrinkles) · `?wind=<still|breeze|gust|runway>` (wind preset) ·
 `?simRes=<coarse|normal|fine|ultra>&simQuality=<0..1>` (dense-garment resolution + solver quality) ·
 `?still=1` (freeze the start-page

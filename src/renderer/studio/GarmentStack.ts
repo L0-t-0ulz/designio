@@ -28,6 +28,7 @@ import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
+import { pressureColor } from '../fabric/pressure'
 import { wrinkleAmount, installWrinkle, uninstallWrinkle } from '../fabric/wrinkle'
 import { gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
 
@@ -1181,7 +1182,7 @@ export class GarmentStack {
     else this.applyPartMaterials(l)
     for (const { mesh } of l.controller.getPieces()) for (const c of mesh.children) if (c.userData.lining) c.visible = !on
     for (const c of l.decor.children) c.visible = !on
-    if (on) l.controller.updateHeatmap(this.layerColorFn(l))
+    if (on) l.controller.updateHeatmap(this.layerColorFn(l), this.strainSource())
   }
   rebuildAll(): void {
     for (const l of this.layers) this.rebuild(l)
@@ -1288,7 +1289,7 @@ export class GarmentStack {
   updateMeshes(): void {
     for (const l of this.layers) if (l.data.visible) l.controller.updateMeshes()
     for (const l of this.layers) if (l.data.visible && l.pockets.length) this.updatePockets(l)
-    if (this.strainView !== 'none') for (const l of this.layers) if (l.data.visible) l.controller.updateHeatmap(this.layerColorFn(l))
+    if (this.strainView !== 'none') for (const l of this.layers) if (l.data.visible) l.controller.updateHeatmap(this.layerColorFn(l), this.strainSource())
     if (this.wrinklesOn) for (const l of this.layers) if (l.data.visible) l.controller.updateWrinkle(wrinkleAmount)
   }
 
@@ -1308,17 +1309,24 @@ export class GarmentStack {
     return this.wrinklesOn
   }
 
-  // Strain overlay: a per-vertex colouring of the cloth by solver strain — either the
-  // fit heatmap (loose→tight) or the stress check (fit-failure). Mutually exclusive.
-  private strainView: 'none' | 'heatmap' | 'stress' = 'none'
+  // Strain overlay: a per-vertex colouring of the cloth by solver strain — the fit
+  // heatmap (loose→tight), the stress check (fit-failure) or the pressure map
+  // (body-contact force). Mutually exclusive.
+  private strainView: 'none' | 'heatmap' | 'stress' | 'pressure' = 'none'
   /** The strain→colour fn for a layer — stress is fabric-aware (a stretchy fabric reds
-   *  out at higher strain than a rigid one), the heatmap is a fixed tension ramp. */
+   *  out at higher strain than a rigid one), the heatmap is a fixed tension ramp, the
+   *  pressure map a cold→hot contact ramp. */
   private layerColorFn(l: StackLayer): (s: number) => [number, number, number] {
+    if (this.strainView === 'pressure') return pressureColor
     if (this.strainView !== 'stress') return strainToColor
     const T = stressThreshold(l.fabric.stretch)
     return (s) => stressColor(s, T)
   }
-  private setStrainView(mode: 'none' | 'heatmap' | 'stress'): void {
+  /** Which per-particle field the overlay bakes: contact push-out for the pressure map, strain otherwise. */
+  private strainSource(): 'strain' | 'contact' {
+    return this.strainView === 'pressure' ? 'contact' : 'strain'
+  }
+  private setStrainView(mode: 'none' | 'heatmap' | 'stress' | 'pressure'): void {
     this.strainView = mode
     for (const l of this.layers) this.applyStrainViewTo(l)
   }
@@ -1328,11 +1336,17 @@ export class GarmentStack {
   setStress(on: boolean): void {
     this.setStrainView(on ? 'stress' : 'none')
   }
+  setPressure(on: boolean): void {
+    this.setStrainView(on ? 'pressure' : 'none')
+  }
   get heatmap(): boolean {
     return this.strainView === 'heatmap'
   }
   get stress(): boolean {
     return this.strainView === 'stress'
+  }
+  get pressure(): boolean {
+    return this.strainView === 'pressure'
   }
   redrapeAll(): void {
     for (const l of this.layers) l.controller.redrape()

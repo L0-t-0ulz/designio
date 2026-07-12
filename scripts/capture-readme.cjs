@@ -58,6 +58,7 @@ const shots = [
   ['docs/backdrop.png', 6000, 'garment=dress&fabric=satin&backdrop=blush&start=0'],
   // Analysis & fit tools
   ['docs/heatmap.png', 6000, 'garment=dress&fabric=denim&heatmap=1&start=0'],
+  ['docs/pressure.png', 9000, 'garment=gown&fabric=satin&pressure=1&start=0'],
   ['docs/wrinkles.png', 6000, 'garment=dress&fabric=linen&wrinkles=1&start=0'],
   // Motion & shots
   ['docs/render-tab.png', 5000, 'garment=gown&fabric=satin&light=runway&view=render&start=0'],

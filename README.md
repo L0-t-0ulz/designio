@@ -79,7 +79,7 @@ If you are unsure whether something is allowed, **ask first.**
 | **Simulation** | XPBD cloth · mesh-accurate BVH body collision · cloth self/inter-collision · 4D motion · trapped-air puffer loft |
 | **Surface** | textiles · ombré · distressing · sequins · iridescence · quilting · lace · faux-fur · wet look · photo→PBR swatch |
 | **Customize** | skin tones · hair · face · body presets · lookbook poses · accessories · headwear & neckwear |
-| **Studio** | dockable CAD shell · 3D + 2D pattern + Render tabs · lighting & backdrop presets · fit heatmaps |
+| **Studio** | dockable CAD shell · 3D + 2D pattern + Render tabs · lighting & backdrop presets · fit / stress / pressure maps |
 | **Output** | glTF · OBJ · USDZ (AR) · SVG/DXF pattern · tech-pack · manufacturing pack · PNG stills · WebM clips |
 
 ---
@@ -145,9 +145,13 @@ duplicate · delete) above a **context-sensitive Property Editor** that switches
   + undertone** · **hair + colour** · **face** · **accessories, headwear & neckwear** toggles · **lookbook
   pose** · **animation** (idle/walk/turn) + speed.
 - **Scene** — **lighting preset** · **backdrop** · gravity · **wind preset** · exposure · and the **fit
-  heatmap / stress / wrinkles** view toggles.
+  heatmap / stress / pressure-map / wrinkles** view toggles.
 
 **The status bar** (bottom) — live **fps**, a **simulate / pause** toggle, and the working units.
+
+First time in? An **onboarding tour** walks you through it — a spotlight ring highlights each region
+(menu bar · Library · viewport · layers & properties · status bar) with a short explainer card. It runs
+once automatically and is always re-openable from **Help → Take the tour**.
 
 ---
 
@@ -182,7 +186,8 @@ the flat pattern (the panels reshape, the pattern notes the detail), and each ga
 details it actually supports:
 
 - **Collar** (raises/closes the neckline into a stand) with a **collar-style** picker, fitted **cuffs**,
-  **pleats** (knife · box · accordion · cartridge · gather) for a fuller, swishier hem, **darts** (a
+  **pleats** (knife · box · accordion · cartridge · gather · **shirring** — fine elastic gathers ·
+  **smocking** — a honeycomb diamond lattice) for a fuller, swishier hem, **darts** (a
   nipped, tailored waist), **patch pockets** (chest on tops, hips on skirts/trousers — topstitched in 3D,
   a pocket panel on the pattern), and a **rolled hem**.
 - A **front closure** on front-opening pieces (blouse · blazer · coat · hoodie …) — a centre-front placket
@@ -414,14 +419,17 @@ See how a garment actually fits:
   where a garment pulls.
 - **Fit-failure (stress) view** — fabric-aware colouring that reds out sooner on a stiff woven than a
   stretchy knit.
+- **Pressure / contact fit map** — a cold→hot ramp of where the garment actually **presses into the
+  body** (from the solver's real collision push-out): a hanging skirt reads blue, a snug bodice bearing
+  on the bust and waist reads yellow→red — real contact-force fit analysis, distinct from strain.
 - **Strain-driven micro-wrinkles** — a shader crease perturbation that nucleates real wrinkles where the
   cloth is under strain.
 - **Measure & annotate** — a tape-measure (click two points → a cm reading) and pinned notes, reprojected
   onto the live 3D each frame.
 
-| Fit / tension heatmap | Strain-driven micro-wrinkles |
-| --- | --- |
-| ![A dress with a fit/tension heatmap](docs/heatmap.png) | ![A dress with strain-driven micro-wrinkles](docs/wrinkles.png) |
+| Fit / tension heatmap | Pressure / contact fit map | Strain-driven micro-wrinkles |
+| --- | --- | --- |
+| ![A dress with a fit/tension heatmap](docs/heatmap.png) | ![A gown with a pressure/contact fit map](docs/pressure.png) | ![A dress with strain-driven micro-wrinkles](docs/wrinkles.png) |
 
 ---
 
@@ -442,6 +450,8 @@ still). Then bring it to life:
 - **Turntable** — one-click orbit → **WebM**.
 - **Shot sequencer** — a keyframe **timeline** for camera + avatar subject, eased and recorded to WebM.
 - **Runway line-up** — a collection shot of the garment across N colourways, composited into one PNG.
+- **Batch render** — one crisp PNG per saved colourway, bundled into a single **ZIP** (a ready-to-drop
+  lookbook set).
 
 | The avatar mid-stride, its dress moving with the walk | Chiffon caught in runway wind | A supersampled Render-tab still |
 | --- | --- | --- |
@@ -478,6 +488,7 @@ and sew it.
 | **Manufacturing pack (HTML + JSON)** | spec sheet + fabric BOM + care & content + marker + embedded patterns |
 | **PNG** | supersampled Render-tab stills (HD / 2K / 4K, optional alpha) |
 | **WebM** | turntable spins + timeline clips |
+| **ZIP** | batch render — one PNG per colourway (a lookbook set) |
 | **`.dio`** | the full editable project |
 
 ---
@@ -585,9 +596,10 @@ self/inter-collision** · **body-pinned garments** — the avatar **walks in pla
 **4D per-fabric secondary motion** · **trapped-air puffer loft** · **wet-look finish** · **PBR surface
 realism** (procedural weave roughness + per-family sheen + warp-aligned anisotropy + angle-weighted normals)
 · **lighting & backdrop presets** + **selectable tone-mapping** (ACES/AgX/Neutral/Filmic/Reinhard) · **fit
-heatmap / stress / wrinkles** ·
-**measure & annotate** · **timeline shot-sequencer · turntable · runway line-up** · **adaptive rendering** ·
-autosave + crash recovery · glTF/OBJ/**USDZ**/SVG/DXF/tech-pack/manufacturing-pack export · a
+heatmap / stress / pressure map / wrinkles** ·
+**measure & annotate** · **timeline shot-sequencer · turntable · runway line-up · batch render (ZIP)** ·
+**adaptive rendering** · autosave + crash recovery · an **onboarding tour** ·
+glTF/OBJ/**USDZ**/SVG/DXF/tech-pack/manufacturing-pack export · a
 production-grade, consistent UI.
 
 **Planned (in phases):** **tailored outerwear** (lapels, structured coats) · more garments and fabrics ·

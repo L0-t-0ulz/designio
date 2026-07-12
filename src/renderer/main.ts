@@ -767,6 +767,7 @@ function initStudio(
   else if (bodyRender === 'glb') mannequin.setBodyMode(true)
   if (params.get('heatmap') === '1') stack.setHeatmap(true)
   if (params.get('stress') === '1') stack.setStress(true)
+  if (params.get('pressure') === '1') stack.setPressure(true)
   if (params.get('wrinkles') === '1') stack.setWrinkles(true)
   const windParam = params.get('wind')
   if (windParam && WIND_PRESET_NAMES.includes(windParam)) {
@@ -1234,6 +1235,7 @@ function initStudio(
     onDrop: () => (mode === 'templates' ? stack.redrapeActive() : patternCtl?.resew()),
     heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
     stress: { get: () => stack.stress, set: (on) => stack.setStress(on) },
+    pressure: { get: () => stack.pressure, set: (on) => stack.setPressure(on) },
     wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },
     accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
     hair: {
