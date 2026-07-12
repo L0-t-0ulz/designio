@@ -60,6 +60,7 @@ import { bodyToMeasurements } from './avatar/measure'
 import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
 import { costRollup, estimateLabourMinutes } from './export/cost'
+import { circularScore, fibreGroup, garmentFootprint, longevityCare, materialPassport } from './export/sustainability'
 import { threadMetres } from './export/thread'
 import { drapedGirths } from './export/drapeFit'
 import { careLabel, careInstructions } from './export/careLabel'
@@ -192,6 +193,8 @@ function initStudio(
     princess: l0.princess,
     seam: l0.seam,
     notches: l0.notches,
+    recycledFabric: l0.recycledFabric,
+    deadstockFabric: l0.deadstockFabric,
     trim: l0.trim
   }
   const current: Fabric = { ...getFabric(l0.fabricId), color: l0.color }
@@ -335,6 +338,8 @@ function initStudio(
     garment.princess = l.data.princess
     garment.seam = l.data.seam
     garment.notches = l.data.notches
+    garment.recycledFabric = l.data.recycledFabric
+    garment.deadstockFabric = l.data.deadstockFabric
     garment.trim = l.data.trim
     Object.assign(current, l.fabric)
     api.refresh()
@@ -712,6 +717,8 @@ function initStudio(
     l.data.princess = garment.princess
     l.data.seam = garment.seam
     l.data.notches = garment.notches
+    l.data.recycledFabric = garment.recycledFabric
+    l.data.deadstockFabric = garment.deadstockFabric
     l.data.trim = garment.trim
     scheduleRebuild() // coalesced: the buffer copy above is synchronous, the rebuild runs once per frame
   }
@@ -1234,6 +1241,23 @@ function initStudio(
             labourMin: estimateLabourMinutes(metrics.seamCm),
             labourRate: 15
           }),
+          sustainability: (() => {
+            const mono = !l.data.partFabrics || Object.values(l.data.partFabrics).every((pf) => !pf || fibreGroup(getFabric(pf.fabricId)) === fibreGroup(l.fabric))
+            const passport = materialPassport(l.fabric, { monoMaterial: mono, recycled: l.data.recycledFabric, deadstock: l.data.deadstockFabric })
+            return {
+              passport,
+              footprint: garmentFootprint(l.fabric, metrics.fabricM2, { deadstock: l.data.deadstockFabric }),
+              circularScore: circularScore({
+                monoMaterial: mono,
+                recyclableGroup: passport.recyclable,
+                recycled: !!l.data.recycledFabric,
+                deadstock: !!l.data.deadstockFabric,
+                hasClosure: !!l.data.closure,
+                lined: !!l.data.lined || !!l.data.interfaced
+              }),
+              longevity: longevityCare(l.fabric)
+            }
+          })(),
           patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
         }
       })

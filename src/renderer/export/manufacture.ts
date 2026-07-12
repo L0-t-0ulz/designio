@@ -11,6 +11,7 @@ import { markerSVG, type MarkerLayout } from './marker'
 import { threadMetres } from './thread'
 import type { CostBreakdown } from './cost'
 import { careSymbolsSVG, type CareSymbol } from './careSymbols'
+import type { Footprint, MaterialPassport } from './sustainability'
 import { escapeHtml as esc } from './html'
 
 export interface ManufactureLayer {
@@ -39,6 +40,8 @@ export interface ManufactureLayer {
   marker?: MarkerLayout
   /** Landed cost breakdown (fabric + thread + labour + overhead). */
   cost?: CostBreakdown
+  /** Sustainability: material passport + footprint + circular score + longevity tips. */
+  sustainability?: { passport: MaterialPassport; footprint: Footprint; circularScore: number; longevity: string[] }
   patternSVG: string
 }
 
@@ -114,6 +117,22 @@ function costSection(c?: CostBreakdown): string {
         </table>`
 }
 
+function sustainabilitySection(su?: ManufactureLayer['sustainability']): string {
+  if (!su) return ''
+  const flags = [su.passport.recycled && 'recycled', su.passport.deadstock && 'deadstock', su.passport.monoMaterial && 'mono-material', su.passport.recyclable && 'recyclable fibre'].filter(Boolean).join(' · ')
+  return `<h3>Sustainability <span style="font-weight:400;opacity:.6">(estimate)</span></h3>
+        <table>
+          <tbody>
+            <tr><td>Material passport</td><td colspan="2">${esc(su.passport.fibre)} (${esc(su.passport.group)})${flags ? ' · ' + esc(flags) : ''}</td></tr>
+            <tr><td>Fabric mass</td><td colspan="2">${su.footprint.massKg.toFixed(2)} kg</td></tr>
+            <tr><td>Water footprint</td><td colspan="2">≈ ${su.footprint.waterL.toLocaleString()} L</td></tr>
+            <tr><td>CO₂ footprint</td><td colspan="2">≈ ${su.footprint.co2Kg.toFixed(1)} kg CO₂e</td></tr>
+            <tr><td>Circular-design score</td><td colspan="2">${su.circularScore} / 100</td></tr>
+            ${su.longevity.map((t) => `<tr><td>Longevity</td><td colspan="2">${esc(t)}</td></tr>`).join('')}
+          </tbody>
+        </table>`
+}
+
 function layerSection(l: ManufactureLayer): string {
   const lengthM = l.metrics.fabricM2 / FABRIC_WIDTH_M
   return `
@@ -146,6 +165,7 @@ function layerSection(l: ManufactureLayer): string {
           </tbody>
         </table>
         ${costSection(l.cost)}
+        ${sustainabilitySection(l.sustainability)}
         ${
           l.fibre || l.care
             ? `<h3>Care &amp; content</h3>

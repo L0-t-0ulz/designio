@@ -90,6 +90,8 @@ export interface GarmentState {
   princess?: boolean
   seam?: number
   notches?: boolean
+  recycledFabric?: boolean
+  deadstockFabric?: boolean
   trim?: boolean
 }
 
@@ -1435,7 +1437,10 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const production = section('Production', true)
   production.body.append(
     track(slider({ label: 'Seam allowance', min: 0, max: 25, step: 1, fine: 0.5, format: (v) => `${v | 0} mm`, get: () => garment.seam ?? 10, set: (v) => { garment.seam = v; opts.onGarmentEdit() } })),
-    track(toggle({ label: 'Pattern notches', get: () => garment.notches !== false, set: (v) => { garment.notches = v; opts.onGarmentEdit() } }))
+    track(toggle({ label: 'Pattern notches', get: () => garment.notches !== false, set: (v) => { garment.notches = v; opts.onGarmentEdit() } })),
+    // eco-material flags — flow into the material passport / footprint / circular score
+    track(toggle({ label: 'Recycled fabric', get: () => !!garment.recycledFabric, set: (v) => { garment.recycledFabric = v || undefined; opts.onGarmentEdit() } })),
+    track(toggle({ label: 'Deadstock fabric', get: () => !!garment.deadstockFabric, set: (v) => { garment.deadstockFabric = v || undefined; opts.onGarmentEdit() } }))
   )
   const cloth = section('Fabric physics', true)
   cloth.body.append(

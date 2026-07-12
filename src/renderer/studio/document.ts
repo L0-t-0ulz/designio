@@ -179,6 +179,9 @@ export interface GarmentLayerData {
   ribbing?: boolean
   yoke?: boolean
   princess?: boolean
+  /** Eco-material flags — recycled-content or deadstock fabric (sustainability pack). */
+  recycledFabric?: boolean
+  deadstockFabric?: boolean
   /** Seam allowance (mm) + notches — pattern/production. */
   seam?: number
   notches?: boolean
