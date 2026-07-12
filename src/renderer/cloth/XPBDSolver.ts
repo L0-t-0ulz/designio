@@ -65,6 +65,11 @@ export class XPBDSolver {
   wind = new THREE.Vector3(0, 0, 0)
   /** Turbulent wind: 0 = uniform vector, 1 = full swirling noise field (scaled by |wind|). */
   turbulence = 0
+  /** Cloth tearing: 0 = off; else the strain fraction past which a constraint rips
+   *  (fabric-aware — the stack sets it from the fabric's stress threshold). */
+  tearThreshold = 0
+  /** Called with the particle pairs of constraints that just ripped (mesh drops the quads). */
+  onTear: ((pairs: Array<[number, number]>) => void) | null = null
   /** Trapped-air pressure — an outward acceleration (m/s²) along each particle's
    *  surface normal, so a quilted/puffer panel or a puff sleeve **lofts** off the body
    *  instead of hanging flat. 0 = off (the default); the stretch constraints cap how
@@ -517,7 +522,26 @@ export class XPBDSolver {
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
     if (this.bodyCollider?.ready) this.solveBody()
     this.smoothContact()
+    if (this.tearThreshold > 0) this.tearPass()
     this.updateRest()
+  }
+
+  /** Rip any constraint strained past the tear threshold (once per frame): remove it
+   *  from the solve + report the pairs so the mesh can drop the bordering quads. */
+  private tearPass(): void {
+    let torn: Array<[number, number]> | null = null
+    const keep: Constraint[] = []
+    for (const con of this.constraints) {
+      if (con.rest > 1e-9 && (this.restLength(con.i, con.j) - con.rest) / con.rest > this.tearThreshold) {
+        ;(torn ??= []).push([con.i, con.j])
+        continue
+      }
+      keep.push(con)
+    }
+    if (!torn) return
+    this.constraints = keep
+    this.wake() // the freed edges spring back — keep simulating
+    this.onTear?.(torn)
   }
 
   /** EMA the frame's contact tally into the display buffer (sleep freezes the last frame's map). */
