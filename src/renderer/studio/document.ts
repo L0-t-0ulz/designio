@@ -76,6 +76,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     pleatStyle: l.pleatStyle,
     crease: l.crease,
     trouserBreak: l.trouserBreak,
+    fringe: l.fringe,
     dart: l.dart,
     pocket: l.pocket,
     pocketStyle: l.pocketStyle,
@@ -143,6 +144,8 @@ export interface GarmentLayerData {
   /** Pressed trouser crease + break (tailored trousers). */
   crease?: boolean
   trouserBreak?: boolean
+  /** Fringe trim — hanging strands along the bottom hem. */
+  fringe?: boolean
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle
@@ -322,6 +325,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     pleatStyle: c.pleatStyle,
     crease: c.crease,
     trouserBreak: c.trouserBreak,
+    fringe: c.fringe,
     dart: c.dart,
     pocket: c.pocket,
     pocketStyle: c.pocketStyle,

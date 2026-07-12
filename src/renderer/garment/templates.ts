@@ -48,6 +48,8 @@ export interface GarmentParams {
   crease?: boolean
   /** Trouser break — extra leg length that stacks/pools softly on the ankle. */
   trouserBreak?: boolean
+  /** Fringe trim — hanging strands along the bottom hem (western / flapper / shawl). */
+  fringe?: boolean
   /** Pleat/gather fold style when `pleats` is on (knife / box / accordion / cartridge / gather). */
   pleatStyle?: PleatStyle
   /** Waist darts — a more fitted, shaped waist + dart wedges on the pattern. */

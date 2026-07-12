@@ -45,6 +45,8 @@ export interface ConstructionCaps {
   crease?: boolean
   /** Trouser break — the hem stacks softly on the ankle. */
   trouserBreak?: boolean
+  /** Fringe trim along the bottom hem. */
+  fringe?: boolean
   dart?: boolean
   pocket?: boolean
   hem?: boolean
