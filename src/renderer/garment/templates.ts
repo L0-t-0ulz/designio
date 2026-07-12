@@ -50,6 +50,8 @@ export interface GarmentParams {
   trouserBreak?: boolean
   /** Fringe trim — hanging strands along the bottom hem (western / flapper / shawl). */
   fringe?: boolean
+  /** Piping — a corded contrast edge along the neckline + hem. */
+  piping?: boolean
   /** Pleat/gather fold style when `pleats` is on (knife / box / accordion / cartridge / gather). */
   pleatStyle?: PleatStyle
   /** Waist darts — a more fitted, shaped waist + dart wedges on the pattern. */

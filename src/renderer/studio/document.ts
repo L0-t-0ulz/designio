@@ -77,6 +77,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     crease: l.crease,
     trouserBreak: l.trouserBreak,
     fringe: l.fringe,
+    piping: l.piping,
     dart: l.dart,
     pocket: l.pocket,
     pocketStyle: l.pocketStyle,
@@ -146,6 +147,8 @@ export interface GarmentLayerData {
   trouserBreak?: boolean
   /** Fringe trim — hanging strands along the bottom hem. */
   fringe?: boolean
+  /** Piping — a corded contrast edge along the neckline + hem. */
+  piping?: boolean
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle
@@ -326,6 +329,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     crease: c.crease,
     trouserBreak: c.trouserBreak,
     fringe: c.fringe,
+    piping: c.piping,
     dart: c.dart,
     pocket: c.pocket,
     pocketStyle: c.pocketStyle,
