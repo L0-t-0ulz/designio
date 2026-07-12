@@ -49,10 +49,10 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
   const topY = pc.topAnchor === 'shoulder' ? m.shoulderY : m.waistY
   const hemDrop = pc.hemDropHi + (pc.hemDropLo - pc.hemDropHi) * p.length - (p.hem ? 0.03 : 0) + (p.lengthGradeM ?? 0) // rolled hem = shorter; grade rules drop/raise the hem per size
   const hemY = Math.max(0.14, topY - hemDrop)
-  const rTop = (pc.topR === 'chest' ? m.chestR : m.waistR) + p.ease
+  const rTop = pc.topR === 'chest' ? m.chestR + p.ease + (p.easeChest ?? 0) : m.waistR + p.ease + (p.easeWaist ?? 0)
   const hipBase = pc.botR === 'chest90' ? m.chestR * 0.9 : pc.botR === 'hip90' ? m.hipR * 0.9 : m.hipR
   const pleatBoost = p.pleats ? 0.07 : 0 // fuller, pleated hem
-  const rBot = hipBase + p.ease + p.flare * (pc.flareScale ?? 1) + pleatBoost
+  const rBot = hipBase + p.ease + (pc.botR === 'chest90' ? p.easeChest ?? 0 : p.easeHip ?? 0) + p.flare * (pc.flareScale ?? 1) + pleatBoost
   // short pieces (a bra band, a high-rise panel) get denser rings so they still drape
   const spec = piece(topY, hemY, rTop, rBot, 0, RADIAL, topY - hemY < 0.4 ? 0.015 : 0.022)
   if (pc.neckline) {
@@ -62,7 +62,7 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
   // Waist shaping: cinch by construction, or add darts for a fitted waist.
   if (pc.cinchWaist || p.dart) {
     const nip = p.dart ? 0.86 : 1 // darts pull the waist in further
-    spec.radiusWaist = m.waistR * nip + p.ease * (p.dart ? 0.4 : 0.6)
+    spec.radiusWaist = m.waistR * nip + p.ease * (p.dart ? 0.4 : 0.6) + (p.easeWaist ?? 0)
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.7)
   }
   if (p.pleats) spec.pleat = p.pleatStyle ?? 'knife'
@@ -70,7 +70,7 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
   if (p.closure && p.closureOpen && pc.neckline) spec.openFront = true
   // Boning cinches the waist hard (corset silhouette) — overrides any softer cinch.
   if (p.boning) {
-    spec.radiusWaist = m.waistR * 0.8 + p.ease * 0.25
+    spec.radiusWaist = m.waistR * 0.8 + p.ease * 0.25 + (p.easeWaist ?? 0)
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.72)
   }
   return spec
@@ -110,7 +110,7 @@ export function scarfToSpec(pc: ScarfPiece, p: GarmentParams, m: Measurements): 
 function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
   const breakDrop = p.trouserBreak ? 0.028 : 0 // break: the hem runs past the ankle and stacks softly
   const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY) + (p.hem ? 0.03 : 0) - (p.lengthGradeM ?? 0) - breakDrop // rolled hem = shorter leg; grade rules lengthen per size
-  const rTop = m.thighR + p.ease
+  const rTop = m.thighR + p.ease + (p.easeHip ?? 0) // the hip/seat zone governs the leg top
   const rBot = m.thighR * 0.6 + p.ease * 0.6 + p.flare * 0.4 + (p.pleats ? 0.05 : 0)
   const legs = [
     piece(m.hipY, hemY, rTop, rBot, -m.hipHalfX, 40),

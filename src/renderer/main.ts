@@ -152,6 +152,9 @@ function initStudio(
     type: l0.garmentType,
     length: l0.length,
     ease: l0.ease,
+    easeChest: l0.easeChest,
+    easeWaist: l0.easeWaist,
+    easeHip: l0.easeHip,
     flare: l0.flare,
     neckline: l0.neckline,
     sleeve: l0.sleeve,
@@ -292,6 +295,9 @@ function initStudio(
     garment.type = l.data.garmentType
     garment.length = l.data.length
     garment.ease = l.data.ease
+    garment.easeChest = l.data.easeChest
+    garment.easeWaist = l.data.easeWaist
+    garment.easeHip = l.data.easeHip
     garment.flare = l.data.flare
     garment.neckline = l.data.neckline
     garment.sleeve = l.data.sleeve
@@ -666,6 +672,9 @@ function initStudio(
     l.data.garmentType = garment.type
     l.data.length = garment.length
     l.data.ease = garment.ease
+    l.data.easeChest = garment.easeChest
+    l.data.easeWaist = garment.easeWaist
+    l.data.easeHip = garment.easeHip
     l.data.flare = garment.flare
     l.data.neckline = garment.neckline
     l.data.sleeve = garment.sleeve
@@ -1706,6 +1715,9 @@ function initStudio(
     l.data.garmentType = garment.type
     l.data.length = garment.length
     l.data.ease = garment.ease
+    l.data.easeChest = garment.easeChest
+    l.data.easeWaist = garment.easeWaist
+    l.data.easeHip = garment.easeHip
     l.data.flare = garment.flare
     l.data.neckline = garment.neckline
     l.data.sleeve = garment.sleeve
@@ -1862,6 +1874,10 @@ if (skipStart) {
   if (entryParams.get('hem')) cfg.hem = true
   if (entryParams.get('closure')) cfg.closure = true
   if (entryParams.get('crease')) cfg.crease = true
+  for (const [q, k] of [['easeChest', 'easeChest'], ['easeWaist', 'easeWaist'], ['easeHip', 'easeHip']] as const) {
+    const v = entryParams.get(q)
+    if (v && Number.isFinite(+v)) cfg[k] = +v / 100 // cm in the URL → metres
+  }
   if (entryParams.get('fringe')) cfg.fringe = true
   if (entryParams.get('piping')) cfg.piping = true
   if (entryParams.get('break')) cfg.trouserBreak = true

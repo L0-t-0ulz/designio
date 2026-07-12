@@ -20,6 +20,9 @@ export interface DesignConfig {
   color: number
   length: number
   ease: number
+  easeChest?: number
+  easeWaist?: number
+  easeHip?: number
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle

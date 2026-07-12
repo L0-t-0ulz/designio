@@ -51,6 +51,9 @@ export interface GarmentState {
   type: GarmentType
   length: number
   ease: number
+  easeChest?: number
+  easeWaist?: number
+  easeHip?: number
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
@@ -419,6 +422,12 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const lenS = slider({ label: 'Length', min: 0, max: 1, step: 0.01, fine: 0.005, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } })
   // min −3 cm = a compression fit: the garment is drafted smaller than the body and stretches over it
   const easeS = slider({ label: 'Looseness', min: -0.03, max: 0.12, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
+  // Ease by zone — chest/waist/hip offsets on top of the overall Looseness.
+  const zoneSlider = (label: string, key: 'easeChest' | 'easeWaist' | 'easeHip') =>
+    slider({ label, min: -0.02, max: 0.06, step: 0.002, fine: 0.001, format: (v) => `${(v * 100).toFixed(1)} cm`, get: () => garment[key] ?? 0, set: (v) => { garment[key] = v || undefined; opts.onGarmentEdit() } })
+  const easeChestS = zoneSlider('· chest zone', 'easeChest')
+  const easeWaistS = zoneSlider('· waist zone', 'easeWaist')
+  const easeHipS = zoneSlider('· hip zone', 'easeHip')
   const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
 
   // size grade (XS…XXL) — grades the garment girth
@@ -529,6 +538,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     gradeLenS.refresh()
     gradeSleeveS.refresh()
     refreshSizeHint()
+    easeChestS.refresh()
+    easeWaistS.refresh()
+    easeHipS.refresh()
   }
   function selectGarment(id: string): void {
     garment.type = id
@@ -579,7 +591,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const openT = toggle({ label: 'Worn open', get: () => !!garment.closureOpen, set: (v) => { garment.closureOpen = v; syncGarment(); opts.onGarmentEdit() } })
   const detailRows = detailToggles.flatMap((d) => (d.key === 'closure' ? [d.t.row, openT.row] : [d.t.row]))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock)
   syncGarment()
 
   // ---- pattern (sew) ----
