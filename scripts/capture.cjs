@@ -21,6 +21,8 @@ app.whenReady().then(async () => {
     paintWhenInitiallyHidden: true,
     webPreferences: { preload: PRELOAD, sandbox: false, backgroundThrottling: false }
   })
+  // Fresh state per capture — no autosave "Recover?" banner or sticky toggles in snapshots.
+  await win.webContents.session.clearStorageData({ storages: ['localstorage'] })
   await win.loadFile(INDEX, SEARCH ? { search: SEARCH } : undefined)
   await new Promise((r) => setTimeout(r, WAIT)) // let the cloth fall & drape
   const image = await win.webContents.capturePage()

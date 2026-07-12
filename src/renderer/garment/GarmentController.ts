@@ -200,13 +200,15 @@ export class GarmentController {
   }
 
   private strainScratch: Float32Array | null = null
-  /** Bake each piece's cloth **strain** into its geometry vertex colours (fit heatmap). */
-  updateHeatmap(colorFn: (strain: number) => [number, number, number]): void {
+  /** Bake each piece's cloth **strain** (or body-**contact pressure**) into its geometry
+   *  vertex colours (fit heatmap / stress check / pressure map). */
+  updateHeatmap(colorFn: (strain: number) => [number, number, number], source: 'strain' | 'contact' = 'strain'): void {
     for (const p of this.pieces) {
       const n = p.solver.count
       if (!this.strainScratch || this.strainScratch.length < n) this.strainScratch = new Float32Array(n)
       const strain = this.strainScratch
-      p.solver.strain(strain)
+      if (source === 'contact') p.solver.contactPressure(strain)
+      else p.solver.strain(strain)
       let attr = p.geometry.getAttribute('color') as THREE.BufferAttribute | undefined
       if (!attr || attr.count !== n) {
         attr = new THREE.BufferAttribute(new Float32Array(n * 3), 3)

@@ -302,6 +302,26 @@ export class XPBDSolver {
     return moved
   }
 
+  // ---- body-contact pressure (for the pressure / contact fit map) ----
+  private contactAcc: Float32Array | null = null // push-out accumulated this frame (m)
+  private contactSm: Float32Array | null = null // EMA-smoothed across frames (display)
+  /**
+   * Per-particle **body-contact pressure** into `out` (length ≥ `count`): the collision
+   * push-out distance (m) accumulated over the last stepped frame, EMA-smoothed. A
+   * particle hanging free reads 0; one resting on the body reads small (gravity re-pushes
+   * it each substep); one a tight garment squeezes into the body reads large — a real
+   * contact-force proxy, distinct from `strain` (which is in-plane stretch).
+   */
+  contactPressure(out: Float32Array): void {
+    const sm = this.contactSm
+    const n = this.count
+    if (!sm) {
+      for (let k = 0; k < n; k++) out[k] = 0
+      return
+    }
+    for (let k = 0; k < n; k++) out[k] = sm[k]
+  }
+
   private strainCounts: Float32Array | null = null
   /**
    * Per-particle signed **strain** into `out` (length ≥ `count`): the average over
@@ -462,12 +482,21 @@ export class XPBDSolver {
       return
     }
     this.stepped = true
+    ;(this.contactAcc ??= new Float32Array(this.count)).fill(0) // fresh contact tally per stepped frame
 
     if (this.params.aero > 0 || this.pressure > 0) this.computeNormals() // once per frame, reused across substeps + pressure
     const sub = dt / this.substeps
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
     if (this.bodyCollider?.ready) this.solveBody()
+    this.smoothContact()
     this.updateRest()
+  }
+
+  /** EMA the frame's contact tally into the display buffer (sleep freezes the last frame's map). */
+  private smoothContact(): void {
+    const acc = this.contactAcc!
+    const sm = (this.contactSm ??= new Float32Array(this.count))
+    for (let k = 0; k < this.count; k++) sm[k] += (acc[k] - sm[k]) * 0.25
   }
 
   /** Per-particle unit surface normals from the grid neighbours (for aero drag). */
@@ -515,6 +544,7 @@ export class XPBDSolver {
     const skin = this.bodySkin
     const keep = 1 - this.params.friction // grippy fabric grips the body; slippery slides
     const out = this._bodyOut
+    const contact = this.contactAcc
     for (let k = 0; k < count; k++) {
       if (im[k] === 0) continue
       const i = k * 3
@@ -531,6 +561,7 @@ export class XPBDSolver {
       let ny = r.y - py
       let nz = r.z - pz
       const l = Math.hypot(nx, ny, nz)
+      if (contact) contact[k] += l // tally the push-out for the pressure map
       if (l > 1e-8) {
         nx /= l
         ny /= l
@@ -710,6 +741,7 @@ export class XPBDSolver {
         pos[i] += nx * pen
         pos[i + 1] += ny * pen
         pos[i + 2] += nz * pen
+        if (this.contactAcc) this.contactAcc[k] += pen // tally for the pressure map
         this._p.set(pos[i], pos[i + 1], pos[i + 2])
 
         // split velocity into normal / tangential; kill inward normal, damp the
