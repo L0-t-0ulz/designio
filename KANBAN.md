@@ -145,7 +145,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Fold arrangement** — pre-fold collars / lapels / cuffs before simulating so structured pieces settle the right way
 
 **More design & construction**
-- [ ] **Gathers, shirring & smocking** — elastic-gathered panels + honeycomb smocking detail (3D + a gathered-strip pattern piece)
+- [x] **Gathers, shirring & smocking** — elastic-gathered panels + honeycomb smocking detail (3D + a gathered-strip pattern piece) — PR #242 (shirr + honeycomb smock pleat styles)
 - [ ] **Convertible details** — wrap-dress ties + drawcords that knot, so one garment styles multiple ways
 
 **More materials & finishes**
