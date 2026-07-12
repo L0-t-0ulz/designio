@@ -1,4 +1,5 @@
 import type { CameraPose } from './timeline'
+import { cropRect } from './socialPresets'
 
 /**
  * The camera pose at `t01` (0→1) of a turntable spin: the base pose with its
@@ -24,6 +25,8 @@ export interface TurntableOptions {
   seconds?: number
   fps?: number
   turns?: number
+  /** Crop the recording to a social aspect (e.g. 9:16); omit = the canvas's native frame. */
+  aspect?: { w: number; h: number }
 }
 
 /**
@@ -41,7 +44,21 @@ export function recordTurntable(
   const seconds = Math.max(1, opts.seconds ?? 6)
   const fps = opts.fps ?? 30
   const turns = opts.turns ?? 1
-  const stream = canvas.captureStream(fps)
+  // Social aspect: mirror each frame into an offscreen canvas cropped to the target
+  // shape and record THAT stream (the live viewport keeps its own frame).
+  let source = canvas
+  let mirror: (() => void) | null = null
+  if (opts.aspect) {
+    const crop = cropRect(canvas.width, canvas.height, opts.aspect.w, opts.aspect.h)
+    const off = document.createElement('canvas')
+    off.width = crop.w
+    off.height = crop.h
+    const ctx = off.getContext('2d')!
+    mirror = () => ctx.drawImage(canvas, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h)
+    mirror()
+    source = off
+  }
+  const stream = source.captureStream(fps)
   const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm'
   const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12_000_000 })
   const chunks: BlobPart[] = []
@@ -60,6 +77,7 @@ export function recordTurntable(
     const frame = (): void => {
       const t01 = Math.min(1, (performance.now() - start) / (seconds * 1000))
       apply(turntablePose(base, t01, turns))
+      mirror?.() // copy the freshly-applied frame into the cropped recording canvas
       if (t01 >= 1) {
         setTimeout(() => rec.state !== 'inactive' && rec.stop(), 120) // flush the tail, then stop
         return

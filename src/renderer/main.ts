@@ -48,6 +48,7 @@ import { DEFAULT_PATTERN } from './pattern/pattern'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordTurntable } from './studio/turntable'
+import { SOCIAL_PRESETS } from './studio/socialPresets'
 import { patternToSVG, patternToDXF } from './export/patternExport'
 import { garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
 import { tiledPatternHTML } from './export/tiledPrint'
@@ -953,19 +954,20 @@ function initStudio(
   // Record a one-click 360° turntable spin of the live view to a WebM clip.
   // Freeze OrbitControls' own auto-rotate + damping so the sweep is smooth, then
   // restore the framing afterwards.
-  function recordTurntableSpin(): void {
+  function recordTurntableSpin(presetName = 'native'): void {
     const controls = viewport.controls
     const wasAuto = controls.autoRotate
     const wasDamping = controls.enableDamping
     controls.autoRotate = false
     controls.enableDamping = false
     const base = viewport.getCameraPose()
-    recordTurntable(viewport.renderer.domElement, base, (p) => viewport.setCameraPose(p), { seconds: 6 })
+    const preset = SOCIAL_PRESETS.find((sp) => sp.name === presetName) ?? SOCIAL_PRESETS[0]
+    recordTurntable(viewport.renderer.domElement, base, (p) => viewport.setCameraPose(p), { seconds: 6, aspect: preset.aspect ?? undefined })
       .then((blob) => {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = 'designio-turntable.webm'
+        a.download = preset.aspect ? `designio-turntable-${preset.name}.webm` : 'designio-turntable.webm'
         a.click()
         setTimeout(() => URL.revokeObjectURL(url), 8000)
       })
@@ -1317,6 +1319,7 @@ function initStudio(
     onImportPattern: () => void importPattern(),
     onExport: (fmt) => void doExport(fmt).catch(exportError),
     onRecordTurntable: recordTurntableSpin,
+    onRecordTurntableSocial: (name) => recordTurntableSpin(name),
     onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
     onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
     onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),
