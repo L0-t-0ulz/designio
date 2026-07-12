@@ -42,6 +42,10 @@ export interface ManufactureLayer {
   cost?: CostBreakdown
   /** Sustainability: material passport + footprint + circular score + longevity tips. */
   sustainability?: { passport: MaterialPassport; footprint: Footprint; circularScore: number; longevity: string[] }
+  /** Sourcing estimate for the body fabric (supplier profile + lead time). */
+  supplier?: { source: string; leadWeeksMin: number; leadWeeksMax: number }
+  /** Flat pattern in DXF-AAMA layers for the factory pack (CAD import). */
+  patternDxfAama?: string
   patternSVG: string
 }
 
@@ -150,6 +154,7 @@ function layerSection(l: ManufactureLayer): string {
         <table>
           <tbody>
             <tr><td>Fabric (body)</td><td colspan="2">${esc(l.fabricName)} · ${l.gsm} gsm</td></tr>
+            ${l.supplier ? `<tr><td>Sourcing (est.)</td><td colspan="2">${esc(l.supplier.source)} · ${l.supplier.leadWeeksMin}–${l.supplier.leadWeeksMax} wks</td></tr>` : ''}
             <tr><td>Colour</td><td colspan="2"><span class="dot" style="background:${hex(l.color)}"></span>${l.colorRef ? esc(l.colorRef) : hex(l.color)}</td></tr>
             ${(l.parts ?? []).map((p) => `<tr><td>Fabric (${esc(p.part)})</td><td colspan="2">${esc(p.fabric)}</td></tr>`).join('')}
             ${l.trim ? `<tr><td>Trim</td><td colspan="2">${esc(l.trim)}</td></tr>` : ''}

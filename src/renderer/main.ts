@@ -50,7 +50,7 @@ import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
 import { SOCIAL_PRESETS } from './studio/socialPresets'
 import { patternToSVG, patternToDXF } from './export/patternExport'
-import { garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
+import { panelsToDXF, garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
 import { tiledPatternHTML } from './export/tiledPrint'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
@@ -61,6 +61,8 @@ import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
 import { costRollup, estimateLabourMinutes } from './export/cost'
 import { circularScore, fibreGroup, garmentFootprint, longevityCare, materialPassport } from './export/sustainability'
+import { supplierFor } from './export/suppliers'
+import { factoryPackJSON } from './export/factoryPack'
 import { threadMetres } from './export/thread'
 import { drapedGirths } from './export/drapeFit'
 import { careLabel, careInstructions } from './export/careLabel'
@@ -956,6 +958,9 @@ function initStudio(
       case 'manufacture':
         await saveFile('manufacturing.html', manufactureHTML(manufactureBundle()), [{ name: 'HTML', extensions: ['html'] }])
         break
+      case 'factory-json':
+        await saveFile('factory-pack.json', factoryPackJSON(manufactureBundle()), [{ name: 'JSON', extensions: ['json'] }])
+        break
     }
   }
 
@@ -1258,6 +1263,8 @@ function initStudio(
               longevity: longevityCare(l.fabric)
             }
           })(),
+          supplier: supplierFor(l.fabric),
+          patternDxfAama: panelsToDXF(garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders), { aama: true }),
           patternSVG: garmentPatternSVG(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
         }
       })
