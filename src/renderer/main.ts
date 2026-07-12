@@ -32,6 +32,7 @@ import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPat
 import { lineupCells, lineupHues } from './studio/lineup'
 import { contactGrid, contactViews } from './studio/contactSheet'
 import { viewer360HTML } from './export/viewer360'
+import { lineSheetHTML } from './export/lineSheet'
 import { turntablePose } from './studio/turntable'
 import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
@@ -1055,6 +1056,43 @@ function initStudio(
     statusHandles?.setSelection(`360° viewer — ${FRAMES} frames`)
   }
 
+  // Line sheet — the printable wholesale one-pager: hero shot + fabric/fibre +
+  // colourway swatches + size run + key measurements + landed cost & pricing.
+  async function exportLineSheet(): Promise<void> {
+    const l = stack.active
+    const def = getGarment(l.data.garmentType)
+    const metrics = activeMetrics(l)
+    const marker = nestMarker(garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels, 140)
+    const cost = costRollup({
+      fabricM: marker ? marker.lengthCm / 100 : metrics.fabricM2 / 1.4,
+      pricePerM: estimatedFabricPrice(l.fabric),
+      threadM: threadMetres(metrics.seamCm),
+      labourMin: estimateLabourMinutes(metrics.seamCm),
+      labourRate: 15
+    })
+    const cw = stack.colorways()
+    const colourways = (cw.length ? cw.map((c) => c.color) : lineupHues(l.data.color, 4)).map((hex) => ({
+      hex: '#' + hex.toString(16).padStart(6, '0'),
+      label: colorRefLabel(hex)
+    }))
+    const html = lineSheetHTML({
+      name: def.name,
+      styleRef: projectName || 'Untitled',
+      hero: viewport.renderStill(900),
+      fabricName: l.fabric.name,
+      fibre: careLabel(l.fabric).fibre,
+      sizes: [...SIZES],
+      colourways,
+      specs: metrics.rows.slice(0, 6).map((r) => ({ label: r.label, cm: r.cm })),
+      landedCost: cost.total,
+      care: careLabel(l.fabric).care
+    })
+    const bytes = new TextEncoder().encode(html)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'line-sheet'
+    await saveFile(`${safe}-line-sheet.html`, bytes, [{ name: 'HTML document', extensions: ['html'] }])
+    statusHandles?.setSelection('Line sheet exported — print to PDF')
+  }
+
   // Batch render — one crisp PNG per colourway, bundled into a ZIP (a lookbook set,
   // vs. the line-up's single composite). Snapshots the live view per colourway.
   async function exportBatchRender(): Promise<void> {
@@ -1216,6 +1254,7 @@ function initStudio(
     onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
     onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
     onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),
+    onLineSheet: () => void exportLineSheet().catch((err) => showToast('Line sheet failed: ' + (err as Error).message, 'error')),
     onBatchRender: () => void exportBatchRender().catch((err) => showToast('Batch render failed: ' + (err as Error).message, 'error')),
     onUndo: undo,
     onRedo: redo,
