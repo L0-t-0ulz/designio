@@ -695,7 +695,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **BOM with suppliers + lead times** — sourceable materials, not just a list
 - [ ] **Sample-order generator** — a spec + quantity request for a sample run
 - [ ] **Production size-set exporter** — the graded run laid out for cutting
-- [ ] **QC spec sheet** — measurement points + tolerances for inspection
+- [x] **QC spec sheet** — measure-and-tick inspection sheet from the graded POM (spec ± tol, acceptance ranges, 5 sample cells, AQL note; File → Export QC inspection sheet) — PR #262
 
 **Retail & e-commerce**
 - [ ] **Storefront product page export** — images + 360° + a spec block
