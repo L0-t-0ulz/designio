@@ -47,7 +47,7 @@ import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
-import { recordTurntable } from './studio/turntable'
+import { recordClip, recordTurntable } from './studio/turntable'
 import { SOCIAL_PRESETS } from './studio/socialPresets'
 import { patternToSVG, patternToDXF } from './export/patternExport'
 import { garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
@@ -954,7 +954,7 @@ function initStudio(
   // Record a one-click 360° turntable spin of the live view to a WebM clip.
   // Freeze OrbitControls' own auto-rotate + damping so the sweep is smooth, then
   // restore the framing afterwards.
-  function recordTurntableSpin(presetName = 'native'): void {
+  function recordTurntableSpin(presetName = 'native', motionBlur = false): void {
     const controls = viewport.controls
     const wasAuto = controls.autoRotate
     const wasDamping = controls.enableDamping
@@ -962,12 +962,12 @@ function initStudio(
     controls.enableDamping = false
     const base = viewport.getCameraPose()
     const preset = SOCIAL_PRESETS.find((sp) => sp.name === presetName) ?? SOCIAL_PRESETS[0]
-    recordTurntable(viewport.renderer.domElement, base, (p) => viewport.setCameraPose(p), { seconds: 6, aspect: preset.aspect ?? undefined })
+    recordTurntable(viewport.renderer.domElement, base, (p) => viewport.setCameraPose(p), { seconds: 6, aspect: preset.aspect ?? undefined, motionBlur })
       .then((blob) => {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = preset.aspect ? `designio-turntable-${preset.name}.webm` : 'designio-turntable.webm'
+        a.download = motionBlur ? 'designio-turntable-blur.webm' : preset.aspect ? `designio-turntable-${preset.name}.webm` : 'designio-turntable.webm'
         a.click()
         setTimeout(() => URL.revokeObjectURL(url), 8000)
       })
@@ -1320,6 +1320,26 @@ function initStudio(
     onExport: (fmt) => void doExport(fmt).catch(exportError),
     onRecordTurntable: recordTurntableSpin,
     onRecordTurntableSocial: (name) => recordTurntableSpin(name),
+    onRecordTurntableBlur: () => recordTurntableSpin('native', true),
+    onRecordSlowMo: () => {
+      // quarter-speed sim while recording: 4× the temporal detail per played-back second
+      loop.setTimeScale(0.25)
+      statusHandles?.setSelection('Recording slow motion (0.25×)…')
+      void recordClip(viewport.renderer.domElement, 6)
+        .then((blob) => {
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = 'designio-slowmo.webm'
+          a.click()
+          setTimeout(() => URL.revokeObjectURL(url), 8000)
+        })
+        .catch((err) => showToast('Slow-mo record failed: ' + (err as Error).message, 'error'))
+        .finally(() => {
+          loop.setTimeScale(1)
+          statusHandles?.setSelection('Slow-motion clip saved')
+        })
+    },
     onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
     onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
     onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),

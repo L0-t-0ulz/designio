@@ -27,6 +27,14 @@ export interface TurntableOptions {
   turns?: number
   /** Crop the recording to a social aspect (e.g. 9:16); omit = the canvas's native frame. */
   aspect?: { w: number; h: number }
+  /** Accumulation motion blur — each frame blends over a fading trail of the previous ones. */
+  motionBlur?: boolean
+}
+
+/** The per-frame blend alpha for the accumulation trail: stronger blur = more of the
+ *  old frames survive (lower alpha). Clamped so the image always converges. */
+export function trailAlpha(strength = 0.5): number {
+  return Math.max(0.2, Math.min(1, 1 - 0.72 * Math.max(0, Math.min(1, strength))))
 }
 
 /**
@@ -35,6 +43,29 @@ export interface TurntableOptions {
  * `apply`, while a `MediaRecorder` captures the canvas stream. Browser-only — the
  * pure `turntablePose` above is what carries the unit-tested correctness.
  */
+/** Record the live canvas as-is for `seconds` (no camera move) — slow-motion clips
+ *  pair this with `Loop.setTimeScale`. Same recorder/bitrate as the turntable. */
+export function recordClip(canvas: HTMLCanvasElement, seconds: number, fps = 30): Promise<Blob> {
+  const stream = canvas.captureStream(fps)
+  const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm'
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12_000_000 })
+  const chunks: BlobPart[] = []
+  rec.ondataavailable = (e) => e.data.size > 0 && chunks.push(e.data)
+  const stopStream = (): void => stream.getTracks().forEach((t) => t.stop())
+  return new Promise<Blob>((resolve, reject) => {
+    rec.onstop = () => {
+      stopStream()
+      resolve(new Blob(chunks, { type: 'video/webm' }))
+    }
+    rec.onerror = () => {
+      stopStream()
+      reject(new Error('Recording failed'))
+    }
+    rec.start()
+    setTimeout(() => rec.state !== 'inactive' && rec.stop(), Math.max(1, seconds) * 1000)
+  })
+}
+
 export function recordTurntable(
   canvas: HTMLCanvasElement,
   base: CameraPose,
@@ -48,14 +79,19 @@ export function recordTurntable(
   // shape and record THAT stream (the live viewport keeps its own frame).
   let source = canvas
   let mirror: (() => void) | null = null
-  if (opts.aspect) {
-    const crop = cropRect(canvas.width, canvas.height, opts.aspect.w, opts.aspect.h)
+  if (opts.aspect || opts.motionBlur) {
+    const crop = opts.aspect ? cropRect(canvas.width, canvas.height, opts.aspect.w, opts.aspect.h) : { x: 0, y: 0, w: canvas.width, h: canvas.height }
     const off = document.createElement('canvas')
     off.width = crop.w
     off.height = crop.h
     const ctx = off.getContext('2d')!
-    mirror = () => ctx.drawImage(canvas, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h)
-    mirror()
+    const alpha = opts.motionBlur ? trailAlpha() : 1
+    mirror = () => {
+      ctx.globalAlpha = alpha // < 1 leaves a fading trail of the previous frames = motion blur
+      ctx.drawImage(canvas, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h)
+    }
+    ctx.globalAlpha = 1
+    ctx.drawImage(canvas, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h) // seed frame 0 solid
     source = off
   }
   const stream = source.captureStream(fps)
