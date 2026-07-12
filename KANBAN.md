@@ -135,7 +135,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 **Trims & notions** _(placed hardware, counted in the BOM)_
 - [ ] **Trims & notions library** — functional **zippers (teeth)**, snaps, rivets, eyelets, hook-&-bar, drawcords + elastic, placed on the garment and tallied into the manufacturing BOM
 - [ ] **Binding & elastic tape** — bias binding / elastic run along a chosen edge (neckline · armhole · waistband) that finishes + tightens it — CLO's "tape" tool
-- [ ] **Functional openings** — a button placket / zip that actually *opens* (the garment gaps at the closure), not just a drawn line
+- [x] **Functional openings** — a button placket / zip that actually *opens*: "Worn open" unsews the centre-front seam in mesh + physics (`openSeamColumn` slit + `XPBDSolver.cutSeam`) so the garment gaps and hangs open (`?open=1`) — PR #247
 
 **Fit & simulation tools** _(arrange, fit, analyse — the pro fitting workflow)_
 - [ ] **Pin · tack · freeze** — pin cloth to the avatar, tack two points together, freeze a region while arranging — the CLO staples for layout + fitting
