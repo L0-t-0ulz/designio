@@ -598,7 +598,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [x] **Metallic / lamé / foil** — `lame` fabric: `Fabric.metalness` (new field) + satin anisotropy reads as woven gold foil — PR #250
 - [x] **Neoprene / scuba** — `neoprene` fabric: 420 gsm spacer knit, bendiness 0.15 → sculptural stiff drape — PR #250
 - [x] **Sequin-base fabric** — `sequin-base`: part-metal cloth + paillette-scale normal relief; pairs with the sequins sparkle finish — PR #250
-- [ ] **Fringe / tassel / feather trim** — a hanging edge trim that simulates its own sway
+- [x] **Fringe / tassel / feather trim** — drape-following hem **fringe** on skirts + dresses (`garment/Fringe`, deterministic strand jitter, trim-coloured, `?fringe=1`) — PR #255 _(tassels/feathers + self-sway later)_
 - [ ] **Piping & corded edges** — a contrast-core piped seam/edge
 - [ ] **Digital print on the weave** — a photo print that follows the grain + distorts with the drape
 - [ ] **Thermochromic preview** — a colour-change fabric under a temperature slider
