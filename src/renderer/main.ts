@@ -35,6 +35,7 @@ import { contactGrid, contactViews } from './studio/contactSheet'
 import { viewer360HTML } from './export/viewer360'
 import { lineSheetHTML } from './export/lineSheet'
 import { qcSheetHTML } from './export/qcSheet'
+import { sampleOrderHTML } from './export/sampleOrder'
 import { turntablePose } from './studio/turntable'
 import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
@@ -1116,6 +1117,31 @@ function initStudio(
     statusHandles?.setSelection(`QC sheet — ${pom.rows.length} points @ ${l.data.size}`)
   }
 
+  // Sample order — the colourway × size quantity request for a sample run
+  // (pairs with the tech pack / QC sheet / line sheet).
+  async function exportSampleOrder(): Promise<void> {
+    const l = stack.active
+    const def = getGarment(l.data.garmentType)
+    const cw = stack.colorways()
+    const colourways = (cw.length ? cw.map((c) => c.color) : [l.data.color]).map((hex) => ({
+      hex: '#' + hex.toString(16).padStart(6, '0'),
+      label: colorRefLabel(hex)
+    }))
+    const html = sampleOrderHTML({
+      name: def.name,
+      styleRef: projectName || 'Untitled',
+      fabricName: l.fabric.name,
+      fibre: careLabel(l.fabric).fibre,
+      sizes: [...SIZES],
+      colourways,
+      baseSize: l.data.size
+    })
+    const bytes = new TextEncoder().encode(html)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'sample-order'
+    await saveFile(`${safe}-sample-order.html`, bytes, [{ name: 'HTML document', extensions: ['html'] }])
+    statusHandles?.setSelection(`Sample order — ${colourways.length} colourway(s)`)
+  }
+
   // Batch render — one crisp PNG per colourway, bundled into a ZIP (a lookbook set,
   // vs. the line-up's single composite). Snapshots the live view per colourway.
   async function exportBatchRender(): Promise<void> {
@@ -1279,6 +1305,7 @@ function initStudio(
     onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),
     onLineSheet: () => void exportLineSheet().catch((err) => showToast('Line sheet failed: ' + (err as Error).message, 'error')),
     onQcSheet: () => void exportQcSheet().catch((err) => showToast('QC sheet failed: ' + (err as Error).message, 'error')),
+    onSampleOrder: () => void exportSampleOrder().catch((err) => showToast('Sample order failed: ' + (err as Error).message, 'error')),
     onBatchRender: () => void exportBatchRender().catch((err) => showToast('Batch render failed: ' + (err as Error).message, 'error')),
     onUndo: undo,
     onRedo: redo,

@@ -39,6 +39,7 @@ export interface MenuActions {
   onViewer360: () => void
   onLineSheet: () => void
   onQcSheet: () => void
+  onSampleOrder: () => void
   onBatchRender: () => void
   onToggleLibrary: () => void
   onTogglePanel: () => void
@@ -147,6 +148,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Export 360° viewer (HTML)', run: a.onViewer360 },
     { label: 'Export line sheet (HTML)', run: a.onLineSheet },
     { label: 'Export QC inspection sheet (HTML)', run: a.onQcSheet },
+    { label: 'Export sample order (HTML)', run: a.onSampleOrder },
     { label: 'Batch render colourways (ZIP)', run: a.onBatchRender },
     ex('manufacture', 'Export for manufacturing (HTML)')
   ])
