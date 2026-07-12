@@ -694,7 +694,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [x] **Factory-format tech-pack** — one versioned machine JSON (`designio.factory-pack` v1) with the pattern embedded as DXF-AAMA (layer 1 boundary / 8 internals — the Gerber/Lectra/Optitex interchange) — PR #274
 - [x] **BOM with suppliers + lead times** — `supplierFor(fabric)` sourcing profiles + lead windows per fibre group, in the pack BOM + factory JSON — PR #274
 - [x] **Sample-order generator** — colourway × size qty grid + Proto/SMS/PPS stages + dates/ship-to/notes (File → Export sample order) — PR #263
-- [ ] **Production size-set exporter** — the graded run laid out for cutting
+- [x] **Production size-set exporter** — the graded pattern at every size (SVG+DXF per size, one ZIP) via the same gradeParams path (`export/sizeSet`) — PR #275
 - [x] **QC spec sheet** — measure-and-tick inspection sheet from the graded POM (spec ± tol, acceptance ranges, 5 sample cells, AQL note; File → Export QC inspection sheet) — PR #262
 
 **Retail & e-commerce**
