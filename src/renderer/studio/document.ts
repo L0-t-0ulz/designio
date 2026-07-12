@@ -63,6 +63,9 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     // floor at −3 cm: **compression fit** — a garment drafted smaller than the body
     // (activewear) stretches over it; the solver pushes it out, strain/pressure show it.
     ease: Math.max(-0.03, l.ease + gradeEase(l.size, rules)),
+    easeChest: l.easeChest,
+    easeWaist: l.easeWaist,
+    easeHip: l.easeHip,
     lengthGradeM: (step * rules.lengthCm) / 100 || 0, // `|| 0` normalises −0 (negative step × zero rule)
     sleeveGradeM: (step * rules.sleeveCm) / 100 || 0,
     flare: l.flare,
@@ -128,6 +131,10 @@ export interface GarmentLayerData {
   garmentType: GarmentType
   length: number
   ease: number
+  /** Per-zone ease offsets (m) on top of `ease`. */
+  easeChest?: number
+  easeWaist?: number
+  easeHip?: number
   flare: number
   neckline: NecklineStyle
   sleeve: SleeveStyle
@@ -316,6 +323,9 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     garmentType: c.garmentType,
     length: c.length,
     ease: c.ease,
+    easeChest: c.easeChest,
+    easeWaist: c.easeWaist,
+    easeHip: c.easeHip,
     flare: c.flare,
     neckline: c.neckline,
     sleeve: c.sleeve,

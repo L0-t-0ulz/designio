@@ -297,6 +297,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?sleeveShape=<set-in|raglan|dolman|bishop|puff|bell>` · `?collarStyle=<…>` · `?pleatStyle=<knife|box|accordion|cartridge|gather>` ·
 `?pocketStyle=<…>` · `?frillStyle=<…>` · `?closureStyle=<button|zip>` (construction *style* pickers) ·
 `?embroidery=1` · `?applique=1` (raised print styles — same as `?prints=embroidery|applique`) ·
+`?easeChest/easeWaist/easeHip=<cm>` (**ease by zone** — per-landmark ease on top of Looseness) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` · `?sleeveBackFabric=<id>` (per-panel fabric — the body/leg/sleeve **back** panel) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?stress=1` (fit-failure viz) ·

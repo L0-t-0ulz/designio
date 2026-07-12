@@ -23,6 +23,10 @@ export interface GarmentParams {
   length: number
   /** Looseness added to the body radius, in metres. */
   ease: number
+  /** Per-zone ease offsets (m) on top of `ease` — chest · waist · hip land on their own landmarks. */
+  easeChest?: number
+  easeWaist?: number
+  easeHip?: number
   /** Extra radius at the hem (A-line flare), in metres. */
   flare: number
   /** Size-grade length offset (m) — from the layer's grade rules; the factory drops/raises the hem by it. */
