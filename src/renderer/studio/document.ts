@@ -428,6 +428,7 @@ export function docFromConfig(c: DesignConfig, scene: SceneData = defaultScene()
 export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
   return {
     ...l,
+    gradeRules: l.gradeRules ? { ...l.gradeRules } : undefined, // own copy — never share nested state across layers
     partFabrics: clonePartFabrics(l.partFabrics),
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined,
     textile: l.textile,

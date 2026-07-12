@@ -7,8 +7,14 @@
 import { KEY_ACTIONS, captureBinding, formatBinding, keymap, matchBinding, rebind, resetKeymap, type KeyAction } from './keymap'
 
 let overlay: HTMLElement | null = null
+// The in-progress rebind recording's cleanup — run on overlay close so a capture
+// listener can't outlive the overlay (else the next keystroke anywhere would be
+// swallowed and silently rebind the action).
+let stopRecording: (() => void) | null = null
 
 function close(): void {
+  stopRecording?.()
+  stopRecording = null
   overlay?.remove()
   overlay = null
 }
@@ -91,11 +97,16 @@ export function toggleShortcuts(): void {
         rebind(def.id, b)
         done()
       }
-      const cleanup = (): void => document.removeEventListener('keydown', onCapture, true)
+      const cleanup = (): void => {
+        document.removeEventListener('keydown', onCapture, true)
+        stopRecording = null
+      }
       const done = (): void => {
         cleanup()
         syncChips()
       }
+      stopRecording?.() // cancel any other in-progress recording's listener
+      stopRecording = cleanup
       document.addEventListener('keydown', onCapture, true)
     })
   }

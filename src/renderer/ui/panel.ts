@@ -541,7 +541,16 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   ]
   const detailToggles = detailDefs.map(([label, key]) => ({
     key,
-    t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; syncGarment(); opts.onGarmentEdit() } })
+    t: toggle({
+      label,
+      get: () => !!garment[key],
+      set: (v) => {
+        garment[key] = v
+        if (key === 'closure' && !v) garment.closureOpen = false // no closure → nothing to wear open (else it pops open on re-enable)
+        syncGarment()
+        opts.onGarmentEdit()
+      }
+    })
   }))
   // Functional opening — wear the closure unbuttoned/unzipped: the centre-front seam
   // is really unsewn, so the garment gaps and hangs open. Shows only while Closure is on.
