@@ -366,6 +366,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Nearest-Pantone for every part** — production refs for trim/sleeve/back too
 
 **Library & editing UX** _(refine PRs #40 · #44 · #48 · #165)_
+- [x] **Version history / snapshots** — File → "Save version" snapshots the current doc into the project's history (capped, newest-first, survives save/parse); "Version history…" opens a panel to Restore or Delete a snapshot; pure `pushSnapshot` + the store API unit-tested — PR #238
 - [ ] **Garment browser filters** — by category / length / sleeve, like the fabric filters
 - [ ] **Global search** — garments + fabrics + colours + presets in one box
 - [ ] **Favourites / recents row** in the Library

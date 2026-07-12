@@ -65,7 +65,8 @@ import { FUR_KINDS, type FurKind } from './fabric/fur'
 import { colorRefLabel } from './fabric/namedColors'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
-import { loadProject, saveProjectRecord } from './studio/projectStore'
+import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restoreSnapshot, deleteSnapshot } from './studio/projectStore'
+import { openVersionHistory } from './ui/versionHistory'
 import { writeAutosave, readAutosave, clearAutosave, shouldOfferRestore, describeAge } from './studio/autosave'
 import { defaultConfig, newImagePrint, newTextPrint, type DesignConfig } from './start/design'
 import { GarmentStack, type PartId } from './studio/GarmentStack'
@@ -407,6 +408,33 @@ function initStudio(
     projectId = saveProjectRecord({ id: projectId ?? undefined, name: projectName, doc: currentDoc(), thumb: captureThumb() })
     clearAutosave() // work is saved — nothing to recover until the next edit
     statusHandles?.setSelection(`Saved “${projectName}”`)
+  }
+  /** Snapshot the current doc into the project's version history (saves first if new). */
+  function saveVersion(): void {
+    if (!projectId) saveProject()
+    if (!projectId) return // save was cancelled
+    snapshotProject(projectId, new Date().toLocaleString(), currentDoc())
+    showToast('Saved a version', 'success')
+  }
+  /** Open the version-history panel — restore or delete a saved snapshot. */
+  function openHistory(): void {
+    if (!projectId) {
+      showToast('Save the project first to keep versions', 'info')
+      return
+    }
+    const pid = projectId
+    openVersionHistory({
+      items: listSnapshots(pid),
+      onSaveVersion: saveVersion,
+      onRestore: (snapId) => {
+        const doc = restoreSnapshot(pid, snapId)
+        if (!doc) return
+        pushUndo()
+        applyDoc(doc)
+        showToast('Restored version', 'success')
+      },
+      onDelete: (snapId) => deleteSnapshot(pid, snapId)
+    })
   }
   // Autosave the working doc to localStorage (crash recovery). Best-effort + cheap.
   function autosaveNow(): void {
@@ -1047,6 +1075,8 @@ function initStudio(
     onNew: goHome,
     onProjects: goProjects,
     onSaveProject: saveProject,
+    onSaveVersion: saveVersion,
+    onVersionHistory: openHistory,
     onExportDio: () => void exportDio().catch(exportError),
     onOpenProject: () => void openProject(),
     onImportPattern: () => void importPattern(),
