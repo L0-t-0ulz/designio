@@ -69,6 +69,15 @@ describe('grade rules (per-point size grading)', () => {
     expect(chest.bySize.L - chest.bySize.M).toBeCloseTo(2 * Math.PI * RULES.girthCm * 0.0016 * 100, 1)
   })
 
+  it('POM: legs grade the same direction as the body — a length rule LENGTHENS the inseam', () => {
+    // regression: legTubeSpecs subtracts lengthGradeM from hemY (lower = longer) while
+    // bodyTubeToSpec adds it to hemDrop — opposite arithmetic, same direction.
+    const graded = pomTable(getGarment('pants'), { ...defaultLayer('pants'), gradeRules: RULES }, M, C)
+    const inseam = graded.rows.find((r) => r.label === 'Inseam')!
+    expect(inseam.bySize.L - inseam.bySize.M).toBeCloseTo(RULES.lengthCm, 1) // longer per size up
+    expect(inseam.bySize.XS - inseam.bySize.M).toBeCloseTo(-2 * RULES.lengthCm, 1) // shorter per size down
+  })
+
   it('round-trips through serialize/parse (.dio)', () => {
     const doc: ProjectDoc = {
       version: 1,
