@@ -28,6 +28,7 @@ import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import { MeasureTool, type MeasureMode } from './studio/MeasureTool'
 import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPattern } from './export/patternImport'
 import { lineupCells, lineupHues } from './studio/lineup'
+import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import type { NecklineStyle } from './cloth/Garment'
@@ -958,6 +959,31 @@ function initStudio(
     statusHandles?.setSelection(`Runway line-up — ${colors.length} looks`)
   }
 
+  // Batch render — one crisp PNG per colourway, bundled into a ZIP (a lookbook set,
+  // vs. the line-up's single composite). Snapshots the live view per colourway.
+  async function exportBatchRender(): Promise<void> {
+    const l = stack.active
+    const orig = l.data.color
+    const plan = batchRenderPlan(orig, stack.colorways().map((c) => ({ name: c.name, color: c.color })))
+    const files: Record<string, Uint8Array> = {}
+    for (const shot of plan) {
+      stack.setPart('body', { color: shot.color })
+      stack.updateMeshes()
+      const b64 = viewport.renderStill(900).split(',')[1] ?? ''
+      const bin = atob(b64)
+      const bytes = new Uint8Array(bin.length)
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+      files[shot.filename] = bytes
+    }
+    stack.setPart('body', { color: orig }) // restore the working design
+    stack.updateMeshes()
+    const { zipSync } = await import('fflate')
+    const zip = zipSync(files, { level: 0 }) // PNGs are already compressed → store, don't re-deflate
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'designio'
+    await saveFile(`${safe}-batch.zip`, zip, [{ name: 'ZIP archive', extensions: ['zip'] }])
+    statusHandles?.setSelection(`Batch render — ${plan.length} PNGs`)
+  }
+
   // The whole outfit as a manufacturing pack (spec + BOM + flat patterns per layer).
   function activeMetrics(l = stack.active): ReturnType<typeof garmentMetrics> {
     const def = getGarment(l.data.garmentType)
@@ -1086,6 +1112,7 @@ function initStudio(
     onExport: (fmt) => void doExport(fmt).catch(exportError),
     onRecordTurntable: recordTurntableSpin,
     onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
+    onBatchRender: () => void exportBatchRender().catch((err) => showToast('Batch render failed: ' + (err as Error).message, 'error')),
     onUndo: undo,
     onRedo: redo,
     onCut: cutGarment,
