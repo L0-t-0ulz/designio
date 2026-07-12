@@ -26,6 +26,17 @@ export class Loop {
     requestAnimationFrame(this.frame)
   }
 
+  // Simulation time-scale (slow motion): 1 = real time, 0.25 = quarter speed. The
+  // sim still advances in full-resolution fixedDt slices — playback just feeds the
+  // accumulator slower, so a slow-mo clip gets 4× the temporal detail per second.
+  private timeScale = 1
+  setTimeScale(s: number): void {
+    this.timeScale = Math.max(0.05, Math.min(1, s))
+  }
+  get currentTimeScale(): number {
+    return this.timeScale
+  }
+
   setRunning(running: boolean): void {
     this.running = running
     // Reset the clock so a long pause doesn't dump a burst of catch-up steps.
@@ -68,7 +79,7 @@ export class Loop {
     if (frameTime > 0.25) frameTime = 0.25 // clamp huge stalls
 
     if (this.running) {
-      this.accumulator += frameTime
+      this.accumulator += frameTime * this.timeScale
       let n = 0
       while (this.accumulator >= this.fixedDt && n < 8) {
         this.step(this.fixedDt)
