@@ -47,6 +47,8 @@ export interface ConstructionCaps {
   trouserBreak?: boolean
   /** Fringe trim along the bottom hem. */
   fringe?: boolean
+  /** Piping — a corded edge along the neckline + hem. */
+  piping?: boolean
   dart?: boolean
   pocket?: boolean
   hem?: boolean

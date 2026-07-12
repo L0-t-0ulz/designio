@@ -40,7 +40,7 @@ const coatTube = {
   flareScale: 0.7,
   neckline: true
 }
-const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true, closure: true, lined: true, interfaced: true, facing: true, drawstring: true, ruffles: true, boning: true, ribbing: true, yoke: true, princess: true }
+const upperCaps = { piping: true, neckline: true, sleeve: true, length: true, ease: true, flare: true, collar: true, cuff: true, pleats: true, dart: true, pocket: true, hem: true, closure: true, lined: true, interfaced: true, facing: true, drawstring: true, ruffles: true, boning: true, ribbing: true, yoke: true, princess: true }
 // Sleeveless tops/dresses (no `sleeves` piece) — everything the body tube can render but sleeve/cuff.
 const sleevelessCaps = { ...upperCaps, sleeve: false, cuff: false }
 // Strapless (tube top) — also drop the neckline + collar (there's no shoulder edge to shape).
@@ -49,7 +49,7 @@ const straplessCaps = { ...sleevelessCaps, neckline: false, collar: false }
 const fringeCaps = { fringe: true }
 // Tailored trousers also press a crease + carry a break (skirts/leggings don't).
 const trousersCaps = { crease: true, trouserBreak: true }
-const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true, waistband: true, drawstring: true, ruffles: true, closure: true, lined: true, interfaced: true }
+const lowerCaps = { piping: true, length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true, waistband: true, drawstring: true, ruffles: true, closure: true, lined: true, interfaced: true }
 
 /**
  * The garment catalog (data). Each entry composes parametric pieces; the factory

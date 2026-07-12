@@ -158,6 +158,7 @@ function initStudio(
     crease: l0.crease,
     trouserBreak: l0.trouserBreak,
     fringe: l0.fringe,
+    piping: l0.piping,
     dart: l0.dart,
     pocket: l0.pocket,
     pocketStyle: l0.pocketStyle,
@@ -297,6 +298,7 @@ function initStudio(
     garment.crease = l.data.crease
     garment.trouserBreak = l.data.trouserBreak
     garment.fringe = l.data.fringe
+    garment.piping = l.data.piping
     garment.dart = l.data.dart
     garment.pocket = l.data.pocket
     garment.pocketStyle = l.data.pocketStyle
@@ -670,6 +672,7 @@ function initStudio(
     l.data.crease = garment.crease
     l.data.trouserBreak = garment.trouserBreak
     l.data.fringe = garment.fringe
+    l.data.piping = garment.piping
     l.data.dart = garment.dart
     l.data.pocket = garment.pocket
     l.data.pocketStyle = garment.pocketStyle
@@ -1744,6 +1747,7 @@ if (skipStart) {
   if (entryParams.get('closure')) cfg.closure = true
   if (entryParams.get('crease')) cfg.crease = true
   if (entryParams.get('fringe')) cfg.fringe = true
+  if (entryParams.get('piping')) cfg.piping = true
   if (entryParams.get('break')) cfg.trouserBreak = true
   if (entryParams.get('open')) (cfg.closure = true), (cfg.closureOpen = true) // worn-open placket/zip (functional opening)
   if (entryParams.get('lined')) cfg.lined = true

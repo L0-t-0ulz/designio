@@ -12,6 +12,7 @@ import { buildGarment } from '../garments/factory'
 import { getGarment } from '../garments/registry'
 import { Topstitch } from './Topstitch'
 import { Fringe } from './Fringe'
+import { Piping, makePipingMaterial } from './Piping'
 
 /** Weighted-hem multiplier for every piece — the free hem hangs plumb (couture chain-weight). */
 const HEM_WEIGHT = 2.2
@@ -51,6 +52,8 @@ interface Piece {
   topstitch: Topstitch
   /** Drape-following hem fringe (fringe trim detail) — only on the bottom-hem piece. */
   fringe: Fringe | null
+  /** Drape-following piping cord along the neckline + hem (piping detail). */
+  piping: Piping | null
   /** false for a flat open panel (a scarf) — the grid doesn't close in X. */
   wrapX: boolean
 }
@@ -68,6 +71,8 @@ export class GarmentController {
   private readonly stitchMat = new THREE.LineDashedMaterial({ color: 0x2c2c33, dashSize: 0.007, gapSize: 0.004 })
   /** Shared strand material for the hem fringe (colour follows the stitch colour). */
   private readonly fringeMat = new THREE.LineBasicMaterial({ color: 0x2c2c33 })
+  /** Shared cord material for piping (colour follows the stitch colour). */
+  private readonly pipingMat = makePipingMaterial()
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -87,13 +92,13 @@ export class GarmentController {
     const def = getGarment(type)
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
       // fringe trim hangs from the garment's bottom hem — the body tube, not sleeves/legs
-      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol, !!garmentParams.fringe && p.name === 'Body')
+      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol, !!garmentParams.fringe && p.name === 'Body', !!garmentParams.piping && p.name === 'Body')
     }
     this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
   }
 
-  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true, cutCol?: number, fringeOn = false): void {
+  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true, cutCol?: number, fringeOn = false, pipingOn = false): void {
     const { geometry, positions, nx, ny, pinnedTop } = build
     const mesh = new THREE.Mesh(geometry, this.material)
     mesh.castShadow = true
@@ -144,14 +149,21 @@ export class GarmentController {
       mesh.add(fringe.object)
       fringe.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
     }
+    let piping: Piping | null = null
+    if (pipingOn) {
+      piping = new Piping(nx, ny, this.pipingMat)
+      mesh.add(piping.object)
+      piping.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
+    }
     computeAngleWeightedNormals(geometry)
     topstitch.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
-    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, fringe, wrapX })
+    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, fringe, piping, wrapX })
   }
 
   /** Set the topstitch thread colour (the studio drives this from the trim / fabric). */
   setStitchColor(hex: number): void {
     this.fringeMat.color.setHex(hex)
+    this.pipingMat.color.setHex(hex)
     this.stitchMat.color.set(hex)
   }
 
@@ -324,6 +336,7 @@ export class GarmentController {
       computeAngleWeightedNormals(p.geometry)
       p.topstitch.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
       p.fringe?.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
+      p.piping?.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
     }
   }
 
@@ -374,6 +387,7 @@ export class GarmentController {
       this.scene.remove(p.mesh)
       p.topstitch.dispose()
       p.fringe?.dispose()
+      p.piping?.dispose()
       p.geometry.dispose()
     }
     this.pieces = []

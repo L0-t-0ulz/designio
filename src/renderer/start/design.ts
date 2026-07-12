@@ -35,6 +35,7 @@ export interface DesignConfig {
   crease?: boolean
   trouserBreak?: boolean
   fringe?: boolean
+  piping?: boolean
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle
