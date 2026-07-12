@@ -131,6 +131,7 @@ function initStudio(
   let windBaseX = windX // base wind for the gust pulse
   let windBaseZ = windZ
   let windGust = 0 // gust amplitude (0 = steady); set by a wind preset
+  let windTurb = 0 // turbulence (0 = uniform wind); set by a wind preset
   const patternParams = { ...DEFAULT_PATTERN }
   let mode: DesignMode = 'templates'
   let importedPattern: ImportedPattern | null = null // an imported DXF shown in the 2D pane
@@ -522,7 +523,7 @@ function initStudio(
       simTime += dt
       if (windGust > 0) {
         const w = gustWind(windBaseX, windBaseZ, windGust, simTime) // pulse the wind (gust/breeze)
-        stack.setWind(w.x, w.z)
+        stack.setWind(w.x, w.z, windTurb)
         patternCtl?.setWind(w.x, w.z)
       }
       player.tick(dt) // timeline playback drives the camera + avatar subject
@@ -813,7 +814,8 @@ function initStudio(
     windX = windBaseX = p.x
     windZ = windBaseZ = p.z
     windGust = p.gust
-    stack.setWind(p.x, p.z)
+    windTurb = p.turbulence ?? 0
+    stack.setWind(p.x, p.z, windTurb)
   }
   const accParam = params.get('accessories')
   if (accParam) for (const k of accParam.split(',')) if ((ACCESSORY_KINDS as string[]).includes(k.trim())) accessories.setEnabled(k.trim() as AccessoryKind, true)
@@ -1466,7 +1468,8 @@ function initStudio(
       windX = windBaseX = p.x
       windZ = windBaseZ = p.z
       windGust = p.gust
-      stack.setWind(p.x, p.z)
+      windTurb = p.turbulence ?? 0
+      stack.setWind(p.x, p.z, windTurb)
       patternCtl?.setWind(p.x, p.z)
       return { x: p.x, z: p.z }
     },

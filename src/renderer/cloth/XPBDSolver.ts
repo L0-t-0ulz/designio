@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { type Capsule, closestPointOnSegment } from '../avatar/colliders'
+import { turbulentWind } from './turbulence'
 import type { BodyCollider } from './BodyCollider'
 import type { FabricParams } from './fabricPresets'
 
@@ -62,6 +63,8 @@ export class XPBDSolver {
   gravity = new THREE.Vector3(0, -9.81, 0)
   /** Wind as a force (not acceleration): lighter fabrics flutter more. */
   wind = new THREE.Vector3(0, 0, 0)
+  /** Turbulent wind: 0 = uniform vector, 1 = full swirling noise field (scaled by |wind|). */
+  turbulence = 0
   /** Trapped-air pressure — an outward acceleration (m/s²) along each particle's
    *  surface normal, so a quilted/puffer panel or a puff sleeve **lofts** off the body
    *  instead of hanging flat. 0 = off (the default); the stretch constraints cap how
@@ -509,6 +512,7 @@ export class XPBDSolver {
     ;(this.contactAcc ??= new Float32Array(this.count)).fill(0) // fresh contact tally per stepped frame
 
     if (this.params.aero > 0 || this.pressure > 0) this.computeNormals() // once per frame, reused across substeps + pressure
+    this.sampleTurbulence() // per-particle swirling wind offsets, once per frame
     const sub = dt / this.substeps
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
     if (this.bodyCollider?.ready) this.solveBody()
@@ -599,6 +603,29 @@ export class XPBDSolver {
     }
   }
 
+  // Per-particle turbulent wind offsets (already windScale'd), refreshed once per
+  // frame; null while turbulence is off so the integrate loop pays nothing.
+  private turbW: Float32Array | null = null
+  private readonly _turb = { x: 0, y: 0, z: 0 }
+  private sampleTurbulence(): void {
+    const amp = this.turbulence * this.wind.length() * this.windScale
+    if (amp <= 0) {
+      this.turbW = null
+      return
+    }
+    const tw = (this.turbW ??= new Float32Array(this.count * 3))
+    const pos = this.positions
+    const t = this.time
+    const o = this._turb
+    for (let k = 0; k < this.count; k++) {
+      const i = k * 3
+      turbulentWind(pos[i], pos[i + 1], pos[i + 2], t, o)
+      tw[i] = o.x * amp
+      tw[i + 1] = o.y * amp
+      tw[i + 2] = o.z * amp
+    }
+  }
+
   private substep(dt: number): void {
     const { positions: pos, prev, vel, invMass: im, count, aeroN } = this
     this.time += dt
@@ -612,6 +639,7 @@ export class XPBDSolver {
     // Wind is a force with a gentle temporal gust; per particle it becomes an
     // acceleration = force * invMass, so lighter fabrics blow around more.
     const gust = 1 + 0.4 * Math.sin(this.time * 2.1) + 0.18 * Math.sin(this.time * 5.3)
+    const tw = this.turbW
     const wx = this.wind.x * this.windScale * gust
     const wy = this.wind.y * this.windScale * gust
     const wz = this.wind.z * this.windScale * gust
@@ -626,9 +654,15 @@ export class XPBDSolver {
         prev[i + 2] = pos[i + 2]
         continue
       }
-      vel[i] += (gx + wx * w) * dt
-      vel[i + 1] += (gy + wy * w) * dt
-      vel[i + 2] += (gz + wz * w) * dt
+      if (tw) {
+        vel[i] += (gx + (wx + tw[i]) * w) * dt
+        vel[i + 1] += (gy + (wy + tw[i + 1]) * w) * dt
+        vel[i + 2] += (gz + (wz + tw[i + 2]) * w) * dt
+      } else {
+        vel[i] += (gx + wx * w) * dt
+        vel[i + 1] += (gy + wy * w) * dt
+        vel[i + 2] += (gz + wz * w) * dt
+      }
       // Aerodynamic drag: air resists the sheet moving broadside — remove the
       // velocity component along the surface normal (edge-on sway is untouched), so
       // light/sheer fabrics float + billow + lag and heavy ones follow near-rigid.

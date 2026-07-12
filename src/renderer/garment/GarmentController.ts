@@ -67,6 +67,7 @@ export class GarmentController {
   private gravityY = 9.81
   private windX = 0
   private windZ = 0
+  private windTurbulence = 0
   /** Shared thread material for every piece's topstitch (colour set by the stack). */
   private readonly stitchMat = new THREE.LineDashedMaterial({ color: 0x2c2c33, dashSize: 0.007, gapSize: 0.004 })
   /** Shared strand material for the hem fringe (colour follows the stitch colour). */
@@ -112,6 +113,7 @@ export class GarmentController {
     solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)
     solver.wind.set(this.windX, 0, this.windZ)
+    solver.turbulence = this.windTurbulence
     solver.hemWeight = HEM_WEIGHT // couture chain-weight: the free hem hangs plumb (pinned cuffs ignore it)
     solver.applyMass()
     const topRing = [...pinnedTop]
@@ -308,11 +310,13 @@ export class GarmentController {
     }
   }
 
-  setWind(x: number, z: number): void {
+  setWind(x: number, z: number, turbulence = 0): void {
     this.windX = x
     this.windZ = z
+    this.windTurbulence = turbulence
     for (const p of this.pieces) {
       p.solver.wind.set(x, 0, z)
+      p.solver.turbulence = turbulence
       p.solver.wake()
     }
   }

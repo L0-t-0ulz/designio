@@ -301,7 +301,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?backFabric=<id>` · `?legBackFabric=<id>` · `?sleeveBackFabric=<id>` (per-panel fabric — the body/leg/sleeve **back** panel) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?stress=1` (fit-failure viz) ·
 `?pressure=1` (pressure / contact fit map — where the garment presses into the body) ·
-`?wrinkles=1` (strain-driven micro-wrinkles) · `?wind=<still|breeze|gust|runway>` (wind preset) ·
+`?wrinkles=1` (strain-driven micro-wrinkles) · `?wind=<still|breeze|gust|runway|storm>` (wind preset; **storm** = a turbulent noise *field* — `cloth/turbulence` per-particle swirl scaled by |wind|, so parts of the garment feel different air) ·
 `?simRes=<coarse|normal|fine|ultra>&simQuality=<0..1>` (dense-garment resolution + solver quality) ·
 `?still=1` (freeze the start-page
 turntable) · `?page=start` (deep-link the

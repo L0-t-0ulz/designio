@@ -11,13 +11,17 @@ export interface WindPreset {
   z: number
   /** Gust amplitude — 0 = steady, higher = stronger pulsing over time. */
   gust: number
+  /** Turbulence — 0 = uniform wind (the classic presets), 1 = full swirling noise field. */
+  turbulence?: number
 }
 
 export const WIND_PRESETS: WindPreset[] = [
   { name: 'still', label: 'Still', x: 0, z: 0, gust: 0 },
   { name: 'breeze', label: 'Breeze', x: 1.8, z: 0.5, gust: 0.35 },
   { name: 'gust', label: 'Gust', x: 3.8, z: 1.2, gust: 0.9 },
-  { name: 'runway', label: 'Runway draft', x: 0.4, z: -3.4, gust: 0.2 }
+  { name: 'runway', label: 'Runway draft', x: 0.4, z: -3.4, gust: 0.2 },
+  // a noise-driven field — different parts of the garment feel different air (swirl/ripple)
+  { name: 'storm', label: 'Storm (turbulent)', x: 3.2, z: 2.2, gust: 0.7, turbulence: 1 }
 ]
 
 export const WIND_PRESET_NAMES: string[] = WIND_PRESETS.map((p) => p.name)

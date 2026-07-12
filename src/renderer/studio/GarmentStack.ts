@@ -167,6 +167,7 @@ export class GarmentStack {
   activeIndex = 0
   private gravityY = 9.81
   private windX = 0
+  private windTurbulence = 0
   private windZ = 0
 
   constructor(
@@ -1233,7 +1234,7 @@ export class GarmentStack {
     this.layers.push(layer)
     if (makeActive) this.activeIndex = this.layers.length - 1
     controller.setGravity(this.gravityY)
-    controller.setWind(this.windX, this.windZ)
+    controller.setWind(this.windX, this.windZ, this.windTurbulence)
     this.rebuild(layer)
     this.applyLook(layer)
     return layer
@@ -1377,10 +1378,11 @@ export class GarmentStack {
     this.gravityY = y
     for (const l of this.layers) l.controller.setGravity(y)
   }
-  setWind(x: number, z: number): void {
+  setWind(x: number, z: number, turbulence = 0): void {
+    this.windTurbulence = turbulence
     this.windX = x
     this.windZ = z
-    for (const l of this.layers) l.controller.setWind(x, z)
+    for (const l of this.layers) l.controller.setWind(x, z, turbulence)
   }
   setActivePhysics(): void {
     this.active.controller.setFabricPhysics()
