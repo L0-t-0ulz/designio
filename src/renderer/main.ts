@@ -54,6 +54,8 @@ import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack
 import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { pomTable } from './export/pom'
+import { bodyToMeasurements } from './avatar/measure'
+import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
 import { costRollup, estimateLabourMinutes } from './export/cost'
 import { threadMetres } from './export/thread'
@@ -1427,6 +1429,11 @@ function initStudio(
     },
     onResew: () => patternCtl?.resew(),
     onDrop: () => (mode === 'templates' ? stack.redrapeActive() : patternCtl?.resew()),
+    recommendSize: () => {
+      const l = stack.active
+      const pom = pomTable(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders)
+      return recommendSize(bodyToMeasurements(bodySize), pom.rows).size
+    },
     heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
     stress: { get: () => stack.stress, set: (on) => stack.setStress(on) },
     pressure: { get: () => stack.pressure, set: (on) => stack.setPressure(on) },
