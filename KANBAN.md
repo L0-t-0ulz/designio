@@ -633,7 +633,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Cloud sync + share-by-link** — a project lives in the cloud, shareable read-only
 - [ ] **Design comments & review pins** — annotate a spot on the garment, resolve threads
 - [ ] **Version compare** — a visual diff of two saved designs (geometry + appearance)
-- [ ] **Line sheet / lookbook PDF** — a collection catalog generated across saved designs
+- [x] **Line sheet / lookbook PDF** — a printable wholesale one-pager per design (hero · fabric/fibre · colourway swatches · size run · graded specs · landed cost + keystone pricing; File → Export line sheet) — PR #260 _(multi-design collection catalog later)_
 - [ ] **Public portfolio page** — a hosted gallery of your designs
 - [ ] **Tech-pack approval workflow** — submit → comment → approve, with a status trail
 
