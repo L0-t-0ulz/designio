@@ -607,7 +607,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **3D body-scan import** — bring in an OBJ/PLY scan as a custom avatar to fit onto
 - [ ] **Photo-to-avatar** — estimate a body shape from two photos (front + side)
 - [x] **Size recommendation** — live "Best fit for this body" hint from the graded POM's intended ease vs the avatar's real measurements (chest/waistband-weighted; `avatar/sizeRecommend`) — PR #265
-- [ ] **Per-customer fit profile** — a saved measurement set + fit map per person
+- [x] **Per-customer fit profile** — named measurement sets saved/applied in one click (`avatar/fitProfiles`, made-to-measure panel; the size recommendation follows the person) — PR #267 _(per-person saved fit maps later)_
 - [ ] **Asymmetric fit** — one shoulder/hip higher, a limb-length delta
 - [x] **Posture presets** — athletic · slouch · swayback carriage layered on any pose; bends colliders + visual shaping + anchors in lock-step so garments re-drape onto the new carriage (`avatar/posture`, Avatar panel, `?posture=`) — PR #261
 - [ ] **Ease-by-zone editor** — set chest / waist / hip ease independently and see it drape
