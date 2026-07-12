@@ -584,7 +584,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Shirt tailoring** — back yoke + box pleat, a button placket, and a structured two-piece collar + barrel cuff
 - [ ] **Vest / waistcoat** — a shaped back with an adjustable buckle strap + welt pockets
 - [ ] **Overcoat blocks** — trench · peacoat · topcoat with a storm flap + set-in belt
-- [ ] **Trouser break + crease** — a rendered front crease line and a configurable hem break (full/half/no break)
+- [x] **Trouser break + crease** — a pressed fore/aft crease baked into the leg rest shape (pure `creaseWave`, survives the drape) + a hem break that stacks on the ankle; trouser family only, on by default for Trousers (`?crease=1` · `?break=1`) — PR #254
 
 **Activewear, swim & foundation**
 - [x] **Compression fit** — negative ease (to −3 cm) that stretches taut over the body: gradeParams floor + panel/quick-edit range + activewear defaults draft under the body radius; solver-stability test — PR #249
