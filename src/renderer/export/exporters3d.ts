@@ -1,7 +1,7 @@
 import * as THREE from 'three'
-import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
-import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js'
-import { USDZExporter } from 'three/examples/jsm/exporters/USDZExporter.js'
+
+// The three.js exporters are heavy — each is loaded **lazily** (dynamic import) on the
+// first export of that format, keeping them out of the initial renderer bundle.
 
 /** Clone the given objects into a fresh group (so we don't reparent the scene). */
 function group(objects: THREE.Object3D[]): THREE.Group {
@@ -17,25 +17,24 @@ function group(objects: THREE.Object3D[]): THREE.Group {
   return g
 }
 
-/** Export the objects as a binary glTF (.glb). */
-export function exportGLB(objects: THREE.Object3D[]): Promise<Uint8Array> {
+/** Export the objects as a binary glTF (.glb). Loads the exporter on first use. */
+export async function exportGLB(objects: THREE.Object3D[]): Promise<Uint8Array> {
+  const { GLTFExporter } = await import('three/examples/jsm/exporters/GLTFExporter.js')
+  const g = group(objects)
   return new Promise((resolve, reject) => {
-    new GLTFExporter().parse(
-      group(objects),
-      (result) => resolve(new Uint8Array(result as ArrayBuffer)),
-      (err) => reject(err),
-      { binary: true }
-    )
+    new GLTFExporter().parse(g, (result) => resolve(new Uint8Array(result as ArrayBuffer)), (err) => reject(err), { binary: true })
   })
 }
 
-/** Export the objects as a Wavefront OBJ string. */
-export function exportOBJ(objects: THREE.Object3D[]): string {
+/** Export the objects as a Wavefront OBJ string. Loads the exporter on first use. */
+export async function exportOBJ(objects: THREE.Object3D[]): Promise<string> {
+  const { OBJExporter } = await import('three/examples/jsm/exporters/OBJExporter.js')
   return new OBJExporter().parse(group(objects))
 }
 
-/** Export the objects as a USDZ — Apple AR Quick Look on iOS (plane-anchored). */
-export function exportUSDZ(objects: THREE.Object3D[]): Promise<Uint8Array> {
+/** Export the objects as a USDZ — Apple AR Quick Look on iOS. Loads the exporter on first use. */
+export async function exportUSDZ(objects: THREE.Object3D[]): Promise<Uint8Array> {
+  const { USDZExporter } = await import('three/examples/jsm/exporters/USDZExporter.js')
   return new USDZExporter().parseAsync(group(objects), {
     ar: { anchoring: { type: 'plane' }, planeAnchoring: { alignment: 'horizontal' } }
   })

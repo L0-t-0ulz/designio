@@ -376,7 +376,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Performance** _(refine PRs #142 · #167)_
 - [ ] **Cloth solver in a Web Worker** — run the sim off the main thread
-- [ ] **Lazy-load the heavy exporters** (GLTF / USDZ / OBJ) on first export
+- [x] **Lazy-load the heavy exporters** (GLTF / USDZ / OBJ) — `exporters3d` now dynamic-imports each on first export + `manualChunks` keeps them out of the eager `three` vendor chunk; three chunk drops ~1936 → ~1818 kB (−119 kB), exporters split into their own lazy chunks — PR #240
 - [ ] **Instance the decor geometry** (ribbing / boning / stitch lines) to cut draw calls
 
 ---
