@@ -45,6 +45,8 @@ const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flar
 const sleevelessCaps = { ...upperCaps, sleeve: false, cuff: false }
 // Strapless (tube top) — also drop the neckline + collar (there's no shoulder edge to shape).
 const straplessCaps = { ...sleevelessCaps, neckline: false, collar: false }
+// Hem-fringe trim suits skirts + dresses (western / flapper / shawl looks).
+const fringeCaps = { fringe: true }
 // Tailored trousers also press a crease + carry a break (skirts/leggings don't).
 const trousersCaps = { crease: true, trouserBreak: true }
 const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true, waistband: true, drawstring: true, ruffles: true, closure: true, lined: true, interfaced: true }
@@ -164,7 +166,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'bottom',
     icon: 'skirt',
     pieces: [skirtTube],
-    supports: lowerCaps,
+    supports: { ...lowerCaps, ...fringeCaps },
     defaults: { length: 0.6, ease: 0.015, flare: 0.05 }
   },
   {
@@ -173,7 +175,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'bottom',
     icon: 'skirt',
     pieces: [skirtTube],
-    supports: lowerCaps,
+    supports: { ...lowerCaps, ...fringeCaps },
     defaults: { length: 0.55, ease: 0.01, flare: 0 }
   },
   {
@@ -182,7 +184,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'bottom',
     icon: 'skirt',
     pieces: [skirtTube],
-    supports: lowerCaps,
+    supports: { ...lowerCaps, ...fringeCaps },
     defaults: { length: 0.95, ease: 0.02, flare: 0.12, pleats: true, pleatStyle: 'knife' }
   },
   {
@@ -278,7 +280,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'dress',
     icon: 'dress',
     pieces: [dressTube, { kind: 'sleeves' }],
-    supports: upperCaps,
+    supports: { ...upperCaps, ...fringeCaps },
     defaults: { length: 0.6, ease: 0.015, flare: 0.05, neckline: 'scoop', sleeve: 'short' }
   },
   {
@@ -287,7 +289,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'dress',
     icon: 'dress',
     pieces: [dressTube, { kind: 'sleeves' }],
-    supports: upperCaps,
+    supports: { ...upperCaps, ...fringeCaps },
     defaults: { length: 0.55, ease: 0.008, flare: 0.01, neckline: 'crew', sleeve: 'short', princess: true }
   },
   {
@@ -296,7 +298,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'dress',
     icon: 'dress',
     pieces: [dressTube],
-    supports: sleevelessCaps,
+    supports: { ...sleevelessCaps, ...fringeCaps },
     defaults: { length: 0.72, ease: 0.012, flare: 0.05, neckline: 'strapless', sleeve: 'none' },
     defaultFabric: 'silk-charmeuse'
   },
@@ -306,7 +308,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'dress',
     icon: 'dress',
     pieces: [dressTube],
-    supports: sleevelessCaps,
+    supports: { ...sleevelessCaps, ...fringeCaps },
     defaults: { length: 0.98, ease: 0.02, flare: 0.2, neckline: 'strapless', sleeve: 'none', boning: true },
     defaultFabric: 'satin'
   },
