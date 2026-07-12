@@ -51,6 +51,8 @@ export interface Fabric {
   transmission: number
   /** Metallic response for lamé / foil / sequin-base cloth, 0 (dielectric) … 1. */
   metalness?: number
+  /** Real perforation holes (athletic mesh / eyelet) — an alpha-cutout you see through. */
+  perforated?: boolean
 }
 
 const MASS_PER_GSM = 0.0015 // gsm → total garment mass (kg), tuned by feel
@@ -212,6 +214,8 @@ export const FABRIC_LIBRARY: Fabric[] = [
   { id: 'lame', name: 'Lamé (metallic)', family: 'specialty', gsm: 180, stretch: 0.25, bendiness: 0.62, friction: 0.35, color: 0xd4af37, roughness: 0.25, sheen: 0.4, sheenRoughness: 0.3, weave: 'satin', weaveScale: 160, normalStrength: 0.25, anisotropy: 0.5, transmission: 0, metalness: 0.85 },
   // thick spacer knit — heavy + very stiff, holds sculptural scuba shapes
   { id: 'neoprene', name: 'Neoprene (scuba)', family: 'specialty', gsm: 420, stretch: 0.5, bendiness: 0.15, friction: 0.5, color: 0x22262e, roughness: 0.85, sheen: 0.25, sheenRoughness: 0.6, weave: 'knit', weaveScale: 110, normalStrength: 0.3, anisotropy: 0, transmission: 0 },
+  // hex-perforated sport knit — real see-through holes (alpha cutout), breathable look
+  { id: 'athletic-mesh', name: 'Athletic mesh', family: 'knit', gsm: 140, stretch: 0.7, bendiness: 0.7, friction: 0.4, color: 0x30343c, roughness: 0.75, sheen: 0.35, sheenRoughness: 0.55, weave: 'knit', weaveScale: 180, normalStrength: 0.3, anisotropy: 0, transmission: 0, perforated: true },
   // paillette-covered base — big glinting discs; pairs with the sequins sparkle finish
   { id: 'sequin-base', name: 'Sequin base', family: 'specialty', gsm: 320, stretch: 0.3, bendiness: 0.5, friction: 0.4, color: 0x8a1538, roughness: 0.3, sheen: 0.6, sheenRoughness: 0.3, weave: 'satin', weaveScale: 70, normalStrength: 0.8, anisotropy: 0.15, transmission: 0, metalness: 0.65 }
 ]
