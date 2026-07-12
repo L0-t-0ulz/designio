@@ -3,7 +3,7 @@ import { WIND_PRESET_NAMES, getWindPreset, gustWind } from '../src/renderer/clot
 
 describe('wind field presets', () => {
   it('exposes the named set', () => {
-    expect(WIND_PRESET_NAMES).toEqual(['still', 'breeze', 'gust', 'runway'])
+    expect(WIND_PRESET_NAMES).toEqual(['still', 'breeze', 'gust', 'runway', 'storm'])
   })
 
   it('still is calm, gust is stronger than breeze, runway blows front→back (−z)', () => {
