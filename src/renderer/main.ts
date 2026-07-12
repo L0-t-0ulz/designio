@@ -790,6 +790,16 @@ function initStudio(
   if (params.get('heatmap') === '1') stack.setHeatmap(true)
   if (params.get('stress') === '1') stack.setStress(true)
   if (params.get('pressure') === '1') stack.setPressure(true)
+  // Ghost mannequin — hide the body/accessories/hair (colliders stay live) for a product shot
+  let ghostOn = false
+  const setGhostMode = (on: boolean): void => {
+    ghostOn = on
+    mannequin.setGhost(on)
+    accessories.group.visible = !on
+    faceRig.group.visible = !on
+    statusHandles?.setSelection(on ? 'Ghost mannequin — body hidden (product shot)' : 'Ghost mannequin off')
+  }
+  if (params.get('ghost') === '1') setGhostMode(true)
   if (params.get('wrinkles') === '1') stack.setWrinkles(true)
   const windParam = params.get('wind')
   if (windParam && WIND_PRESET_NAMES.includes(windParam)) {
@@ -1242,6 +1252,7 @@ function initStudio(
       viewport.setDepthOfField(!viewport.depthOfField)
       showToast(viewport.depthOfField ? 'Depth of field on' : 'Depth of field off', 'info')
     },
+    onToggleGhost: () => setGhostMode(!ghostOn),
     onClearMeasure: () => {
       measureTool?.clear()
       setMeasureMode('off')

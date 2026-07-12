@@ -32,6 +32,7 @@ export interface MenuActions {
   onAnnotate: () => void
   onCameraBookmarks: () => void
   onToggleDOF: () => void
+  onToggleGhost: () => void
   onClearMeasure: () => void
   onRunwayLineup: () => void
   onContactSheet: () => void
@@ -175,6 +176,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { sep: true },
     { label: 'Camera bookmarks…', run: a.onCameraBookmarks },
     { label: 'Depth of field', run: a.onToggleDOF },
+    { label: 'Ghost mannequin (product shot)', run: a.onToggleGhost },
     { sep: true },
     { label: 'Wireframe', run: a.onToggleWireframe },
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }

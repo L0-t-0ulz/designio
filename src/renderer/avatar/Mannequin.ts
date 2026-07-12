@@ -136,6 +136,8 @@ export interface Mannequin {
   resize: (body: Partial<BodyParams>) => void
   /** true = realistic GLB, false = procedural metaball body. */
   setBodyMode: (realistic: boolean) => void
+  /** Ghost mannequin — hide the body visuals (colliders stay live) for product shots. */
+  setGhost: (on: boolean) => void
   /** Set the static lookbook pose (applied while the animation mode is `static`). */
   setPose: (name: PoseName) => void
   /** Set the avatar's complexion (skin tone + undertone) — the shared body/GLB material. */
@@ -611,8 +613,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     } else {
       bodyMesh.rebuild(buildAll())
     }
-    if (glb) glb.model.visible = useGlb
-    bodyMesh.object.visible = !useGlb
+    applyVisibility()
     syncBodyBVH(false) // GLB → invalidate (no metaball surface); metaball → rebuild
     onBodyChange?.() // the body swapped (e.g. async GLB load) → garments re-drape + re-pin to it
   }
@@ -620,6 +621,18 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   const setBodyMode = (realistic: boolean): void => {
     wantGlb = realistic
     applyBodyMode()
+  }
+
+  // Ghost mannequin — the e-commerce product shot: body visuals hidden, the cloth
+  // colliders/anchors stay fully live so the garment keeps holding its worn shape.
+  let ghost = false
+  function applyVisibility(): void {
+    if (glb) glb.model.visible = useGlb && !ghost
+    bodyMesh.object.visible = !useGlb && !ghost
+  }
+  const setGhost = (on: boolean): void => {
+    ghost = on
+    applyVisibility()
   }
 
   applyBody()
@@ -636,6 +649,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     update,
     resize,
     setBodyMode,
+    setGhost,
     setPose,
     setSkinTone: (look) => applySkinLook(material, look),
     anchors,
