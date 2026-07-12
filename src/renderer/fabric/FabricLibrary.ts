@@ -49,6 +49,8 @@ export interface Fabric {
   anisotropy: number
   /** Sheerness for chiffon/organza, 0 (opaque) … 1. */
   transmission: number
+  /** Metallic response for lamé / foil / sequin-base cloth, 0 (dielectric) … 1. */
+  metalness?: number
 }
 
 const MASS_PER_GSM = 0.0015 // gsm → total garment mass (kg), tuned by feel
@@ -205,7 +207,13 @@ export const FABRIC_LIBRARY: Fabric[] = [
   { id: 'suede', name: 'Suede', family: 'specialty', nap: true, gsm: 300, stretch: 0.03, bendiness: 0.3, friction: 0.66, color: 0x7a5a3e, roughness: 0.88, sheen: 0.3, sheenRoughness: 0.7, weave: 'plain', weaveScale: 90, normalStrength: 0.3, anisotropy: 0.1, transmission: 0 },
   { id: 'velvet', name: 'Velvet', family: 'specialty', nap: true, gsm: 300, stretch: 0.15, bendiness: 0.55, friction: 0.6, color: 0x4a2b53, roughness: 0.6, sheen: 0.95, sheenRoughness: 0.35, weave: 'satin', weaveScale: 120, normalStrength: 0.45, anisotropy: 0.3, transmission: 0 },
   { id: 'tulle', name: 'Tulle (sheer)', family: 'specialty', gsm: 40, stretch: 0.2, bendiness: 0.6, friction: 0.3, color: 0xefe6f2, roughness: 0.4, sheen: 0.6, sheenRoughness: 0.4, weave: 'knit', weaveScale: 260, normalStrength: 0.2, anisotropy: 0, transmission: 0.6 },
-  { id: 'spandex', name: 'Spandex', family: 'specialty', gsm: 200, stretch: 0.95, bendiness: 0.75, friction: 0.45, color: 0x2b2b33, roughness: 0.4, sheen: 0.75, sheenRoughness: 0.4, weave: 'knit', weaveScale: 150, normalStrength: 0.4, anisotropy: 0.2, transmission: 0 }
+  { id: 'spandex', name: 'Spandex', family: 'specialty', gsm: 200, stretch: 0.95, bendiness: 0.75, friction: 0.45, color: 0x2b2b33, roughness: 0.4, sheen: 0.75, sheenRoughness: 0.4, weave: 'knit', weaveScale: 150, normalStrength: 0.4, anisotropy: 0.2, transmission: 0 },
+  // a slinky metallic-thread cloth — the metalness makes it read as woven gold foil
+  { id: 'lame', name: 'Lamé (metallic)', family: 'specialty', gsm: 180, stretch: 0.25, bendiness: 0.62, friction: 0.35, color: 0xd4af37, roughness: 0.25, sheen: 0.4, sheenRoughness: 0.3, weave: 'satin', weaveScale: 160, normalStrength: 0.25, anisotropy: 0.5, transmission: 0, metalness: 0.85 },
+  // thick spacer knit — heavy + very stiff, holds sculptural scuba shapes
+  { id: 'neoprene', name: 'Neoprene (scuba)', family: 'specialty', gsm: 420, stretch: 0.5, bendiness: 0.15, friction: 0.5, color: 0x22262e, roughness: 0.85, sheen: 0.25, sheenRoughness: 0.6, weave: 'knit', weaveScale: 110, normalStrength: 0.3, anisotropy: 0, transmission: 0 },
+  // paillette-covered base — big glinting discs; pairs with the sequins sparkle finish
+  { id: 'sequin-base', name: 'Sequin base', family: 'specialty', gsm: 320, stretch: 0.3, bendiness: 0.5, friction: 0.4, color: 0x8a1538, roughness: 0.3, sheen: 0.6, sheenRoughness: 0.3, weave: 'satin', weaveScale: 70, normalStrength: 0.8, anisotropy: 0.15, transmission: 0, metalness: 0.65 }
 ]
 
 export function getFabric(id: string): Fabric {
