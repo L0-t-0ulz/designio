@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
+    "fflate": "^0.8.3",
     "lucide": "^1.23.0",
     "motion": "^12.42.2",
     "split.js": "^1.6.5",
