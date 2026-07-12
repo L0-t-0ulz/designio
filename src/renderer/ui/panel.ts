@@ -361,7 +361,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   frillBlock.append(el('div', 'dio-field-label', 'Frill style'), frillRow)
 
   // pleat picker (the pleats & gathers library; shown when the Pleats detail is on)
-  const pleatLabels: Record<PleatStyle, string> = { knife: 'Knife', box: 'Box', accordion: 'Accordion', cartridge: 'Cartridge', gather: 'Gather' }
+  const pleatLabels: Record<PleatStyle, string> = { knife: 'Knife', box: 'Box', accordion: 'Accordion', cartridge: 'Cartridge', gather: 'Gather', shirr: 'Shirring', smock: 'Smocking' }
   const pleatRow = el('div', 'dio-actions')
   pleatRow.style.flexWrap = 'wrap'
   const pleatBtns = new Map<PleatStyle, HTMLButtonElement>()
