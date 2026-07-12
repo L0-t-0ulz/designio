@@ -704,7 +704,7 @@ function initStudio(
       return { length: !!s.length, ease: !!s.ease, flare: !!s.flare, neckline: !!s.neckline, sleeve: !!s.sleeve }
     },
     nudgeLength: (d) => editFrom2D(() => (garment.length = clampN(garment.length + d, 0, 1))),
-    nudgeEase: (d) => editFrom2D(() => (garment.ease = clampN(garment.ease + d, 0, 0.12))),
+    nudgeEase: (d) => editFrom2D(() => (garment.ease = clampN(garment.ease + d, -0.03, 0.12))), // negative = compression fit
     nudgeFlare: (d) => editFrom2D(() => (garment.flare = clampN(garment.flare + d, 0, 0.22))),
     nudgeSize: (d) => editFrom2D(() => (garment.size = SIZES[clampN(SIZES.indexOf(garment.size) + d, 0, SIZES.length - 1)])),
     nudgeNeckline: (d) => editFrom2D(() => (garment.neckline = cycle(NECKS, garment.neckline, d))),
