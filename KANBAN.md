@@ -684,11 +684,11 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Intarsia / colourwork** — placed colour blocks in the knit
 
 **Sustainability & materials**
-- [ ] **Material passport** — fibre content, origin, recyclability on every fabric
-- [ ] **Water / CO₂ footprint** — a per-garment environmental estimate
-- [ ] **Deadstock / recycled flags** — surface eco-materials in the library
-- [ ] **Circular-design score** — mono-material + disassembly rating
-- [ ] **Longevity care guidance** — repair/wash tips that extend garment life
+- [x] **Material passport** — fibre + group + recyclability + mono-material + eco flags in the manufacturing pack (`export/sustainability.fibreGroup`) — PR #273
+- [x] **Water / CO₂ footprint** — per-garment estimate from real fabric mass × per-kg coefficients (deadstock ~10%) — PR #273
+- [x] **Deadstock / recycled flags** — panel toggles riding the layer into .dio + the pack (passport/footprint/score respond) — PR #273
+- [x] **Circular-design score** — 0–100 heuristic: mono-material + recyclable fibre + eco sourcing; zips/linings subtract — PR #273
+- [x] **Longevity care guidance** — fibre-specific wash/repair habits in the pack — PR #273
 
 **Manufacturing & sourcing**
 - [ ] **Factory-format tech-pack** — export to Gerber / Lectra / Optitex
