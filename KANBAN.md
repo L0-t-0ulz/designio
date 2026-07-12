@@ -614,7 +614,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 **Animation & motion**
 - [ ] **Mocap clip import** — drive the avatar from a BVH / FBX motion clip
-- [ ] **Cloth tearing** — seams rip once strain passes a fabric threshold (dramatic action shots)
+- [x] **Cloth tearing** — constraints rip past ~1.5× the fabric's stress-fail strain (`tearPass` + `onTear`); the mesh drops bordering quads via the shared `tubeIndices` emitter (Scene toggle · `?tearing=1`) — PR #272
 - [x] **Turbulent wind field** — the Storm preset: a deterministic noise field sampled per particle (`cloth/turbulence`, scaled by |wind| so Still stays still); classic presets byte-identical (`?wind=storm`) — PR #264
 - [x] **Walk-cycle library** — commercial (byte-compat default) · editorial · sport walk styles driving both body paths (`avatar/walkStyles`, Avatar panel, `?walk=`) — PR #266
 - [x] **Slow-motion capture** — `Loop.setTimeScale(0.25)` while recording: full-resolution fixed steps at quarter playback = 4× temporal cloth detail (File → Record slow-motion clip) — PR #271
