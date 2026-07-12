@@ -13,6 +13,7 @@ export interface MenuActions {
   onImportPattern: () => void
   onExport: (fmt: ExportFormat) => void
   onRecordTurntable: () => void
+  onRecordTurntableSocial: (preset: string) => void
   onUndo: () => void
   onRedo: () => void
   onCut: () => void
@@ -143,6 +144,9 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('json', 'Export design (JSON)'),
     { sep: true },
     { label: 'Record turntable spin (WebM)', run: a.onRecordTurntable },
+    { label: 'Record turntable — 9:16 Reels/TikTok', run: () => a.onRecordTurntableSocial('reel') },
+    { label: 'Record turntable — 1:1 square', run: () => a.onRecordTurntableSocial('square') },
+    { label: 'Record turntable — 4:5 portrait', run: () => a.onRecordTurntableSocial('portrait') },
     { label: 'Export runway line-up (PNG)', run: a.onRunwayLineup },
     { label: 'Export contact sheet — multi-angle (PNG)', run: a.onContactSheet },
     { label: 'Export 360° viewer (HTML)', run: a.onViewer360 },
