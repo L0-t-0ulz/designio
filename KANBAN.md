@@ -211,12 +211,12 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Cloth-sim ski mask (balaclava)** — a conforming knit shell with a real **face-opening cut-out** (dead particles for eyes/mouth, reusing the cut-out mechanism)
 
 **Beanies & knit caps**
-- [ ] **Cuffed beanie** — a folded-up ribbed brim (double-layer band) with an adjustable cuff height
-- [ ] **Slouchy beanie** — extra crown length that slouches/drapes at the back
-- [ ] **Fisherman / rolled beanie** — a short tight rolled brim, minimal crown
-- [ ] **Pom-pom beanie** — a faux-fur / yarn pom on the crown
+- [x] **Cuffed beanie** — short drop + wide doubled rib band (`cuffed-beanie`) — PR #276 _(adjustable cuff height later)_
+- [x] **Slouchy beanie** — extra crown length draping at the back, gather tuned to stay on the crown (`slouchy-beanie`) — PR #276
+- [x] **Fisherman / rolled beanie** — the docker crop above the ears (`fisherman-beanie`) — PR #276
+- [x] **Pom-pom beanie** — `pom` definition flag → a sheened yarn pom riding the crown (`pom-beanie`, cable-knit default) — PR #276
 - [ ] **Ear-flap / trapper beanie** — ear flaps (+ ties) and a faux-fur lining
-- [ ] **Knit structure** — a rib / waffle / cable knit normal map + gauge for beanies
+- [x] **Knit structure** — rib / waffle / cable weave structures (pure `weaveHeight` branches → existing normal/roughness baking + Toksvig AA); rib-knit/cable-knit honest, new waffle-knit — PR #276
 - [ ] **Beanie fit** — crown-depth + brim-height + ear-coverage controls
 - [ ] **Beanie stretch (negative ease)** — a knit that stretches snug over the head
 
