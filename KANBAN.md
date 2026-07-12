@@ -624,7 +624,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Path-traced hero render** — an offline high-quality still (three-gpu-pathtracer)
 - [ ] **Ghost-mannequin flat-lay** — an invisible-body product render mode
 - [ ] **360° product viewer** — export a web-embeddable spin (glb + a viewer)
-- [ ] **Multi-angle contact sheet** — front · back · ¾ · side composited into one PNG
+- [x] **Multi-angle contact sheet** — 6 labelled angles around the current view composited into one 3×2 grid PNG (pure `contactViews`/`contactGrid`; File → Export contact sheet) — PR #256
 - [ ] **Social video presets** — 9:16 · 1:1 · 16:9 clips with safe margins
 - [ ] **Motion-blurred turntable** — a smooth spin video with real motion blur
 - [ ] **Focus-pull on the Render tab** — depth-of-field with an animatable focus distance
