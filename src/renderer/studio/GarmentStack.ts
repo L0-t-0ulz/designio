@@ -24,7 +24,6 @@ import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { iridescentParams, makeIridescenceThicknessMap } from '../fabric/iridescent'
 import { makeLaceAlphaMap } from '../fabric/lace'
-import { makePerfAlphaMap } from '../fabric/perforate'
 import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
@@ -384,7 +383,7 @@ export class GarmentStack {
     // Lace / broderie — a sheer alpha-cutout (real holes via alphaTest). Materials
     // are already DoubleSide, so the inside shows through the holes; the lining shell
     // is dropped for a lace garment (see updateLining) so it truly sees through.
-    const laceMap = l.data.lace ? makeLaceAlphaMap(l.data.lace) : l.fabric.perforated ? makePerfAlphaMap() : null
+    const laceMap = l.data.lace ? makeLaceAlphaMap(l.data.lace) : null
     for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
       // metallic props applyFabric doesn't touch — default matte unless a finish sets them
       m.metalness = sp ? sp.metalness : ir ? ir.metalness : m.metalness // keep the per-fabric value applyFabric set (lamé/sequin-base)
@@ -398,9 +397,12 @@ export class GarmentStack {
       // a procedural thickness map swirls the film thickness across the surface so the
       // colour bands flow (oil-slick / hologram) instead of a single flat shift.
       m.iridescenceThicknessMap = ir && l.data.iridescent ? makeIridescenceThicknessMap(l.data.iridescent) : null
-      // lace cutout (or reset when off)
-      m.alphaMap = laceMap
-      m.alphaTest = laceMap ? 0.5 : 0
+      // lace cutout — overrides while on; when off, keep the per-fabric cutout
+      // applyFabric set (a perforated athletic-mesh part keeps its holes)
+      if (laceMap) {
+        m.alphaMap = laceMap
+        m.alphaTest = 0.5
+      }
       // a surface finish sets its own scalar roughness — drop the weave roughness map
       // (set by applyFabric) so it doesn't modulate the sequin/quilt/foil/fur surface.
       if (sp || ql || ir || fur) m.roughnessMap = null
@@ -1124,7 +1126,8 @@ export class GarmentStack {
   private updateLining(l: StackLayer): void {
     // Sheer fabrics (chiffon/organza) + lace stay see-through — an opaque inner shell
     // would kill the translucency / fill the cutout holes. Drop any lining shells.
-    if (l.fabric.transmission > 0.25 || l.data.lace || l.fabric.perforated) {
+    const perforated = l.fabric.perforated || Object.values(l.data.partFabrics ?? {}).some((pf) => pf && getFabric(pf.fabricId).perforated)
+    if (l.fabric.transmission > 0.25 || l.data.lace || perforated) {
       for (const { mesh } of l.controller.getPieces()) {
         for (const c of mesh.children.filter((ch) => ch.userData.lining)) mesh.remove(c)
       }
