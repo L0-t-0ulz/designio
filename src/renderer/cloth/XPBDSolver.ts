@@ -80,7 +80,7 @@ export class XPBDSolver {
   groundY = 0.001
   params: FabricParams
 
-  private readonly constraints: Constraint[] = []
+  private constraints: Constraint[] = [] // rebound by cutSeam (functional openings)
   private readonly lambda: Float32Array
   private pinned: Set<number>
   /** Pinned particles grouped by the body anchor they follow (a sleeve pins its
@@ -465,6 +465,30 @@ export class XPBDSolver {
     // Back panel only when *both* ends are back — side-seam constraints stay front.
     const region: 0 | 1 = this.panel[i] === 1 && this.panel[j] === 1 ? 1 : 0
     this.constraints.push({ i, j, rest, compliance, bend, region })
+  }
+
+  /**
+   * Unsew the tube along the boundary between columns `col` and `col+1` (a
+   * **functional opening** — an open placket/zip): every constraint whose two
+   * particles sit either side of that boundary is removed, so the two front edges
+   * part and the garment really hangs open. Matches the slit `finishTube` leaves
+   * in the render mesh. Spans wrap-aware, so shear + bend constraints cut too.
+   */
+  cutSeam(col: number): void {
+    const nx = this.nx
+    const crosses = (i: number, j: number): boolean => {
+      const a = i % nx
+      const b = j % nx
+      let d = (b - a + nx) % nx
+      let start = a
+      if (d > nx / 2) {
+        d = nx - d // take the short way round — constraints only span 1–2 columns
+        start = b
+      }
+      return (col - start + nx) % nx < d // the forward interval covers the col|col+1 boundary
+    }
+    this.constraints = this.constraints.filter((c) => !crosses(c.i, c.j))
+    this.wake()
   }
 
   /** Advance the simulation by `dt` seconds using `substeps` internal steps. */

@@ -64,6 +64,7 @@ export interface GarmentState {
   pocketStyle?: PocketStyle
   hem?: boolean
   closure?: boolean
+  closureOpen?: boolean
   lined?: boolean
   interfaced?: boolean
   wet?: boolean
@@ -483,6 +484,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       d.t.row.classList.toggle('dio-hidden', !def.supports[d.key])
       d.t.refresh()
     }
+    // "Worn open" shows only while a supported Closure is on
+    openT.row.classList.toggle('dio-hidden', !def.supports.closure || !garment.closure)
+    openT.refresh()
     // the collar/lapel library shows only when the Collar detail is supported + on
     collarBlock.classList.toggle('dio-hidden', !def.supports.collar || !garment.collar)
     for (const [cstyle, node] of collarBtns) node.classList.toggle('primary', (garment.collarStyle ?? 'band') === cstyle)
@@ -538,8 +542,12 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     key,
     t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; syncGarment(); opts.onGarmentEdit() } })
   }))
+  // Functional opening — wear the closure unbuttoned/unzipped: the centre-front seam
+  // is really unsewn, so the garment gaps and hangs open. Shows only while Closure is on.
+  const openT = toggle({ label: 'Worn open', get: () => !!garment.closureOpen, set: (v) => { garment.closureOpen = v; syncGarment(); opts.onGarmentEdit() } })
+  const detailRows = detailToggles.flatMap((d) => (d.key === 'closure' ? [d.t.row, openT.row] : [d.t.row]))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock, pocketBlock, pleatBlock, frillBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

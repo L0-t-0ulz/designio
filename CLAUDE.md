@@ -290,6 +290,7 @@ procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle 
 piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
+`?open=1` (**functional opening** — the closure worn open: `TubeSpec.openFront` slits the mesh at `openSeamColumn` and `XPBDSolver.cutSeam` unsews the matching constraints, so the garment really gaps and hangs open) ·
 `?lined/interfaced/waistband/facing/drawstring/ruffles/boning/ribbing/yoke/princess=1` (more construction detail) ·
 `?wet=1` (a **waterlogged rain/swim look** — heavier + limp + clinging drape via `wetParams` + a darker glossy sheen) ·
 `?puff=1` (**trapped-air loft** — inflate any garment off the body into a puffer via `XPBDSolver.pressure`; auto-on for a quilted garment) ·

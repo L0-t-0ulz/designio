@@ -77,6 +77,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     pocketStyle: l.pocketStyle,
     hem: l.hem,
     closure: l.closure,
+    closureOpen: l.closureOpen,
     lined: l.lined,
     interfaced: l.interfaced,
     wet: l.wet,
@@ -141,6 +142,8 @@ export interface GarmentLayerData {
   hem?: boolean
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
+  /** Wear the closure open (unbuttoned/unzipped) — the garment gaps at centre-front. */
+  closureOpen?: boolean
   lined?: boolean
   interfaced?: boolean
   /** Waterlogged rain/swim look — heavier + limp physics + a wet glossy sheen. */
@@ -315,6 +318,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     pocketStyle: c.pocketStyle,
     hem: c.hem,
     closure: c.closure,
+    closureOpen: c.closureOpen,
     lined: c.lined,
     interfaced: c.interfaced,
     wet: c.wet,

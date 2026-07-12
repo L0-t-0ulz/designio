@@ -61,6 +61,17 @@ export interface TubeSpec {
   waistT?: number
   /** Pleat/gather fold pattern baked into the rest shape (opens toward the hem). */
   pleat?: PleatStyle
+  /** Functional opening: the centre-front seam is left unsewn (an open placket/zip) —
+   *  the quad column at `openSeamColumn` is skipped and the solver cuts the matching
+   *  constraints, so the garment really gaps and hangs open. */
+  openFront?: boolean
+}
+
+/** The quad column whose boundary sits nearest centre-front (+z, angle π/2) — where
+ *  an open placket/zip splits the tube. Columns sit at angle 2π·ix/nx, so the cell
+ *  between ix and ix+1 closest to a quarter-turn is the front seam. */
+export function openSeamColumn(nx: number): number {
+  return Math.round(nx / 4 - 0.5)
 }
 
 /** Per-angle top-edge height: straps at the sides (shoulders), a dip for the neck. */
@@ -138,7 +149,7 @@ export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[
 /** Build the wrapped-tube geometry (uvs + closed-seam indices) + pinned top ring.
  *  `ringT` (adaptive ring heights) drives the vertical UV so a placed print stays
  *  at its physical height even when the rings are packed non-uniformly. */
-function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: number[]): TubeBuild {
+function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: number[], openFront = false): TubeBuild {
   const uvs = new Float32Array(nx * ny * 2)
   for (let iy = 0; iy < ny; iy++) {
     const v = 1 - (ringT ? ringT[iy] : ny > 1 ? iy / (ny - 1) : 0)
@@ -149,7 +160,9 @@ function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: num
     }
   }
   const indices: number[] = []
+  const cut = openFront ? openSeamColumn(nx) : -1 // skip this quad column → a real centre-front slit
   const quad = (ix: number, iy: number): void => {
+    if (ix === cut) return
     const ixr = (ix + 1) % nx // wrap the seam closed
     const tl = iy * nx + ix
     const tr = iy * nx + ixr
@@ -187,7 +200,7 @@ export function buildTubeGarment(spec: TubeSpec): TubeBuild {
   const positions = new Float32Array(spec.radial * spec.rings * 3)
   const ringT = tubeRingT(spec)
   fillTube(positions, spec, ringT)
-  return finishTube(positions, spec.radial, spec.rings, ringT)
+  return finishTube(positions, spec.radial, spec.rings, ringT, spec.openFront)
 }
 
 /** A tube that follows an arbitrary segment a→b (e.g. a sleeve along the arm). */
