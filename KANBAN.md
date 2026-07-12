@@ -693,7 +693,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 **Manufacturing & sourcing**
 - [ ] **Factory-format tech-pack** — export to Gerber / Lectra / Optitex
 - [ ] **BOM with suppliers + lead times** — sourceable materials, not just a list
-- [ ] **Sample-order generator** — a spec + quantity request for a sample run
+- [x] **Sample-order generator** — colourway × size qty grid + Proto/SMS/PPS stages + dates/ship-to/notes (File → Export sample order) — PR #263
 - [ ] **Production size-set exporter** — the graded run laid out for cutting
 - [x] **QC spec sheet** — measure-and-tick inspection sheet from the graded POM (spec ± tol, acceptance ranges, 5 sample cells, AQL note; File → Export QC inspection sheet) — PR #262
 
