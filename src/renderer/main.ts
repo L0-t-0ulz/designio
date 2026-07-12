@@ -63,6 +63,7 @@ import { costRollup, estimateLabourMinutes } from './export/cost'
 import { circularScore, fibreGroup, garmentFootprint, longevityCare, materialPassport } from './export/sustainability'
 import { supplierFor } from './export/suppliers'
 import { factoryPackJSON } from './export/factoryPack'
+import { sizeSetFiles } from './export/sizeSet'
 import { threadMetres } from './export/thread'
 import { drapedGirths } from './export/drapeFit'
 import { careLabel, careInstructions } from './export/careLabel'
@@ -961,6 +962,22 @@ function initStudio(
       case 'factory-json':
         await saveFile('factory-pack.json', factoryPackJSON(manufactureBundle()), [{ name: 'JSON', extensions: ['json'] }])
         break
+      case 'size-set': {
+        // the graded run: regenerate the flat pattern at every size through gradeParams
+        const l = stack.active
+        const def = getGarment(l.data.garmentType)
+        const enc = new TextEncoder()
+        const files: Record<string, Uint8Array> = {}
+        for (const f of sizeSetFiles(def.name)) {
+          const params = gradeParams({ ...l.data, size: f.size })
+          files[f.svgName] = enc.encode(garmentPatternSVG(def, params, mannequin.measurements, mannequin.colliders, l.prints))
+          files[f.dxfName] = enc.encode(garmentPatternDXF(def, params, mannequin.measurements, mannequin.colliders, l.prints))
+        }
+        const { zipSync } = await import('fflate')
+        await saveFile('size-set.zip', zipSync(files, { level: 6 }), [{ name: 'ZIP archive', extensions: ['zip'] }])
+        statusHandles?.setSelection(`Size set — ${Object.keys(files).length} pattern files (XS–XXL)`)
+        break
+      }
     }
   }
 

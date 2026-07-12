@@ -159,7 +159,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Export sample order (HTML)', run: a.onSampleOrder },
     { label: 'Batch render colourways (ZIP)', run: a.onBatchRender },
     ex('manufacture', 'Export for manufacturing (HTML)'),
-    ex('factory-json', 'Export factory pack (JSON · DXF-AAMA embedded)')
+    ex('factory-json', 'Export factory pack (JSON · DXF-AAMA embedded)'),
+    ex('size-set', 'Export size set — graded patterns XS-XXL (ZIP)')
   ])
   menu('Edit', [
     { label: 'Undo', run: a.onUndo, enabled: a.canUndo },
