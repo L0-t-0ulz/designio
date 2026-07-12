@@ -108,13 +108,15 @@ export function scarfToSpec(pc: ScarfPiece, p: GarmentParams, m: Measurements): 
 
 /** The two trouser legs (hip → knee/ankle by length). */
 function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
-  const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY) + (p.hem ? 0.03 : 0) - (p.lengthGradeM ?? 0) // rolled hem = shorter leg; grade rules lengthen per size
+  const breakDrop = p.trouserBreak ? 0.028 : 0 // break: the hem runs past the ankle and stacks softly
+  const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY) + (p.hem ? 0.03 : 0) - (p.lengthGradeM ?? 0) - breakDrop // rolled hem = shorter leg; grade rules lengthen per size
   const rTop = m.thighR + p.ease
   const rBot = m.thighR * 0.6 + p.ease * 0.6 + p.flare * 0.4 + (p.pleats ? 0.05 : 0)
   const legs = [
     piece(m.hipY, hemY, rTop, rBot, -m.hipHalfX, 40),
     piece(m.hipY, hemY, rTop, rBot, m.hipHalfX, 40)
   ]
+  if (p.crease) for (const leg of legs) leg.crease = true // pressed fore/aft crease per leg
   if (p.pleats) for (const l of legs) l.pleat = p.pleatStyle ?? 'knife'
   return legs
 }

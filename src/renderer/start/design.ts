@@ -32,6 +32,8 @@ export interface DesignConfig {
   cuff?: boolean
   pleats?: boolean
   pleatStyle?: PleatStyle
+  crease?: boolean
+  trouserBreak?: boolean
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle

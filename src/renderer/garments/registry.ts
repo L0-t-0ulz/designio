@@ -45,6 +45,8 @@ const upperCaps = { neckline: true, sleeve: true, length: true, ease: true, flar
 const sleevelessCaps = { ...upperCaps, sleeve: false, cuff: false }
 // Strapless (tube top) — also drop the neckline + collar (there's no shoulder edge to shape).
 const straplessCaps = { ...sleevelessCaps, neckline: false, collar: false }
+// Tailored trousers also press a crease + carry a break (skirts/leggings don't).
+const trousersCaps = { crease: true, trouserBreak: true }
 const lowerCaps = { length: true, ease: true, flare: true, pleats: true, dart: true, pocket: true, hem: true, waistband: true, drawstring: true, ruffles: true, closure: true, lined: true, interfaced: true }
 
 /**
@@ -189,8 +191,9 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'bottom',
     icon: 'pants',
     pieces: [{ kind: 'legTubes' }],
-    supports: lowerCaps,
-    defaults: { length: 0.6, ease: 0.015, flare: 0.05 }
+    supports: { ...lowerCaps, ...trousersCaps },
+    // classic tailored default: a pressed crease + a slight break at the ankle
+    defaults: { length: 0.6, ease: 0.015, flare: 0.05, crease: true, trouserBreak: true }
   },
   {
     id: 'shorts',
@@ -207,7 +210,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'bottom',
     icon: 'pants',
     pieces: [{ kind: 'legTubes' }],
-    supports: lowerCaps,
+    supports: { ...lowerCaps, ...trousersCaps },
     defaults: { length: 0.98, ease: 0.03, flare: 0.18, waistband: true, drawstring: true }
   },
   {
@@ -216,7 +219,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'bottom',
     icon: 'pants',
     pieces: [{ kind: 'legTubes' }],
-    supports: lowerCaps,
+    supports: { ...lowerCaps, ...trousersCaps },
     defaults: { length: 0.62, ease: 0.045, flare: 0.06, pocket: true, pocketStyle: 'bellows', waistband: true },
     defaultFabric: 'chino-twill'
   },
@@ -226,7 +229,7 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'bottom',
     icon: 'pants',
     pieces: [{ kind: 'legTubes' }],
-    supports: lowerCaps,
+    supports: { ...lowerCaps, ...trousersCaps },
     // tapered straight leg — low ease + no flare narrows to the ankle.
     defaults: { length: 1.0, ease: 0.008, flare: 0, hem: true }
   },

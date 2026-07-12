@@ -152,6 +152,8 @@ function initStudio(
     cuff: l0.cuff,
     pleats: l0.pleats,
     pleatStyle: l0.pleatStyle,
+    crease: l0.crease,
+    trouserBreak: l0.trouserBreak,
     dart: l0.dart,
     pocket: l0.pocket,
     pocketStyle: l0.pocketStyle,
@@ -288,6 +290,8 @@ function initStudio(
     garment.cuff = l.data.cuff
     garment.pleats = l.data.pleats
     garment.pleatStyle = l.data.pleatStyle
+    garment.crease = l.data.crease
+    garment.trouserBreak = l.data.trouserBreak
     garment.dart = l.data.dart
     garment.pocket = l.data.pocket
     garment.pocketStyle = l.data.pocketStyle
@@ -658,6 +662,8 @@ function initStudio(
     l.data.cuff = garment.cuff
     l.data.pleats = garment.pleats
     l.data.pleatStyle = garment.pleatStyle
+    l.data.crease = garment.crease
+    l.data.trouserBreak = garment.trouserBreak
     l.data.dart = garment.dart
     l.data.pocket = garment.pocket
     l.data.pocketStyle = garment.pocketStyle
@@ -1666,6 +1672,8 @@ if (skipStart) {
   }
   if (entryParams.get('hem')) cfg.hem = true
   if (entryParams.get('closure')) cfg.closure = true
+  if (entryParams.get('crease')) cfg.crease = true
+  if (entryParams.get('break')) cfg.trouserBreak = true
   if (entryParams.get('open')) (cfg.closure = true), (cfg.closureOpen = true) // worn-open placket/zip (functional opening)
   if (entryParams.get('lined')) cfg.lined = true
   if (entryParams.get('interfaced')) cfg.interfaced = true

@@ -12,6 +12,15 @@ export type PleatStyle = 'knife' | 'box' | 'accordion' | 'cartridge' | 'gather' 
  * (they're the rest state). `N` folds are chosen to stay crisp at RADIAL = 60 (≥ 4
  * samples/fold). Pure, so it's unit tested.
  */
+/**
+ * Pressed trouser-crease profile — sharp ridges at the **front (π/2)** and **back
+ * (3π/2)** of a leg tube's cross-section, ~0 at the sides, so the leg reads as a
+ * tailored, fore-aft-creased trouser instead of a round cylinder. 0…1.
+ */
+export function creaseWave(a: number): number {
+  return Math.abs(Math.sin(a)) ** 12 // high power = a narrow, pressed ridge
+}
+
 export function pleatWave(a: number, style: PleatStyle, t = 0): number {
   const N = { knife: 12, box: 8, accordion: 15, cartridge: 15, gather: 12, shirr: 24, smock: 10 }[style]
   const u = (a / (2 * Math.PI)) * N
@@ -61,6 +70,8 @@ export interface TubeSpec {
   waistT?: number
   /** Pleat/gather fold pattern baked into the rest shape (opens toward the hem). */
   pleat?: PleatStyle
+  /** Pressed trouser crease — sharp fore/aft ridges baked into the rest cross-section. */
+  crease?: boolean
   /** Functional opening: the centre-front seam is left unsewn (an open placket/zip) —
    *  the quad column at `openSeamColumn` is skipped and the solver cuts the matching
    *  constraints, so the garment really gaps and hangs open. */
@@ -130,7 +141,8 @@ export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[
     const amp = spec.pleat ? (spec.pleat === 'smock' ? 0.05 + 0.05 * t : 0.14 * t) : 0
     for (let ix = 0; ix < radial; ix++) {
       const a = (ix / radial) * Math.PI * 2
-      const r = spec.pleat ? r0 * (1 + amp * pleatWave(a, spec.pleat, t)) : r0
+      let r = spec.pleat ? r0 * (1 + amp * pleatWave(a, spec.pleat, t)) : r0
+      if (spec.crease) r *= 1 + 0.07 * creaseWave(a) // pressed fore/aft trouser crease
       const top = topEdge(spec, a) // per-column top so the neckline is shaped
       const y = top + (bottomY - top) * t
       const k = (iy * radial + ix) * 3
