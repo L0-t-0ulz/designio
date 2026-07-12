@@ -1750,6 +1750,12 @@ canvas {
 .dio-shortcuts-list dd {
   margin: 0;
 }
+/* live size recommendation under the Size run */
+.dio-size-hint {
+  font-size: 11.5px;
+  color: var(--accent, #8b7cf8);
+  margin-top: 4px;
+}
 .dio-shortcuts-hint {
   margin: 16px 0 0;
   font-size: 11.5px;

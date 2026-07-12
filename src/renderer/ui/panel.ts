@@ -166,6 +166,8 @@ export interface PanelOptions {
   onPatternEdit: () => void
   onResew: () => void
   onDrop: () => void
+  /** The size of the graded run that best fits the current body (live size recommendation). */
+  recommendSize?: () => string
   /** Fit / tension heatmap toggle (visualise where a garment is tight vs loose). */
   heatmap?: { get: () => boolean; set: (on: boolean) => void }
   /** Strain-driven micro-wrinkle normals toggle (crisp folds on close-ups). */
@@ -430,7 +432,11 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     sizeRow.append(b)
   }
   const sizeBlock = el('div')
-  sizeBlock.append(el('div', 'dio-field-label', 'Size'), sizeRow)
+  const sizeHint = el('div', 'dio-size-hint')
+  const refreshSizeHint = (): void => {
+    sizeHint.textContent = opts.recommendSize ? `Best fit for this body: ${opts.recommendSize()}` : ''
+  }
+  sizeBlock.append(el('div', 'dio-field-label', 'Size'), sizeRow, sizeHint)
 
   // Grade rules — per-point increments (cm per size step) the size run grades by,
   // like a production grading table (girth-only by default).
@@ -518,6 +524,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     gradeGirthS.refresh()
     gradeLenS.refresh()
     gradeSleeveS.refresh()
+    refreshSizeHint()
   }
   function selectGarment(id: string): void {
     garment.type = id
@@ -755,6 +762,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const refreshMeasure = (): void => mtm.refresh()
   const refreshBody = (): void => {
     for (const s of bodyRefreshers) s.refresh()
+    refreshSizeHint() // the best-fit size follows the body
     mtm.refresh()
   }
   // Body-shape presets (diversity) — each applies a set of shape multipliers on top
