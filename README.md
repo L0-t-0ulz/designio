@@ -428,6 +428,9 @@ See how a garment actually fits:
   on the bust and waist reads yellow→red — real contact-force fit analysis, distinct from strain.
 - **Strain-driven micro-wrinkles** — a shader crease perturbation that nucleates real wrinkles where the
   cloth is under strain.
+- **Compression fit** — Looseness goes **negative** (to −3 cm): activewear (sports bra · swimsuit ·
+  leggings) drafts *smaller than the body* and stretches over it — the strain / stress / pressure views
+  show exactly where it squeezes.
 - **Measure & annotate** — a tape-measure (click two points → a cm reading) and pinned notes, reprojected
   onto the live 3D each frame.
 

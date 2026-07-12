@@ -202,7 +202,8 @@ describe('activewear — sports bra · high-waist leggings · swimsuit', () => {
     const bra = specs('sports-bra', withDefaults('sports-bra'))[0]
     const tank = specs('tank', withDefaults('tank'))[0]
     expect(bra.bottomY).toBeGreaterThan(tank.bottomY) // cropped well above a tank's hem
-    expect(bra.radiusBottom).toBeCloseTo(MEASUREMENTS.chestR * 0.9, 5) // underbust band, not a hip flare
+    const braEase = getGarment('sports-bra').defaults.ease ?? 0
+    expect(bra.radiusBottom).toBeCloseTo(MEASUREMENTS.chestR * 0.9 + braEase, 5) // underbust band (compression ease), not a hip flare
     expect(bra.radiusBottom).toBeLessThan(tank.radiusBottom)
   })
 
@@ -215,8 +216,8 @@ describe('activewear — sports bra · high-waist leggings · swimsuit', () => {
     const legs = tubes.slice(1)
     expect(legs[0].centerX).toBeLessThan(0)
     expect(legs[1].centerX).toBeGreaterThan(0)
-    // second-skin: same zero-ease taper as classic leggings
-    expect(legs[0].radiusBottom).toBeCloseTo(specs('leggings', withDefaults('leggings'))[0].radiusBottom, 5)
+    // second-skin: at least as tight at the ankle as classic (zero-ease) leggings
+    expect(legs[0].radiusBottom).toBeLessThanOrEqual(specs('leggings', withDefaults('leggings'))[0].radiusBottom)
   })
 
   it('swimsuit: one snug cinched tube from the shoulders past the hip — no trailing length', () => {

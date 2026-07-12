@@ -404,7 +404,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   collarBlock.append(el('div', 'dio-field-label', 'Collar / lapel'), collarRow)
 
   const lenS = slider({ label: 'Length', min: 0, max: 1, step: 0.01, fine: 0.005, get: () => garment.length, set: (v) => { garment.length = v; opts.onGarmentEdit() } })
-  const easeS = slider({ label: 'Looseness', min: 0, max: 0.12, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
+  // min −3 cm = a compression fit: the garment is drafted smaller than the body and stretches over it
+  const easeS = slider({ label: 'Looseness', min: -0.03, max: 0.12, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.ease, set: (v) => { garment.ease = v; opts.onGarmentEdit() } })
   const flareS = slider({ label: 'Flare', min: 0, max: 0.22, step: 0.005, fine: 0.001, format: (v) => `${(v * 100) | 0} cm`, get: () => garment.flare, set: (v) => { garment.flare = v; opts.onGarmentEdit() } })
 
   // size grade (XS…XXL) — grades the garment girth

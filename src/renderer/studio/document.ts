@@ -60,7 +60,9 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
   const step = SIZE_STEP[l.size]
   return {
     length: l.length,
-    ease: Math.max(0, l.ease + gradeEase(l.size, rules)),
+    // floor at −3 cm: **compression fit** — a garment drafted smaller than the body
+    // (activewear) stretches over it; the solver pushes it out, strain/pressure show it.
+    ease: Math.max(-0.03, l.ease + gradeEase(l.size, rules)),
     lengthGradeM: (step * rules.lengthCm) / 100 || 0, // `|| 0` normalises −0 (negative step × zero rule)
     sleeveGradeM: (step * rules.sleeveCm) / 100 || 0,
     flare: l.flare,
