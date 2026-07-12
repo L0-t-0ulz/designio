@@ -5,6 +5,7 @@ import { loadGlbBody, type GlbBody } from './GlbMannequin'
 import { makeSkinMaterial, applySkinLook, type SkinLook } from './skin'
 import { getPose, type PoseName } from './poses'
 import { applyPostureToColliders, bendPoint, postureAngles, type PostureName } from './posture'
+import { WALK_STYLES, type WalkStyle, type WalkStyleName } from './walkStyles'
 import { headFrame } from './face'
 import { BodyCollider } from '../cloth/BodyCollider'
 
@@ -143,6 +144,8 @@ export interface Mannequin {
   setPose: (name: PoseName) => void
   /** Set the posture carriage (athletic · slouch · swayback) — layered on any pose. */
   setPosture: (name: PostureName) => void
+  /** Set the walk style (commercial · editorial · sport) — stride, arms, cadence. */
+  setWalkStyle: (name: WalkStyleName) => void
   /** Set the avatar's complexion (skin tone + undertone) — the shared body/GLB material. */
   setSkinTone: (look: SkinLook) => void
   /** Current body anchors — garments pin to these so they follow the animated body. */
@@ -560,6 +563,12 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     bodyMesh.rebuild(buildAll())
     syncBodyBVH(false)
   }
+  // Walk style — how the walk reads (stride/arms/cadence + GLB playback rate).
+  let walkStyle: WalkStyle = WALK_STYLES[0]
+  const setWalkStyle = (name: WalkStyleName): void => {
+    walkStyle = WALK_STYLES.find((w) => w.name === name) ?? WALK_STYLES[0]
+  }
+
   // Posture carriage — layered on top of whatever pose/clip is active.
   let posture: PostureName = 'neutral'
   const applyGlbPosture = (): void => {
@@ -610,7 +619,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       const animating = mode === 'idle' || mode === 'walk'
       // Ease the walk to half speed so the stride (and the cloth that hangs off it) reads
       // graceful rather than frantic, and the sim keeps up; idle plays at full rate.
-      const rate = mode === 'walk' ? 0.5 : 1
+      const rate = mode === 'walk' ? 0.5 * walkStyle.rate : 1
       glb.update(animating ? dt * speed * rate : 0, mode === 'walk')
       applyGlbPosture()
       fitCollidersToGlb()
@@ -620,9 +629,9 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     let armAmp = 0
     let freq = 0
     if (mode === 'walk') {
-      legAmp = 0.5
-      armAmp = 0.35
-      freq = 3.0
+      legAmp = walkStyle.legAmp
+      armAmp = walkStyle.armAmp
+      freq = walkStyle.freq
     } else if (mode === 'idle') {
       legAmp = 0.05
       armAmp = 0.06
@@ -706,6 +715,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     setGhost,
     setPose,
     setPosture,
+    setWalkStyle,
     setSkinTone: (look) => applySkinLook(material, look),
     anchors,
     setOnBodyChange: (cb) => (onBodyChange = cb)
