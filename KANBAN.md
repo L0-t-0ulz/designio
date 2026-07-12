@@ -373,6 +373,7 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Favourites / recents row** in the Library
 - [ ] **Multi-select layers** — recolour/edit several garment layers at once
 - [x] **Keyboard-shortcuts overlay** (press `?`) — a dismissible cheat-sheet modal (`ui/shortcutsOverlay.ts`) listing every shortcut + a Help-menu entry; Esc/click to close — PR #189
+- [x] **Keyboard-shortcut editor** — every studio shortcut is rebindable from the ? overlay (click a key chip → press a new combo; conflicts caught with a "Used by …" hint; Reset to defaults; persisted keymap via pure `ui/keymap`; `?shortcuts=1`) — PR #246
 
 **Performance** _(refine PRs #142 · #167)_
 - [ ] **Cloth solver in a Web Worker** — run the sim off the main thread
