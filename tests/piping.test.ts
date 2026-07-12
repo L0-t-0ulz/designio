@@ -31,7 +31,7 @@ describe('piping / corded edges', () => {
       expect(arr[nx * 3 + 2]).toBe(arr[2])
       // the first point is the row particle lifted along its normal
       expect(arr[0]).toBe(positions[idx[0] * 3])
-      expect(arr[1]).toBeCloseTo(positions[idx[0] * 3 + 1] + 0.01, 6) // float32 storage precision
+      expect(arr[1]).toBeCloseTo(positions[idx[0] * 3 + 1] + 0.01, 4) // float32 storage precision at these magnitudes
     }
     // hem row is the last ring
     expect(loops[1].idx[0]).toBe((ny - 1) * nx)
