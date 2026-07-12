@@ -30,6 +30,8 @@ import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import { MeasureTool, type MeasureMode } from './studio/MeasureTool'
 import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPattern } from './export/patternImport'
 import { lineupCells, lineupHues } from './studio/lineup'
+import { contactGrid, contactViews } from './studio/contactSheet'
+import { turntablePose } from './studio/turntable'
 import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
@@ -977,6 +979,50 @@ function initStudio(
     statusHandles?.setSelection(`Runway line-up — ${colors.length} looks`)
   }
 
+  // Multi-angle contact sheet — the classic product-turnaround grid: the garment
+  // shot from N angles around the current view, labelled + composited into one PNG.
+  async function exportContactSheet(): Promise<void> {
+    const views = contactViews(6)
+    const pose0 = viewport.getCameraPose()
+    const cellW = 560
+    const urls: string[] = []
+    for (const v of views) {
+      viewport.setCameraPose(turntablePose(pose0, v.t))
+      urls.push(viewport.renderStill(cellW))
+    }
+    viewport.setCameraPose(pose0) // back to the working view
+    const load = (u: string): Promise<HTMLImageElement> =>
+      new Promise((res, rej) => {
+        const im = new Image()
+        im.onload = () => res(im)
+        im.onerror = () => rej(new Error('image decode failed'))
+        im.src = u
+      })
+    const imgs = await Promise.all(urls.map(load))
+    const cellH = imgs[0]?.height ?? cellW
+    const grid = contactGrid(views.length, cellW, cellH)
+    const canvas = document.createElement('canvas')
+    canvas.width = grid.totalW
+    canvas.height = grid.totalH
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = '#101014'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.font = '600 15px system-ui, sans-serif'
+    ctx.textAlign = 'center'
+    imgs.forEach((im, i) => {
+      ctx.drawImage(im, grid.cells[i].x, grid.cells[i].y)
+      ctx.fillStyle = '#c9cbd4'
+      ctx.fillText(views[i].label, grid.cells[i].x + cellW / 2, grid.labelY[i])
+    })
+    const b64 = canvas.toDataURL('image/png').split(',')[1] ?? ''
+    const bin = atob(b64)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'contact-sheet'
+    await saveFile(`${safe}-contact-sheet.png`, bytes, [{ name: 'PNG image', extensions: ['png'] }])
+    statusHandles?.setSelection(`Contact sheet — ${views.length} angles`)
+  }
+
   // Batch render — one crisp PNG per colourway, bundled into a ZIP (a lookbook set,
   // vs. the line-up's single composite). Snapshots the live view per colourway.
   async function exportBatchRender(): Promise<void> {
@@ -1136,6 +1182,7 @@ function initStudio(
     onExport: (fmt) => void doExport(fmt).catch(exportError),
     onRecordTurntable: recordTurntableSpin,
     onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
+    onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
     onBatchRender: () => void exportBatchRender().catch((err) => showToast('Batch render failed: ' + (err as Error).message, 'error')),
     onUndo: undo,
     onRedo: redo,
