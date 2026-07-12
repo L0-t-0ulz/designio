@@ -67,6 +67,8 @@ import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restoreSnapshot, deleteSnapshot } from './studio/projectStore'
 import { openVersionHistory } from './ui/versionHistory'
+import { listBookmarks, saveBookmark, deleteBookmark } from './studio/cameraBookmarks'
+import { openCameraBookmarks } from './ui/cameraBookmarksPanel'
 import { writeAutosave, readAutosave, clearAutosave, shouldOfferRestore, describeAge } from './studio/autosave'
 import { defaultConfig, newImagePrint, newTextPrint, type DesignConfig } from './start/design'
 import { GarmentStack, type PartId } from './studio/GarmentStack'
@@ -785,6 +787,7 @@ function initStudio(
   if (backdropParam) env.setBackdrop(backdropParam)
   const tonemapParam = params.get('tonemap')
   if (tonemapParam) viewport.setToneMapping(tonemapParam)
+  if (params.get('dof') === '1') viewport.setDepthOfField(true)
   const srParam = params.get('simRes')
   if (srParam && SIM_RESOLUTIONS.some((r) => r.name === srParam)) {
     simRes = srParam as SimResolution
@@ -1099,6 +1102,25 @@ function initStudio(
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
     onMeasure: () => setMeasureMode(measureTool?.getMode() === 'measure' ? 'off' : 'measure'),
     onAnnotate: () => setMeasureMode(measureTool?.getMode() === 'annotate' ? 'off' : 'annotate'),
+    onCameraBookmarks: () =>
+      openCameraBookmarks({
+        items: listBookmarks().map((b) => ({ id: b.id, name: b.name })),
+        onSaveCurrent: () => {
+          const name = window.prompt('Name this view', `View ${listBookmarks().length + 1}`)
+          if (name == null) return
+          saveBookmark(name, viewport.getCameraPose())
+          showToast('Saved camera view', 'success')
+        },
+        onRecall: (id) => {
+          const b = listBookmarks().find((x) => x.id === id)
+          if (b) viewport.setCameraPose(b.pose)
+        },
+        onDelete: (id) => deleteBookmark(id)
+      }),
+    onToggleDOF: () => {
+      viewport.setDepthOfField(!viewport.depthOfField)
+      showToast(viewport.depthOfField ? 'Depth of field on' : 'Depth of field off', 'info')
+    },
     onClearMeasure: () => {
       measureTool?.clear()
       setMeasureMode('off')

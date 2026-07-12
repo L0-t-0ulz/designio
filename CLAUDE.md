@@ -38,8 +38,10 @@ Electron: `src/main` (window, native menu, CSP, `dialog:saveFile` IPC), `src/pre
 
 Renderer modules:
 - `core/` — `Viewport` (renderer + camera + OrbitControls + post-processing: **GTAO ambient occlusion**
-  (grounds the figure + darkens contact/fold areas), bloom, vignette, SMAA; **selectable tone-mapping**
-  via `setToneMapping` + pure `tonemap.toneMappingMode` — ACES · AgX · Neutral · Filmic · Reinhard),
+  (grounds the figure + darkens contact/fold areas), bloom, vignette, SMAA + an optional **depth of field**
+  (`BokehPass`, off by default, `setDepthOfField` focuses on the subject); **selectable tone-mapping**
+  via `setToneMapping` + pure `tonemap.toneMappingMode` — ACES · AgX · Neutral · Filmic · Reinhard;
+  `getCameraPose`/`setCameraPose` back **camera bookmarks** (`studio/cameraBookmarks` + `ui/cameraBookmarksPanel`)),
   `Environment` (IBL, key + rim rig, reflective floor + shadow-catcher; returns an `EnvironmentHandle`
   with `setLighting`/`setBackdrop` driven by `studioPresets` — **studio lighting presets** (Studio ·
   Softbox · Dramatic · High-key · Runway · Golden-hour: each an azimuth/elevation-described key + rims +

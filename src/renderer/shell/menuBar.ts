@@ -30,6 +30,8 @@ export interface MenuActions {
   onToggleMannequin: () => void
   onMeasure: () => void
   onAnnotate: () => void
+  onCameraBookmarks: () => void
+  onToggleDOF: () => void
   onClearMeasure: () => void
   onRunwayLineup: () => void
   onToggleLibrary: () => void
@@ -163,6 +165,9 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Measure distances', run: a.onMeasure },
     { label: 'Add annotation', run: a.onAnnotate },
     { label: 'Clear measurements', run: a.onClearMeasure },
+    { sep: true },
+    { label: 'Camera bookmarks…', run: a.onCameraBookmarks },
+    { label: 'Depth of field', run: a.onToggleDOF },
     { sep: true },
     { label: 'Wireframe', run: a.onToggleWireframe },
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }
