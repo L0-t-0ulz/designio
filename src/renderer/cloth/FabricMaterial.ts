@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { type Fabric, sheenRecipeFromFabric, anisotropyAngleForFabric, envIntensityForFabric } from '../fabric/FabricLibrary'
 import { makeWeaveNormalMap, makeWeaveRoughnessMap, toksvigRoughness } from '../fabric/weaveTexture'
+import { makePerfAlphaMap } from '../fabric/perforate'
 
 /**
  * A physically-based fabric material driven by a `Fabric`: sheen for the soft
@@ -22,6 +23,10 @@ export function createFabricMaterial(fabric: Fabric): THREE.MeshPhysicalMaterial
 export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): void {
   mat.color.set(fabric.color)
   mat.metalness = fabric.metalness ?? 0 // lamé / foil / sequin-base cloth reads as metal
+  // perforated cloth (athletic mesh) — real see-through holes, per material so a
+  // mesh *part* (sleeves/back panel) cuts out while the rest of the garment stays solid
+  mat.alphaMap = fabric.perforated ? makePerfAlphaMap() : null
+  mat.alphaTest = fabric.perforated ? 0.5 : 0
   // Toksvig specular-AA: a stronger weave normal lifts the base roughness so the
   // micro-detail reads as roughness, not a shimmering highlight, at distance.
   mat.roughness = toksvigRoughness(fabric.roughness, fabric.normalStrength)
