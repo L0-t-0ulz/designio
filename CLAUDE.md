@@ -175,7 +175,9 @@ Renderer modules:
   per-panel physics — `panelFabricId` falls back back→body, legBack→legs→body, sleeveBack→sleeves→body).
   Adding a garment is `stack.addLayer`.
   `projectStore` (the **in-app project library** — localStorage list/save/load/delete/rename of saved
-  `ProjectDoc`s + thumbnail; pure parse/upsert/sort helpers are unit-tested), `autosave` (**autosave +
+  `ProjectDoc`s + thumbnail; + **version history** — each project keeps a capped list of named `Snapshot`s
+  (`pushSnapshot`/`snapshotProject`/`listSnapshots`/`restoreSnapshot`), driven by `ui/versionHistory`'s panel
+  (File → Save version / Version history…); pure parse/upsert/sort/snapshot helpers are unit-tested), `autosave` (**autosave +
   crash recovery** — snapshots the working `.dio` doc to localStorage every 15 s + on close; a fresh
   launch offers to recover it via a non-blocking banner; pure `parseSnapshot`/`shouldOfferRestore`/
   `describeAge` are unit-tested), `timeline` + `TimelinePlayer`

@@ -6,6 +6,8 @@ export interface MenuActions {
   onNew: () => void
   onProjects: () => void
   onSaveProject: () => void
+  onSaveVersion: () => void
+  onVersionHistory: () => void
   onExportDio: () => void
   onOpenProject: () => void
   onImportPattern: () => void
@@ -115,6 +117,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Your projects…', run: a.onProjects },
     { sep: true },
     { label: 'Save project', run: a.onSaveProject },
+    { label: 'Save version (snapshot)', run: a.onSaveVersion },
+    { label: 'Version history…', run: a.onVersionHistory },
     { label: 'Export project (.dio)', run: a.onExportDio },
     { label: 'Open project (.dio)…', run: a.onOpenProject },
     { label: 'Import pattern (.dxf)…', run: a.onImportPattern },
