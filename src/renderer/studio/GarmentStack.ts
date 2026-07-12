@@ -559,6 +559,7 @@ export class GarmentStack {
     }
 
     if (l.data.closure && !l.data.closureOpen) this.buildClosure(l) // worn open → no fastened placket; the seam itself gaps
+    if (getGarment(l.data.garmentType).pom) this.buildPom(l) // pom-pom beanie — a yarn pom riding the crown
     if (l.data.collar) this.buildCollar(l)
     if (l.data.waistband) this.buildWaistband(l)
     if (l.data.drawstring) this.buildDrawstring(l)
@@ -1003,6 +1004,19 @@ export class GarmentStack {
    * or a **zip tape + metal pull** (chosen by the garment's `closureStyle`). Non-sim
    * decoration, sized/placed from the garment's tube spec so it fits any figure/size.
    */
+  /** A fuzzy yarn pom sitting on the crown of a pom-pom beanie (decor, crown-anchored). */
+  private buildPom(l: StackLayer): void {
+    const head = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).head[0]
+    if (!head) return
+    const pom = new THREE.Mesh(
+      new THREE.SphereGeometry(0.045, 18, 14),
+      new THREE.MeshPhysicalMaterial({ color: l.data.color, roughness: 1, sheen: 1, sheenRoughness: 0.4, sheenColor: new THREE.Color(l.data.color).offsetHSL(0, -0.1, 0.18) })
+    )
+    pom.position.set(0, head.topY + 0.032, 0)
+    pom.castShadow = true
+    l.decor.add(pom)
+  }
+
   private buildClosure(l: StackLayer): void {
     const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
     if (!spec) return

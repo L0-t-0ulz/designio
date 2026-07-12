@@ -1,6 +1,6 @@
 import type { FabricParams } from '../cloth/fabricPresets'
 
-export type WeaveType = 'plain' | 'twill' | 'satin' | 'knit'
+export type WeaveType = 'plain' | 'twill' | 'satin' | 'knit' | 'rib' | 'waffle' | 'cable'
 
 /** Fabric family — groups the gallery and hints at behaviour (crisp → fluid → stretchy). */
 export type FabricFamily = 'woven' | 'silk' | 'knit' | 'specialty'
@@ -199,10 +199,12 @@ export const FABRIC_LIBRARY: Fabric[] = [
 
   // ---- knits (stretchy → soft) ----
   { id: 'jersey-knit', name: 'Jersey knit', family: 'knit', gsm: 220, stretch: 0.75, bendiness: 0.7, friction: 0.5, color: 0x5f8f6b, roughness: 0.82, sheen: 0.5, sheenRoughness: 0.5, weave: 'knit', weaveScale: 120, normalStrength: 0.6, anisotropy: 0, transmission: 0 },
-  { id: 'rib-knit', name: 'Rib knit', family: 'knit', gsm: 260, stretch: 0.85, bendiness: 0.62, friction: 0.52, color: 0x8a4b5e, roughness: 0.85, sheen: 0.45, sheenRoughness: 0.5, weave: 'knit', weaveScale: 90, normalStrength: 0.7, anisotropy: 0, transmission: 0 },
+  { id: 'rib-knit', name: 'Rib knit', family: 'knit', gsm: 260, stretch: 0.85, bendiness: 0.62, friction: 0.52, color: 0x8a4b5e, roughness: 0.85, sheen: 0.45, sheenRoughness: 0.5, weave: 'rib', weaveScale: 90, normalStrength: 0.7, anisotropy: 0, transmission: 0 },
+  // thermal grid — raised walls around deep square cells (the waffle base layer)
+  { id: 'waffle-knit', name: 'Waffle knit', family: 'knit', gsm: 300, stretch: 0.7, bendiness: 0.6, friction: 0.55, color: 0xc9b697, roughness: 0.9, sheen: 0.4, sheenRoughness: 0.55, weave: 'waffle', weaveScale: 70, normalStrength: 0.85, anisotropy: 0, transmission: 0 },
   { id: 'french-terry', name: 'French terry', family: 'knit', gsm: 320, stretch: 0.6, bendiness: 0.58, friction: 0.55, color: 0xb2b7bf, roughness: 0.9, sheen: 0.35, sheenRoughness: 0.55, weave: 'knit', weaveScale: 100, normalStrength: 0.65, anisotropy: 0, transmission: 0 },
   { id: 'fleece', name: 'Fleece', family: 'knit', nap: true, gsm: 360, stretch: 0.5, bendiness: 0.68, friction: 0.6, color: 0x556070, roughness: 0.98, sheen: 0.3, sheenRoughness: 0.6, weave: 'knit', weaveScale: 80, normalStrength: 0.75, anisotropy: 0, transmission: 0 },
-  { id: 'cable-knit', name: 'Cable knit', family: 'knit', gsm: 400, stretch: 0.55, bendiness: 0.52, friction: 0.58, color: 0xd8cbb0, roughness: 0.92, sheen: 0.4, sheenRoughness: 0.55, weave: 'knit', weaveScale: 55, normalStrength: 0.9, anisotropy: 0, transmission: 0 },
+  { id: 'cable-knit', name: 'Cable knit', family: 'knit', gsm: 400, stretch: 0.55, bendiness: 0.52, friction: 0.58, color: 0xd8cbb0, roughness: 0.92, sheen: 0.4, sheenRoughness: 0.55, weave: 'cable', weaveScale: 55, normalStrength: 0.9, anisotropy: 0, transmission: 0 },
 
   // ---- specialty ----
   { id: 'leather', name: 'Leather', family: 'specialty', gsm: 340, stretch: 0.02, bendiness: 0.22, friction: 0.6, color: 0x5a3826, roughness: 0.5, sheen: 0.4, sheenRoughness: 0.5, weave: 'plain', weaveScale: 90, normalStrength: 0.35, anisotropy: 0, transmission: 0 },

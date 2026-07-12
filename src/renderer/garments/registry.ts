@@ -418,6 +418,50 @@ export const GARMENTS: GarmentDefinition[] = [
     defaultFabric: 'rib-knit'
   },
   {
+    id: 'cuffed-beanie',
+    name: 'Cuffed beanie',
+    category: 'outerwear',
+    icon: 'top',
+    // a folded-up ribbed brim: shorter drop, band flared wide (the doubled cuff), snug
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.23, dropLo: 0.28, topScale: 0.13, botScale: 1.45 }],
+    supports: { length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.003, flare: 0 },
+    defaultFabric: 'rib-knit'
+  },
+  {
+    id: 'slouchy-beanie',
+    name: 'Slouchy beanie',
+    category: 'outerwear',
+    icon: 'top',
+    // extra crown length that drapes/slouches at the back
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.3, dropLo: 0.38, topScale: 0.17, botScale: 1.26 }],
+    supports: { length: true, ease: true, flare: true },
+    defaults: { length: 0.6, ease: 0.006, flare: 0 },
+    defaultFabric: 'jersey-knit'
+  },
+  {
+    id: 'fisherman-beanie',
+    name: 'Fisherman beanie',
+    category: 'outerwear',
+    icon: 'top',
+    // the docker cap: short tight rolled brim above the ears, minimal crown
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.17, dropLo: 0.2, topScale: 0.16, botScale: 1.4 }],
+    supports: { length: true, ease: true },
+    defaults: { length: 0.4, ease: 0.002, flare: 0 },
+    defaultFabric: 'rib-knit'
+  },
+  {
+    id: 'pom-beanie',
+    name: 'Pom-pom beanie',
+    category: 'outerwear',
+    icon: 'top',
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.26, dropLo: 0.32, topScale: 0.13, botScale: 1.28 }],
+    supports: { length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.005, flare: 0 },
+    defaultFabric: 'cable-knit',
+    pom: true
+  },
+  {
     id: 'scarf',
     name: 'Scarf',
     category: 'outerwear',
