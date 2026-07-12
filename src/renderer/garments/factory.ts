@@ -46,7 +46,7 @@ function piece(
 /** A torso/dress/skirt tube from a `bodyTube` piece + the live measurements. */
 function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): TubeSpec {
   const topY = pc.topAnchor === 'shoulder' ? m.shoulderY : m.waistY
-  const hemDrop = pc.hemDropHi + (pc.hemDropLo - pc.hemDropHi) * p.length - (p.hem ? 0.03 : 0) // rolled hem = shorter
+  const hemDrop = pc.hemDropHi + (pc.hemDropLo - pc.hemDropHi) * p.length - (p.hem ? 0.03 : 0) + (p.lengthGradeM ?? 0) // rolled hem = shorter; grade rules drop/raise the hem per size
   const hemY = Math.max(0.14, topY - hemDrop)
   const rTop = (pc.topR === 'chest' ? m.chestR : m.waistR) + p.ease
   const hipBase = pc.botR === 'hip90' ? m.hipR * 0.9 : m.hipR
@@ -104,7 +104,7 @@ export function scarfToSpec(pc: ScarfPiece, p: GarmentParams, m: Measurements): 
 
 /** The two trouser legs (hip → knee/ankle by length). */
 function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
-  const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY) + (p.hem ? 0.03 : 0) // rolled hem = shorter leg
+  const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY) + (p.hem ? 0.03 : 0) - (p.lengthGradeM ?? 0) // rolled hem = shorter leg; grade rules lengthen per size
   const rTop = m.thighR + p.ease
   const rBot = m.thighR * 0.6 + p.ease * 0.6 + p.flare * 0.4 + (p.pleats ? 0.05 : 0)
   const legs = [
@@ -161,7 +161,7 @@ export function sleeveShapeSpec(
 }
 
 /** Sleeve tubes along the arm capsules (indices 5/6 = left, 9/10 = right). */
-function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: SleeveShape = 'set-in'): AxisTubeSpec[] {
+function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: SleeveShape = 'set-in', gradeM = 0): AxisTubeSpec[] {
   const arms: [Capsule, Capsule][] = [
     [colliders[5], colliders[6]],
     [colliders[9], colliders[10]]
@@ -178,6 +178,8 @@ function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: S
     const a = upper.a.clone()
     a.y += rr * 0.7
     a.x += (a.x >= 0 ? -1 : 1) * rr * 0.55
+    // grade rules extend/shorten the sleeve along the arm axis (cm per size step)
+    if (gradeM) b.add(b.clone().sub(a).normalize().multiplyScalar(gradeM))
     const len = a.distanceTo(b)
     const { radiusStart, radiusEnd, profile } = sleeveShapeSpec(shape, upper.radius, fullLen ? fore.radius : upper.radius, cuff)
     const t = simTube(26, len, 0.03, simScale)
@@ -204,7 +206,7 @@ export function garmentSleeveSpecs(
 ): AxisTubeSpec[] {
   if (!def.pieces.some((pc) => pc.kind === 'sleeves')) return []
   const sleeve = params.sleeve ?? 'none'
-  return sleeve === 'none' ? [] : sleeveSpecs(sleeve === 'long', colliders, params.cuff, params.sleeveShape)
+  return sleeve === 'none' ? [] : sleeveSpecs(sleeve === 'long', colliders, params.cuff, params.sleeveShape, params.sleeveGradeM ?? 0)
 }
 
 /**

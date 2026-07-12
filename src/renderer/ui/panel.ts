@@ -29,7 +29,7 @@ import type { Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, textField, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
-import { SIZES, type SizeLabel } from '../studio/document'
+import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import type { GirthRow } from '../export/drapeFit'
@@ -53,6 +53,7 @@ export interface GarmentState {
   sleeve: SleeveStyle
   sleeveShape?: SleeveShape
   size: SizeLabel
+  gradeRules?: GradeRules
   collar?: boolean
   collarStyle?: CollarStyle
   cuff?: boolean
@@ -422,6 +423,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sizeBlock = el('div')
   sizeBlock.append(el('div', 'dio-field-label', 'Size'), sizeRow)
 
+  // Grade rules — per-point increments (cm per size step) the size run grades by,
+  // like a production grading table (girth-only by default).
+  const rule = (k: keyof GradeRules): number => (garment.gradeRules ?? DEFAULT_GRADE_RULES)[k]
+  const setRule = (k: keyof GradeRules, v: number): void => {
+    garment.gradeRules = { ...DEFAULT_GRADE_RULES, ...garment.gradeRules, [k]: v }
+    opts.onGarmentEdit()
+  }
+  const gradeGirthS = slider({ label: 'Girth / size', min: 0, max: 8, step: 0.5, fine: 0.1, format: (v) => `${v} cm`, get: () => rule('girthCm'), set: (v) => setRule('girthCm', v) })
+  const gradeLenS = slider({ label: 'Length / size', min: 0, max: 5, step: 0.5, fine: 0.1, format: (v) => `${v} cm`, get: () => rule('lengthCm'), set: (v) => setRule('lengthCm', v) })
+  const gradeSleeveS = slider({ label: 'Sleeve / size', min: 0, max: 5, step: 0.5, fine: 0.1, format: (v) => `${v} cm`, get: () => rule('sleeveCm'), set: (v) => setRule('sleeveCm', v) })
+  const gradeBlock = el('div')
+  gradeBlock.append(el('div', 'dio-field-label', 'Grade rules (cm / size step)'), gradeGirthS.row, gradeLenS.row, gradeSleeveS.row)
+
   function syncNeckSleeve(): void {
     for (const [n, node] of neckBtns) node.classList.toggle('primary', n === garment.neckline)
     for (const [s, node] of sleeveBtns) node.classList.toggle('primary', s === garment.sleeve)
@@ -488,6 +502,10 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     lenS.refresh()
     easeS.refresh()
     flareS.refresh()
+    gradeSleeveS.row.classList.toggle('dio-hidden', !def.supports.sleeve) // no sleeve rule without sleeves
+    gradeGirthS.refresh()
+    gradeLenS.refresh()
+    gradeSleeveS.refresh()
   }
   function selectGarment(id: string): void {
     garment.type = id
@@ -521,7 +539,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     t: toggle({ label, get: () => !!garment[key], set: (v) => { garment[key] = v; syncGarment(); opts.onGarmentEdit() } })
   }))
   const construction = section('Construction')
-  construction.body.append(sizeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock, pocketBlock, pleatBlock, frillBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, flareS.row, ...detailToggles.map((d) => d.t.row), collarBlock, pocketBlock, pleatBlock, frillBlock)
   syncGarment()
 
   // ---- pattern (sew) ----
