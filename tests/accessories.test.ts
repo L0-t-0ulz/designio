@@ -29,7 +29,7 @@ function baseBody(): Capsule[] {
 
 describe('accessories — body attach anchors', () => {
   it('exposes the accessory set incl. headwear & neckwear', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter'])
+    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat'])
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
@@ -98,7 +98,7 @@ describe('accessories — headwear / neckwear anchors', () => {
 describe('accessories — worn headwear/neckwear meshes ride the head/neck', () => {
   it('each new kind builds visible geometry positioned up around the head/neck', () => {
     const acc = new Accessories()
-    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter'] as const
+    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat'] as const
     for (const k of kinds) {
       acc.setEnabled(k, true)
       expect(acc.isEnabled(k)).toBe(true)

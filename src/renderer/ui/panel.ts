@@ -857,7 +857,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     bucket: 'Bucket hat',
     balaclava: 'Ski mask',
     scarf: 'Scarf',
-    gaiter: 'Neck gaiter'
+    gaiter: 'Neck gaiter',
+    beret: 'Beret',
+    sunhat: 'Sun hat'
   }
   if (opts.accessories) {
     for (const kind of ACCESSORY_KINDS) {
