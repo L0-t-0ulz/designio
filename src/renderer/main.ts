@@ -34,6 +34,7 @@ import { lineupCells, lineupHues } from './studio/lineup'
 import { contactGrid, contactViews } from './studio/contactSheet'
 import { viewer360HTML } from './export/viewer360'
 import { lineSheetHTML } from './export/lineSheet'
+import { qcSheetHTML } from './export/qcSheet'
 import { turntablePose } from './studio/turntable'
 import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
@@ -1096,6 +1097,25 @@ function initStudio(
     statusHandles?.setSelection('Line sheet exported — print to PDF')
   }
 
+  // QC inspection sheet — the graded POM specs + tolerances as a measure-and-tick
+  // sheet a factory QC line inspects the batch against.
+  async function exportQcSheet(): Promise<void> {
+    const l = stack.active
+    const def = getGarment(l.data.garmentType)
+    const pom = pomTable(def, l.data, mannequin.measurements, mannequin.colliders)
+    const html = qcSheetHTML({
+      name: def.name,
+      styleRef: projectName || 'Untitled',
+      size: l.data.size,
+      fabricName: l.fabric.name,
+      rows: pom.rows.map((r) => ({ label: r.label, specCm: r.bySize[l.data.size], tolCm: r.tolCm }))
+    })
+    const bytes = new TextEncoder().encode(html)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'qc'
+    await saveFile(`${safe}-qc-${l.data.size}.html`, bytes, [{ name: 'HTML document', extensions: ['html'] }])
+    statusHandles?.setSelection(`QC sheet — ${pom.rows.length} points @ ${l.data.size}`)
+  }
+
   // Batch render — one crisp PNG per colourway, bundled into a ZIP (a lookbook set,
   // vs. the line-up's single composite). Snapshots the live view per colourway.
   async function exportBatchRender(): Promise<void> {
@@ -1258,6 +1278,7 @@ function initStudio(
     onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
     onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),
     onLineSheet: () => void exportLineSheet().catch((err) => showToast('Line sheet failed: ' + (err as Error).message, 'error')),
+    onQcSheet: () => void exportQcSheet().catch((err) => showToast('QC sheet failed: ' + (err as Error).message, 'error')),
     onBatchRender: () => void exportBatchRender().catch((err) => showToast('Batch render failed: ' + (err as Error).message, 'error')),
     onUndo: undo,
     onRedo: redo,
