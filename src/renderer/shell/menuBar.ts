@@ -35,6 +35,7 @@ export interface MenuActions {
   onClearMeasure: () => void
   onRunwayLineup: () => void
   onContactSheet: () => void
+  onViewer360: () => void
   onBatchRender: () => void
   onToggleLibrary: () => void
   onTogglePanel: () => void
@@ -140,6 +141,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Record turntable spin (WebM)', run: a.onRecordTurntable },
     { label: 'Export runway line-up (PNG)', run: a.onRunwayLineup },
     { label: 'Export contact sheet — multi-angle (PNG)', run: a.onContactSheet },
+    { label: 'Export 360° viewer (HTML)', run: a.onViewer360 },
     { label: 'Batch render colourways (ZIP)', run: a.onBatchRender },
     ex('manufacture', 'Export for manufacturing (HTML)')
   ])

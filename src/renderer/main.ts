@@ -31,6 +31,7 @@ import { MeasureTool, type MeasureMode } from './studio/MeasureTool'
 import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPattern } from './export/patternImport'
 import { lineupCells, lineupHues } from './studio/lineup'
 import { contactGrid, contactViews } from './studio/contactSheet'
+import { viewer360HTML } from './export/viewer360'
 import { turntablePose } from './studio/turntable'
 import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
@@ -1023,6 +1024,24 @@ function initStudio(
     statusHandles?.setSelection(`Contact sheet — ${views.length} angles`)
   }
 
+  // 360° product viewer — a self-contained HTML sprite viewer: 24 pre-rendered
+  // angles, drag / arrows to spin, gentle autoplay. One file a client can open anywhere.
+  async function exportViewer360(): Promise<void> {
+    const FRAMES = 24
+    const pose0 = viewport.getCameraPose()
+    const frames: string[] = []
+    for (let i = 0; i < FRAMES; i++) {
+      viewport.setCameraPose(turntablePose(pose0, i / FRAMES))
+      frames.push(viewport.renderStill(720))
+    }
+    viewport.setCameraPose(pose0) // back to the working view
+    const html = viewer360HTML(projectName || 'DesignIO garment', frames)
+    const bytes = new TextEncoder().encode(html)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'garment'
+    await saveFile(`${safe}-360.html`, bytes, [{ name: 'HTML document', extensions: ['html'] }])
+    statusHandles?.setSelection(`360° viewer — ${FRAMES} frames`)
+  }
+
   // Batch render — one crisp PNG per colourway, bundled into a ZIP (a lookbook set,
   // vs. the line-up's single composite). Snapshots the live view per colourway.
   async function exportBatchRender(): Promise<void> {
@@ -1183,6 +1202,7 @@ function initStudio(
     onRecordTurntable: recordTurntableSpin,
     onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
     onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
+    onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),
     onBatchRender: () => void exportBatchRender().catch((err) => showToast('Batch render failed: ' + (err as Error).message, 'error')),
     onUndo: undo,
     onRedo: redo,
