@@ -599,7 +599,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [x] **Neoprene / scuba** — `neoprene` fabric: 420 gsm spacer knit, bendiness 0.15 → sculptural stiff drape — PR #250
 - [x] **Sequin-base fabric** — `sequin-base`: part-metal cloth + paillette-scale normal relief; pairs with the sequins sparkle finish — PR #250
 - [x] **Fringe / tassel / feather trim** — drape-following hem **fringe** on skirts + dresses (`garment/Fringe`, deterministic strand jitter, trim-coloured, `?fringe=1`) — PR #255 _(tassels/feathers + self-sway later)_
-- [ ] **Piping & corded edges** — a contrast-core piped seam/edge
+- [x] **Piping & corded edges** — a real 4 mm world-unit cord (`garment/Piping`, Line2) tracing the neckline + hem, trim-coloured, drape-following (`?piping=1`) — PR #258
 - [ ] **Digital print on the weave** — a photo print that follows the grain + distorts with the drape
 - [ ] **Thermochromic preview** — a colour-change fabric under a temperature slider
 
