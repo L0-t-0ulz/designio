@@ -9,6 +9,7 @@ import { SKIN_TONES, SKIN_TONE_HEX, UNDERTONES, type SkinTone, type Undertone } 
 import { POSES, type PoseName } from '../avatar/poses'
 import { POSTURES, type PostureName } from '../avatar/posture'
 import { WALK_STYLES, type WalkStyleName } from '../avatar/walkStyles'
+import { loadProfiles, profileFromBody, removeProfile, saveProfiles, upsertProfile, type FitProfile } from '../avatar/fitProfiles'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
@@ -730,6 +731,52 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       })
     )
     root.append(select, importRow, ta)
+
+    // Fit profiles — save the current avatar as a named person; apply in one click.
+    let profiles: FitProfile[] = loadProfiles()
+    root.append(el('div', 'dio-field-label', 'Fit profiles'))
+    const profSelect = el('select', 'dio-mtm-select') as HTMLSelectElement
+    const fillProfiles = (): void => {
+      profSelect.replaceChildren(el('option', undefined, profiles.length ? 'Apply profile…' : 'No saved profiles'))
+      for (const pr of profiles) {
+        const m = pr.measurements
+        profSelect.append(el('option', undefined, `${pr.name} · ${m.bust.toFixed(0)}/${m.waist.toFixed(0)}/${m.hips.toFixed(0)}`))
+      }
+    }
+    let lastAppliedId: string | null = null
+    profSelect.addEventListener('change', () => {
+      const pr = profiles[profSelect.selectedIndex - 1]
+      profSelect.selectedIndex = 0
+      if (!pr) return
+      lastAppliedId = pr.id
+      opts.bodySize.bodyType = pr.bodyType
+      for (const key of ['height', 'bust', 'waist', 'hips'] as MeasureKey[]) {
+        Object.assign(opts.bodySize, setMeasurement(opts.bodySize, key, pr.measurements[key]))
+      }
+      opts.onBodySize(opts.bodySize)
+      refreshBody()
+    })
+    fillProfiles()
+    const nameInput = el('input', 'dio-mtm-num') as HTMLInputElement
+    nameInput.type = 'text'
+    nameInput.placeholder = 'Name (client · fit model)'
+    const profRow = el('div', 'dio-actions')
+    profRow.append(
+      button('Save profile', () => {
+        profiles = upsertProfile(profiles, profileFromBody(nameInput.value, opts.bodySize))
+        saveProfiles(profiles)
+        nameInput.value = ''
+        fillProfiles()
+      }),
+      button('Delete applied', () => {
+        if (!lastAppliedId) return // apply a profile first, then delete it
+        profiles = removeProfile(profiles, lastAppliedId)
+        lastAppliedId = null
+        saveProfiles(profiles)
+        fillProfiles()
+      })
+    )
+    root.append(nameInput, profSelect, profRow)
 
     const refresh = (): void => {
       const m = bodyToMeasurements(opts.bodySize)
