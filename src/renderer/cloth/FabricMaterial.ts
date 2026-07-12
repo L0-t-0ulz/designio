@@ -21,6 +21,7 @@ export function createFabricMaterial(fabric: Fabric): THREE.MeshPhysicalMaterial
 /** Update an existing material in place to match `fabric` (look only). */
 export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): void {
   mat.color.set(fabric.color)
+  mat.metalness = fabric.metalness ?? 0 // lamé / foil / sequin-base cloth reads as metal
   // Toksvig specular-AA: a stronger weave normal lifts the base roughness so the
   // micro-detail reads as roughness, not a shimmering highlight, at distance.
   mat.roughness = toksvigRoughness(fabric.roughness, fabric.normalStrength)

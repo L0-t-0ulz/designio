@@ -44,7 +44,7 @@ If you are unsure whether something is allowed, **ask first.**
 - [The professional studio — every panel](#the-professional-studio--every-panel)
 - [The garment catalog — 34 garments](#the-garment-catalog--34-garments)
 - [Construction detail](#construction-detail)
-- [The fabric library — 24 fabrics](#the-fabric-library--24-fabrics)
+- [The fabric library — 27 fabrics](#the-fabric-library--27-fabrics)
 - [Surface design & fabric finishes](#surface-design--fabric-finishes)
 - [Per-part & per-panel fabric](#per-part--per-panel-fabric)
 - [Prints, logos & text](#prints-logos--text)
@@ -119,7 +119,7 @@ empty clipboard, last garment).
 | Tab | What's in it |
 | --- | --- |
 | **Garments** | the full 34-garment catalog, grouped by category, each a one-click add |
-| **Fabrics** | all 24 fabrics — **filter** by family · weight · stretch, combined with the text search |
+| **Fabrics** | all 27 fabrics — **filter** by family · weight · stretch, combined with the text search |
 | **Avatars** | body type, presets and the mannequin options |
 | **Presets** | curated looks to start from |
 
@@ -208,7 +208,7 @@ gold topstitch guide inset from each panel's sew line.
 
 ---
 
-## The fabric library — 24 fabrics
+## The fabric library — 27 fabrics
 
 Every fabric carries **physical** properties (weight, stretch, bendiness, friction) that drive the
 **drape**, and **visual** properties (weave, sheen, anisotropy, sheerness, roughness) that drive the
@@ -562,7 +562,7 @@ src/
                 (default realistic avatar) · skin · measure · poses · bodyPresets · accessories · face · colliders
     cloth/      XPBDSolver · ClothCollision (self/inter) · ClothWorld (sewn panels) · Garment · adaptiveMesh
                 · FabricMaterial · fabricPresets · windPresets · simQuality
-    fabric/     FabricLibrary (24 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
+    fabric/     FabricLibrary (27 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
                 · iridescent · quilt · lace · fur · namedColors · heatmap · wrinkle
     garments/   schema (GarmentDefinition) · registry (the 34-garment catalog, as data) · factory · decor
     garment/    GarmentController (one garment's multi-piece sim, body-anchored) · templates
@@ -592,7 +592,7 @@ or a supported detail is a data change, not new code.**
 
 **Shipped:** data-driven garment schema + factory · 34-garment catalog (tops · bottoms · dresses ·
 one-piece · outerwear · **cloth-sim headwear/neckwear**) with a category picker + schema-driven construction
-UI · 24-fabric library by family · **fabric thickness** (two-sided garments with a lining shell) · full
+UI · 27-fabric library by family · **fabric thickness** (two-sided garments with a lining shell) · full
 **construction detail** (collar/cuff/pleats/darts/pockets/hem/closure + lining/interfacing/waistband/…) +
 drape-following **topstitch** · **surface finishes** (textiles · ombré · distressing · sequins · iridescence
 · quilting · lace · faux-fur · photo→PBR swatch) · **per-part physics** (leather drapes stiffer than jersey)

@@ -88,6 +88,21 @@ describe('FABRIC_LIBRARY', () => {
     expect(getFabric('nope')).toBe(FABRIC_LIBRARY[0])
     expect(getFabric('denim').id).toBe('denim')
   })
+
+  it('eveningwear/technical additions: lamé is metal, neoprene is stiff+heavy, sequin-base pairs with sparkle', () => {
+    const lame = getFabric('lame')
+    expect(lame.metalness).toBeGreaterThan(0.5) // reads as woven foil
+    expect(lame.family).toBe('specialty')
+    const scuba = getFabric('neoprene')
+    expect(scuba.gsm).toBeGreaterThan(getFabric('jersey-knit').gsm) // thick spacer knit
+    expect(scuba.bendiness).toBeLessThan(getFabric('jersey-knit').bendiness) // holds sculptural shapes
+    expect(fabricToSolverParams(scuba).bendCompliance).toBeLessThan(fabricToSolverParams(getFabric('jersey-knit')).bendCompliance)
+    const sequin = getFabric('sequin-base')
+    expect(sequin.metalness).toBeGreaterThan(0.3)
+    expect(sequin.normalStrength).toBeGreaterThan(0.5) // paillette relief
+    // non-metallic cloth stays dielectric in the material
+    expect(getFabric('denim').metalness ?? 0).toBe(0)
+  })
 })
 
 describe('weave texture math', () => {
