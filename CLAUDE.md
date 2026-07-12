@@ -238,7 +238,11 @@ Renderer modules:
   the same `applyGarmentEdit` path, so 2D↔3D stay in sync), `layoutStore`.
 - `ui/` — `panel` (the **context-sensitive Property Editor** — Garment/Avatar/Scene; returns `{panel, api}`
   the Library drives; the Appearance section carries the **Wet look** + **Puffer loft** toggles and the Scene
-  section a **Tone-map** picker (ACES/AgX/Neutral/Filmic/Reinhard)), `controls` (DOM helpers), `thumbnails`
+  section a **Tone-map** picker (ACES/AgX/Neutral/Filmic/Reinhard)), `controls` (DOM helpers), `keymap`
+  (**rebindable keyboard shortcuts** — the studio keymap as data: pure `actionFor`/`captureBinding`/
+  `formatBinding`/`parseKeymap`/`conflictsIn` unit-tested, persisted in localStorage; `shortcutsOverlay`
+  (press `?`, or `?shortcuts=1`) doubles as the **editor** — click a key chip, press the new combo;
+  main.ts dispatches through the live map), `thumbnails`
   (shared swatch/silhouette), `patternSchematic`,
   `tokens.css` / `styles.css` / `shell.css`.
 - `main.ts` — `initStudio(config)` builds the shell + a `GarmentStack`, mounts the viewport + Library +

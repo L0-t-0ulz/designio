@@ -8,6 +8,7 @@ import { buildMenuBar } from './shell/menuBar'
 import { showToast } from './ui/toast'
 import { rafCoalesce } from './core/coalesce'
 import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOverlay'
+import { KEY_ACTIONS, actionFor, keymap, type KeyAction } from './ui/keymap'
 import { startTour, closeTour, tourOpen, hasSeenTour } from './ui/onboardingTour'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { buildLibrary } from './shell/library'
@@ -1043,23 +1044,28 @@ function initStudio(
   }
 
   // ---- keyboard shortcuts (ignored while typing in a field) ----
+  // Dispatch through the rebindable keymap (`ui/keymap`); the ? overlay edits it live.
+  const keyHandlers: Record<KeyAction, () => unknown> = {
+    undo,
+    redo,
+    copy: copyGarment,
+    cut: cutGarment,
+    paste: pasteGarment,
+    duplicate: duplicateGarment,
+    save: saveProject,
+    open: openProject,
+    delete: deleteGarment
+  }
   function onKey(e: KeyboardEvent): void {
     const t = e.target as HTMLElement | null
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
     if (e.key === 'Escape' && shortcutsOpen()) return closeShortcuts()
     if (e.key === 'Escape' && tourOpen()) return closeTour()
     if (e.key === '?') return e.preventDefault(), toggleShortcuts()
-    const mod = e.metaKey || e.ctrlKey
-    const k = e.key.toLowerCase()
-    if (mod && k === 'z') return e.preventDefault(), void (e.shiftKey ? redo() : undo())
-    if (mod && k === 'y') return e.preventDefault(), void redo()
-    if (mod && k === 'c') return void copyGarment()
-    if (mod && k === 'x') return void cutGarment()
-    if (mod && k === 'v') return void pasteGarment()
-    if (mod && k === 'd') return e.preventDefault(), void duplicateGarment()
-    if (mod && k === 's') return e.preventDefault(), void saveProject()
-    if (mod && k === 'o') return e.preventDefault(), void openProject()
-    if (e.key === 'Backspace' || e.key === 'Delete') void deleteGarment()
+    const action = actionFor(keymap(), { key: e.key, mod: e.metaKey || e.ctrlKey, shift: e.shiftKey })
+    if (!action) return
+    if (KEY_ACTIONS.find((d) => d.id === action)!.prevent) e.preventDefault()
+    void keyHandlers[action]()
   }
   document.addEventListener('keydown', onKey)
 
@@ -1557,6 +1563,7 @@ function initStudio(
     viewport.controls.update()
   }
   if (params.get('tour') === '1') window.setTimeout(() => startTour(), 500) // force the tour (verify/share)
+  if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)
 
   // First-run onboarding — a one-time guided tour on organic entry (never on a
   // snapshot deep-link, so captures/tests are untouched). Delayed so the shell
