@@ -610,7 +610,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [x] **Per-customer fit profile** — named measurement sets saved/applied in one click (`avatar/fitProfiles`, made-to-measure panel; the size recommendation follows the person) — PR #267 _(per-person saved fit maps later)_
 - [ ] **Asymmetric fit** — one shoulder/hip higher, a limb-length delta
 - [x] **Posture presets** — athletic · slouch · swayback carriage layered on any pose; bends colliders + visual shaping + anchors in lock-step so garments re-drape onto the new carriage (`avatar/posture`, Avatar panel, `?posture=`) — PR #261
-- [ ] **Ease-by-zone editor** — set chest / waist / hip ease independently and see it drape
+- [x] **Ease-by-zone editor** — chest/waist/hip ease offsets landing on their own landmarks across the whole catalog; flows into pattern/metrics/POM automatically (`?easeChest/easeWaist/easeHip=<cm>`) — PR #268
 
 **Animation & motion**
 - [ ] **Mocap clip import** — drive the avatar from a BVH / FBX motion clip
