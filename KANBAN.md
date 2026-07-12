@@ -332,7 +332,8 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 
 **Lighting, scene & rendering** _(refine PRs #74 · #152 · #154 · #170)_
 - [ ] **HDRI environment options** — a few real HDR studio maps for reflections beyond the procedural IBL
-- [ ] **Depth of field on the Render tab** — a subtle focus falloff (product-macro look)
+- [x] **Depth of field** — a `BokehPass` focus-falloff (product-macro look), focused on the subject at the orbit distance; View → "Depth of field" toggle + `?dof=1` — PR #239
+- [x] **Camera bookmarks** — save/recall named studio views (`getCameraPose`/`setCameraPose`); a View → "Camera bookmarks…" panel to save-current / go-to / delete; pure `cameraBookmarks` store unit-tested — PR #239
 - [ ] **Colour-grade / LUT presets** — warm / cool / film looks on the render
 - [ ] **Backdrop gradient editor** — pick the cyclorama's own two colours
 - [ ] **Rim-light colour + intensity** — art-direct the rim lights per look

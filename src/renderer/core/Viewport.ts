@@ -5,6 +5,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
+import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
@@ -30,6 +31,7 @@ export class Viewport {
   private readonly composer: EffectComposer
   private readonly bloom: UnrealBloomPass
   private readonly gtao: GTAOPass
+  private readonly bokeh: BokehPass
   // Adaptive rendering: draw every frame while anything moves (cloth, animation, the
   // camera), but when the scene is fully idle repaint only every Nth frame — the AO/bloom
   // composite is the same pixels, so re-running it 60×/s while nothing changes is wasted GPU.
@@ -65,6 +67,11 @@ export class Viewport {
     // and applies them (plus sRGB) at the end, so the exposure control still works.
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.camera))
+    // Depth of field (off by default) — a subtle product-macro focus falloff, focused
+    // on the subject at the orbit distance. Toggle via setDepthOfField.
+    this.bokeh = new BokehPass(this.scene, this.camera, { focus: 4, aperture: 0.0006, maxblur: 0.012 })
+    this.bokeh.enabled = false
+    this.composer.addPass(this.bokeh)
     // Ambient occlusion (GTAO): grounds the figure + darkens contact areas — where
     // the garment meets the body, inside folds, under the arms, and at the feet. A
     // small world-space radius keeps it to real contact (no wide halos).
@@ -122,6 +129,16 @@ export class Viewport {
   setToneMapping(name: string): void {
     this.renderer.toneMapping = toneMappingMode(name)
     this.requestRender()
+  }
+
+  /** Toggle depth-of-field; when on, focus on the subject at the current orbit distance. */
+  setDepthOfField(on: boolean): void {
+    this.bokeh.enabled = on
+    if (on) (this.bokeh.uniforms as { focus: { value: number } }).focus.value = this.controls.getDistance()
+    this.requestRender()
+  }
+  get depthOfField(): boolean {
+    return this.bokeh.enabled
   }
 
   /**
