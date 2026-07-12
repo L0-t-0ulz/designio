@@ -745,6 +745,7 @@ function initStudio(
   // Render tab: supersample the current view to a PNG + save it to disk.
   const renderApi: RenderApi = {
     capture: (width) => viewport.renderStill(width),
+      focusPull: (t) => viewport.setFocusPull(t),
     save: async (dataUrl) => {
       const b64 = dataUrl.split(',')[1] ?? ''
       const bin = atob(b64)
