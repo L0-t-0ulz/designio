@@ -25,10 +25,10 @@ describe('3D exporters — AR/interchange formats', () => {
     expect(usdz[1]).toBe(0x4b) // 'K'
   })
 
-  it('strips the render-only lining shell from the export', () => {
+  it('strips the render-only lining shell from the export', async () => {
     const count = (s: string): number => (s.match(/^v /gm) ?? []).length
-    const withLining = exportOBJ(meshes()) // includes a lining child that must be dropped
-    const bare = exportOBJ([box()]) // a single box, no lining
+    const withLining = await exportOBJ(meshes()) // includes a lining child that must be dropped
+    const bare = await exportOBJ([box()]) // a single box, no lining
     expect(count(bare)).toBeGreaterThan(0)
     expect(count(withLining)).toBe(count(bare)) // lining stripped → identical vertex count
   })

@@ -29,6 +29,10 @@ export default defineConfig({
         input: { index: resolve(__dirname, 'src/renderer/index.html') },
         output: {
           manualChunks(id: string) {
+            // Heavy, rarely-used three exporters (glTF/OBJ/USDZ) are dynamic-imported on
+            // first export — keep them OUT of the eager `three` vendor chunk so they split
+            // into their own lazy chunks and first paint stays light.
+            if (id.includes('three/examples/jsm/exporters/')) return undefined
             if (id.includes('node_modules/three')) return 'three'
             if (id.includes('node_modules')) return 'vendor'
             return undefined

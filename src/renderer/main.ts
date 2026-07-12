@@ -856,7 +856,7 @@ function initStudio(
         await saveFile('garment.usdz', await exportUSDZ(meshes), [{ name: 'USDZ (AR)', extensions: ['usdz'] }])
         break
       case 'obj':
-        await saveFile('garment.obj', exportOBJ(meshes), [{ name: 'Wavefront OBJ', extensions: ['obj'] }])
+        await saveFile('garment.obj', await exportOBJ(meshes), [{ name: 'Wavefront OBJ', extensions: ['obj'] }])
         break
       case 'svg': {
         const svg =
