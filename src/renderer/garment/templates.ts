@@ -1,6 +1,6 @@
 import type { NecklineStyle, PleatStyle } from '../cloth/Garment'
 export type { PleatStyle } from '../cloth/Garment'
-export const PLEAT_STYLES: PleatStyle[] = ['knife', 'box', 'accordion', 'cartridge', 'gather']
+export const PLEAT_STYLES: PleatStyle[] = ['knife', 'box', 'accordion', 'cartridge', 'gather', 'shirr', 'smock']
 
 /** A garment id from the registry (see garments/registry.ts). */
 export type GarmentType = string

@@ -3,16 +3,17 @@ import { adaptiveRingT } from './adaptiveMesh'
 
 export type NecklineStyle = 'strapless' | 'scoop' | 'crew' | 'v'
 /** Pleat / gather styles (the pleats library; active when the `pleats` detail is on). */
-export type PleatStyle = 'knife' | 'box' | 'accordion' | 'cartridge' | 'gather'
+export type PleatStyle = 'knife' | 'box' | 'accordion' | 'cartridge' | 'gather' | 'shirr' | 'smock'
 
 /**
- * The radial fold modulation for a pleat style at circumferential angle `a` — a
- * periodic wave in ≈[-1, 1] baked into the tube's rest shape, so the cloth solver
- * holds the folds (they're the rest state). `N` folds are chosen to stay crisp at
- * RADIAL = 60 (≥ 4 samples/fold). Pure, so it's unit tested.
+ * The radial fold modulation for a pleat style at circumferential angle `a` (and, for
+ * height-varying styles, the ring fraction `t` — 0 top … 1 hem) — a periodic wave in
+ * ≈[-1, 1] baked into the tube's rest shape, so the cloth solver holds the folds
+ * (they're the rest state). `N` folds are chosen to stay crisp at RADIAL = 60 (≥ 4
+ * samples/fold). Pure, so it's unit tested.
  */
-export function pleatWave(a: number, style: PleatStyle): number {
-  const N = { knife: 12, box: 8, accordion: 15, cartridge: 15, gather: 12 }[style]
+export function pleatWave(a: number, style: PleatStyle, t = 0): number {
+  const N = { knife: 12, box: 8, accordion: 15, cartridge: 15, gather: 12, shirr: 24, smock: 10 }[style]
   const u = (a / (2 * Math.PI)) * N
   const f = u - Math.floor(u) // 0..1 within a fold
   switch (style) {
@@ -24,6 +25,16 @@ export function pleatWave(a: number, style: PleatStyle): number {
       return 1 - 4 * Math.abs(f - 0.5)
     case 'cartridge': // rounded gathered tubes
       return Math.sin(f * Math.PI * 2)
+    case 'shirr': // shirring — many fine, regular elastic gathers (tight + uniform)
+      return Math.sin(f * Math.PI * 2)
+    case 'smock': {
+      // smocking — a honeycomb lattice: pinch points on a grid, alternate rows offset
+      // half a cell so the gathers form diamonds down the height (uses `t`).
+      const rows = 7
+      const shift = Math.floor(t * rows) % 2 === 0 ? 0 : 0.5
+      const g = (u + shift) - Math.floor(u + shift)
+      return Math.cos(g * Math.PI * 2)
+    }
     default: // gather — irregular rounded gathering
       return Math.sin(f * Math.PI * 2) * (0.7 + 0.3 * Math.sin(a * 7))
   }
@@ -103,11 +114,12 @@ export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[
   for (let iy = 0; iy < rings; iy++) {
     const t = ringT[iy]
     const r0 = radiusAt(spec, t)
-    // pleats: fold the cross-section radially, opening toward the hem (cinched up top)
-    const amp = spec.pleat ? 0.14 * t : 0
+    // pleats: fold the cross-section radially, opening toward the hem (cinched up top).
+    // smocking is an all-over lattice, so it keeps a gentle, near-uniform amplitude.
+    const amp = spec.pleat ? (spec.pleat === 'smock' ? 0.05 + 0.05 * t : 0.14 * t) : 0
     for (let ix = 0; ix < radial; ix++) {
       const a = (ix / radial) * Math.PI * 2
-      const r = spec.pleat ? r0 * (1 + amp * pleatWave(a, spec.pleat)) : r0
+      const r = spec.pleat ? r0 * (1 + amp * pleatWave(a, spec.pleat, t)) : r0
       const top = topEdge(spec, a) // per-column top so the neckline is shaped
       const y = top + (bottomY - top) * t
       const k = (iy * radial + ix) * 3
