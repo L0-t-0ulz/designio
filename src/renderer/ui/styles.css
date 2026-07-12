@@ -1780,3 +1780,45 @@ canvas {
 .dio-shortcuts-card > .dio-btn.primary {
   margin: 4px 0 4px;
 }
+
+/* Onboarding tour — a spotlight ring + a floating tooltip card. */
+.dio-tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  pointer-events: none; /* clicks pass through except on the card + its buttons */
+}
+.dio-tour-spot {
+  position: fixed;
+  border-radius: 8px;
+  border: 2px solid var(--dio-accent, #7c6cf0);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); /* the ring dims everything but the target */
+  transition: left 0.2s ease, top 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+.dio-tour-card {
+  position: fixed;
+  min-width: 260px;
+  max-width: 320px;
+  pointer-events: auto;
+  transition: left 0.2s ease, top 0.2s ease;
+}
+.dio-tour-body {
+  margin: 0 0 16px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fg-1, #9aa0aa);
+}
+.dio-tour-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dio-tour-count {
+  font-size: 11.5px;
+  color: var(--fg-1, #9aa0aa);
+  font-variant-numeric: tabular-nums;
+}
+.dio-tour-foot .dio-actions {
+  gap: 6px;
+}

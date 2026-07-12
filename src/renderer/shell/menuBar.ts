@@ -40,6 +40,7 @@ export interface MenuActions {
   onToggleSimple: () => void
   onResetLayout: () => void
   onShortcuts: () => void
+  onTour: () => void
   onAbout: () => void
 }
 
@@ -175,6 +176,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }
   ])
   menu('Help', [
+    { label: 'Take the tour', run: a.onTour },
     { label: 'Keyboard shortcuts (?)', run: a.onShortcuts },
     { sep: true },
     { label: 'About DesignIO', run: a.onAbout }

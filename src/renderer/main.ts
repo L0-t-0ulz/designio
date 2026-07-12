@@ -8,6 +8,7 @@ import { buildMenuBar } from './shell/menuBar'
 import { showToast } from './ui/toast'
 import { rafCoalesce } from './core/coalesce'
 import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOverlay'
+import { startTour, closeTour, tourOpen, hasSeenTour } from './ui/onboardingTour'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
 import { buildLibrary } from './shell/library'
 import { buildObjectBrowser } from './shell/objectBrowser'
@@ -1042,6 +1043,7 @@ function initStudio(
     const t = e.target as HTMLElement | null
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
     if (e.key === 'Escape' && shortcutsOpen()) return closeShortcuts()
+    if (e.key === 'Escape' && tourOpen()) return closeTour()
     if (e.key === '?') return e.preventDefault(), toggleShortcuts()
     const mod = e.metaKey || e.ctrlKey
     const k = e.key.toLowerCase()
@@ -1161,6 +1163,7 @@ function initStudio(
     },
     onResetLayout: () => shell.resetLayout(),
     onShortcuts: toggleShortcuts,
+    onTour: () => startTour(),
     onAbout: () =>
       window.alert('DesignIO — a fully-3D clothing design studio.\n© Zayan Khan. All rights reserved.')
   })
@@ -1547,6 +1550,14 @@ function initStudio(
     viewport.camera.position.set(0.12, 1.16, 0.62)
     viewport.controls.target.set(0, 1.08, 0.12)
     viewport.controls.update()
+  }
+  if (params.get('tour') === '1') window.setTimeout(() => startTour(), 500) // force the tour (verify/share)
+
+  // First-run onboarding — a one-time guided tour on organic entry (never on a
+  // snapshot deep-link, so captures/tests are untouched). Delayed so the shell
+  // has laid out before the spotlight measures each region.
+  if (!skipStart && !hasSeenTour()) {
+    window.setTimeout(() => { if (!tourOpen()) startTour() }, 800)
   }
 }
 
