@@ -616,7 +616,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Mocap clip import** — drive the avatar from a BVH / FBX motion clip
 - [ ] **Cloth tearing** — seams rip once strain passes a fabric threshold (dramatic action shots)
 - [x] **Turbulent wind field** — the Storm preset: a deterministic noise field sampled per particle (`cloth/turbulence`, scaled by |wind| so Still stays still); classic presets byte-identical (`?wind=storm`) — PR #264
-- [ ] **Walk-cycle library** — editorial · commercial · sport runway walks
+- [x] **Walk-cycle library** — commercial (byte-compat default) · editorial · sport walk styles driving both body paths (`avatar/walkStyles`, Avatar panel, `?walk=`) — PR #266
 - [ ] **Slow-motion capture** — a high-substep fabric-flow clip at reduced playback speed
 - [ ] **Two-avatar scene** — a pair walking / interacting for a campaign shot
 
