@@ -30,6 +30,8 @@ export interface RenderApi {
   capture: (width: number) => string
   /** Save a PNG data URL to disk. */
   save: (dataUrl: string) => void | Promise<void>
+  /** Rack focus: null = depth-of-field off; 0…1 sweeps near → subject → far. */
+  focusPull?: (t: number | null) => void
 }
 
 const RES: { label: string; width: number }[] = [
@@ -97,7 +99,29 @@ export function buildCenterTabs(
   rres.append(...resButtons)
   rsave.addEventListener('click', () => curUrl && render?.save(curUrl))
   const rhint = el('span', 'dio-render-hint', 'Orbit the 3D view to frame your shot, then Render.')
-  rbar.append(rres, rhint, rsave)
+  // Focus pull — DOF toggle + a rack-focus slider (near → subject → far), re-rendered live.
+  const focusWrap = el('div', 'dio-render-focus')
+  const focusBtn = el('button', 'dio-render-resbtn', 'Focus pull') as HTMLButtonElement
+  const focusRange = el('input', 'dio-render-focusrange dio-hidden') as HTMLInputElement
+  focusRange.type = 'range'
+  focusRange.min = '0'
+  focusRange.max = '1'
+  focusRange.step = '0.02'
+  focusRange.value = '0.5'
+  let focusOn = false
+  focusBtn.addEventListener('click', () => {
+    focusOn = !focusOn
+    focusBtn.classList.toggle('on', focusOn)
+    focusRange.classList.toggle('dio-hidden', !focusOn)
+    render?.focusPull?.(focusOn ? parseFloat(focusRange.value) : null)
+    capture()
+  })
+  focusRange.addEventListener('change', () => {
+    render?.focusPull?.(parseFloat(focusRange.value))
+    capture()
+  })
+  focusWrap.append(focusBtn, focusRange)
+  rbar.append(rres, focusWrap, rhint, rsave)
   rpane.append(rbar, rstage)
 
   center.append(tabs, tools, pane, rpane)

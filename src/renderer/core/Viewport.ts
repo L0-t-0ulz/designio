@@ -6,6 +6,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js'
+import { focusDistance } from './focus'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
@@ -139,6 +140,15 @@ export class Viewport {
   }
   get depthOfField(): boolean {
     return this.bokeh.enabled
+  }
+
+  /** Rack focus for the Render tab: null = DOF off; 0…1 sweeps near → subject → far. */
+  setFocusPull(t: number | null): void {
+    this.bokeh.enabled = t !== null
+    if (t !== null) {
+      ;(this.bokeh.uniforms as { focus: { value: number } }).focus.value = focusDistance(t, this.controls.getDistance())
+    }
+    this.requestRender()
   }
 
   /**
