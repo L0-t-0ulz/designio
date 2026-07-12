@@ -140,8 +140,8 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 **Fit & simulation tools** _(arrange, fit, analyse — the pro fitting workflow)_
 - [ ] **Pin · tack · freeze** — pin cloth to the avatar, tack two points together, freeze a region while arranging — the CLO staples for layout + fitting
 - [x] **Draped-mesh fit measure** — measure chest/waist/hip girth on the *simulated* garment (a horizontal plane-slice of the live tube — for each column, where its edge crosses the body height — so it's a true circumference, not a tilted ring), shown live under "On body (draped)" in the panel and refreshed once the drape settles; gives the real **hip** the flat draft can't. Reported as an absolute girth (not ease) since the garment drapes on the live avatar, whose body differs from the abstract measurements — so ease against that reference would be inconsistent, but the measured girth is always true; pure `ringGirthCm` unit-tested + a headless drape test proves the slice tracks the body — PR #181
-- [ ] **Pressure / contact fit map** — colour where the garment **presses into** the body (contact force), distinct from the strain + stress views — real fit analysis
 - [x] **Ease table** — the numeric girth **ease** (garment − body) at the *drafted* points — **chest + waist** — in the Property panel (signed, tight ease flagged) + the manufacturing spec pack; pure `fitEase` unit-tested. Hip/bicep deferred: the tube has no drafted hip radius (hip clearance is emergent from the drape, not the draft), so a spec-level hip mis-reads — the draped-mesh fit measure (PR #181) gives the real hip — PR #176
+- [x] **Pressure / contact fit map** — colour where the garment **presses into** the body (real collision push-out, cold blue → hot red), distinct from the strain + stress views (`?pressure=1`) — PR #244
 - [ ] **Fold arrangement** — pre-fold collars / lapels / cuffs before simulating so structured pieces settle the right way
 
 **More design & construction**
