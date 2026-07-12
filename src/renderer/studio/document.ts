@@ -25,15 +25,44 @@ import { getGarment } from '../garments/registry'
 export type SizeLabel = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL'
 export const SIZES: SizeLabel[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 const SIZE_STEP: Record<SizeLabel, number> = { XS: -2, S: -1, M: 0, L: 1, XL: 2, XXL: 3 }
-/** Girth grade per size: one step ≈ +4 cm circumference (≈ +0.64 cm radius). */
-export function sizeEase(size: SizeLabel): number {
-  return SIZE_STEP[size] * 0.0064
+/**
+ * **Grade rules** — the per-size-step increments (cm) a real pattern grades by.
+ * The default matches the app's historical uniform girth grade (+4 cm circumference
+ * per step, no length/sleeve grade); a grade-rule editor lets a designer set their
+ * own increments per point, like a production grading table.
+ */
+export interface GradeRules {
+  /** Circumference grade per size step (cm) — chest/waist/hip girth. */
+  girthCm: number
+  /** Garment-length grade per size step (cm) — hem drops as sizes go up. */
+  lengthCm: number
+  /** Sleeve-length grade per size step (cm). */
+  sleeveCm: number
 }
-/** A layer's construction params with its size grade folded into the ease (girth). */
+export const DEFAULT_GRADE_RULES: GradeRules = { girthCm: 4, lengthCm: 0, sleeveCm: 0 }
+/** The signed size step from the drafted block (M = 0). */
+export function sizeStep(size: SizeLabel): number {
+  return SIZE_STEP[size]
+}
+/** Girth rule → radius ease per step (m). 0.0016 = the app's historical cm-circumference
+ *  → m-radius factor (4 cm ≈ 0.64 cm radius), kept exact for back-compat. */
+export function gradeEase(size: SizeLabel, rules: GradeRules = DEFAULT_GRADE_RULES): number {
+  return SIZE_STEP[size] * rules.girthCm * 0.0016
+}
+/** Girth grade per size at the default rules: one step ≈ +4 cm circumference (≈ +0.64 cm radius). */
+export function sizeEase(size: SizeLabel): number {
+  return gradeEase(size)
+}
+/** A layer's construction params with its size grade folded in — girth into the ease,
+ *  length/sleeve rules as metre offsets the factory applies to the drafted geometry. */
 export function gradeParams(l: GarmentLayerData): GarmentParams {
+  const rules = l.gradeRules ?? DEFAULT_GRADE_RULES
+  const step = SIZE_STEP[l.size]
   return {
     length: l.length,
-    ease: Math.max(0, l.ease + sizeEase(l.size)),
+    ease: Math.max(0, l.ease + gradeEase(l.size, rules)),
+    lengthGradeM: (step * rules.lengthCm) / 100 || 0, // `|| 0` normalises −0 (negative step × zero rule)
+    sleeveGradeM: (step * rules.sleeveCm) / 100 || 0,
     flare: l.flare,
     neckline: l.neckline,
     sleeve: l.sleeve,
@@ -98,6 +127,8 @@ export interface GarmentLayerData {
   sleeveShape?: SleeveShape
   /** Manufacturing size (grades the girth). */
   size: SizeLabel
+  /** Custom per-point grade increments (cm / size step); default = uniform girth grade. */
+  gradeRules?: GradeRules
   // construction detail (optional)
   collar?: boolean
   collarStyle?: CollarStyle

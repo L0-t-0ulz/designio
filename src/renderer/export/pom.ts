@@ -5,10 +5,11 @@
  * the app's girth grading (`gradeParams`/`sizeEase`), so the graded numbers match
  * what the garment would really be at each size.
  *
- * Note on lengths: the app grades **girth** (ease) by size, not length — so the
- * girth rows (chest/waist/hem/…) step per size while length/inseam/sleeve rows are
- * constant across the run. That mirrors the actual garment geometry (honest POM),
- * rather than inventing a length grade the 3D piece doesn't have.
+ * Note on lengths: at the default grade rules the app grades **girth** (ease) by
+ * size, not length — girth rows (chest/waist/hem/…) step per size while
+ * length/inseam/sleeve rows are constant. A layer's custom **grade rules**
+ * (`GradeRules` — girth/length/sleeve cm per step) change that: the rows step by
+ * exactly what the 3D piece actually grades by (honest POM either way).
  *
  * Pure + unit-tested; the manufacturing pack prints it.
  */

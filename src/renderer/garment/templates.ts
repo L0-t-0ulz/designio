@@ -25,6 +25,10 @@ export interface GarmentParams {
   ease: number
   /** Extra radius at the hem (A-line flare), in metres. */
   flare: number
+  /** Size-grade length offset (m) — from the layer's grade rules; the factory drops/raises the hem by it. */
+  lengthGradeM?: number
+  /** Size-grade sleeve-length offset (m) — extends/shortens the sleeve along the arm. */
+  sleeveGradeM?: number
   /** Neckline style for tops/dresses. */
   neckline?: NecklineStyle
   /** Sleeves for tops/dresses. */

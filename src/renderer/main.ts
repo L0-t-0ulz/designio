@@ -145,6 +145,7 @@ function initStudio(
     sleeve: l0.sleeve,
     sleeveShape: l0.sleeveShape,
     size: l0.size,
+    gradeRules: l0.gradeRules,
     collar: l0.collar,
     collarStyle: l0.collarStyle,
     cuff: l0.cuff,
@@ -279,6 +280,7 @@ function initStudio(
     garment.sleeve = l.data.sleeve
     garment.sleeveShape = l.data.sleeveShape
     garment.size = l.data.size
+    garment.gradeRules = l.data.gradeRules
     garment.collar = l.data.collar
     garment.collarStyle = l.data.collarStyle
     garment.cuff = l.data.cuff
@@ -647,6 +649,7 @@ function initStudio(
     l.data.sleeve = garment.sleeve
     l.data.sleeveShape = garment.sleeveShape
     l.data.size = garment.size
+    l.data.gradeRules = garment.gradeRules
     l.data.collar = garment.collar
     l.data.collarStyle = garment.collarStyle
     l.data.cuff = garment.cuff
