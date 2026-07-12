@@ -588,7 +588,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 **Activewear, swim & foundation**
 - [x] **Compression fit** — negative ease (to −3 cm) that stretches taut over the body: gradeParams floor + panel/quick-edit range + activewear defaults draft under the body radius; solver-stability test — PR #249
-- [ ] **Mesh / perforated panels** — alpha-cutout ventilation zones placed on a garment part
+- [x] **Mesh / perforated panels** — `athletic-mesh` perforated fabric: `Fabric.perforated` hex alpha-cutout with real see-through holes + lining drop (per-part zones = assign it to a part) — PR #251
 - [ ] **Bonded / heat-sealed seams** — a no-stitch-line seam finish for performance wear
 - [x] **Swimwear block** — a snug hourglass-cinched one-piece (`swimsuit`, spandex compression fit; lining/boning supported) — PR #248 _(two-piece/ruching later)_
 - [x] **Sports bra / bralette** — an underbust band via `botR: 'chest90'` + ribbing as the elastic underband, cropped → longline by length (`sports-bra`) — PR #248 _(moulded cups/racerback later)_
