@@ -12,8 +12,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -96,6 +96,8 @@ export class Accessories {
       this.buildShoes(),
       this.buildBelt(),
       this.buildHat(),
+      this.buildBeret(),
+      this.buildSunHat(),
       this.buildBag(),
       this.buildBeanie(),
       this.buildCap(),
@@ -259,6 +261,36 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(dome, brim)
     return this.headItem('bucket', obj)
+  }
+
+  private buildBeret(): Item {
+    const mat = felt(0x7a2734) // classic wine felt
+    // a soft flat disc, squashed and pulled to one side, with the little stalk on top
+    const disc = new THREE.Mesh(new THREE.SphereGeometry(1.3, 28, 18), mat)
+    disc.scale.set(1, 0.3, 1)
+    disc.position.set(0.28, HC + 0.42, -0.08)
+    disc.rotation.z = -0.24 // tipped toward the wearer's right
+    const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.16, 8), mat)
+    stalk.position.set(0.36, HC + 0.78, -0.08)
+    stalk.rotation.z = -0.24
+    const obj = new THREE.Group()
+    obj.add(disc, stalk)
+    return this.headItem('beret', obj)
+  }
+
+  private buildSunHat(): Item {
+    const mat = felt(0xd9c08e) // straw
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(1.02, 24, 16, 0, TAU, 0, Math.PI * 0.5), mat)
+    dome.position.y = HC
+    // the statement piece: a very wide brim that droops gently outward-down
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 2.35, 0.42, 40, 1, true), mat)
+    brim.position.y = HC - 0.24
+    const band = new THREE.Mesh(new THREE.TorusGeometry(1.03, 0.06, 8, 32), felt(0x2b2b30))
+    band.rotation.x = Math.PI / 2
+    band.position.y = HC - 0.02
+    const obj = new THREE.Group()
+    obj.add(dome, brim, band)
+    return this.headItem('sunhat', obj)
   }
 
   private buildBalaclava(): Item {
