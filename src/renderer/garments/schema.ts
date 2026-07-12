@@ -73,8 +73,9 @@ export interface BodyTubePiece {
   hemDropLo: number
   /** Top radius source (chest for tops/dresses, waist for skirts). */
   topR: 'chest' | 'waist'
-  /** Bottom radius source (full hip, or 90% hip for a closer top). */
-  botR: 'hip' | 'hip90'
+  /** Bottom radius source (full hip, 90% hip for a closer top, or 90% chest ≈ the
+   *  underbust band for a bra/bandeau-length piece). */
+  botR: 'hip' | 'hip90' | 'chest90'
   /** Multiplier on the flare added at the hem (default 1). */
   flareScale?: number
   /** Cinch a waist (bust → waist → hip hourglass). */

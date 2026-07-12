@@ -111,6 +111,18 @@ export const GARMENTS: GarmentDefinition[] = [
     defaults: { length: 0.22, ease: 0.008, flare: 0.02, neckline: 'strapless', sleeve: 'none' }
   },
   {
+    id: 'sports-bra',
+    name: 'Sports bra',
+    category: 'top',
+    icon: 'top',
+    // a shoulder-hung band ending at the underbust (chest90) — cropped bra → longline by length
+    pieces: [{ kind: 'bodyTube', topAnchor: 'shoulder', hemDropHi: 0.3, hemDropLo: 0.42, topR: 'chest', botR: 'chest90', flareScale: 0.15, neckline: true }],
+    supports: { neckline: true, length: true, ease: true, dart: true, hem: true, ribbing: true, lined: true },
+    // compression fit: zero ease on a high-stretch knit hugs the body; ribbing = the elastic band.
+    defaults: { length: 0.25, ease: 0, flare: 0, neckline: 'scoop', sleeve: 'none', ribbing: true },
+    defaultFabric: 'spandex'
+  },
+  {
     id: 'tunic',
     name: 'Tunic',
     category: 'top',
@@ -240,6 +252,21 @@ export const GARMENTS: GarmentDefinition[] = [
     defaults: { length: 1.0, ease: 0, flare: 0 },
     defaultFabric: 'spandex'
   },
+  {
+    id: 'high-waist-leggings',
+    name: 'High-waist leggings',
+    category: 'bottom',
+    icon: 'pants',
+    pieces: [
+      // a fixed high-rise panel: waist → past the hip, overlapping the leg-tube tops
+      { kind: 'bodyTube', topAnchor: 'waist', hemDropHi: 0.22, hemDropLo: 0.22, topR: 'waist', botR: 'hip' },
+      { kind: 'legTubes' }
+    ],
+    supports: lowerCaps,
+    // second-skin stretch; the waistband detail reads as the wide elastic rise.
+    defaults: { length: 1.0, ease: 0, flare: 0, waistband: true },
+    defaultFabric: 'spandex'
+  },
 
   // ---- dresses ----
   {
@@ -303,6 +330,18 @@ export const GARMENTS: GarmentDefinition[] = [
     ],
     supports: upperCaps,
     defaults: { length: 0.92, ease: 0.02, flare: 0.05, neckline: 'scoop', sleeve: 'none' }
+  },
+  {
+    id: 'swimsuit',
+    name: 'Swimsuit',
+    category: 'onepiece',
+    icon: 'top',
+    // a snug one-piece: shoulder → just past the hip (fixed — no length to trail), hourglass-cinched
+    pieces: [{ kind: 'bodyTube', topAnchor: 'shoulder', hemDropHi: 0.6, hemDropLo: 0.6, topR: 'chest', botR: 'hip90', cinchWaist: true, neckline: true }],
+    supports: { neckline: true, ease: true, dart: true, lined: true, boning: true },
+    // compression fit on a swim knit; scoop back-compatible neckline.
+    defaults: { length: 0.5, ease: 0, flare: 0, neckline: 'scoop', sleeve: 'none' },
+    defaultFabric: 'spandex'
   },
 
   // ---- outerwear ----
