@@ -8,6 +8,7 @@ import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { SKIN_TONES, SKIN_TONE_HEX, UNDERTONES, type SkinTone, type Undertone } from '../avatar/skin'
 import { POSES, type PoseName } from '../avatar/poses'
 import { POSTURES, type PostureName } from '../avatar/posture'
+import { WALK_STYLES, type WalkStyleName } from '../avatar/walkStyles'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
@@ -192,6 +193,8 @@ export interface PanelOptions {
   onSetPose?: (name: PoseName) => void
   /** Set the posture carriage (athletic · slouch · swayback) — layered on any pose. */
   onSetPosture?: (name: PostureName) => void
+  /** Set the walk style (commercial · editorial · sport). */
+  onSetWalkStyle?: (name: WalkStyleName) => void
   /** The shot-sequencer timeline (keyframe camera + pose, play/scrub, record WebM). */
   timeline?: TimelineControls
   onAnimSpeed: (v: number) => void
@@ -1496,6 +1499,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     poseBtns.set(pose.name, b)
     poseRow.append(b)
   }
+  // Walk style — how the runway walk reads (stride · arms · cadence).
+  const walkRow = el('div', 'dio-actions')
+  walkRow.style.flexWrap = 'wrap'
+  const walkBtns = new Map<WalkStyleName, HTMLButtonElement>()
+  for (const w of WALK_STYLES) {
+    const b = button(w.label, () => {
+      for (const [wn, node] of walkBtns) node.classList.toggle('primary', wn === w.name)
+      opts.onSetWalkStyle?.(w.name)
+    }, w.name === 'commercial')
+    b.style.flex = '1 1 30%'
+    walkBtns.set(w.name, b)
+    walkRow.append(b)
+  }
   // Posture carriage — how the figure holds itself, layered on top of any pose.
   const postureRow = el('div', 'dio-actions')
   postureRow.style.flexWrap = 'wrap'
@@ -1514,6 +1530,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     slider({ label: 'Speed', min: 0.2, max: 3, step: 0.1, get: () => opts.anim.speed, set: (v) => { opts.anim.speed = v; opts.onAnimSpeed(v) } }).row,
     el('div', 'dio-field-label', 'Pose (lookbook)'),
     poseRow,
+    el('div', 'dio-field-label', 'Walk style'),
+    walkRow,
     el('div', 'dio-field-label', 'Posture'),
     postureRow
   )

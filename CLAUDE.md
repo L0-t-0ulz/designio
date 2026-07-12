@@ -262,7 +262,7 @@ Renderer modules:
 ## Snapshot deep-links (query string)
 
 `?start=0` skip start page · `?garment=<id>` (registry id — dress, gown, jumpsuit, wide-leg, …; applies
-its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?pose=stand|weight-shift|stride|relaxed`
+its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?pose=stand|weight-shift|stride|relaxed` · `?walk=<commercial|editorial|sport>` (walk style — stride/arms/cadence + GLB rate)
 (a static lookbook pose) · `?posture=<neutral|athletic|slouch|swayback>` (a **posture carriage** layered on any pose — bends the spine/neck in colliders + visual shaping + anchors so garments re-drape onto the new carriage) · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) ·
 `?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) ·
