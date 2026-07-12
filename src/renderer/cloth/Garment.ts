@@ -107,6 +107,63 @@ export function radiusAt(spec: TubeSpec, t: number): number {
   return spec.radiusWaist + (spec.radiusBottom - spec.radiusWaist) * ((t - wt) / (1 - wt))
 }
 
+/**
+ * The tube's index buffer: front columns [0, nx/2) then back columns as two
+ * contiguous blocks → material groups 0 (front, +z) / 1 (back, −z), split at the
+ * side seams (per-panel fabric). `openFront` skips the centre-front quad column
+ * (functional opening); `torn` skips individual cells (cy·nx+cx) — **cloth
+ * tearing** regenerates the buffer through this same emitter so tears, the slit
+ * and the panel split always agree.
+ */
+export function tubeIndices(nx: number, ny: number, opts: { openFront?: boolean; torn?: ReadonlySet<number> } = {}): { indices: number[]; frontCount: number } {
+  const indices: number[] = []
+  const cut = opts.openFront ? openSeamColumn(nx) : -1
+  const quad = (ix: number, iy: number): void => {
+    if (ix === cut) return
+    if (opts.torn?.has(iy * nx + ix)) return
+    const ixr = (ix + 1) % nx // wrap the seam closed
+    const tl = iy * nx + ix
+    const tr = iy * nx + ixr
+    const bl = (iy + 1) * nx + ix
+    const br = (iy + 1) * nx + ixr
+    indices.push(tl, bl, tr, tr, bl, br)
+  }
+  const half = Math.floor(nx / 2)
+  for (let iy = 0; iy < ny - 1; iy++) for (let ix = 0; ix < half; ix++) quad(ix, iy)
+  const frontCount = indices.length
+  for (let iy = 0; iy < ny - 1; iy++) for (let ix = half; ix < nx; ix++) quad(ix, iy)
+  return { indices, frontCount }
+}
+
+/** The grid cells (cy·nx+cx) bordering a torn constraint (i,j) — the quads to drop.
+ *  Horizontal pairs border the cells above+below the edge; vertical pairs the cells
+ *  left+right; a sheared diagonal names its own cell. Wrap-aware in x. */
+export function tornCellsForPair(i: number, j: number, nx: number, ny: number): number[] {
+  const ax = i % nx
+  const ay = Math.floor(i / nx)
+  const bx = j % nx
+  const by = Math.floor(j / nx)
+  const cells: number[] = []
+  const push = (cx: number, cy: number): void => {
+    if (cy >= 0 && cy < ny - 1) cells.push(cy * nx + ((cx + nx) % nx))
+  }
+  const dxRaw = (bx - ax + nx) % nx
+  const dx = dxRaw > nx / 2 ? dxRaw - nx : dxRaw // signed shortest x span
+  const dy = by - ay
+  const lx = dx >= 0 ? ax : bx // left column of the span (wrap-aware)
+  const ty = Math.min(ay, by)
+  if (Math.abs(dx) === 1 && dy === 0) {
+    push(lx, ay - 1) // the edge between two columns borders the cell above…
+    push(lx, ay) // …and below
+  } else if (dx === 0 && Math.abs(dy) === 1) {
+    push(ax - 1, ty) // the edge between two rows borders the cell left…
+    push(ax, ty) // …and right
+  } else if (Math.abs(dx) === 1 && Math.abs(dy) === 1) {
+    push(lx, ty) // a sheared diagonal lives inside one cell
+  }
+  return cells
+}
+
 export interface TubeBuild {
   geometry: THREE.BufferGeometry
   /** Position attribute's backing array — the solver mutates it in place. */
@@ -171,24 +228,7 @@ function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: num
       uvs[k * 2 + 1] = v
     }
   }
-  const indices: number[] = []
-  const cut = openFront ? openSeamColumn(nx) : -1 // skip this quad column → a real centre-front slit
-  const quad = (ix: number, iy: number): void => {
-    if (ix === cut) return
-    const ixr = (ix + 1) % nx // wrap the seam closed
-    const tl = iy * nx + ix
-    const tr = iy * nx + ixr
-    const bl = (iy + 1) * nx + ix
-    const br = (iy + 1) * nx + ixr
-    indices.push(tl, bl, tr, tr, bl, br)
-  }
-  // Emit front columns [0,half) then back columns [half,nx) as two contiguous
-  // blocks → material groups 0 (front, +z) and 1 (back, −z), split at the side
-  // seams. Lets a piece render front/back with its own fabric (per-panel fabric).
-  const half = Math.floor(nx / 2)
-  for (let iy = 0; iy < ny - 1; iy++) for (let ix = 0; ix < half; ix++) quad(ix, iy)
-  const frontCount = indices.length
-  for (let iy = 0; iy < ny - 1; iy++) for (let ix = half; ix < nx; ix++) quad(ix, iy)
+  const { indices, frontCount } = tubeIndices(nx, ny, { openFront })
 
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))

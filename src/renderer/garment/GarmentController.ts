@@ -3,7 +3,7 @@ import type { Capsule } from '../avatar/colliders'
 import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
-import type { TubeBuild } from '../cloth/Garment'
+import { tornCellsForPair, tubeIndices, type TubeBuild } from '../cloth/Garment'
 import { XPBDSolver } from '../cloth/XPBDSolver'
 import { computeAngleWeightedNormals } from '../cloth/normals'
 import type { SimPieceView } from '../cloth/ClothCollision'
@@ -56,6 +56,10 @@ interface Piece {
   piping: Piping | null
   /** false for a flat open panel (a scarf) — the grid doesn't close in X. */
   wrapX: boolean
+  /** Cells torn out of the mesh (cloth tearing); the index buffer is rebuilt without them. */
+  torn: Set<number>
+  /** Whether this piece's front seam is unsewn (functional opening) — tears must respect it. */
+  openFront: boolean
 }
 
 /**
@@ -159,7 +163,17 @@ export class GarmentController {
     }
     computeAngleWeightedNormals(geometry)
     topstitch.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
-    this.pieces.push({ geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, fringe, piping, wrapX })
+    const piece: Piece = { geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, fringe, piping, wrapX, torn: new Set(), openFront: cutCol != null }
+    // Cloth tearing: when constraints rip, drop the bordering quads from the mesh.
+    solver.onTear = (pairs) => {
+      for (const [i, j] of pairs) for (const c of tornCellsForPair(i, j, nx, ny)) piece.torn.add(c)
+      const { indices, frontCount } = tubeIndices(nx, ny, { openFront: piece.openFront, torn: piece.torn })
+      geometry.setIndex(indices)
+      geometry.clearGroups()
+      geometry.addGroup(0, frontCount, 0)
+      geometry.addGroup(frontCount, indices.length - frontCount, 1)
+    }
+    this.pieces.push(piece)
   }
 
   /** Set the topstitch thread colour (the studio drives this from the trim / fabric). */
@@ -287,6 +301,11 @@ export class GarmentController {
    *  only worth running when something moved (at full rest pieces are stably separated). */
   anyAdvanced(): boolean {
     return this.pieces.some((p) => p.solver.advanced)
+  }
+
+  /** Cloth tearing: the strain fraction past which constraints rip (0 = off). */
+  setTearThreshold(t: number): void {
+    for (const p of this.pieces) p.solver.tearThreshold = t
   }
 
   /** Per-piece particle views for the global cloth-collision pass. */

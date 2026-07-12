@@ -1178,6 +1178,7 @@ export class GarmentStack {
     this.updateLining(l)
     this.applyVisibility(l)
     if (this.strainView !== 'none') this.applyStrainViewTo(l) // survive a rebuild (garment edit / async GLB load)
+    this.applyTearingTo(l) // tearing threshold re-applied to the fresh solvers
   }
 
   /** Put one layer into (or out of) the strain-view look (fit heatmap / stress check). */
@@ -1312,6 +1313,20 @@ export class GarmentStack {
   }
   get wrinkles(): boolean {
     return this.wrinklesOn
+  }
+
+  // Cloth tearing — seams rip past a fabric-aware strain threshold (~1.5× the
+  // stress view's fail point, so the red zones are exactly where it will tear).
+  private tearingOn = false
+  setTearing(on: boolean): void {
+    this.tearingOn = on
+    for (const l of this.layers) this.applyTearingTo(l)
+  }
+  get tearing(): boolean {
+    return this.tearingOn
+  }
+  private applyTearingTo(l: StackLayer): void {
+    l.controller.setTearThreshold(this.tearingOn ? stressThreshold(l.fabric.stretch) * 1.5 : 0)
   }
 
   // Strain overlay: a per-vertex colouring of the cloth by solver strain — the fit
