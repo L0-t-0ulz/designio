@@ -24,6 +24,7 @@ import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { iridescentParams, makeIridescenceThicknessMap } from '../fabric/iridescent'
 import { makeLaceAlphaMap } from '../fabric/lace'
+import { makePerfAlphaMap } from '../fabric/perforate'
 import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
@@ -383,10 +384,10 @@ export class GarmentStack {
     // Lace / broderie — a sheer alpha-cutout (real holes via alphaTest). Materials
     // are already DoubleSide, so the inside shows through the holes; the lining shell
     // is dropped for a lace garment (see updateLining) so it truly sees through.
-    const laceMap = l.data.lace ? makeLaceAlphaMap(l.data.lace) : null
+    const laceMap = l.data.lace ? makeLaceAlphaMap(l.data.lace) : l.fabric.perforated ? makePerfAlphaMap() : null
     for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
       // metallic props applyFabric doesn't touch — default matte unless a finish sets them
-      m.metalness = sp ? sp.metalness : ir ? ir.metalness : 0
+      m.metalness = sp ? sp.metalness : ir ? ir.metalness : m.metalness // keep the per-fabric value applyFabric set (lamé/sequin-base)
       m.clearcoat = sp ? sp.clearcoat : ir ? ir.clearcoat : 0
       m.clearcoatRoughness = sp ? sp.clearcoatRoughness : ir ? ir.clearcoatRoughness : 0
       m.envMapIntensity = sp ? sp.envMapIntensity : ir ? ir.envMapIntensity : m.envMapIntensity // keep the per-fabric value applyFabric set
@@ -1123,7 +1124,7 @@ export class GarmentStack {
   private updateLining(l: StackLayer): void {
     // Sheer fabrics (chiffon/organza) + lace stay see-through — an opaque inner shell
     // would kill the translucency / fill the cutout holes. Drop any lining shells.
-    if (l.fabric.transmission > 0.25 || l.data.lace) {
+    if (l.fabric.transmission > 0.25 || l.data.lace || l.fabric.perforated) {
       for (const { mesh } of l.controller.getPieces()) {
         for (const c of mesh.children.filter((ch) => ch.userData.lining)) mesh.remove(c)
       }
