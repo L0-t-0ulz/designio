@@ -587,7 +587,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Trouser break + crease** — a rendered front crease line and a configurable hem break (full/half/no break)
 
 **Activewear, swim & foundation**
-- [ ] **Compression fit** — negative-ease garments that stretch taut over the body (second-skin activewear)
+- [x] **Compression fit** — negative ease (to −3 cm) that stretches taut over the body: gradeParams floor + panel/quick-edit range + activewear defaults draft under the body radius; solver-stability test — PR #249
 - [ ] **Mesh / perforated panels** — alpha-cutout ventilation zones placed on a garment part
 - [ ] **Bonded / heat-sealed seams** — a no-stitch-line seam finish for performance wear
 - [x] **Swimwear block** — a snug hourglass-cinched one-piece (`swimsuit`, spandex compression fit; lining/boning supported) — PR #248 _(two-piece/ruching later)_
