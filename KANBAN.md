@@ -595,9 +595,9 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [x] **High-waist leggings** — a waist-anchored high-rise panel over second-skin leg tubes + waistband detail (`high-waist-leggings`) — PR #248 _(gusset later)_
 
 **Fabrics & finishes**
-- [ ] **Metallic / lamé / foil** — a bright anisotropic metal-sheen fabric family
-- [ ] **Neoprene / scuba** — thick, matte, structured hand that holds a sculpted shape
-- [ ] **Sequin-base fabric** — an all-over sequinned base cloth (not just a finish overlay)
+- [x] **Metallic / lamé / foil** — `lame` fabric: `Fabric.metalness` (new field) + satin anisotropy reads as woven gold foil — PR #250
+- [x] **Neoprene / scuba** — `neoprene` fabric: 420 gsm spacer knit, bendiness 0.15 → sculptural stiff drape — PR #250
+- [x] **Sequin-base fabric** — `sequin-base`: part-metal cloth + paillette-scale normal relief; pairs with the sequins sparkle finish — PR #250
 - [ ] **Fringe / tassel / feather trim** — a hanging edge trim that simulates its own sway
 - [ ] **Piping & corded edges** — a contrast-core piped seam/edge
 - [ ] **Digital print on the weave** — a photo print that follows the grain + distorts with the drape
