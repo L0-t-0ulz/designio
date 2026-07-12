@@ -20,6 +20,7 @@ import { Loop } from './core/Loop'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { skinLook, SKIN_LOOK, SKIN_TONES, UNDERTONES, type SkinTone, type Undertone } from './avatar/skin'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
+import { POSTURES, type PostureName } from './avatar/posture'
 import { getBodyPreset } from './avatar/bodyPresets'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
 import { FaceRig, HAIRSTYLES, type Hairstyle } from './avatar/face'
@@ -747,6 +748,8 @@ function initStudio(
   if (animParam) setAnimMode(animParam)
   const poseParam = params.get('pose')
   if (poseParam && (POSE_NAMES as string[]).includes(poseParam)) setPose(poseParam as PoseName)
+  const postureParam = params.get('posture')
+  if (postureParam && (POSTURES as string[]).includes(postureParam)) mannequin.setPosture(postureParam as PostureName)
   const bodyParams: [string, 'height' | 'build' | 'bust' | 'waist' | 'hips'][] = [
     ['bodyH', 'height'],
     ['bodyB', 'build'],
@@ -1423,6 +1426,7 @@ function initStudio(
     anim,
     onSetAnimMode: setAnimMode,
     onSetPose: setPose,
+    onSetPosture: (name) => mannequin.setPosture(name),
     timeline: {
       list: () => {
         const active = sampleTimeline(player.keyframes, player.time)?.index ?? -1

@@ -7,6 +7,7 @@ import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { SKIN_TONES, SKIN_TONE_HEX, UNDERTONES, type SkinTone, type Undertone } from '../avatar/skin'
 import { POSES, type PoseName } from '../avatar/poses'
+import { POSTURES, type PostureName } from '../avatar/posture'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
@@ -187,6 +188,8 @@ export interface PanelOptions {
   onSetAnimMode: (m: AnimationMode) => void
   /** Apply a static lookbook pose (implies static mode). */
   onSetPose?: (name: PoseName) => void
+  /** Set the posture carriage (athletic · slouch · swayback) — layered on any pose. */
+  onSetPosture?: (name: PostureName) => void
   /** The shot-sequencer timeline (keyframe camera + pose, play/scrub, record WebM). */
   timeline?: TimelineControls
   onAnimSpeed: (v: number) => void
@@ -1485,11 +1488,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     poseBtns.set(pose.name, b)
     poseRow.append(b)
   }
+  // Posture carriage — how the figure holds itself, layered on top of any pose.
+  const postureRow = el('div', 'dio-actions')
+  postureRow.style.flexWrap = 'wrap'
+  const postureBtns = new Map<PostureName, HTMLButtonElement>()
+  for (const po of POSTURES) {
+    const b = button(po[0].toUpperCase() + po.slice(1), () => {
+      for (const [pp, node] of postureBtns) node.classList.toggle('primary', pp === po)
+      opts.onSetPosture?.(po)
+    }, po === 'neutral')
+    b.style.flex = '1 1 42%'
+    postureBtns.set(po, b)
+    postureRow.append(b)
+  }
   animSec.body.append(
     animRow,
     slider({ label: 'Speed', min: 0.2, max: 3, step: 0.1, get: () => opts.anim.speed, set: (v) => { opts.anim.speed = v; opts.onAnimSpeed(v) } }).row,
     el('div', 'dio-field-label', 'Pose (lookbook)'),
-    poseRow
+    poseRow,
+    el('div', 'dio-field-label', 'Posture'),
+    postureRow
   )
   // (Export lives in the File menu; Re-drape + Play/Pause in the Scene group / status bar.)
 
