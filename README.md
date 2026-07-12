@@ -110,7 +110,9 @@ approachable, not overwhelming.
 
 **The menu bar** (top) — **File** (New · Open/Save `.dio` project · every export), **Edit** (undo/redo ·
 cut/copy/paste/duplicate/delete garment), **View**, **Avatar**, and **Help** (a keyboard-shortcuts overlay,
-press `?`). Menu items grey out at their boundaries (nothing to undo, empty clipboard, last garment).
+press `?` — every shortcut is **rebindable**: click its key chip, press a new combo; conflicts are caught
+and "Reset to defaults" restores the stock map). Menu items grey out at their boundaries (nothing to undo,
+empty clipboard, last garment).
 
 **The left Library** — a tabbed, **search-as-you-type** asset browser:
 
