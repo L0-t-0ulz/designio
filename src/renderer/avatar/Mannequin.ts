@@ -4,6 +4,7 @@ import { BodyMesh, type BodyPart } from './BodyMesh'
 import { loadGlbBody, type GlbBody } from './GlbMannequin'
 import { makeSkinMaterial, applySkinLook, type SkinLook } from './skin'
 import { getPose, type PoseName } from './poses'
+import { applyPostureToColliders, bendPoint, postureAngles, type PostureName } from './posture'
 import { headFrame } from './face'
 import { BodyCollider } from '../cloth/BodyCollider'
 
@@ -140,6 +141,8 @@ export interface Mannequin {
   setGhost: (on: boolean) => void
   /** Set the static lookbook pose (applied while the animation mode is `static`). */
   setPose: (name: PoseName) => void
+  /** Set the posture carriage (athletic · slouch · swayback) — layered on any pose. */
+  setPosture: (name: PostureName) => void
   /** Set the avatar's complexion (skin tone + undertone) — the shared body/GLB material. */
   setSkinTone: (look: SkinLook) => void
   /** Current body anchors — garments pin to these so they follow the animated body. */
@@ -364,9 +367,21 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   // Collider-bound parts + visual shaping parts, referenced once (both are mutated
   // in place each rebuild, so this array stays valid without per-frame allocation).
   const allParts: BodyPart[] = [...parts, ...shape]
+  const posturePivot = new THREE.Vector3()
   const buildAll = (): BodyPart[] => {
     buildParts()
     buildShape()
+    // the visual shaping balls (bust · deltoids · chest/back depth) ride the carriage:
+    // bend everything above the waist by the posture, matching the bent colliders.
+    const pa = postureAngles(posture)
+    if (pa.spine !== 0) {
+      posturePivot.set(0, measurements.waistY, 0)
+      for (const seg of shape) {
+        if (Math.min(seg.a.y, seg.b.y) <= measurements.waistY) continue // knees etc.
+        bendPoint(seg.a, posturePivot, pa.spine)
+        bendPoint(seg.b, posturePivot, pa.spine)
+      }
+    }
     return allParts
   }
 
@@ -429,6 +444,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       bone.collider.a.copy(a)
       bone.collider.b.copy(bv)
     }
+    // carriage: bend the upper chain into the current posture (layered on the pose)
+    applyPostureToColliders(colliders, measurements.waistY, postureAngles(posture))
   }
 
   // Drive the cloth capsules from the GLB rig so garments follow the animated body.
@@ -472,6 +489,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
 
   // Body anchors garments pin to. GLB → chest/hips bones (move with the animation);
   // procedural → static frames at the chest/hip landmarks (the torso doesn't animate).
+  const anchorScratch = new THREE.Vector3()
   const headMat = new THREE.Matrix4()
   const torsoMat = new THREE.Matrix4()
   const hipMat = new THREE.Matrix4()
@@ -506,10 +524,20 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       setSide(foreLMat, foreRMat, glb.bones.lFore, glb.bones.rFore, laIsNeg)
       return { head: headMat, torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: true }
     }
-    torsoMat.makeTranslation(0, measurements.chestY, 0)
+    // static frames at the body landmarks, bent into the current posture so
+    // pinned garments ride the carriage (identity when posture = neutral)
+    const pa = postureAngles(posture)
+    posturePivot.set(0, measurements.waistY, 0)
+    anchorScratch.set(0, measurements.chestY, 0)
+    if (pa.spine !== 0) bendPoint(anchorScratch, posturePivot, pa.spine)
+    torsoMat.makeTranslation(anchorScratch.x, anchorScratch.y, anchorScratch.z)
     hipMat.makeTranslation(0, measurements.hipY, 0)
-    armLMat.makeTranslation(-measurements.shoulderHalfX, measurements.shoulderY, 0)
-    armRMat.makeTranslation(measurements.shoulderHalfX, measurements.shoulderY, 0)
+    anchorScratch.set(-measurements.shoulderHalfX, measurements.shoulderY, 0)
+    if (pa.spine !== 0) bendPoint(anchorScratch, posturePivot, pa.spine)
+    armLMat.makeTranslation(anchorScratch.x, anchorScratch.y, anchorScratch.z)
+    anchorScratch.set(measurements.shoulderHalfX, measurements.shoulderY, 0)
+    if (pa.spine !== 0) bendPoint(anchorScratch, posturePivot, pa.spine)
+    armRMat.makeTranslation(anchorScratch.x, anchorScratch.y, anchorScratch.z)
     foreLMat.copy(armLMat)
     foreRMat.copy(armRMat)
     return { head: headMat, torso: torsoMat, hip: hipMat, armL: armLMat, armR: armRMat, foreL: foreLMat, foreR: foreRMat, rigged: false }
@@ -532,10 +560,35 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     bodyMesh.rebuild(buildAll())
     syncBodyBVH(false)
   }
+  // Posture carriage — layered on top of whatever pose/clip is active.
+  let posture: PostureName = 'neutral'
+  const applyGlbPosture = (): void => {
+    if (!glb) return
+    const pa = postureAngles(posture)
+    if (pa.spine === 0 && pa.neck === 0) return
+    // additive on the freshly sampled clip frame; world matrices refresh for the capsule fit
+    if (glb.bones.chest) glb.bones.chest.rotation.x += pa.spine
+    if (glb.bones.neck) glb.bones.neck.rotation.x += pa.neck
+    glb.model.updateMatrixWorld(true)
+  }
+  const setPosture = (name: PostureName): void => {
+    posture = name
+    if (useGlb && glb) {
+      posedKey = '' // force the static pose to re-sample + re-apply the new carriage
+      applyCurrentPose(true)
+    } else {
+      applyPose(curAngle)
+      bodyMesh.rebuild(buildAll())
+      syncBodyBVH(false)
+    }
+    onBodyChange?.() // garments re-drape onto the new carriage
+  }
+
   const applyCurrentPose = (force: boolean): void => {
     if (useGlb && glb) {
       const pose = getPose(currentPose)
       glb.freezePose(pose.glb.clip, pose.glb.phase)
+      applyGlbPosture()
       fitCollidersToGlb()
     } else {
       applyProcPose(force)
@@ -559,6 +612,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       // graceful rather than frantic, and the sim keeps up; idle plays at full rate.
       const rate = mode === 'walk' ? 0.5 : 1
       glb.update(animating ? dt * speed * rate : 0, mode === 'walk')
+      applyGlbPosture()
       fitCollidersToGlb()
       return
     }
@@ -651,6 +705,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     setBodyMode,
     setGhost,
     setPose,
+    setPosture,
     setSkinTone: (look) => applySkinLook(material, look),
     anchors,
     setOnBodyChange: (cb) => (onBodyChange = cb)
