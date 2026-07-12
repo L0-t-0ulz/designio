@@ -227,8 +227,8 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 - [ ] **Trucker cap** — a foam front + a mesh back panel
 - [ ] **Bucket hat controls** — brim-width + crown-height; reversible option
 - [ ] **Fedora / trilby** — a pinched crown crease + a grosgrain hat band
-- [ ] **Wide-brim sun hat** — a large floppy brim (drapes slightly)
-- [ ] **Beret** — a soft flat disc pulled to one side
+- [x] **Wide-brim sun hat** — a straw dome + wide drooping brim + band (`?accessories=sunhat`) — PR #277
+- [x] **Beret** — a wine felt disc pulled to one side + stalk, riding the head frame (`?accessories=beret`) — PR #277
 - [ ] **Flat cap / newsboy** — a panelled crown + a short stiff front brim
 
 **Scarves & neckwear**
