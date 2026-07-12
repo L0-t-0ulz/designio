@@ -48,6 +48,28 @@ export function weaveHeight(weave: WeaveType, u: number, v: number, threads: num
       const rib = 0.5 + 0.5 * Math.cos((tv - 0.5) * Math.PI * 2)
       return 0.4 * loop + 0.6 * rib
     }
+    case 'rib': {
+      // 1×1 rib — deep vertical wales (the classic beanie band): tall warp columns,
+      // every other column recessed, weft barely reads
+      const wale = (cu & 1) === 0 ? 1 : 0.35
+      return wale * (0.3 + 0.7 * warpRidge)
+    }
+    case 'waffle': {
+      // thermal waffle — a square grid of raised walls around deep square cells
+      const wall = Math.max(bump(tu) < 0.45 ? 1 : 0, bump(tv) < 0.45 ? 1 : 0)
+      return wall === 1 ? 0.9 : 0.15 + 0.2 * (warpRidge + weftRidge) * 0.5
+    }
+    case 'cable': {
+      // cable knit — fat twisted columns every 4 wales that cross over each other
+      const col = ((cu % 4) + 4) % 4
+      if (col < 2) {
+        // the cable pair: a braid — the crossing alternates every 3 rows
+        const phase = (Math.floor(vv / 3) & 1) === 0 ? col : 1 - col
+        const braid = 0.55 + 0.45 * Math.sin(Math.PI * (tv + phase) * 0.9)
+        return 0.5 + 0.5 * braid * warpRidge
+      }
+      return 0.25 * weftRidge // the recessed purl gutter between cables
+    }
     default:
       return 0.5
   }

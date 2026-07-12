@@ -23,6 +23,8 @@ export interface GarmentDefinition {
   icon?: GarmentIcon
   /** Draw a hood (a draped cowl behind the neck) — e.g. a hoodie. */
   hood?: boolean
+  /** A faux-fur/yarn pom riding the crown (pom-pom beanie). */
+  pom?: boolean
   /** How the front closure reads when enabled: a button placket (default) or a zip. */
   closureStyle?: 'button' | 'zip'
 }
