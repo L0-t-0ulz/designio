@@ -157,6 +157,7 @@ function initStudio(
     pocketStyle: l0.pocketStyle,
     hem: l0.hem,
     closure: l0.closure,
+    closureOpen: l0.closureOpen,
     lined: l0.lined,
     interfaced: l0.interfaced,
     wet: l0.wet,
@@ -292,6 +293,7 @@ function initStudio(
     garment.pocketStyle = l.data.pocketStyle
     garment.hem = l.data.hem
     garment.closure = l.data.closure
+    garment.closureOpen = l.data.closureOpen
     garment.lined = l.data.lined
     garment.interfaced = l.data.interfaced
     garment.wet = l.data.wet
@@ -661,6 +663,7 @@ function initStudio(
     l.data.pocketStyle = garment.pocketStyle
     l.data.hem = garment.hem
     l.data.closure = garment.closure
+    l.data.closureOpen = garment.closureOpen
     l.data.lined = garment.lined
     l.data.interfaced = garment.interfaced
     l.data.wet = garment.wet
@@ -1663,6 +1666,7 @@ if (skipStart) {
   }
   if (entryParams.get('hem')) cfg.hem = true
   if (entryParams.get('closure')) cfg.closure = true
+  if (entryParams.get('open')) (cfg.closure = true), (cfg.closureOpen = true) // worn-open placket/zip (functional opening)
   if (entryParams.get('lined')) cfg.lined = true
   if (entryParams.get('interfaced')) cfg.interfaced = true
   if (entryParams.get('wet')) cfg.wet = true

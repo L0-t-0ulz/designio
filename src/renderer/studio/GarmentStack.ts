@@ -554,7 +554,7 @@ export class GarmentStack {
       }
     }
 
-    if (l.data.closure) this.buildClosure(l)
+    if (l.data.closure && !l.data.closureOpen) this.buildClosure(l) // worn open → no fastened placket; the seam itself gaps
     if (l.data.collar) this.buildCollar(l)
     if (l.data.waistband) this.buildWaistband(l)
     if (l.data.drawstring) this.buildDrawstring(l)

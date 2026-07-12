@@ -56,6 +56,9 @@ export interface GarmentParams {
   hem?: boolean
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
+  /** Wear the closure **open** (unbuttoned/unzipped): the centre-front seam is unsewn
+   *  so the garment really gaps and hangs open — a functional opening. */
+  closureOpen?: boolean
   /** Real inner lining — a satiny contrast layer inside, shown at the openings. */
   lined?: boolean
   /** Interfacing — a structured, crisper drape that holds its shape. */

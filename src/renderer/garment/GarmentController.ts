@@ -81,13 +81,13 @@ export class GarmentController {
     this.dispose()
     const def = getGarment(type)
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
-      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true)
+      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol)
     }
     this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
   }
 
-  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true): void {
+  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true, cutCol?: number): void {
     const { geometry, positions, nx, ny, pinnedTop } = build
     const mesh = new THREE.Mesh(geometry, this.material)
     mesh.castShadow = true
@@ -96,6 +96,7 @@ export class GarmentController {
     this.scene.add(mesh)
 
     const solver = new XPBDSolver(nx, ny, positions, this.params(name), { pinned: pinnedTop, wrapX })
+    if (cutCol != null) solver.cutSeam(cutCol) // functional opening — the placket seam is unsewn
     solver.colliders = this.colliders
     solver.bodyCollider = this.bodyCollider
     solver.gravity.set(0, -this.gravityY, 0)

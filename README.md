@@ -193,7 +193,9 @@ details it actually supports:
   nipped, tailored waist), **patch pockets** (chest on tops, hips on skirts/trousers — topstitched in 3D,
   a pocket panel on the pattern), and a **rolled hem**.
 - A **front closure** on front-opening pieces (blouse · blazer · coat · hoodie …) — a centre-front placket
-  with a **button column** or a **zip + metal pull** (the hoodie zips).
+  with a **button column** or a **zip + metal pull** (the hoodie zips). And it's **functional**: toggle
+  **Worn open** and the centre-front seam is really unsewn — the garment gaps and hangs open off the body,
+  not just a drawn line.
 - Deeper tailoring flags — **lined · interfaced · waistband · facing · drawstring · ruffles · boning ·
   ribbing · yoke · princess seams**.
 

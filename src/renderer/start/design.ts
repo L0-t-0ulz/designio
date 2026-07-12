@@ -37,6 +37,8 @@ export interface DesignConfig {
   pocketStyle?: PocketStyle
   hem?: boolean
   closure?: boolean
+  /** Wear the closure open (unbuttoned/unzipped) — the garment gaps at centre-front. */
+  closureOpen?: boolean
   lined?: boolean
   interfaced?: boolean
   /** Waterlogged rain/swim look — physics (heavier + limp + clings) + a wet glossy sheen. */

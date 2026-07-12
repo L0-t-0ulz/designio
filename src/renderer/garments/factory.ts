@@ -8,6 +8,7 @@ import {
   fillAxisTube,
   fillScarf,
   fillTube,
+  openSeamColumn,
   type AxisTubeSpec,
   type ScarfSpec,
   type TubeBuild,
@@ -64,6 +65,8 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.7)
   }
   if (p.pleats) spec.pleat = p.pleatStyle ?? 'knife'
+  // A worn-open closure splits the centre-front seam (only the torso piece has the placket).
+  if (p.closure && p.closureOpen && pc.neckline) spec.openFront = true
   // Boning cinches the waist hard (corset silhouette) — overrides any softer cinch.
   if (p.boning) {
     spec.radiusWaist = m.waistR * 0.8 + p.ease * 0.25
@@ -245,6 +248,8 @@ export interface SimPiece {
   name: string
   /** false for a flat open panel (a scarf) — the solver must not wrap X. Default true (tubes). */
   wrapX?: boolean
+  /** Functional opening: cut the solver seam at this column boundary (open placket/zip). */
+  cutCol?: number
 }
 
 /**
@@ -264,7 +269,7 @@ export function buildGarment(
   for (const pc of def.pieces) {
     if (pc.kind === 'bodyTube') {
       const spec = bodyTubeToSpec(pc, params, m)
-      out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: 'Body' })
+      out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: 'Body', cutCol: spec.openFront ? openSeamColumn(spec.radial) : undefined })
     } else if (pc.kind === 'legTubes') {
       legTubeSpecs(params, m).forEach((spec, i) => {
         out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: legName[i] })
