@@ -41,6 +41,10 @@ export interface ConstructionCaps {
   collar?: boolean
   cuff?: boolean
   pleats?: boolean
+  /** Pressed trouser crease (tailored trousers). */
+  crease?: boolean
+  /** Trouser break — the hem stacks softly on the ankle. */
+  trouserBreak?: boolean
   dart?: boolean
   pocket?: boolean
   hem?: boolean

@@ -59,6 +59,8 @@ export interface GarmentState {
   cuff?: boolean
   pleats?: boolean
   pleatStyle?: PleatStyle
+  crease?: boolean
+  trouserBreak?: boolean
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle
@@ -520,10 +522,12 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // construction detail toggles (collar · cuff · pleats · darts), shown per garment
-  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'dart' | 'pocket' | 'hem' | 'closure' | 'lined' | 'interfaced' | 'waistband' | 'facing' | 'drawstring' | 'ruffles' | 'boning' | 'ribbing' | 'yoke' | 'princess'][] = [
+  const detailDefs: [string, 'collar' | 'cuff' | 'pleats' | 'crease' | 'trouserBreak' | 'dart' | 'pocket' | 'hem' | 'closure' | 'lined' | 'interfaced' | 'waistband' | 'facing' | 'drawstring' | 'ruffles' | 'boning' | 'ribbing' | 'yoke' | 'princess'][] = [
     ['Collar', 'collar'],
     ['Cuff', 'cuff'],
     ['Pleats', 'pleats'],
+    ['Pressed crease', 'crease'],
+    ['Break', 'trouserBreak'],
     ['Darts', 'dart'],
     ['Pocket', 'pocket'],
     ['Rolled hem', 'hem'],

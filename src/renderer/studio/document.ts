@@ -74,6 +74,8 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     cuff: l.cuff,
     pleats: l.pleats,
     pleatStyle: l.pleatStyle,
+    crease: l.crease,
+    trouserBreak: l.trouserBreak,
     dart: l.dart,
     pocket: l.pocket,
     pocketStyle: l.pocketStyle,
@@ -138,6 +140,9 @@ export interface GarmentLayerData {
   cuff?: boolean
   pleats?: boolean
   pleatStyle?: PleatStyle
+  /** Pressed trouser crease + break (tailored trousers). */
+  crease?: boolean
+  trouserBreak?: boolean
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle
@@ -315,6 +320,8 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     cuff: c.cuff,
     pleats: c.pleats,
     pleatStyle: c.pleatStyle,
+    crease: c.crease,
+    trouserBreak: c.trouserBreak,
     dart: c.dart,
     pocket: c.pocket,
     pocketStyle: c.pocketStyle,

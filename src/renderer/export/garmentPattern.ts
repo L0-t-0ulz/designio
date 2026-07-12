@@ -296,6 +296,8 @@ export function garmentToPanels(
     params.collar && `${params.collarStyle ?? 'band'} collar`,
     params.cuff && 'cuffs',
     params.pleats && `${params.pleatStyle ?? 'knife'} pleats`,
+    params.crease && 'pressed crease',
+    params.trouserBreak && 'break',
     params.dart && 'darts',
     params.pocket && `${params.pocketStyle ?? 'patch'} pocket`,
     params.hem && 'rolled hem',

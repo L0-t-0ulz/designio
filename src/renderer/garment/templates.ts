@@ -44,6 +44,10 @@ export interface GarmentParams {
   cuff?: boolean
   /** Extra hem fullness (a fuller, pleated skirt/dress/leg) + pleat lines. */
   pleats?: boolean
+  /** Pressed trouser crease — sharp fore/aft ridges down each leg (tailored trousers). */
+  crease?: boolean
+  /** Trouser break — extra leg length that stacks/pools softly on the ankle. */
+  trouserBreak?: boolean
   /** Pleat/gather fold style when `pleats` is on (knife / box / accordion / cartridge / gather). */
   pleatStyle?: PleatStyle
   /** Waist darts — a more fitted, shaped waist + dart wedges on the pattern. */
