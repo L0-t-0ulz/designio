@@ -92,6 +92,7 @@ export interface GarmentState {
   princess?: boolean
   seam?: number
   notches?: boolean
+  pilling?: number
   recycledFabric?: boolean
   deadstockFabric?: boolean
   trim?: boolean
@@ -1386,6 +1387,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     partBlock,
     track(toggle({ label: 'Contrast trim', get: () => !!garment.trim, set: (v) => { garment.trim = v; opts.onGarmentEdit() } })),
     track(toggle({ label: 'Wet look', get: () => !!garment.wet, set: (v) => { garment.wet = v; opts.onGarmentEdit() } })),
+    track(slider({ label: 'Pilling (aged knit)', min: 0, max: 1, step: 0.05, get: () => garment.pilling ?? 0, set: (v) => { garment.pilling = v || undefined; opts.onGarmentEdit() } })),
     track(toggle({ label: 'Puffer loft', get: () => !!garment.puff, set: (v) => { garment.puff = v; opts.onGarmentEdit() } })),
     track(colorField({ label: 'Colour', get: () => current.color, set: (v) => opts.onColor(v) })),
     track(colorLibrary()),
