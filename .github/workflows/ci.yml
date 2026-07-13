@@ -46,7 +46,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: Render + compare golden images
-        run: xvfb-run -a --server-args="-screen 0 1280x900x24" npx electron scripts/golden.cjs --check
+        # --no-sandbox: the runners restrict unprivileged user namespaces, so the
+        # Chromium SUID sandbox aborts; the content rendered is our own bundle.
+        run: xvfb-run -a --server-args="-screen 0 1280x900x24" npx electron scripts/golden.cjs --check --no-sandbox
       - name: Upload rendered frames
         if: always()
         uses: actions/upload-artifact@v4
