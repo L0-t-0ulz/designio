@@ -137,7 +137,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Strain on the 2D pattern** — per-panel mean-tension tint in the 2D pane while a strain view is on (`panelStrains` + `strainTint`; exports untinted) — PR #286
 - [x] **Hanger shot** — ghost + collider swap to a thin hanger bar (true limp hang) + a wire-hanger prop (`studio/hangerShot`, View menu, `?hanger=1`) — PR #288
 - [x] **Wind compass dial** — a drag compass (direction + radial strength) synced with the sliders/presets (`studio/windDial`) — PR #280
-- [ ] **Pattern annotations** — text notes pinned to 2D panels, exported to SVG + a DXF ANNOTATION layer (round-trips with import)
+- [x] **Pattern annotations** — + Note tool in the 2D toolbar; mm-space pins → SVG flags + DXF ANNOTATION TEXT, importer round-trips; persisted on the layer — PR #289
 - [x] **Size-run strip** — XS→XXL worn side by side, block-labelled, settled synchronously per size (`studio/sizeRunStrip`, File menu) — PR #278
 - [x] **Anatomy camera bookmarks** — five measurement-derived framings in the bookmarks panel; they reframe with resizes/presets (`studio/anatomyShots`) — PR #279
 
