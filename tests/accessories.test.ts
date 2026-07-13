@@ -29,7 +29,7 @@ function baseBody(): Capsule[] {
 
 describe('accessories — body attach anchors', () => {
   it('exposes the accessory set incl. headwear & neckwear', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat'])
+    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'necklace', 'hoops'])
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
@@ -98,7 +98,7 @@ describe('accessories — headwear / neckwear anchors', () => {
 describe('accessories — worn headwear/neckwear meshes ride the head/neck', () => {
   it('each new kind builds visible geometry positioned up around the head/neck', () => {
     const acc = new Accessories()
-    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat'] as const
+    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'necklace', 'hoops'] as const
     for (const k of kinds) {
       acc.setEnabled(k, true)
       expect(acc.isEnabled(k)).toBe(true)
@@ -113,5 +113,21 @@ describe('accessories — worn headwear/neckwear meshes ride the head/neck', () 
       expect(box.min.y).toBeGreaterThan(1.0)
       expect(box.max.y).toBeLessThan(2.0) // sane — not exploded
     }
+    // jewellery placement: the pearl strand must clear the chest (in FRONT of the
+    // body, not buried inside it) and the hoops must hang at the ears' width
+    const solo = (kind: 'necklace' | 'hoops'): THREE.Box3 => {
+      const a2 = new Accessories()
+      a2.setEnabled(kind, true)
+      a2.update(baseBody())
+      a2.group.updateMatrixWorld(true)
+      const vis = a2.group.children.filter((o) => o.visible)
+      expect(vis.length).toBe(1)
+      return new THREE.Box3().setFromObject(vis[0])
+    }
+    const neck = solo('necklace')
+    expect(neck.max.z).toBeGreaterThan(0.13) // bows out past the chest surface (~0.13 m)
+    const hoops = solo('hoops')
+    expect(hoops.max.x).toBeGreaterThan(0.07) // out at the ears (head radius ≈ 0.09)
+    expect(hoops.min.x).toBeLessThan(-0.07)
   })
 })

@@ -12,8 +12,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -103,6 +103,8 @@ export class Accessories {
       this.buildCap(),
       this.buildBucket(),
       this.buildBalaclava(),
+      this.buildNecklace(),
+      this.buildHoops(),
       this.buildScarf(),
       this.buildGaiter()
     )
@@ -291,6 +293,40 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(dome, brim, band)
     return this.headItem('sunhat', obj)
+  }
+
+  private buildNecklace(): Item {
+    // A pearl strand at the neck base. The frame's unit is the NECK radius (~5 cm)
+    // but the chest is ~3 units deep, so the front dip bows well forward + down to
+    // drape onto the upper chest instead of vanishing inside the torso.
+    const pearl = new THREE.MeshPhysicalMaterial({ color: 0xf3ecdf, roughness: 0.18, metalness: 0, clearcoat: 0.8, clearcoatRoughness: 0.2, sheen: 0.4 })
+    const obj = new THREE.Group()
+    const N = 18
+    for (let i = 0; i <= N; i++) {
+      const t = (i / N) * Math.PI // half-turn: ear to ear around the front
+      const x = Math.cos(t) * 1.3
+      const z = 0.4 + Math.sin(t) * 2.6 // bows out past the chest surface
+      const y = -0.5 - Math.sin(t) * 1.5 // dips onto the upper chest at centre-front
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), pearl)
+      b.position.set(x, y, z)
+      obj.add(b)
+    }
+    const pendant = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), pearl)
+    pendant.position.set(0, -2.25, 3.1)
+    obj.add(pendant)
+    return this.neckItem('necklace', obj)
+  }
+
+  private buildHoops(): Item {
+    // gold hoops hanging from the earlobes, facing sideways
+    const obj = new THREE.Group()
+    for (const side of [-1, 1]) {
+      const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.035, 10, 24), METAL)
+      hoop.rotation.y = Math.PI / 2
+      hoop.position.set(side * 1.02, HC - 1.05, 0.05)
+      obj.add(hoop)
+    }
+    return this.headItem('hoops', obj)
   }
 
   private buildBalaclava(): Item {
