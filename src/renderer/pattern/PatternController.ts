@@ -49,14 +49,23 @@ export class PatternController {
     this.world.wind.set(this.windX, 0, this.windZ)
     this.geometries = sewn.geometries
     this.initial = sewn.initial
-    for (const geo of this.geometries) {
-      const mesh = new THREE.Mesh(geo, this.material)
+    this.geometries.forEach((geo, k) => {
+      // per-piece hue tints (style-line colour-blocking) clone the shared fabric
+      // material; clones are disposed on clear()
+      let mat = this.material
+      const tint = this.pieceTints?.[k]
+      if (tint) {
+        mat = this.material.clone()
+        if ('color' in mat) (mat as THREE.MeshPhysicalMaterial).color.offsetHSL(tint, 0, 0)
+        this.tintedMats.push(mat)
+      }
+      const mesh = new THREE.Mesh(geo, mat)
       mesh.castShadow = true
       mesh.receiveShadow = true
       mesh.frustumCulled = false
       this.scene.add(mesh)
       this.meshes.push(mesh)
-    }
+    })
   }
 
   /** Sew a sketched outline (draw-your-own panel) onto the body; it stays the
@@ -67,11 +76,17 @@ export class PatternController {
     this.build(p)
   }
 
+  // Per-piece hue offsets (index-matched to the arranged panels) — the
+  // style-line colour-block look. Cloned materials tracked for disposal.
+  private pieceTints: number[] | null = null
+  private readonly tintedMats: THREE.Material[] = []
+
   /** Sew an arranged multi-panel set (sewing lines & arrangement); sticky like
    *  a sketch — rebuilds keep the arrangement until the mode is left. */
-  buildArranged(panels: PlacedPanel[], seams: SeamDef[], p: PatternParams): void {
+  buildArranged(panels: PlacedPanel[], seams: SeamDef[], p: PatternParams, tints?: number[]): void {
     this.arranged = { panels, seams }
     this.drawnOutline = null
+    this.pieceTints = tints ?? null
     this.build(p)
   }
 
@@ -118,6 +133,8 @@ export class PatternController {
   clear(): void {
     for (const mesh of this.meshes) this.scene.remove(mesh)
     for (const geo of this.geometries) geo.dispose()
+    for (const mat of this.tintedMats) mat.dispose()
+    this.tintedMats.length = 0
     this.meshes = []
     this.geometries = []
     this.world = undefined

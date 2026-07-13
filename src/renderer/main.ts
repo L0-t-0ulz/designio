@@ -54,6 +54,7 @@ import { DEFAULT_PATTERN } from './pattern/pattern'
 import { openSketchPad, sketchPadOpen, closeSketchPad } from './pattern/SketchPad'
 import { demoOutline } from './pattern/drawnPanel'
 import { demoArrangement } from './pattern/arrangement'
+import { demoStyleLines } from './pattern/styleLines'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
@@ -846,6 +847,12 @@ function initStudio(
     setMode('pattern')
     const demo = demoArrangement()
     ;(patternCtl as PatternController | null)?.buildArranged(demo.panels, demo.seams, patternParams)
+  }
+  if (params.get('styleLines') === 'demo') {
+    // style lines: the front split by a princess curve, colour-blocked + re-sewn
+    setMode('pattern')
+    const demo = demoStyleLines()
+    ;(patternCtl as PatternController | null)?.buildArranged(demo.panels, demo.seams, patternParams, [-0.07, 0.09, 0])
   }
   const animParam = params.get('anim') as AnimationMode | null
   if (animParam) setAnimMode(animParam)
