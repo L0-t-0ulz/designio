@@ -303,6 +303,36 @@ export class GarmentController {
     return this.pieces.some((p) => p.solver.advanced)
   }
 
+  /** Mean positive (tension) strain per pattern panel, from the live solvers —
+   *  Front/Back split by the tube's column halves (the per-panel physics rule),
+   *  sleeves and legs pooled. Projects the 3D fit onto the flat pattern. */
+  panelStrains(): Record<string, number> {
+    const sums: Record<string, { s: number; n: number }> = {}
+    const add = (key: string, v: number): void => {
+      const e = (sums[key] ??= { s: 0, n: 0 })
+      if (v > 0) e.s += v
+      e.n++
+    }
+    const scratch = { arr: new Float32Array(0) }
+    for (const p of this.pieces) {
+      const n = p.solver.count
+      if (scratch.arr.length < n) scratch.arr = new Float32Array(n)
+      p.solver.strain(scratch.arr)
+      const nx = p.solver.nx
+      const half = Math.floor(nx / 2)
+      const sleeve = /sleeve/i.test(p.name)
+      const leg = /leg/i.test(p.name)
+      for (let k = 0; k < n; k++) {
+        const front = k % nx < half
+        const key = sleeve ? 'Sleeve' : leg ? (front ? 'Leg front' : 'Leg back') : front ? 'Front' : 'Back'
+        add(key, scratch.arr[k])
+      }
+    }
+    const out: Record<string, number> = {}
+    for (const [k, e] of Object.entries(sums)) out[k] = e.n ? e.s / e.n : 0
+    return out
+  }
+
   /** Cloth tearing: the strain fraction past which constraints rip (0 = off). */
   setTearThreshold(t: number): void {
     for (const p of this.pieces) p.solver.tearThreshold = t

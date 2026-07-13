@@ -57,6 +57,7 @@ import { tiledPatternHTML } from './export/tiledPrint'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
+import { strainTint } from './fabric/heatmap'
 import { pomTable } from './export/pom'
 import { bodyToMeasurements } from './avatar/measure'
 import { recommendSize } from './avatar/sizeRecommend'
@@ -613,7 +614,20 @@ function initStudio(
     importedPattern
       ? importedPatternToSVG(importedPattern)
       : mode === 'templates'
-        ? garmentPatternSVG(getGarment(stack.active.data.garmentType), gradeParams(stack.active.data), mannequin.measurements, mannequin.colliders, stack.active.prints)
+        ? garmentPatternSVG(
+            getGarment(stack.active.data.garmentType),
+            gradeParams(stack.active.data),
+            mannequin.measurements,
+            mannequin.colliders,
+            stack.active.prints,
+            stack.heatmap || stack.stress
+              ? {
+                  // project the live 3D strain onto the flat panels (heat tint per panel)
+                  tints: Object.fromEntries(Object.entries(stack.active.controller.panelStrains()).map(([k, v]) => [k, strainTint(v)])),
+                  tintNote: 'panel tint = live strain'
+                }
+              : undefined
+          )
         : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
   // Read a DXF pattern file → parse → preview in the 2D pane (round-trips the export).
   async function importPattern(): Promise<void> {
