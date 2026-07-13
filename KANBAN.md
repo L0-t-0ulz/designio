@@ -633,7 +633,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Photo-to-avatar** — estimate a body shape from two photos (front + side)
 - [x] **Size recommendation** — live "Best fit for this body" hint from the graded POM's intended ease vs the avatar's real measurements (chest/waistband-weighted; `avatar/sizeRecommend`) — PR #265
 - [x] **Per-customer fit profile** — named measurement sets saved/applied in one click (`avatar/fitProfiles`, made-to-measure panel; the size recommendation follows the person) — PR #267 _(per-person saved fit maps later)_
-- [ ] **Asymmetric fit** — one shoulder/hip higher, a limb-length delta
+- [x] **Asymmetric fit** — the one-shoulder neckline (asymmetric `topEdge` feeding 3D + the pattern; `?neckline=` deep-link added) — PR #294
 - [x] **Posture presets** — athletic · slouch · swayback carriage layered on any pose; bends colliders + visual shaping + anchors in lock-step so garments re-drape onto the new carriage (`avatar/posture`, Avatar panel, `?posture=`) — PR #261
 - [x] **Ease-by-zone editor** — chest/waist/hip ease offsets landing on their own landmarks across the whole catalog; flows into pattern/metrics/POM automatically (`?easeChest/easeWaist/easeHip=<cm>`) — PR #268
 
