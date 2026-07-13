@@ -198,6 +198,8 @@ export interface GarmentLayerData {
   seam?: number
   /** Seam & topstitch spec (type · needle · SPI · thread weight) — 3D + tech pack. */
   stitch?: import('../garment/stitchTypes').StitchSpec
+  /** Physical fabric override — the real-units editor (GSM · mm · bend µN·m · stretch % · shear %). */
+  physicalFabric?: import('../fabric/physicalProps').PhysicalFabric
   notches?: boolean
   /** Contrast trim (collar/cuffs/pockets/hem) — its own fabric + colour. */
   trim?: boolean
@@ -360,6 +362,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     fringe: c.fringe,
     piping: c.piping,
     stitch: c.stitch,
+    physicalFabric: c.physicalFabric,
     dart: c.dart,
     pocket: c.pocket,
     pocketStyle: c.pocketStyle,

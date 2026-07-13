@@ -55,7 +55,7 @@ export interface Fabric {
   perforated?: boolean
 }
 
-const MASS_PER_GSM = 0.0015 // gsm → total garment mass (kg), tuned by feel
+export const MASS_PER_GSM = 0.0015 // gsm → total garment mass (kg), tuned by feel
 
 /** Derive the XPBD solver parameters from a fabric's physical properties. */
 export function fabricToSolverParams(fabric: Fabric): FabricParams {

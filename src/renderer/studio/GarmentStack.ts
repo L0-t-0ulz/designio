@@ -13,6 +13,7 @@ import { GarmentController } from '../garment/GarmentController'
 import { ClothCollision } from '../cloth/ClothCollision'
 import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, corsetParams, wetParams, type Fabric } from '../fabric/FabricLibrary'
+import { physicalToSolverParams } from '../fabric/physicalProps'
 import { getGarment } from '../garments/registry'
 import { garmentPatternSpecs, garmentSleeveSpecs, setSimResolution as setFactoryResolution } from '../garments/factory'
 import type { SimResolution } from '../cloth/simQuality'
@@ -250,7 +251,10 @@ export class GarmentStack {
   }
   /** Front/body solver params for a piece. */
   private pieceSolverParams(l: StackLayer, name: string): FabricParams {
-    return this.solverModifiers(l, name, fabricToSolverParams(this.pieceFabric(l, name)))
+    const base = fabricToSolverParams(this.pieceFabric(l, name))
+    // real-units physical override (the fabric editor) replaces the preset-derived drape
+    const p = l.data.physicalFabric ? physicalToSolverParams(l.data.physicalFabric, base) : base
+    return this.solverModifiers(l, name, p)
   }
   /** Back-panel solver params for a piece — its own `back`/`legBack` fabric, or `null`
    *  (no override → the whole tube drapes with the front fabric). */

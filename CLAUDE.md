@@ -320,6 +320,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?styleLines=demo` (**style lines** — the bodice front split by a princess curve, colour-blocked + re-sewn) ·
 `?internalShapes=demo` (**internal shapes & notches** — waist darts stitched closed (real take-up) + a keyhole back cut-out) ·
 `?seamType=<plain|french|flat-fell|overlock>&spi=<4..22>&needle=<single|double>&threadWt=<tex-27|tex-40|tex-60>` (**seam & topstitch spec** — SPI dash pitch + twin double-needle rows read on the garment; the spec lands in the tech pack) ·
+`?gsm=<40..800>&thickMm=<0.05..4>&bend=<0.8..120>&stretchWarp=<0..60>&stretchWeft=<0..60>&shear=<0..60>` (**physical fabric override** — real units driving the solver; unset fields seed from the fabric preset) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?open=1` (**functional opening** — the closure worn open: `TubeSpec.openFront` slits the mesh at `openSeamColumn` and `XPBDSolver.cutSeam` unsews the matching constraints, so the garment really gaps and hangs open) ·
 `?lined/interfaced/waistband/facing/drawstring/ruffles/boning/ribbing/yoke/princess=1` (more construction detail) ·
