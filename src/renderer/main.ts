@@ -890,6 +890,21 @@ function initStudio(
     statusHandles?.setSelection(on ? 'Hanger shot — hanging drape (product shot)' : 'Hanger shot off')
   }
   if (params.get('ghost') === '1') setGhostMode(true)
+  // Smoothing slip — an invisible simulated underlayer (shapewear): outer garments
+  // drape over its smooth surface instead of the bare body detail.
+  let slipLayerRef: ReturnType<typeof stack.addLayer> | null = null
+  const setSlip = (on: boolean): void => {
+    if (on && !slipLayerRef) {
+      slipLayerRef = stack.addLayer({ ...defaultLayer('slip-dress'), ease: 0.003, flare: 0, underlayer: true, color: 0xcfc9c2 }, false)
+      statusHandles?.setSelection('Smoothing slip on — outer layers drape over it')
+    } else if (!on && slipLayerRef) {
+      stack.removeLayer(slipLayerRef)
+      slipLayerRef = null
+      statusHandles?.setSelection('Smoothing slip off')
+    }
+    syncBrowsers()
+  }
+  if (params.get('slip') === '1') setSlip(true)
   if (params.get('hanger') === '1') setHangerShot(true)
   if (params.get('wrinkles') === '1') stack.setWrinkles(true)
   const windParam = params.get('wind')
@@ -1643,6 +1658,7 @@ function initStudio(
     stress: { get: () => stack.stress, set: (on) => stack.setStress(on) },
     pressure: { get: () => stack.pressure, set: (on) => stack.setPressure(on) },
     tearing: { get: () => stack.tearing, set: (on) => stack.setTearing(on) },
+    slip: { get: () => slipLayerRef !== null, set: (on) => setSlip(on) },
     wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },
     accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
     hair: {
