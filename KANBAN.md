@@ -208,7 +208,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Fix blank prints/textiles in the studio** — the fabric-thickness lining shell was pushed *outward* over the printed surface (tube normals point inward); push it inward so the albedo map shows — PR #108
 - [x] **Wire the library search + filters** — fabric browser filters by family · weight · stretch (combined with the text search); pure `matchesFabric` unit-tested — PR #165
 - [x] **Autosave + crash recovery** — snapshots the working `.dio` doc to localStorage every 15 s + on close; a fresh launch offers to recover it via a non-blocking banner; pure `parseSnapshot`/`shouldOfferRestore` unit-tested — PR #166
-- [ ] **Golden-image snapshot tests in CI** — capture a few key looks and diff them each PR to catch visual regressions
+- [x] **Golden-image snapshot tests in CI** — capture a few key looks and diff them each PR to catch visual regressions — PR #297
 
 ---
 
