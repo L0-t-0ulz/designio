@@ -46,6 +46,7 @@ import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
 import { LACE_PATTERNS, type LacePattern } from '../fabric/lace'
 import { FUR_KINDS, type FurKind } from '../fabric/fur'
 import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
+import { harmonies } from '../fabric/harmony'
 import type { PrintPart, PrintStyle } from '../start/design'
 
 export interface GarmentState {
@@ -1234,6 +1235,35 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return { row, refresh }
   }
 
+  // Colour harmonies — complementary / analogous / triadic wheels from the current
+  // colour; one click applies (the classic non-AI palette assistant).
+  function harmonyPicker(): Refreshable {
+    const row = el('div', 'dio-colorlib-row')
+    const grid = el('div', 'dio-harmony')
+    const refresh = (): void => {
+      grid.replaceChildren()
+      for (const scheme of harmonies(current.color)) {
+        const line = el('div', 'dio-harmony-line')
+        line.append(el('span', 'dio-harmony-name', scheme.name))
+        for (const hex of scheme.colors) {
+          const chip = el('button', 'dio-swatch')
+          chip.setAttribute('type', 'button')
+          chip.style.background = '#' + hex.toString(16).padStart(6, '0')
+          chip.title = 'Apply this harmony colour'
+          chip.addEventListener('click', () => {
+            opts.onColor(hex)
+            refreshAll()
+          })
+          line.append(chip)
+        }
+        grid.append(line)
+      }
+    }
+    refresh()
+    row.append(el('div', 'dio-field-label', 'Harmonies'), grid)
+    return { row, refresh }
+  }
+
   // Multiple placed prints (logos + text) — add, select, place (X/Y/size/rotation), remove.
   function printsControls(p: PrintControls): HTMLElement {
     const wrap = el('div', 'dio-graphic')
@@ -1359,6 +1389,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(toggle({ label: 'Puffer loft', get: () => !!garment.puff, set: (v) => { garment.puff = v; opts.onGarmentEdit() } })),
     track(colorField({ label: 'Colour', get: () => current.color, set: (v) => opts.onColor(v) })),
     track(colorLibrary()),
+    track(harmonyPicker()),
     track(slider({ label: 'Roughness', min: 0, max: 1, step: 0.01, get: () => current.roughness, set: (v) => { current.roughness = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheen', min: 0, max: 1, step: 0.01, get: () => current.sheen, set: (v) => { current.sheen = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Weave density', min: 40, max: 400, step: 1, get: () => current.weaveScale, set: (v) => { current.weaveScale = v; opts.onVisualEdit() } })),
