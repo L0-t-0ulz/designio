@@ -136,7 +136,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Steam & press tool** — click-drag a region to relax its wrinkles (locally reset bend rest state) — the virtual iron
 - [ ] **Strain on the 2D pattern** — project the live 3D strain onto the flat panels so the pattern shows where it pulls (per-panel heat tint)
 - [ ] **Hanger shot** — the ghost-mannequin variant on a hanger: a hanger prop + shoulder-pinned hanging drape for the classic e-commerce alternate
-- [ ] **Wind compass dial** — an interactive direction/strength dial in the Scene panel replacing the raw x/z sliders
+- [x] **Wind compass dial** — a drag compass (direction + radial strength) synced with the sliders/presets (`studio/windDial`) — PR #280
 - [ ] **Pattern annotations** — text notes pinned to 2D panels, exported to SVG + a DXF ANNOTATION layer (round-trips with import)
 - [x] **Size-run strip** — XS→XXL worn side by side, block-labelled, settled synchronously per size (`studio/sizeRunStrip`, File menu) — PR #278
 - [x] **Anatomy camera bookmarks** — five measurement-derived framings in the bookmarks panel; they reframe with resizes/presets (`studio/anatomyShots`) — PR #279
