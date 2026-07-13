@@ -5,6 +5,13 @@ _Ship rule: one feature per branch → green CI (Node 20/22) → merge to `main`
 
 Legend: ✅ done · 🔄 in progress · 📋 backlog
 
+_Latest sweep — 2026-07-12: **PRs #244–#277 shipped (48 cards)** — the fit-analysis trio (pressure map ·
+grade rules · size recommendation · ease-by-zone · fit profiles), functional openings + cloth tearing,
+activewear + fabric + headwear catalog growth (38 garments · 29 fabrics), the capture suite (contact
+sheet · 360° viewer · ghost mannequin · social/blur/slow-mo recordings · focus pull), the production
+paperwork loop (line sheet · QC sheet · sample order · factory JSON+DXF-AAMA · size set · supplier BOM ·
+sustainability), storm wind, walk styles, posture presets, keyboard-shortcut editor + a bug sweep._
+
 ---
 
 ## ✅ Done (merged to `main`)
@@ -116,6 +123,24 @@ Legend: ✅ done · 🔄 in progress · 📋 backlog
 ---
 
 ## 📋 Backlog / ideas
+
+**Next 15** _(queued 2026-07-12 — well-scoped, non-AI, each buildable on shipped machinery)_
+- [ ] **High-low & asymmetric hems** — a hem-shape function (shirttail · high-low · handkerchief) shaping the tube's bottom edge in 3D + the flat pattern's hem curve
+- [ ] **Sleeve length stops** — elbow · ¾ · bracelet stops between short/long (a real sleeve-length picker, graded + patterned)
+- [ ] **Jewellery accessories** — necklace (pearls · chain) + hoop earrings riding the head/neck frames like the headwear
+- [ ] **Pilling & fuzz aging** — a knit-aging slider: pill bumps + fuzz halo (pure noise field → normal/alpha), pairs with the distressed finishes
+- [ ] **Colour-harmony palette picker** — classic colour-wheel harmonies (complementary · analogous · triadic) suggested from the current colour, one-click applied to parts/colourways
+- [ ] **Print repeat preview** — a real-scale repeat-tile pane (with a cm ruler) for the textile/print so you can judge gauge before it hits the garment
+- [ ] **Drape swatch comparator** — two hanging cloth squares side by side (rod-pinned mini sims) to compare any two fabrics' drape directly
+- [ ] **Slip / smoothing underlayer** — an optional invisible-in-render underlayer the outer garment drapes over (smooths body detail like real shapewear)
+- [ ] **Steam & press tool** — click-drag a region to relax its wrinkles (locally reset bend rest state) — the virtual iron
+- [ ] **Strain on the 2D pattern** — project the live 3D strain onto the flat panels so the pattern shows where it pulls (per-panel heat tint)
+- [ ] **Hanger shot** — the ghost-mannequin variant on a hanger: a hanger prop + shoulder-pinned hanging drape for the classic e-commerce alternate
+- [ ] **Wind compass dial** — an interactive direction/strength dial in the Scene panel replacing the raw x/z sliders
+- [ ] **Pattern annotations** — text notes pinned to 2D panels, exported to SVG + a DXF ANNOTATION layer (round-trips with import)
+- [ ] **Size-run strip** — one composite PNG of the garment at XS→XXL side by side on the graded body (the line-up machinery, sized not coloured)
+- [ ] **Anatomy camera bookmarks** — one-click face · bust · waist · hem · back-detail framings computed from the live measurements (extends camera bookmarks)
+
 
 **Features**
 - [ ] **Drop in a real photoreal skin (asset)** — the fallback now renders as warm skin (PR #128) + the GLB slot is the default; the remaining step is dropping an actual CC0 photoreal human `.glb` at `assets/mannequin.glb` (a binary asset)
