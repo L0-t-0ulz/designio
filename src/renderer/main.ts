@@ -53,6 +53,7 @@ import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
 import { openSketchPad, sketchPadOpen, closeSketchPad } from './pattern/SketchPad'
 import { demoOutline } from './pattern/drawnPanel'
+import { demoArrangement } from './pattern/arrangement'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
@@ -839,6 +840,12 @@ function initStudio(
     // draw-your-own panel, exercised headlessly: sew the built-in demo sketch
     setMode('pattern') // assigns patternCtl (the narrowing can't see through the call)
     ;(patternCtl as PatternController | null)?.buildDrawn(demoOutline(), patternParams)
+  }
+  if (params.get('arranged') === 'demo') {
+    // sewing lines & arrangement: the four-panel colour-block bodice demo
+    setMode('pattern')
+    const demo = demoArrangement()
+    ;(patternCtl as PatternController | null)?.buildArranged(demo.panels, demo.seams, patternParams)
   }
   const animParam = params.get('anim') as AnimationMode | null
   if (animParam) setAnimMode(animParam)

@@ -5,6 +5,7 @@ import type { FabricParams } from '../cloth/fabricPresets'
 import type { ClothWorld } from '../cloth/ClothWorld'
 import { buildSewnTop, type PatternParams } from './pattern'
 import { buildDrawnPanel, type Pt } from './drawnPanel'
+import { buildArrangedGarment, type PlacedPanel, type SeamDef } from './arrangement'
 
 /**
  * Owns the sewn-pattern garment: two flat panels stitched around the body into a
@@ -28,16 +29,19 @@ export class PatternController {
     private readonly bodyCollider: BodyCollider | null = null
   ) {}
 
-  // A sketched outline (draw-your-own panel) sticks: fabric changes and body
-  // resizes rebuild the drawn garment, not the parametric block.
+  // A sketched outline (draw-your-own panel) or an arranged panel set sticks:
+  // fabric changes and body resizes rebuild the custom garment, not the block.
   private drawnOutline: Pt[] | null = null
+  private arranged: { panels: PlacedPanel[]; seams: SeamDef[] } | null = null
 
   /** Build (or rebuild) the sewn garment from pattern params, and show it. */
   build(p: PatternParams): void {
     this.clear()
-    const sewn = this.drawnOutline
-      ? buildDrawnPanel(this.drawnOutline, { bust: p.bust }, this.params())
-      : buildSewnTop(p, this.params())
+    const sewn = this.arranged
+      ? buildArrangedGarment(this.arranged.panels, this.arranged.seams, { bust: p.bust }, this.params())
+      : this.drawnOutline
+        ? buildDrawnPanel(this.drawnOutline, { bust: p.bust }, this.params())
+        : buildSewnTop(p, this.params())
     this.world = sewn.world
     this.world.colliders = this.colliders
     this.world.bodyCollider = this.bodyCollider
@@ -59,6 +63,15 @@ export class PatternController {
    *  active pattern for fabric/body rebuilds until the mode is left. */
   buildDrawn(outline: Pt[], p: PatternParams): void {
     this.drawnOutline = outline
+    this.arranged = null
+    this.build(p)
+  }
+
+  /** Sew an arranged multi-panel set (sewing lines & arrangement); sticky like
+   *  a sketch — rebuilds keep the arrangement until the mode is left. */
+  buildArranged(panels: PlacedPanel[], seams: SeamDef[], p: PatternParams): void {
+    this.arranged = { panels, seams }
+    this.drawnOutline = null
     this.build(p)
   }
 
