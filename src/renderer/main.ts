@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import '@fontsource-variable/inter'
 import './ui/tokens.css'
 import './ui/styles.css'
@@ -904,6 +905,38 @@ function initStudio(
     }
     syncBrowsers()
   }
+  // Steam & press — drag over the garment to relax its wrinkles (the virtual iron).
+  let pressMode = false
+  const pressRay = new THREE.Raycaster()
+  const pressNdc = new THREE.Vector2()
+  const pressPoint = (ev: PointerEvent): void => {
+    const el = viewport.renderer.domElement
+    const rect = el.getBoundingClientRect()
+    pressNdc.set(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1)
+    pressRay.setFromCamera(pressNdc, viewport.camera)
+    const meshes = stack.layers.filter((l) => l.data.visible && !l.data.underlayer).flatMap((l) => l.controller.getMeshes())
+    const hit = pressRay.intersectObjects(meshes, false)[0]
+    if (hit) stack.pressAt(hit.point.x, hit.point.y, hit.point.z, 0.055)
+  }
+  const onPressDown = (ev: PointerEvent): void => {
+    if (!pressMode || ev.button !== 0) return
+    ev.stopPropagation()
+    pressPoint(ev)
+    const move = (mv: PointerEvent): void => pressPoint(mv)
+    const up = (): void => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+  viewport.renderer.domElement.addEventListener('pointerdown', onPressDown, true)
+  const setPressMode = (on: boolean): void => {
+    pressMode = on
+    viewport.controls.enabled = !on // the iron drags on the cloth, not the camera
+    viewport.renderer.domElement.style.cursor = on ? 'crosshair' : ''
+    statusHandles?.setSelection(on ? 'Steam & press — drag over the garment to relax wrinkles' : 'Steam & press off')
+  }
   if (params.get('slip') === '1') setSlip(true)
   if (params.get('hanger') === '1') setHangerShot(true)
   if (params.get('wrinkles') === '1') stack.setWrinkles(true)
@@ -1561,6 +1594,7 @@ function initStudio(
     onToggleGhost: () => setGhostMode(!ghostOn),
     onToggleHanger: () => setHangerShot(!stack.hangerMode),
     onDrapeComparator: () => openDrapeComparator({ current: stack.active.fabric, library: FABRIC_LIBRARY }),
+    onTogglePress: () => setPressMode(!pressMode),
     onClearMeasure: () => {
       measureTool?.clear()
       setMeasureMode('off')

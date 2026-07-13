@@ -1358,6 +1358,11 @@ export class GarmentStack {
     return this.hangerBar !== null
   }
 
+  /** Steam & press — relax wrinkles around a world point on every visible layer. */
+  pressAt(x: number, y: number, z: number, radius = 0.05): void {
+    for (const l of this.layers) if (l.data.visible) l.controller.pressAt(x, y, z, radius)
+  }
+
   // Cloth tearing — seams rip past a fabric-aware strain threshold (~1.5× the
   // stress view's fail point, so the red zones are exactly where it will tear).
   private tearingOn = false

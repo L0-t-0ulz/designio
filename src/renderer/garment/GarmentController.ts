@@ -333,6 +333,11 @@ export class GarmentController {
     return out
   }
 
+  /** Steam & press: locally relax wrinkles around a world point. */
+  pressAt(x: number, y: number, z: number, radius: number): void {
+    for (const p of this.pieces) p.solver.pressAt(x, y, z, radius)
+  }
+
   /** Cloth tearing: the strain fraction past which constraints rip (0 = off). */
   /** Hanger mode: swap the body colliders for the hanger bar (null restores the
    *  body). Pins keep holding the shoulders; everything else hangs limp. */
