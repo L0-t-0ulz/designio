@@ -24,6 +24,7 @@ import { POSE_NAMES, type PoseName } from './avatar/poses'
 import { POSTURES, type PostureName } from './avatar/posture'
 import { WALK_STYLE_NAMES, type WalkStyleName } from './avatar/walkStyles'
 import { getBodyPreset } from './avatar/bodyPresets'
+import { getKidsBlock } from './avatar/kidsSizes'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
 import { FaceRig, HAIRSTYLES, type Hairstyle } from './avatar/face'
 import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
@@ -831,6 +832,19 @@ function initStudio(
   const btParam = params.get('bodyType')
   if (btParam === 'male' || btParam === 'female') {
     bodySize.bodyType = btParam
+    bodyChanged = true
+  }
+  const kidsParam = params.get('kids')
+  if (kidsParam) {
+    const block = getKidsBlock(kidsParam)
+    if (block) {
+      Object.assign(bodySize, block.shape)
+      bodyChanged = true
+    }
+  }
+  const bellyParam = params.get('belly')
+  if (bellyParam && Number.isFinite(+bellyParam)) {
+    bodySize.belly = +bellyParam
     bodyChanged = true
   }
   const bpParam = params.get('bodyPreset')

@@ -309,7 +309,10 @@ correctly.
 Then **make it yours**:
 
 - **Body shaping** — height, overall build, and independent **bust / waist / hips**, plus **body-shape
-  presets** (Runway · Curvy · Plus · Athletic · Petite · Tall). A **made-to-measure** map converts real cm
+  presets** (Runway · Curvy · Plus · Athletic · Petite · Tall), **kids' size blocks** (Toddler · Child ·
+  Tween · Teen — age-appropriate proportions: a bigger head, a straight torso, no adult waist nip) and a
+  **maternity fit** (a trimester 1–3 belly bump that is both collider and visual, so garments truly drape
+  over it). A **made-to-measure** map converts real cm
   ↔ the body params, and a **size-chart importer** applies a whole row at once.
 - **Skin** — a **complexion picker** of 8 tones (fair → deep) × warm / neutral / cool **undertones**, on a
   warm subsurface-sheen skin material.

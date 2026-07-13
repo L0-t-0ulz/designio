@@ -304,6 +304,8 @@ export interface BodyData {
   bust: number
   waist: number
   hips: number
+  /** Maternity — trimester 0…3 (absent = none). */
+  belly?: number
   /** Complexion — skin tone + undertone (undefined = the default warm mid skin). */
   skinTone?: SkinTone
   undertone?: Undertone
@@ -515,6 +517,9 @@ export function parseDoc(text: string): ProjectDoc {
     bust: +(b.bust ?? 1),
     waist: +(b.waist ?? 1),
     hips: +(b.hips ?? 1),
+    // conditional spread: no `belly: undefined` key, so a default doc's body still
+    // reads as all-neutral (main only calls setBody when a scale differs from 1)
+    ...(typeof b.belly === 'number' && b.belly > 0 ? { belly: +b.belly } : {}),
     skinTone: b.skinTone && (SKIN_TONES as string[]).includes(b.skinTone) ? b.skinTone : undefined,
     undertone: b.undertone && (UNDERTONES as string[]).includes(b.undertone) ? b.undertone : undefined
   }
