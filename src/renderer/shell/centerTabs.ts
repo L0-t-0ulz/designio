@@ -15,6 +15,10 @@ export interface PatternEditor {
   nudgeSize: (d: number) => void
   nudgeNeckline: (d: number) => void
   nudgeSleeve: (d: number) => void
+  /** Pin a pattern note at (x, y) in the SVG's mm space. */
+  addNote: (x: number, y: number, text: string) => void
+  /** Remove every pattern note. */
+  clearNotes: () => void
 }
 
 export interface CenterTabsHandle {
@@ -175,12 +179,62 @@ export function buildCenterTabs(
     if (sup.flare) {
       tools.append(stepper('Hem', () => `${(edit.flare() * 100).toFixed(1)} cm`, () => edit.nudgeFlare(-0.01), () => edit.nudgeFlare(0.01)))
     }
+    if (!pane.classList.contains('dio-hidden')) {
+      // 2D-only: pin/clear pattern notes
+      const noteBtn = el('button', 'dio-pat-step-btn dio-pat-note-btn', '+ Note')
+      noteBtn.addEventListener('click', () => {
+        noteArmed = true
+        noteBtn.textContent = 'Click the pattern…'
+      })
+      const clearBtn = el('button', 'dio-pat-step-btn', 'Clear notes')
+      clearBtn.addEventListener('click', () => {
+        edit.clearNotes()
+        renderPattern()
+      })
+      const wrapN = el('div', 'dio-pat-step')
+      wrapN.append(noteBtn, clearBtn)
+      tools.append(wrapN)
+    }
   }
 
   const renderPattern = (): void => {
     inner.innerHTML = patternSvg()
     renderTools()
   }
+
+  // Pattern notes — arm the tool, click the pattern, type, Enter. Coordinates map
+  // through the inline SVG's viewBox so notes live in the pattern's mm space.
+  let noteArmed = false
+  inner.addEventListener('click', (ev) => {
+    if (!noteArmed || !edit) return
+    const svg = inner.querySelector('svg')
+    if (!svg) return
+    const rect = svg.getBoundingClientRect()
+    const vb = svg.viewBox.baseVal
+    const mmX = ((ev.clientX - rect.left) / rect.width) * vb.width + vb.x
+    const mmY = ((ev.clientY - rect.top) / rect.height) * vb.height + vb.y
+    noteArmed = false
+    const input = document.createElement('input')
+    input.className = 'dio-pat-note-input'
+    input.placeholder = 'Note…  (Enter to pin)'
+    input.style.left = ev.clientX + 'px'
+    input.style.top = ev.clientY + 'px'
+    document.body.appendChild(input)
+    input.focus()
+    const closeInput = (): void => input.remove()
+    input.addEventListener('keydown', (ke) => {
+      if (ke.key === 'Escape') closeInput()
+      if (ke.key === 'Enter') {
+        const text = input.value.trim()
+        closeInput()
+        if (text) {
+          edit.addNote(mmX, mmY, text)
+          renderPattern()
+        }
+      }
+    })
+    input.addEventListener('blur', closeInput)
+  })
   const show = (which: '3d' | 'pattern' | 'render'): void => {
     tab3d.classList.toggle('on', which === '3d')
     tabPat.classList.toggle('on', which === 'pattern')

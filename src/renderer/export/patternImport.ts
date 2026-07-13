@@ -16,7 +16,15 @@ export interface ImportedPanel {
   closed: boolean
 }
 
+export interface ImportedNote {
+  x: number
+  y: number
+  text: string
+}
+
 export interface ImportedPattern {
+  /** Pattern notes read from the DXF ANNOTATION layer (round-trips the export). */
+  notes?: ImportedNote[]
   panels: ImportedPanel[]
   bounds: { minX: number; minY: number; maxX: number; maxY: number }
 }
@@ -25,7 +33,9 @@ export interface ImportedPattern {
 export function parsePatternDXF(dxf: string): ImportedPattern {
   const raw = dxf.split(/\r?\n/)
   const panels: ImportedPanel[] = []
+  const notes: ImportedNote[] = []
   let cur: ImportedPanel | null = null
+  let curText: { layer: string; x: number; y: number; text: string } | null = null
   let pendingX: number | null = null
   const flush = (): void => {
     if (cur && cur.points.length) panels.push(cur)
@@ -38,7 +48,14 @@ export function parsePatternDXF(dxf: string): ImportedPattern {
     const val = raw[i + 1].trim()
     if (code === '0') {
       flush()
+      if (curText && curText.layer === 'ANNOTATION' && curText.text) notes.push({ x: curText.x, y: curText.y, text: curText.text })
+      curText = val === 'TEXT' ? { layer: '0', x: 0, y: 0, text: '' } : null
       if (val === 'LWPOLYLINE' || val === 'POLYLINE') cur = { layer: '0', points: [], closed: false }
+    } else if (curText) {
+      if (code === '8') curText.layer = val
+      else if (code === '10') curText.x = parseFloat(val)
+      else if (code === '20') curText.y = parseFloat(val)
+      else if (code === '1') curText.text = val
     } else if (!cur) {
       continue
     } else if (code === '8') {
@@ -53,6 +70,7 @@ export function parsePatternDXF(dxf: string): ImportedPattern {
     }
   }
   flush()
+  if (curText && curText.layer === 'ANNOTATION' && curText.text) notes.push({ x: curText.x, y: curText.y, text: curText.text })
 
   let minX = Infinity
   let minY = Infinity
@@ -69,7 +87,7 @@ export function parsePatternDXF(dxf: string): ImportedPattern {
   if (!panels.length) {
     minX = minY = maxX = maxY = 0
   }
-  return { panels, bounds: { minX, minY, maxX, maxY } }
+  return { panels, bounds: { minX, minY, maxX, maxY }, notes: notes.length ? notes : undefined }
 }
 
 /** A one-line summary of an imported pattern (panel count + overall size in cm). */
@@ -103,5 +121,10 @@ export function importedPatternToSVG(p: ImportedPattern): string {
       return `<${tag} points="${pts}" fill="none" stroke="${st.stroke}" stroke-width="1.2"${st.dash ? ` stroke-dasharray="${st.dash}"` : ''}/>`
     })
     .join('')
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w.toFixed(0)} ${h.toFixed(0)}" width="100%" height="100%">${body}</svg>`
+  const noteMarks = (p.notes ?? [])
+    .map(
+      (n) => `<g><circle cx="${(n.x - ox).toFixed(1)}" cy="${(n.y - oy).toFixed(1)}" r="4" fill="#6b5bd6"/><text x="${(n.x - ox + 8).toFixed(1)}" y="${(n.y - oy - 8).toFixed(1)}" font-family="sans-serif" font-size="12" fill="#4b3fb3">${n.text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</text></g>`
+    )
+    .join('')
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w.toFixed(0)} ${h.toFixed(0)}" width="100%" height="100%">${body}${noteMarks}</svg>`
 }

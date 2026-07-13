@@ -182,6 +182,8 @@ export interface GarmentLayerData {
   ribbing?: boolean
   yoke?: boolean
   princess?: boolean
+  /** Pinned pattern notes (mm, pattern-layout space) — rendered in the 2D pane + exported. */
+  patternNotes?: { x: number; y: number; text: string }[]
   /** Pilling & fuzz aging (0…1) — bobbled, matte aged-knit surface. */
   pilling?: number
   /** Eco-material flags — recycled-content or deadstock fabric (sustainability pack). */
