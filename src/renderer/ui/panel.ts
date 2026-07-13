@@ -354,6 +354,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sleeves: [string, SleeveStyle][] = [
     ['No sleeve', 'none'],
     ['Short', 'short'],
+    ['Elbow', 'elbow'],
+    ['3/4', 'three-quarter'],
+    ['Bracelet', 'bracelet'],
     ['Long', 'long']
   ]
   const sleeveBtns = new Map<SleeveStyle, HTMLButtonElement>()

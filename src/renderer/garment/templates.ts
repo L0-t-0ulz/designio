@@ -4,7 +4,7 @@ export const PLEAT_STYLES: PleatStyle[] = ['knife', 'box', 'accordion', 'cartrid
 
 /** A garment id from the registry (see garments/registry.ts). */
 export type GarmentType = string
-export type SleeveStyle = 'none' | 'short' | 'long'
+export type SleeveStyle = 'none' | 'short' | 'elbow' | 'three-quarter' | 'bracelet' | 'long'
 /** Sleeve shapes (the sleeve library). Active when the sleeve isn't 'none'. */
 export type SleeveShape = 'set-in' | 'raglan' | 'dolman' | 'bishop' | 'puff' | 'bell'
 export const SLEEVE_SHAPES: SleeveShape[] = ['set-in', 'raglan', 'dolman', 'bishop', 'puff', 'bell']
