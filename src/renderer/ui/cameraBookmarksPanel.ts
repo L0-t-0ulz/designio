@@ -11,6 +11,8 @@ export interface CameraBookmarksOpts {
   onSaveCurrent: () => void
   onRecall: (id: string) => void
   onDelete: (id: string) => void
+  /** Built-in anatomy framings (face · bust · waist · hem · back) — recalled by name. */
+  anatomy?: { name: string; go: () => void }[]
 }
 
 let overlay: HTMLElement | null = null
@@ -45,6 +47,25 @@ export function openCameraBookmarks(opts: CameraBookmarksOpts): void {
     closeCameraBookmarks()
   })
   card.appendChild(save)
+
+  // Anatomy framings — one-click shots computed from the live measurements.
+  if (opts.anatomy?.length) {
+    const row = document.createElement('div')
+    row.className = 'dio-actions'
+    row.style.flexWrap = 'wrap'
+    for (const shot of opts.anatomy) {
+      const b = document.createElement('button')
+      b.className = 'dio-btn'
+      b.textContent = shot.name
+      b.style.flex = '1 1 30%'
+      b.addEventListener('click', () => {
+        shot.go()
+        closeCameraBookmarks()
+      })
+      row.appendChild(b)
+    }
+    card.appendChild(row)
+  }
 
   if (opts.items.length === 0) {
     const empty = document.createElement('p')

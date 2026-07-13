@@ -34,6 +34,7 @@ import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPat
 import { lineupCells, lineupHues } from './studio/lineup'
 import { contactGrid, contactViews } from './studio/contactSheet'
 import { sizeRunPlan } from './studio/sizeRunStrip'
+import { anatomyShots } from './studio/anatomyShots'
 import { viewer360HTML } from './export/viewer360'
 import { lineSheetHTML } from './export/lineSheet'
 import { qcSheetHTML } from './export/qcSheet'
@@ -1469,6 +1470,7 @@ function initStudio(
     onAnnotate: () => setMeasureMode(measureTool?.getMode() === 'annotate' ? 'off' : 'annotate'),
     onCameraBookmarks: () =>
       openCameraBookmarks({
+        anatomy: anatomyShots(mannequin.measurements).map((shot) => ({ name: shot.name, go: () => viewport.setCameraPose(shot.pose) })),
         items: listBookmarks().map((b) => ({ id: b.id, name: b.name })),
         onSaveCurrent: () => {
           const name = window.prompt('Name this view', `View ${listBookmarks().length + 1}`)
