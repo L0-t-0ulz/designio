@@ -1,6 +1,6 @@
 import type { Capsule } from '../avatar/colliders'
 import type { Measurements } from '../avatar/Mannequin'
-import type { GarmentParams, SleeveShape } from '../garment/templates'
+import type { GarmentParams, SleeveShape, SleeveStyle } from '../garment/templates'
 import {
   buildAxisTube,
   buildScarf,
@@ -168,16 +168,24 @@ export function sleeveShapeSpec(
 }
 
 /** Sleeve tubes along the arm capsules (indices 5/6 = left, 9/10 = right). */
-function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: SleeveShape = 'set-in', gradeM = 0): AxisTubeSpec[] {
+function sleeveSpecs(style: SleeveStyle, colliders: Capsule[], cuff = false, shape: SleeveShape = 'set-in', gradeM = 0): AxisTubeSpec[] {
   const arms: [Capsule, Capsule][] = [
     [colliders[5], colliders[6]],
     [colliders[9], colliders[10]]
   ]
   return arms.map(([upper, fore]) => {
-    // wrist (long) or a true short sleeve at mid-bicep. Dolman/bishop/bell read as
-    // full-length even when "short" (they're statement sleeves) → run to the wrist.
-    const fullLen = long || shape === 'dolman' || shape === 'bishop' || shape === 'bell'
-    const b = fullLen ? fore.b.clone() : upper.a.clone().lerp(upper.b, 0.62)
+    // Sleeve stops along the arm chain: mid-bicep (short) - elbow - 3/4 - bracelet -
+    // wrist (long). Dolman/bishop/bell are statement sleeves -> always full length.
+    const fullLen = style === 'long' || shape === 'dolman' || shape === 'bishop' || shape === 'bell'
+    const b = fullLen
+      ? fore.b.clone()
+      : style === 'elbow'
+        ? fore.a.clone()
+        : style === 'three-quarter'
+          ? fore.a.clone().lerp(fore.b, 0.5)
+          : style === 'bracelet'
+            ? fore.a.clone().lerp(fore.b, 0.85)
+            : upper.a.clone().lerp(upper.b, 0.62) // short - a true mid-bicep cap
     // Start the cap lifted up + inboard over the deltoid (toward the shoulder line / neck) so
     // the sleeve overlaps the body's shoulder and closes the bare armhole gap — the body and
     // sleeve are separate meshes with no seam, so without this overlap the deltoid shows through.
@@ -188,7 +196,8 @@ function sleeveSpecs(long: boolean, colliders: Capsule[], cuff = false, shape: S
     // grade rules extend/shorten the sleeve along the arm axis (cm per size step)
     if (gradeM) b.add(b.clone().sub(a).normalize().multiplyScalar(gradeM))
     const len = a.distanceTo(b)
-    const { radiusStart, radiusEnd, profile } = sleeveShapeSpec(shape, upper.radius, fullLen ? fore.radius : upper.radius, cuff)
+    const past = style === 'elbow' || style === 'three-quarter' || style === 'bracelet' // stops past the elbow taper toward the wrist
+    const { radiusStart, radiusEnd, profile } = sleeveShapeSpec(shape, upper.radius, fullLen || past ? fore.radius : upper.radius, cuff)
     const t = simTube(26, len, 0.03, simScale)
     return { rings: t.rings, radial: t.radial, a, b, radiusStart, radiusEnd, profile }
   })
@@ -213,7 +222,7 @@ export function garmentSleeveSpecs(
 ): AxisTubeSpec[] {
   if (!def.pieces.some((pc) => pc.kind === 'sleeves')) return []
   const sleeve = params.sleeve ?? 'none'
-  return sleeve === 'none' ? [] : sleeveSpecs(sleeve === 'long', colliders, params.cuff, params.sleeveShape, params.sleeveGradeM ?? 0)
+  return sleeve === 'none' ? [] : sleeveSpecs(sleeve, colliders, params.cuff, params.sleeveShape, params.sleeveGradeM ?? 0)
 }
 
 /**
@@ -281,7 +290,7 @@ export function buildGarment(
     } else if (pc.kind === 'sleeves') {
       const sleeve = params.sleeve ?? 'none'
       if (sleeve !== 'none') {
-        sleeveSpecs(sleeve === 'long', colliders, params.cuff, params.sleeveShape).forEach((spec, i) => {
+        sleeveSpecs(sleeve, colliders, params.cuff, params.sleeveShape, params.sleeveGradeM ?? 0).forEach((spec, i) => {
           out.push({ build: buildAxisTube(spec), refill: (pos) => fillAxisTube(pos, spec), name: sleeveName[i] })
         })
       }
