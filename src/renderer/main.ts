@@ -548,6 +548,9 @@ function initStudio(
   // look whose stack repulsion never lets the solvers reach their dead-stop sleep.
   const freezeAtParam = new URLSearchParams(location.search).get('freezeAt')
   const freezeAt = freezeAtParam === null ? null : Math.max(0, Number(freezeAtParam) || 0)
+  // `?catchUp=<steps>` — let a slow-rendering capture run advance more fixed steps
+  // per frame (the step sequence is unchanged; only the wall time to the mark is)
+  const catchUp = Number(new URLSearchParams(location.search).get('catchUp') ?? 0)
   let statusHandles: StatusHandles | null = null
   let frames = 0
   let fpsT = performance.now()
@@ -600,6 +603,7 @@ function initStudio(
   const { bodyType: bt, skinTone: _st, undertone: _ut, ...bodyScales } = bodySize
   if (bt !== 'female' || Object.values(bodyScales).some((v) => v !== 1)) setBody(bodySize)
   applySkin() // complexion is independent of the geometry-resize condition above
+  if (catchUp > 0) loop.setCatchUp(catchUp)
   loop.start()
 
   // Capture tooling (scripts/golden.cjs) polls this to snapshot the settled drape:

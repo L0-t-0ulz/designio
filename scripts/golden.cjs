@@ -47,8 +47,12 @@ const GOLDEN_MAX_PCT = 1.0
 // The cap only bounds a broken settle (seen as a repeat-diff FAIL, not a
 // hang); the whole run is additionally watchdogged well under the job limit.
 const FREEZE_AT_S = 15
+// SwiftShader renders ~1 fps, where the loop's default 8-step catch-up makes sim
+// time crawl at ~13% of wall time — raise it so the freeze mark arrives within a
+// few frames (the step sequence, hence the frozen state, is identical either way).
+const CATCH_UP_STEPS = 60
 const SETTLE_CAP_MS = 180_000
-const WATCHDOG_MS = 15 * 60 * 1000
+const WATCHDOG_MS = 25 * 60 * 1000
 
 const MODE = process.argv.includes('--update') ? 'update' : 'check'
 const ROOT = path.resolve(__dirname, '..')
@@ -115,25 +119,33 @@ async function settle(wc) {
   console.log(`::warning::drape never settled within ${SETTLE_CAP_MS / 1000}s — capturing anyway`)
 }
 
-async function render(search) {
-  const win = new BrowserWindow({
+const newWin = () =>
+  new BrowserWindow({
     width: 1200,
     height: 800,
     show: false,
     paintWhenInitiallyHidden: true,
     webPreferences: { preload: PRELOAD, sandbox: false, backgroundThrottling: false }
   })
-  try {
-    await win.webContents.session.clearStorageData({ storages: ['localstorage'] })
-    await win.loadFile(INDEX, { search: `${search}&freezeAt=${FREEZE_AT_S}` })
-    await settle(win.webContents) // cloth falls, drapes, freezes at the mark
-    return await win.webContents.capturePage()
-  } finally {
-    win.destroy()
-  }
+
+// One window is reused across every render (each loadFile reinitialises the app
+// from scratch): under SwiftShader the first load pays minutes of shader
+// compilation, and reuse keeps that cache warm for the renders after it.
+async function render(win, name, search) {
+  const t0 = Date.now()
+  // Unload the previous look FIRST (its on-close autosave writes localStorage as
+  // it unloads), THEN wipe storage — else the stale autosave survives the clear
+  // and the next load shows a "Recover unsaved work?" banner in the capture.
+  await win.loadURL('about:blank')
+  await win.webContents.session.clearStorageData({ storages: ['localstorage'] })
+  await win.loadFile(INDEX, { search: `${search}&freezeAt=${FREEZE_AT_S}&catchUp=${CATCH_UP_STEPS}` })
+  await settle(win.webContents) // cloth falls, drapes, freezes at the mark
+  const image = await win.webContents.capturePage()
+  console.log(`rendered ${name} in ${Math.round((Date.now() - t0) / 1000)}s`)
+  return image
 }
 
-let done = false // windows are created + destroyed per render — don't quit between them
+let done = false // the render window churns on errors — don't quit before the run finishes
 
 app
   .whenReady()
@@ -142,9 +154,10 @@ app
     if (MODE === 'update') fs.mkdirSync(GOLDEN_DIR, { recursive: true })
     let failures = 0
     let missing = 0
+    let win = newWin()
     for (const look of LOOKS) {
       try {
-        const img = await render(look.search)
+        const img = await render(win, look.name, look.search)
         fs.writeFileSync(path.join(OUT_DIR, `${look.name}.png`), img.toPNG())
         if (MODE === 'update') {
           fs.writeFileSync(path.join(GOLDEN_DIR, `${look.name}.png`), img.toPNG())
@@ -152,11 +165,12 @@ app
           continue
         }
         // determinism: a second, fresh render of the same build must match
-        const repeat = await render(look.search)
+        const repeat = await render(win, `${look.name} again`, look.search)
         const rs = diffStats(pixels(img), pixels(repeat), { threshold: 4 })
         console.log(formatDiff(`${look.name} [repeat]`, rs))
         if (!rs.comparable || rs.pct > REPEAT_MAX_PCT) {
           console.error(`FAIL ${look.name}: repeated render differs — the look is not deterministic`)
+          fs.writeFileSync(path.join(OUT_DIR, `${look.name}.repeat.png`), repeat.toPNG()) // for diffing
           failures++
         }
         // golden: compare against the committed reference
@@ -176,8 +190,11 @@ app
       } catch (err) {
         console.error(`FAIL ${look.name}: render error —`, err)
         failures++
+        win.destroy() // the shared window may be wedged — fresh one for the next look
+        win = newWin()
       }
     }
+    win.destroy()
     if (missing) console.log(`${missing} golden(s) missing — bootstrap renders uploaded, not failing`)
     console.log(failures ? `GOLDEN CHECK FAILED (${failures})` : 'GOLDEN CHECK OK')
     done = true

@@ -309,7 +309,8 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?simRes=<coarse|normal|fine|ultra>&simQuality=<0..1>` (dense-garment resolution + solver quality) ·
 `?freezeAt=<simSeconds>` (**deterministic snapshot mode** — the loop stops stepping at that exact sim
 step, frame-rate independent; capture tooling polls `window.__drapeSettled()`; used by
-`scripts/golden.cjs`, the golden-image CI) ·
+`scripts/golden.cjs`, the golden-image CI) · `?catchUp=<steps>` (raise the loop's 8-step per-frame
+catch-up cap so a slow-rendering capture reaches the freeze mark in less wall time — same step sequence) ·
 `?still=1` (freeze the start-page
 turntable) · `?page=start` (deep-link the
 builder) · `?page=projects[&demo]` (the Projects gallery; `demo` seeds a few looks). Entry is the homepage
