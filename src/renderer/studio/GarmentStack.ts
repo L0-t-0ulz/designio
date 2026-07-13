@@ -1338,6 +1338,17 @@ export class GarmentStack {
     return this.wrinklesOn
   }
 
+  // Hanger shot — swap every layer's body colliders for the thin hanger bar.
+  private hangerBar: Capsule[] | null = null
+  setHangerMode(bar: Capsule[] | null): void {
+    this.hangerBar = bar
+    for (const l of this.layers) l.controller.setHangerColliders(bar)
+    this.redrapeAll() // re-settle: limp hang on the bar, or back onto the body
+  }
+  get hangerMode(): boolean {
+    return this.hangerBar !== null
+  }
+
   // Cloth tearing — seams rip past a fabric-aware strain threshold (~1.5× the
   // stress view's fail point, so the red zones are exactly where it will tear).
   private tearingOn = false

@@ -35,6 +35,7 @@ import { lineupCells, lineupHues } from './studio/lineup'
 import { contactGrid, contactViews } from './studio/contactSheet'
 import { sizeRunPlan } from './studio/sizeRunStrip'
 import { anatomyShots } from './studio/anatomyShots'
+import { buildHangerProp, hangerCapsule } from './studio/hangerShot'
 import { viewer360HTML } from './export/viewer360'
 import { lineSheetHTML } from './export/lineSheet'
 import { qcSheetHTML } from './export/qcSheet'
@@ -861,7 +862,22 @@ function initStudio(
     faceRig.group.visible = !on
     statusHandles?.setSelection(on ? 'Ghost mannequin — body hidden (product shot)' : 'Ghost mannequin off')
   }
+  // Hanger shot — ghost + limp hang on a wire hanger (the flat-lay alternate)
+  let hangerProp: ReturnType<typeof buildHangerProp> | null = null
+  const setHangerShot = (on: boolean): void => {
+    setGhostMode(on)
+    stack.setHangerMode(on ? [hangerCapsule(mannequin.measurements)] : null)
+    if (on && !hangerProp) {
+      hangerProp = buildHangerProp(mannequin.measurements)
+      viewport.scene.add(hangerProp)
+    } else if (!on && hangerProp) {
+      viewport.scene.remove(hangerProp)
+      hangerProp = null
+    }
+    statusHandles?.setSelection(on ? 'Hanger shot — hanging drape (product shot)' : 'Hanger shot off')
+  }
   if (params.get('ghost') === '1') setGhostMode(true)
+  if (params.get('hanger') === '1') setHangerShot(true)
   if (params.get('wrinkles') === '1') stack.setWrinkles(true)
   const windParam = params.get('wind')
   if (windParam && WIND_PRESET_NAMES.includes(windParam)) {
@@ -1515,6 +1531,7 @@ function initStudio(
       showToast(viewport.depthOfField ? 'Depth of field on' : 'Depth of field off', 'info')
     },
     onToggleGhost: () => setGhostMode(!ghostOn),
+    onToggleHanger: () => setHangerShot(!stack.hangerMode),
     onClearMeasure: () => {
       measureTool?.clear()
       setMeasureMode('off')

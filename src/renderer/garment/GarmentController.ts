@@ -334,6 +334,16 @@ export class GarmentController {
   }
 
   /** Cloth tearing: the strain fraction past which constraints rip (0 = off). */
+  /** Hanger mode: swap the body colliders for the hanger bar (null restores the
+   *  body). Pins keep holding the shoulders; everything else hangs limp. */
+  setHangerColliders(bar: import('../avatar/colliders').Capsule[] | null): void {
+    for (const p of this.pieces) {
+      p.solver.colliders = bar ?? this.colliders
+      p.solver.bodyCollider = bar ? null : this.bodyCollider
+      p.solver.wake()
+    }
+  }
+
   setTearThreshold(t: number): void {
     for (const p of this.pieces) p.solver.tearThreshold = t
   }
