@@ -153,7 +153,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Seam & topstitch types** — a stitch library (plain / french / flat-fell seams; single- vs double-needle topstitch, SPI, thread weight) that reads on the 3D garment and in the tech pack — PR #302
 
 **Fabric science** _(spec cloth the way a mill / Browzwear FAB does)_
-- [ ] **Physical fabric properties** — a fabric editor in **real units** (weight GSM · thickness mm · bending rigidity · stretch % warp/weft · shear) that drives the solver and round-trips into the tech pack, instead of derived presets
+- [x] **Physical fabric properties** — a fabric editor in **real units** (weight GSM · thickness mm · bending rigidity · stretch % warp/weft · shear) that drives the solver and round-trips into the tech pack, instead of derived presets — PR #303
 - [ ] **Virtual drape test** — a cantilever / circular-drape bench that measures a fabric's **drape coefficient**, so its physics can be validated + compared like real cloth
 - [ ] **Fusible interlining & lining layers** — a structured under-layer (fusible / canvas / lining) that stiffens a collar · placket · waistband, simulated + rendered as its own layer
 
