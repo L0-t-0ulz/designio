@@ -14,6 +14,7 @@ jobs:
   check:
     name: typecheck · test · build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -31,3 +32,30 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  golden:
+    name: golden images
+    runs-on: ubuntu-latest
+    # Renders are settle-polled + script-watchdogged (25 min); this is the backstop
+    # so a hang can never idle a runner for the 6 h default again.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      # Electron needs its binary here (it renders the frames), plus xvfb for a display.
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libnss3 libgbm1
+      - run: npm ci
+      - run: npm run build
+      - name: Render + compare golden images
+        # --no-sandbox: the runners restrict unprivileged user namespaces, so the
+        # Chromium SUID sandbox aborts; the content rendered is our own bundle.
+        run: xvfb-run -a --server-args="-screen 0 1280x900x24" npx electron scripts/golden.cjs --check --no-sandbox
+      - name: Upload rendered frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-out
+          path: golden-out/

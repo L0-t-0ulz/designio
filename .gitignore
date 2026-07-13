@@ -9,3 +9,4 @@ dist/
 
 # Local Claude Code config (never commit)
 .claude/
+golden-out/

@@ -65,6 +65,18 @@ export class Loop {
   }
 
   private stopped = false
+  private maxCatchUp = 8
+
+  /**
+   * Raise the per-frame catch-up cap (`?catchUp=` — capture tooling). Running
+   * MORE fixed steps per rendered frame never changes the step sequence, only
+   * how much wall time it takes: on a slow software rasterizer (CI's
+   * SwiftShader renders ~1 fps) the default cap makes sim time crawl at ~13%
+   * of wall time, so reaching a `freezeAt` mark dominates the render.
+   */
+  setCatchUp(steps: number): void {
+    this.maxCatchUp = Math.max(1, Math.min(240, Math.round(steps)))
+  }
 
   private frame = (): void => {
     if (this.stopped) return
@@ -76,12 +88,15 @@ export class Loop {
     const now = performance.now() / 1000
     let frameTime = now - this.lastTime
     this.lastTime = now
-    if (frameTime > 0.25) frameTime = 0.25 // clamp huge stalls
+    // clamp huge stalls (the clamp scales with a raised catch-up cap so the
+    // accumulator can actually feed those extra steps)
+    const maxFrame = Math.max(0.25, this.maxCatchUp * this.fixedDt)
+    if (frameTime > maxFrame) frameTime = maxFrame
 
     if (this.running) {
       this.accumulator += frameTime * this.timeScale
       let n = 0
-      while (this.accumulator >= this.fixedDt && n < 8) {
+      while (this.accumulator >= this.fixedDt && n < this.maxCatchUp) {
         this.step(this.fixedDt)
         this.accumulator -= this.fixedDt
         n++
