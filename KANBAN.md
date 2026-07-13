@@ -129,7 +129,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Sleeve length stops** — elbow · ¾ · bracelet stops between short/long (a real sleeve-length picker, graded + patterned)
 - [ ] **Jewellery accessories** — necklace (pearls · chain) + hoop earrings riding the head/neck frames like the headwear
 - [ ] **Pilling & fuzz aging** — a knit-aging slider: pill bumps + fuzz halo (pure noise field → normal/alpha), pairs with the distressed finishes
-- [ ] **Colour-harmony palette picker** — classic colour-wheel harmonies (complementary · analogous · triadic) suggested from the current colour, one-click applied to parts/colourways
+- [x] **Colour-harmony palette picker** — wheel schemes from the current colour with readability clamps, one-click apply (`fabric/harmony`) — PR #281
 - [ ] **Print repeat preview** — a real-scale repeat-tile pane (with a cm ruler) for the textile/print so you can judge gauge before it hits the garment
 - [ ] **Drape swatch comparator** — two hanging cloth squares side by side (rod-pinned mini sims) to compare any two fabrics' drape directly
 - [ ] **Slip / smoothing underlayer** — an optional invisible-in-render underlayer the outer garment drapes over (smooths body detail like real shapewear)
