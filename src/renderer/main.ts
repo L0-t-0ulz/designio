@@ -55,6 +55,7 @@ import { openSketchPad, sketchPadOpen, closeSketchPad } from './pattern/SketchPa
 import { demoOutline } from './pattern/drawnPanel'
 import { demoArrangement } from './pattern/arrangement'
 import { demoStyleLines } from './pattern/styleLines'
+import { demoInternalShapes } from './pattern/panelFeatures'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
@@ -853,6 +854,12 @@ function initStudio(
     setMode('pattern')
     const demo = demoStyleLines()
     ;(patternCtl as PatternController | null)?.buildArranged(demo.panels, demo.seams, patternParams, [-0.07, 0.09, 0])
+  }
+  if (params.get('internalShapes') === 'demo') {
+    // internal shapes & notches: waist darts (real take-up) + a keyhole cut-out
+    setMode('pattern')
+    const demo = demoInternalShapes()
+    ;(patternCtl as PatternController | null)?.buildArranged(demo.panels, demo.seams, patternParams)
   }
   const animParam = params.get('anim') as AnimationMode | null
   if (animParam) setAnimMode(animParam)
