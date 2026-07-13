@@ -761,7 +761,7 @@ function initStudio(
     applyGarmentEdit()
     api.refresh()
   }
-  const NECKS: NecklineStyle[] = ['scoop', 'crew', 'v', 'strapless']
+  const NECKS: NecklineStyle[] = ['scoop', 'crew', 'v', 'one-shoulder', 'strapless']
   const SLEEVES: SleeveStyle[] = ['none', 'short', 'elbow', 'three-quarter', 'bracelet', 'long']
   const cycle = <T,>(list: T[], cur: T, d: number): T => list[((list.indexOf(cur) + d) % list.length + list.length) % list.length]
   const patternEditor: PatternEditor = {
@@ -2116,6 +2116,8 @@ if (skipStart) {
     cfg.pocketStyle = ps as PocketStyle
   }
   if (entryParams.get('hem')) cfg.hem = true
+  const neckParam = entryParams.get('neckline')
+  if (neckParam && ['scoop', 'crew', 'v', 'one-shoulder', 'strapless'].includes(neckParam)) cfg.neckline = neckParam as NecklineStyle
   if (entryParams.get('closure')) cfg.closure = true
   if (entryParams.get('crease')) cfg.crease = true
   for (const [q, k] of [['easeChest', 'easeChest'], ['easeWaist', 'easeWaist'], ['easeHip', 'easeHip']] as const) {

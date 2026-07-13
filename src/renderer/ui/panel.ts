@@ -343,6 +343,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     ['Scoop', 'scoop'],
     ['Crew', 'crew'],
     ['V', 'v'],
+    ['One-shoulder', 'one-shoulder'],
     ['None', 'strapless']
   ]
   const neckBtns = new Map<NecklineStyle, HTMLButtonElement>()

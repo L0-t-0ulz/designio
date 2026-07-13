@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { adaptiveRingT } from './adaptiveMesh'
 
-export type NecklineStyle = 'strapless' | 'scoop' | 'crew' | 'v'
+export type NecklineStyle = 'strapless' | 'scoop' | 'crew' | 'v' | 'one-shoulder'
 /** Pleat / gather styles (the pleats library; active when the `pleats` detail is on). */
 export type PleatStyle = 'knife' | 'box' | 'accordion' | 'cartridge' | 'gather' | 'shirr' | 'smock'
 
@@ -116,7 +116,12 @@ export function topEdge(spec: TubeSpec, angle: number): number {
   let dip: number
   if (style === 'crew') dip = 0.055 * (1 - side ** 0.55)
   else if (style === 'scoop') dip = 0.13 * (1 - side)
-  else dip = 0.09 * (1 - side) + 0.12 * front * (1 - side) // v: deeper at the front
+  else if (style === 'one-shoulder') {
+    // asymmetric: the wearer's left shoulder (-x, angle pi) keeps its strap; the
+    // edge sweeps down across the chest to below the right armpit (+x, angle 0)
+    const toRight = 0.5 + 0.5 * Math.cos(angle)
+    dip = 0.17 * toRight ** 1.3
+  } else dip = 0.09 * (1 - side) + 0.12 * front * (1 - side) // v: deeper at the front
   return shoulderY - dip
 }
 

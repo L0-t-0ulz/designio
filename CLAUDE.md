@@ -275,7 +275,7 @@ features — brows/eyes/lips) ·
 `?tonemap=<aces|agx|neutral|filmic|reinhard>` (the final tone-mapping operator; default ACES) ·
 `?backdrop=<studio-grey|white|product-white|charcoal|black|blush|sky|transparent>` (a backdrop preset;
 **product-white** = flat white no-floor product sweep, **transparent** = no backdrop → the Render tab
-exports a PNG **with alpha**) · `?text=<print>`
+exports a PNG **with alpha**) · `?neckline=<scoop|crew|v|one-shoulder|strapless>` (**one-shoulder** = the asymmetric-fit neckline — `topEdge` breaks mirror symmetry; the flat pattern follows) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
 the garment, behind the prints) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
