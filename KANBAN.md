@@ -132,7 +132,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Colour-harmony palette picker** — wheel schemes from the current colour with readability clamps, one-click apply (`fabric/harmony`) — PR #281
 - [x] **Print repeat preview** — the same paintTextile under a girth-calibrated cm ruler (`ui/repeatPreview`, textile-picker button) — PR #287
 - [x] **Drape swatch comparator** — two short-rod-pinned squares in a live overlay mini-scene; same fabricToSolverParams as the garments (`ui/drapeComparator`, View menu) — PR #290
-- [ ] **Slip / smoothing underlayer** — an optional invisible-in-render underlayer the outer garment drapes over (smooths body detail like real shapewear)
+- [x] **Slip / smoothing underlayer** — a simulated, colliding, never-rendered slip layer (`underlayer` flag + pure `layerShown`; Scene toggle · `?slip=1`) — PR #291
 - [ ] **Steam & press tool** — click-drag a region to relax its wrinkles (locally reset bend rest state) — the virtual iron
 - [x] **Strain on the 2D pattern** — per-panel mean-tension tint in the 2D pane while a strain view is on (`panelStrains` + `strainTint`; exports untinted) — PR #286
 - [x] **Hanger shot** — ghost + collider swap to a thin hanger bar (true limp hang) + a wire-hanger prop (`studio/hangerShot`, View menu, `?hanger=1`) — PR #288
