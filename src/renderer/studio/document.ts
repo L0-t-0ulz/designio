@@ -85,6 +85,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     pocket: l.pocket,
     pocketStyle: l.pocketStyle,
     hem: l.hem,
+    hemShape: l.hemShape,
     closure: l.closure,
     closureOpen: l.closureOpen,
     lined: l.lined,
@@ -160,6 +161,8 @@ export interface GarmentLayerData {
   pocket?: boolean
   pocketStyle?: PocketStyle
   hem?: boolean
+  /** Curved hem shape (high-low · shirttail · handkerchief). */
+  hemShape?: import('../cloth/Garment').HemShape
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
   /** Wear the closure open (unbuttoned/unzipped) — the garment gaps at centre-front. */
@@ -349,6 +352,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     pocket: c.pocket,
     pocketStyle: c.pocketStyle,
     hem: c.hem,
+    hemShape: c.hemShape,
     closure: c.closure,
     closureOpen: c.closureOpen,
     lined: c.lined,

@@ -47,6 +47,8 @@ export interface ConstructionCaps {
   crease?: boolean
   /** Trouser break — the hem stacks softly on the ankle. */
   trouserBreak?: boolean
+  /** Curved hem shapes (high-low · shirttail · handkerchief). */
+  hemShape?: boolean
   /** Fringe trim along the bottom hem. */
   fringe?: boolean
   /** Piping — a corded edge along the neckline + hem. */

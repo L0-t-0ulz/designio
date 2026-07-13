@@ -64,6 +64,8 @@ export interface GarmentParams {
   pocket?: boolean
   /** Pocket shape when `pocket` is on (patch / welt / jetted / flap / bellows). */
   pocketStyle?: PocketStyle
+  /** Hem shape — straight · high-low · shirttail · handkerchief bottom-edge curve. */
+  hemShape?: import('../cloth/Garment').HemShape
   /** Rolled hem — a shorter, finished hem (turn-up). */
   hem?: boolean
   /** Front closure — a centre-front placket with buttons (or a zip). */

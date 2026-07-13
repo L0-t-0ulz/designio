@@ -34,6 +34,7 @@ import { getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, textField, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
+import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import type { GirthRow } from '../export/drapeFit'
@@ -75,6 +76,7 @@ export interface GarmentState {
   pocket?: boolean
   pocketStyle?: PocketStyle
   hem?: boolean
+  hemShape?: HemShape
   closure?: boolean
   closureOpen?: boolean
   lined?: boolean
@@ -518,6 +520,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       d.t.row.classList.toggle('dio-hidden', !def.supports[d.key])
       d.t.refresh()
     }
+    hemShapeBlock.classList.toggle('dio-hidden', !def.supports.hemShape)
+    for (const [k, node] of hemShapeBtns) node.classList.toggle('primary', (garment.hemShape ?? 'straight') === k)
     // "Worn open" shows only while a supported Closure is on
     openT.row.classList.toggle('dio-hidden', !def.supports.closure || !garment.closure)
     openT.refresh()
@@ -597,8 +601,25 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   // is really unsewn, so the garment gaps and hangs open. Shows only while Closure is on.
   const openT = toggle({ label: 'Worn open', get: () => !!garment.closureOpen, set: (v) => { garment.closureOpen = v; syncGarment(); opts.onGarmentEdit() } })
   const detailRows = detailToggles.flatMap((d) => (d.key === 'closure' ? [d.t.row, openT.row] : [d.t.row]))
+  // Hem shape — straight · high-low · shirttail · handkerchief (shown when supported).
+  const hemShapeRow = el('div', 'dio-actions')
+  hemShapeRow.style.flexWrap = 'wrap'
+  const hemShapeBtns = new Map<HemShape, HTMLButtonElement>()
+  for (const hs of HEM_SHAPES) {
+    const b = button(hs === 'high-low' ? 'High-low' : hs[0].toUpperCase() + hs.slice(1), () => {
+      garment.hemShape = hs === 'straight' ? undefined : hs
+      for (const [k, node] of hemShapeBtns) node.classList.toggle('primary', k === hs)
+      opts.onGarmentEdit()
+    }, hs === 'straight')
+    b.style.flex = '1 1 42%'
+    hemShapeBtns.set(hs, b)
+    hemShapeRow.append(b)
+  }
+  const hemShapeBlock = el('div')
+  hemShapeBlock.append(el('div', 'dio-field-label', 'Hem shape'), hemShapeRow)
+
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

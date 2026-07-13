@@ -72,6 +72,8 @@ export interface TubeSpec {
   pleat?: PleatStyle
   /** Pressed trouser crease — sharp fore/aft ridges baked into the rest cross-section. */
   crease?: boolean
+  /** Hem shape — high-low · shirttail · handkerchief curves on the bottom edge. */
+  hemShape?: HemShape
   /** Functional opening: the centre-front seam is left unsewn (an open placket/zip) —
    *  the quad column at `openSeamColumn` is skipped and the solver cuts the matching
    *  constraints, so the garment really gaps and hangs open. */
@@ -83,6 +85,25 @@ export interface TubeSpec {
  *  between ix and ix+1 closest to a quarter-turn is the front seam. */
 export function openSeamColumn(nx: number): number {
   return Math.round(nx / 4 - 0.5)
+}
+
+/** Hem shapes — how the bottom edge curves (front = angle π/2). */
+export type HemShape = 'straight' | 'high-low' | 'shirttail' | 'handkerchief'
+export const HEM_SHAPES: HemShape[] = ['straight', 'high-low', 'shirttail', 'handkerchief']
+
+/** Per-angle hem height: straight, a high-low sweep (front lifts, back trails),
+ *  shirttail side vents, or handkerchief points hanging at the diagonals. */
+export function bottomEdge(spec: TubeSpec, angle: number): number {
+  const shape = spec.hemShape ?? 'straight'
+  if (shape === 'straight') return spec.bottomY
+  const h = Math.max(0.08, spec.topY - spec.bottomY) // the drama scales with garment height
+  const front = Math.max(0, Math.sin(angle))
+  const back = Math.max(0, -Math.sin(angle))
+  let y = spec.bottomY
+  if (shape === 'high-low') y += h * 0.22 * front - h * 0.1 * back
+  else if (shape === 'shirttail') y += h * 0.16 * Math.abs(Math.cos(angle)) ** 1.5
+  else y -= h * 0.14 * Math.abs(Math.sin(2 * angle)) ** 1.2 // handkerchief points
+  return Math.max(0.05, y)
 }
 
 /** Per-angle top-edge height: straps at the sides (shoulders), a dip for the neck. */
@@ -187,7 +208,7 @@ export function tubeRingT(spec: TubeSpec): number[] {
  * Shared by the initial build and by respawn.
  */
 export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[] = tubeRingT(spec)): void {
-  const { rings, radial, bottomY } = spec
+  const { rings, radial } = spec
   const cx = spec.centerX ?? 0
   const cz = spec.centerZ ?? 0
   for (let iy = 0; iy < rings; iy++) {
@@ -201,7 +222,7 @@ export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[
       let r = spec.pleat ? r0 * (1 + amp * pleatWave(a, spec.pleat, t)) : r0
       if (spec.crease) r *= 1 + 0.07 * creaseWave(a) // pressed fore/aft trouser crease
       const top = topEdge(spec, a) // per-column top so the neckline is shaped
-      const y = top + (bottomY - top) * t
+      const y = top + (bottomEdge(spec, a) - top) * t // per-column hem (high-low · shirttail · handkerchief)
       const k = (iy * radial + ix) * 3
       positions[k] = cx + Math.cos(a) * r
       positions[k + 1] = y

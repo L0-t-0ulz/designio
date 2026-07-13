@@ -181,6 +181,7 @@ function initStudio(
     pocket: l0.pocket,
     pocketStyle: l0.pocketStyle,
     hem: l0.hem,
+    hemShape: l0.hemShape,
     closure: l0.closure,
     closureOpen: l0.closureOpen,
     lined: l0.lined,
@@ -327,6 +328,7 @@ function initStudio(
     garment.pocket = l.data.pocket
     garment.pocketStyle = l.data.pocketStyle
     garment.hem = l.data.hem
+    garment.hemShape = l.data.hemShape
     garment.closure = l.data.closure
     garment.closureOpen = l.data.closureOpen
     garment.lined = l.data.lined
@@ -707,6 +709,7 @@ function initStudio(
     l.data.pocket = garment.pocket
     l.data.pocketStyle = garment.pocketStyle
     l.data.hem = garment.hem
+    l.data.hemShape = garment.hemShape
     l.data.closure = garment.closure
     l.data.closureOpen = garment.closureOpen
     l.data.lined = garment.lined
@@ -2018,6 +2021,8 @@ if (skipStart) {
     if (v && Number.isFinite(+v)) cfg[k] = +v / 100 // cm in the URL → metres
   }
   if (entryParams.get('fringe')) cfg.fringe = true
+  const hemShapeParam = entryParams.get('hemShape')
+  if (hemShapeParam && ['high-low', 'shirttail', 'handkerchief'].includes(hemShapeParam)) cfg.hemShape = hemShapeParam as 'high-low' | 'shirttail' | 'handkerchief'
   if (entryParams.get('piping')) cfg.piping = true
   if (entryParams.get('break')) cfg.trouserBreak = true
   if (entryParams.get('open')) (cfg.closure = true), (cfg.closureOpen = true) // worn-open placket/zip (functional opening)
