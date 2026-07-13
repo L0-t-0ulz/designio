@@ -266,6 +266,9 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 (a static lookbook pose) · `?posture=<neutral|athletic|slouch|swayback>` (a **posture carriage** layered on any pose — bends the spine/neck in colliders + visual shaping + anchors so garments re-drape onto the new carriage) · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) ·
 `?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) ·
+`?kids=<toddler|child|tween|teen>` (a **kids' size block** — age-appropriate proportions, not a scaled-down adult) ·
+`?belly=<0..3>` (**maternity** — a trimester belly bump the garments drape over) ·
+`?buttons=<2..9>&buttonMm=<8..30>&buttonColor=<hex>&zipColor=<hex>` (the **closure designer** — button count/size/colour · zip tape colour) ·
 `?accessories=<shoes,belt,hat,bag,beanie,cap,bucket,balaclava,scarf,gaiter>` (worn accessories, incl. **headwear & neckwear** placed by the head/neck frame) ·
 `?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
 `?undertone=<warm|neutral|cool>` (its undertone) ·

@@ -11,6 +11,7 @@ import { POSTURES, type PostureName } from '../avatar/posture'
 import { WALK_STYLES, type WalkStyleName } from '../avatar/walkStyles'
 import { loadProfiles, profileFromBody, removeProfile, saveProfiles, upsertProfile, type FitProfile } from '../avatar/fitProfiles'
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
+import { KIDS_BLOCKS, applyKidsBlock } from '../avatar/kidsSizes'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
@@ -905,6 +906,28 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     b.style.flex = '1 1 30%'
     presetRow.append(b)
   }
+  // Life stage — kids' age blocks (toddler → teen, outside the adult sliders'
+  // range on purpose) + a maternity bump graded through the trimesters.
+  const kidsRow = el('div', 'dio-actions')
+  kidsRow.style.flexWrap = 'wrap'
+  for (const block of KIDS_BLOCKS) {
+    const b = button(`${block.label} (${block.ageYears}y)`, () => {
+      Object.assign(opts.bodySize, applyKidsBlock(opts.bodySize, block))
+      opts.onBodySize(opts.bodySize)
+      refreshBody()
+    })
+    b.style.flex = '1 1 22%'
+    kidsRow.append(b)
+  }
+  const bellyS = slider({
+    label: 'Maternity',
+    min: 0, max: 3, step: 1,
+    format: (v) => (v === 0 ? 'None' : `Trimester ${v | 0}`),
+    get: () => opts.bodySize.belly ?? 0,
+    set: (v) => { opts.bodySize.belly = v; opts.onBodySize(opts.bodySize) }
+  })
+  bodyRefreshers.push(bellyS)
+
   // Accessories — footwear / belt / bag + headwear & neckwear worn on the avatar (toggle each).
   const accRow = el('div', 'dio-actions')
   accRow.style.flexWrap = 'wrap'
@@ -1004,6 +1027,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
     el('div', 'dio-field-label', 'Body shape'),
     presetRow,
+    el('div', 'dio-field-label', 'Life stage'),
+    kidsRow,
+    bellyS.row,
     ...(opts.accessories ? [el('div', 'dio-field-label', 'Accessories'), accRow] : []),
     ...hairFaceEls,
     ...skinControlEls,

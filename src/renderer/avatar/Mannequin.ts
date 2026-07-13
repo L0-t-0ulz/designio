@@ -7,6 +7,7 @@ import { getPose, type PoseName } from './poses'
 import { applyPostureToColliders, bendPoint, postureAngles, type PostureName } from './posture'
 import { WALK_STYLES, type WalkStyle, type WalkStyleName } from './walkStyles'
 import { headFrame } from './face'
+import { bellySpec } from './maternity'
 import { BodyCollider } from '../cloth/BodyCollider'
 
 /** Key body measurements (metres) garments are fitted to (scale with body size). */
@@ -94,6 +95,8 @@ export interface BodyParams {
   bust: number
   waist: number
   hips: number
+  /** Maternity — trimester 0…3 (absent/0 = none; the bump stays buried in the torso). */
+  belly?: number
 }
 export const DEFAULT_BODY: BodyParams = {
   bodyType: 'female', height: 1, build: 1, bust: 1, waist: 1, hips: 1
@@ -222,6 +225,24 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     })
   }
 
+  // Maternity belly — one extra capsule appended AFTER the 13 skeleton capsules
+  // (all fixed indices stay valid). It is simultaneously the cloth collider and
+  // the visual metaball (same object), so drape and eye can never disagree; at
+  // belly=0 it sits buried inside the torso and the default figure is unchanged.
+  const bellyBone: Bone = {
+    baseA: new THREE.Vector3(),
+    baseB: new THREE.Vector3(),
+    baseRadius: 0,
+    part: 'root',
+    widthKey: 'center',
+    restA: new THREE.Vector3(),
+    restB: new THREE.Vector3(),
+    radius: 0,
+    collider: { a: new THREE.Vector3(), b: new THREE.Vector3(), radius: 0 }
+  }
+  bones.push(bellyBone)
+  colliders.push(bellyBone.collider)
+
   const measurements: Measurements = { ...MEASUREMENTS }
   const bodyMesh = new BodyMesh(material)
   group.add(bodyMesh.object)
@@ -287,7 +308,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     { rA: () => measurements.thighR, rB: () => measurements.thighR * 0.68 }, // thigh
     { rA: () => measurements.thighR * 0.68, rB: () => 0.048 * body.build, cap: 'foot' } // shin
   ]
-  const fullSpec = [...partSpec, ...partSpec.slice(5)] // mirror arms + legs
+  // mirror arms + legs, then the belly (visual radius = its collider radius)
+  const fullSpec = [...partSpec, ...partSpec.slice(5), { rA: () => bellyBone.radius, rB: () => bellyBone.radius }]
   const parts: BodyPart[] = colliders.map((c, i) => ({
     a: c.a,
     b: c.b,
@@ -427,6 +449,13 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     // Pelvis collider = the mesh seat radius (single source), so cloth collides against
     // the *visible* slim rear, not a fat invisible capsule. bones[4] is the hip segment.
     bones[4].radius = bones[4].collider.radius = seatRadius()
+    // Maternity bump — rest capsule from the pure spec (overwrites the generic
+    // bones-loop rest above). Best shown on the procedural body; in GLB mode the
+    // capsule still shapes the drape at its rest spot (the rig walks in place).
+    const belly = bellySpec(body.belly ?? 0, measurements)
+    bellyBone.restA.set(belly.a[0], belly.a[1], belly.a[2])
+    bellyBone.restB.set(belly.b[0], belly.b[1], belly.b[2])
+    bellyBone.radius = bellyBone.collider.radius = belly.radius
   }
 
   const a = new THREE.Vector3()
