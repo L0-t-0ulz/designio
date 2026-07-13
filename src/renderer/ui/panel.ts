@@ -34,6 +34,7 @@ import type { Fabric } from '../fabric/FabricLibrary'
 import { getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, textField, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
+import { DEFAULT_STITCH, SEAM_TYPES, THREAD_WEIGHTS, type StitchSpec } from '../garment/stitchTypes'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { ClosureDesign } from '../studio/closureDesign'
@@ -74,6 +75,8 @@ export interface GarmentState {
   trouserBreak?: boolean
   fringe?: boolean
   piping?: boolean
+  /** Seam & topstitch spec (type · needle · SPI · thread weight). */
+  stitch?: import('../garment/stitchTypes').StitchSpec
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle
@@ -523,6 +526,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   function syncGarment(): void {
     const def = getGarment(garment.type)
     rebuildPartRow()
+    syncStitch()
     for (const [id, node] of garmentBtns) node.classList.toggle('primary', id === garment.type)
     neckRow.classList.toggle('dio-hidden', !def.supports.neckline)
     sleeveRow.classList.toggle('dio-hidden', !def.supports.sleeve)
@@ -658,8 +662,50 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const hemShapeBlock = el('div')
   hemShapeBlock.append(el('div', 'dio-field-label', 'Hem shape'), hemShapeRow)
 
+  // Seam & topstitch spec — seam type · needle · SPI · thread weight. SPI + a
+  // double needle read live on the 3D topstitch; the whole spec lands in the
+  // tech pack. Editing any field materialises the spec from the defaults.
+  const stitchOf = (): StitchSpec => garment.stitch ?? { ...DEFAULT_STITCH }
+  const seamRow = el('div', 'dio-actions')
+  seamRow.style.flexWrap = 'wrap'
+  const seamBtns = new Map<string, HTMLButtonElement>()
+  const syncStitch = (): void => {
+    const cur = garment.stitch ?? DEFAULT_STITCH
+    for (const [k, node] of seamBtns) node.classList.toggle('primary', k === cur.seamType)
+    needleT.refresh()
+    spiS.refresh()
+    for (const [k, node] of threadBtns) node.classList.toggle('primary', k === cur.threadWt)
+  }
+  for (const st of Object.keys(SEAM_TYPES) as (keyof typeof SEAM_TYPES)[]) {
+    const b = button(SEAM_TYPES[st].label.split(' (')[0], () => {
+      garment.stitch = { ...stitchOf(), seamType: st }
+      syncStitch()
+      opts.onGarmentEdit()
+    }, st === 'plain')
+    b.title = SEAM_TYPES[st].note
+    b.style.flex = '1 1 42%'
+    seamBtns.set(st, b)
+    seamRow.append(b)
+  }
+  const needleT = toggle({ label: 'Double-needle topstitch', get: () => (garment.stitch ?? DEFAULT_STITCH).needle === 'double', set: (v) => { garment.stitch = { ...stitchOf(), needle: v ? 'double' : 'single' }; opts.onGarmentEdit() } })
+  const spiS = slider({ label: 'Stitch density', min: 6, max: 14, step: 1, format: (v) => `${v} SPI`, get: () => (garment.stitch ?? DEFAULT_STITCH).spi, set: (v) => { garment.stitch = { ...stitchOf(), spi: v }; opts.onGarmentEdit() } })
+  const threadRow = el('div', 'dio-actions')
+  const threadBtns = new Map<string, HTMLButtonElement>()
+  for (const tw of Object.keys(THREAD_WEIGHTS) as (keyof typeof THREAD_WEIGHTS)[]) {
+    const b = button(THREAD_WEIGHTS[tw].label.split(' (')[0], () => {
+      garment.stitch = { ...stitchOf(), threadWt: tw }
+      syncStitch()
+      opts.onGarmentEdit()
+    }, tw === 'tex-40')
+    b.title = THREAD_WEIGHTS[tw].use
+    threadBtns.set(tw, b)
+    threadRow.append(b)
+  }
+  const stitchBlock = el('div')
+  stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
+
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

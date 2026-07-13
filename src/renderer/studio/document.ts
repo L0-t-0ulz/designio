@@ -81,6 +81,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     trouserBreak: l.trouserBreak,
     fringe: l.fringe,
     piping: l.piping,
+    stitch: l.stitch,
     dart: l.dart,
     pocket: l.pocket,
     pocketStyle: l.pocketStyle,
@@ -195,6 +196,8 @@ export interface GarmentLayerData {
   deadstockFabric?: boolean
   /** Seam allowance (mm) + notches — pattern/production. */
   seam?: number
+  /** Seam & topstitch spec (type · needle · SPI · thread weight) — 3D + tech pack. */
+  stitch?: import('../garment/stitchTypes').StitchSpec
   notches?: boolean
   /** Contrast trim (collar/cuffs/pockets/hem) — its own fabric + colour. */
   trim?: boolean
@@ -356,6 +359,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     trouserBreak: c.trouserBreak,
     fringe: c.fringe,
     piping: c.piping,
+    stitch: c.stitch,
     dart: c.dart,
     pocket: c.pocket,
     pocketStyle: c.pocketStyle,

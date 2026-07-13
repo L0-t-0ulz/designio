@@ -39,6 +39,8 @@ export interface DesignConfig {
   trouserBreak?: boolean
   fringe?: boolean
   piping?: boolean
+  /** Seam & topstitch spec (type · needle · SPI · thread weight). */
+  stitch?: import('../garment/stitchTypes').StitchSpec
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle

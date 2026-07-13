@@ -9,6 +9,7 @@ import type { GarmentMetrics } from './garmentMetrics'
 import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
 import { threadMetres } from './thread'
+import { SEAM_TYPES, stitchLengthMm, threadMetresFor } from '../garment/stitchTypes'
 import type { CostBreakdown } from './cost'
 import { careSymbolsSVG, type CareSymbol } from './careSymbols'
 import type { Footprint, MaterialPassport } from './sustainability'
@@ -28,6 +29,8 @@ export interface ManufactureLayer {
   trim?: string
   /** Seam allowance (mm). */
   seam?: number
+  /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
+  stitch?: { summary: string; spec: import('../garment/stitchTypes').StitchSpec }
   /** Auto-generated care label — fibre content + laundering instructions. */
   fibre?: string
   care?: string[]
@@ -159,6 +162,7 @@ function layerSection(l: ManufactureLayer): string {
             ${(l.parts ?? []).map((p) => `<tr><td>Fabric (${esc(p.part)})</td><td colspan="2">${esc(p.fabric)}</td></tr>`).join('')}
             ${l.trim ? `<tr><td>Trim</td><td colspan="2">${esc(l.trim)}</td></tr>` : ''}
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
+            ${l.stitch ? `<tr><td>Seams &amp; stitching</td><td colspan="2">${esc(l.stitch.summary)}</td></tr>` : ''}
             <tr><td>Cloth area</td><td colspan="2">${l.metrics.fabricM2.toFixed(2)} m²</td></tr>
             ${
               l.marker
@@ -166,7 +170,11 @@ function layerSection(l: ManufactureLayer): string {
                 : `<tr><td>Yardage (@ ${FABRIC_WIDTH_M * 100} cm)</td><td colspan="2">${lengthM.toFixed(2)} m · ${(lengthM * 1.094).toFixed(2)} yd</td></tr>`
             }
             <tr><td>Total seam length</td><td colspan="2">${l.metrics.seamCm.toFixed(0)} cm</td></tr>
-            <tr><td>Thread (est., lockstitch)</td><td colspan="2">${threadMetres(l.metrics.seamCm).toFixed(1)} m</td></tr>
+            ${
+              l.stitch
+                ? `<tr><td>Thread (est., ${esc(SEAM_TYPES[l.stitch.spec.seamType].label)})</td><td colspan="2">${threadMetresFor(l.metrics.seamCm, l.stitch.spec).toFixed(1)} m</td></tr>`
+                : `<tr><td>Thread (est., lockstitch)</td><td colspan="2">${threadMetres(l.metrics.seamCm).toFixed(1)} m</td></tr>`
+            }
           </tbody>
         </table>
         ${costSection(l.cost)}
@@ -262,7 +270,10 @@ export function manufactureJSON(b: ManufactureBundle): string {
         yardage_m: +((l.marker ? l.marker.lengthCm / 100 : l.metrics.fabricM2 / FABRIC_WIDTH_M).toFixed(2)),
         marker_efficiency_pct: l.marker ? Math.round(l.marker.efficiency * 100) : null,
         seam_length_cm: l.metrics.seamCm,
-        thread_m: threadMetres(l.metrics.seamCm),
+        thread_m: l.stitch ? +threadMetresFor(l.metrics.seamCm, l.stitch.spec).toFixed(1) : threadMetres(l.metrics.seamCm),
+        stitching: l.stitch
+          ? { ...l.stitch.spec, stitch_length_mm: +stitchLengthMm(l.stitch.spec.spi).toFixed(2), summary: l.stitch.summary }
+          : null,
         cost: l.cost ?? null
       }))
     },
