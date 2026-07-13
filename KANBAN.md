@@ -125,7 +125,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 ## 📋 Backlog / ideas
 
 **Next 15** _(queued 2026-07-12 — well-scoped, non-AI, each buildable on shipped machinery)_
-- [ ] **High-low & asymmetric hems** — a hem-shape function (shirttail · high-low · handkerchief) shaping the tube's bottom edge in 3D + the flat pattern's hem curve
+- [x] **High-low & asymmetric hems** — pure `bottomEdge` (the topEdge mirror) feeds both the 3D fill and the 2D unwrap; picker + `?hemShape=` — PR #283
 - [ ] **Sleeve length stops** — elbow · ¾ · bracelet stops between short/long (a real sleeve-length picker, graded + patterned)
 - [ ] **Jewellery accessories** — necklace (pearls · chain) + hoop earrings riding the head/neck frames like the headwear
 - [x] **Pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, Appearance slider + `?pilling=<0..1>` (`fabric/pilling`) — PR #282
