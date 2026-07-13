@@ -688,7 +688,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Bag lining + pocket layout** — an interior editor with zip/slip pockets
 
 **Hardware & notions**
-- [ ] **Buttons & closures designer** — custom shanks, materials, engraving
+- [x] **Buttons & closures designer** — per-layer `ClosureDesign` (button count 2–9 / size 8–30 mm / colour · zip tape + pull colours) via `studio/closureDesign` + a panel block, `?buttons=` deep-links — PR #295
 - [ ] **Zipper builder** — tape colour, teeth style, pull + slider options
 - [ ] **Rivet / eyelet / snap placement** — snap hardware dropped onto a seam/edge
 - [ ] **Enamel pin / patch designer** — a raised badge with a stitched-edge preview
