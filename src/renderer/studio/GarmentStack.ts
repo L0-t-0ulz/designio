@@ -30,6 +30,7 @@ import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
 import { pressureColor } from '../fabric/pressure'
 import { makePillNormalMap } from '../fabric/pilling'
+import { buttonCount, buttonScale } from './closureDesign'
 import { wrinkleAmount, installWrinkle, uninstallWrinkle } from '../fabric/wrinkle'
 import { layerShown, gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
 
@@ -1028,6 +1029,23 @@ export class GarmentStack {
     l.decor.add(pom)
   }
 
+  // Custom closure materials, cached per colour (bounded by the colours actually used).
+  private static readonly closureMats = new Map<string, THREE.Material>()
+  private static closureMat(kind: 'button' | 'zip' | 'pull', color: number): THREE.Material {
+    const key = kind + ':' + color
+    let m = GarmentStack.closureMats.get(key)
+    if (!m) {
+      m =
+        kind === 'button'
+          ? new THREE.MeshPhysicalMaterial({ color, metalness: 0, roughness: 0.42, clearcoat: 0.7, clearcoatRoughness: 0.32, sheen: 0.2 })
+          : kind === 'zip'
+            ? new THREE.MeshStandardMaterial({ color, metalness: 0.5, roughness: 0.45, side: THREE.DoubleSide })
+            : new THREE.MeshStandardMaterial({ color, metalness: 0.85, roughness: 0.3 })
+      GarmentStack.closureMats.set(key, m)
+    }
+    return m
+  }
+
   private buildClosure(l: StackLayer): void {
     const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
     if (!spec) return
@@ -1059,30 +1077,35 @@ export class GarmentStack {
     bandGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
     bandGeo.setIndex(idx)
     bandGeo.computeVertexNormals()
-    const band = new THREE.Mesh(bandGeo, style === 'zip' ? CLOSURE_ZIP : l.data.trim ? l.trimMaterial : l.material)
+    const design = l.data.closureDesign
+    const zipMat = design?.zipColor !== undefined ? GarmentStack.closureMat('zip', design.zipColor) : CLOSURE_ZIP
+    const band = new THREE.Mesh(bandGeo, style === 'zip' ? zipMat : l.data.trim ? l.trimMaterial : l.material)
     band.castShadow = true
     band.receiveShadow = true
     l.decor.add(band)
     if (style === 'zip') {
       const py = yTop - 0.035
-      const pull = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.022, 0.005), CLOSURE_METAL)
+      const pull = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.022, 0.005), design?.pullColor !== undefined ? GarmentStack.closureMat('pull', design.pullColor) : CLOSURE_METAL)
       pull.position.set(0, py, frontZ(py) + 0.006)
       pull.castShadow = true
       l.decor.add(pull)
     } else {
-      const n = Math.max(3, Math.round((yTop - yBot) / 0.085))
+      const n = buttonCount(yTop - yBot, design?.buttons)
+      const scale = buttonScale(design?.buttonMm)
+      const btnMat = design?.buttonColor !== undefined ? GarmentStack.closureMat('button', design.buttonColor) : CLOSURE_BUTTON
       for (let i = 0; i < n; i++) {
         const y = yBot + ((yTop - yBot) * (i + 0.5)) / n
         const faceZ = frontZ(y) + 0.006
         // domed shell button body (clone the shared lathe so per-rebuild disposal is safe)
-        const btn = new THREE.Mesh(BUTTON_PROFILE.clone(), CLOSURE_BUTTON)
+        const btn = new THREE.Mesh(BUTTON_PROFILE.clone(), btnMat)
+        btn.scale.setScalar(scale)
         btn.rotation.x = Math.PI / 2 // domed face toward the front (+z)
         btn.position.set(0, y, faceZ)
         btn.castShadow = true
         btn.receiveShadow = true
         l.decor.add(btn)
         // four sew holes in the recessed centre well + a cross-stitch thread
-        const off = 0.0024
+        const off = 0.0024 * scale // sew holes + thread scale with the button
         const holeZ = faceZ + 0.0016
         for (const [hx, hy] of [[-off, off], [off, off], [-off, -off], [off, -off]] as [number, number][]) {
           const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.001, 0.001, 0.0012, 8), CLOSURE_HOLE)

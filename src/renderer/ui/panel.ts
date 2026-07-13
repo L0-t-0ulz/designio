@@ -35,6 +35,7 @@ import { button, colorField, el, section, slider, textField, toggle, type Refres
 import { patternSchematic } from './patternSchematic'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
+import type { ClosureDesign } from '../studio/closureDesign'
 import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import type { GirthRow } from '../export/drapeFit'
@@ -79,6 +80,7 @@ export interface GarmentState {
   hemShape?: HemShape
   closure?: boolean
   closureOpen?: boolean
+  closureDesign?: ClosureDesign
   lined?: boolean
   interfaced?: boolean
   wet?: boolean
@@ -530,9 +532,22 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     }
     hemShapeBlock.classList.toggle('dio-hidden', !def.supports.hemShape)
     for (const [k, node] of hemShapeBtns) node.classList.toggle('primary', (garment.hemShape ?? 'straight') === k)
-    // "Worn open" shows only while a supported Closure is on
+    // "Worn open" + the closure designer show only while a supported Closure is on
     openT.row.classList.toggle('dio-hidden', !def.supports.closure || !garment.closure)
     openT.refresh()
+    const closureOn = !!def.supports.closure && !!garment.closure
+    closureDesignBlock.classList.toggle('dio-hidden', !closureOn)
+    const zipStyle = (def.closureStyle ?? 'button') === 'zip'
+    btnCountS.row.classList.toggle('dio-hidden', zipStyle)
+    btnSizeS.row.classList.toggle('dio-hidden', zipStyle)
+    btnColorF.row.classList.toggle('dio-hidden', zipStyle)
+    zipColorF.row.classList.toggle('dio-hidden', !zipStyle)
+    pullColorF.row.classList.toggle('dio-hidden', !zipStyle)
+    btnCountS.refresh()
+    btnSizeS.refresh()
+    btnColorF.refresh()
+    zipColorF.refresh()
+    pullColorF.refresh()
     // the collar/lapel library shows only when the Collar detail is supported + on
     collarBlock.classList.toggle('dio-hidden', !def.supports.collar || !garment.collar)
     for (const [cstyle, node] of collarBtns) node.classList.toggle('primary', (garment.collarStyle ?? 'band') === cstyle)
@@ -605,10 +620,24 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       }
     })
   }))
+  // Buttons & closures designer — count/size/colour for buttons; tape/pull colours
+  // for zips. Absent values keep the classic look; edits rebuild the decor.
+  const setClosureDesign = (patch: Partial<ClosureDesign>): void => {
+    garment.closureDesign = { ...garment.closureDesign, ...patch }
+    opts.onGarmentEdit()
+  }
+  const btnCountS = slider({ label: 'Buttons', min: 2, max: 9, step: 1, get: () => garment.closureDesign?.buttons ?? 5, set: (v) => setClosureDesign({ buttons: v }) })
+  const btnSizeS = slider({ label: 'Button size', min: 8, max: 30, step: 1, format: (v) => `${v | 0} mm`, get: () => garment.closureDesign?.buttonMm ?? 13, set: (v) => setClosureDesign({ buttonMm: v }) })
+  const btnColorF = colorField({ label: 'Button colour', get: () => garment.closureDesign?.buttonColor ?? 0x26262c, set: (v) => setClosureDesign({ buttonColor: v }) })
+  const zipColorF = colorField({ label: 'Zip colour', get: () => garment.closureDesign?.zipColor ?? 0x1d1d21, set: (v) => setClosureDesign({ zipColor: v }) })
+  const pullColorF = colorField({ label: 'Pull colour', get: () => garment.closureDesign?.pullColor ?? 0xc2c2ca, set: (v) => setClosureDesign({ pullColor: v }) })
+  const closureDesignBlock = el('div')
+  closureDesignBlock.append(el('div', 'dio-field-label', 'Closure design'), btnCountS.row, btnSizeS.row, btnColorF.row, zipColorF.row, pullColorF.row)
+
   // Functional opening — wear the closure unbuttoned/unzipped: the centre-front seam
   // is really unsewn, so the garment gaps and hangs open. Shows only while Closure is on.
   const openT = toggle({ label: 'Worn open', get: () => !!garment.closureOpen, set: (v) => { garment.closureOpen = v; syncGarment(); opts.onGarmentEdit() } })
-  const detailRows = detailToggles.flatMap((d) => (d.key === 'closure' ? [d.t.row, openT.row] : [d.t.row]))
+  const detailRows = detailToggles.flatMap((d) => (d.key === 'closure' ? [d.t.row, openT.row, closureDesignBlock] : [d.t.row]))
   // Hem shape — straight · high-low · shirttail · handkerchief (shown when supported).
   const hemShapeRow = el('div', 'dio-actions')
   hemShapeRow.style.flexWrap = 'wrap'

@@ -189,6 +189,7 @@ function initStudio(
     hemShape: l0.hemShape,
     closure: l0.closure,
     closureOpen: l0.closureOpen,
+    closureDesign: l0.closureDesign ? { ...l0.closureDesign } : undefined,
     lined: l0.lined,
     interfaced: l0.interfaced,
     wet: l0.wet,
@@ -336,6 +337,7 @@ function initStudio(
     garment.hemShape = l.data.hemShape
     garment.closure = l.data.closure
     garment.closureOpen = l.data.closureOpen
+    garment.closureDesign = l.data.closureDesign ? { ...l.data.closureDesign } : undefined
     garment.lined = l.data.lined
     garment.interfaced = l.data.interfaced
     garment.wet = l.data.wet
@@ -733,6 +735,7 @@ function initStudio(
     l.data.hemShape = garment.hemShape
     l.data.closure = garment.closure
     l.data.closureOpen = garment.closureOpen
+    l.data.closureDesign = garment.closureDesign ? { ...garment.closureDesign } : undefined
     l.data.lined = garment.lined
     l.data.interfaced = garment.interfaced
     l.data.wet = garment.wet
@@ -862,6 +865,22 @@ function initStudio(
   if (params.get('stress') === '1') stack.setStress(true)
   if (params.get('pressure') === '1') stack.setPressure(true)
   if (params.get('tearing') === '1') stack.setTearing(true)
+  // closure-designer deep-links (?buttons= ?buttonMm= ?buttonColor= ?zipColor=)
+  {
+    const d: Record<string, number> = {}
+    const bn = params.get('buttons')
+    if (bn && Number.isFinite(+bn)) d.buttons = +bn
+    const bm = params.get('buttonMm')
+    if (bm && Number.isFinite(+bm)) d.buttonMm = +bm
+    const bc = params.get('buttonColor')
+    if (bc && /^[0-9a-f]{6}$/i.test(bc)) d.buttonColor = parseInt(bc, 16)
+    const zc = params.get('zipColor')
+    if (zc && /^[0-9a-f]{6}$/i.test(zc)) d.zipColor = parseInt(zc, 16)
+    if (Object.keys(d).length) {
+      stack.active.data.closureDesign = { ...stack.active.data.closureDesign, ...d }
+      stack.rebuild(stack.active)
+    }
+  }
   const pillingParam = params.get('pilling')
   if (pillingParam && Number.isFinite(+pillingParam)) {
     stack.active.data.pilling = Math.max(0, Math.min(1, +pillingParam))
