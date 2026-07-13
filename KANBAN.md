@@ -127,7 +127,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 **Next 15** _(queued 2026-07-12 — well-scoped, non-AI, each buildable on shipped machinery)_
 - [x] **High-low & asymmetric hems** — pure `bottomEdge` (the topEdge mirror) feeds both the 3D fill and the 2D unwrap; picker + `?hemShape=` — PR #283
 - [x] **Sleeve length stops** — elbow · ¾ · bracelet along the arm chain, tapering past the elbow; + fixed the 3D path ignoring sleeveGradeM — PR #284
-- [ ] **Jewellery accessories** — necklace (pearls · chain) + hoop earrings riding the head/neck frames like the headwear
+- [x] **Jewellery accessories** — pearl strand (chest-clearance asserted headlessly) + gold hoops on the head/neck frames (`?accessories=necklace,hoops`) — PR #285
 - [x] **Pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, Appearance slider + `?pilling=<0..1>` (`fabric/pilling`) — PR #282
 - [x] **Colour-harmony palette picker** — wheel schemes from the current colour with readability clamps, one-click apply (`fabric/harmony`) — PR #281
 - [ ] **Print repeat preview** — a real-scale repeat-tile pane (with a cm ruler) for the textile/print so you can judge gauge before it hits the garment
