@@ -133,7 +133,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Print repeat preview** — the same paintTextile under a girth-calibrated cm ruler (`ui/repeatPreview`, textile-picker button) — PR #287
 - [x] **Drape swatch comparator** — two short-rod-pinned squares in a live overlay mini-scene; same fabricToSolverParams as the garments (`ui/drapeComparator`, View menu) — PR #290
 - [x] **Slip / smoothing underlayer** — a simulated, colliding, never-rendered slip layer (`underlayer` flag + pure `layerShown`; Scene toggle · `?slip=1`) — PR #291
-- [ ] **Steam & press tool** — click-drag a region to relax its wrinkles (locally reset bend rest state) — the virtual iron
+- [x] **Steam & press tool** — the virtual iron: drag raycasts the cloth, `pressAt` Laplacian-smooths inside the radius with falloff + velocity drop (View menu) — PR #292
 - [x] **Strain on the 2D pattern** — per-panel mean-tension tint in the 2D pane while a strain view is on (`panelStrains` + `strainTint`; exports untinted) — PR #286
 - [x] **Hanger shot** — ghost + collider swap to a thin hanger bar (true limp hang) + a wire-hanger prop (`studio/hangerShot`, View menu, `?hanger=1`) — PR #288
 - [x] **Wind compass dial** — a drag compass (direction + radial strength) synced with the sliders/presets (`studio/windDial`) — PR #280
