@@ -131,7 +131,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, Appearance slider + `?pilling=<0..1>` (`fabric/pilling`) — PR #282
 - [x] **Colour-harmony palette picker** — wheel schemes from the current colour with readability clamps, one-click apply (`fabric/harmony`) — PR #281
 - [x] **Print repeat preview** — the same paintTextile under a girth-calibrated cm ruler (`ui/repeatPreview`, textile-picker button) — PR #287
-- [ ] **Drape swatch comparator** — two hanging cloth squares side by side (rod-pinned mini sims) to compare any two fabrics' drape directly
+- [x] **Drape swatch comparator** — two short-rod-pinned squares in a live overlay mini-scene; same fabricToSolverParams as the garments (`ui/drapeComparator`, View menu) — PR #290
 - [ ] **Slip / smoothing underlayer** — an optional invisible-in-render underlayer the outer garment drapes over (smooths body detail like real shapewear)
 - [ ] **Steam & press tool** — click-drag a region to relax its wrinkles (locally reset bend rest state) — the virtual iron
 - [x] **Strain on the 2D pattern** — per-panel mean-tension tint in the 2D pane while a strain view is on (`panelStrains` + `strainTint`; exports untinted) — PR #286
