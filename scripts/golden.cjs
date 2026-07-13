@@ -155,43 +155,55 @@ app
     let failures = 0
     let missing = 0
     let win = newWin()
-    for (const look of LOOKS) {
-      try {
-        const img = await render(win, look.name, look.search)
-        fs.writeFileSync(path.join(OUT_DIR, `${look.name}.png`), img.toPNG())
-        if (MODE === 'update') {
-          fs.writeFileSync(path.join(GOLDEN_DIR, `${look.name}.png`), img.toPNG())
-          console.log(`UPDATED tests/golden/${look.name}.png`)
-          continue
-        }
-        // determinism: a second, fresh render of the same build must match
-        const repeat = await render(win, `${look.name} again`, look.search)
-        const rs = diffStats(pixels(img), pixels(repeat), { threshold: 4 })
-        console.log(formatDiff(`${look.name} [repeat]`, rs))
-        if (!rs.comparable || rs.pct > REPEAT_MAX_PCT) {
-          console.error(`FAIL ${look.name}: repeated render differs — the look is not deterministic`)
-          fs.writeFileSync(path.join(OUT_DIR, `${look.name}.repeat.png`), repeat.toPNG()) // for diffing
-          failures++
-        }
-        // golden: compare against the committed reference
-        const goldenPath = path.join(GOLDEN_DIR, `${look.name}.png`)
-        if (!fs.existsSync(goldenPath)) {
-          console.log(`::warning::${look.name}: no golden committed — bootstrap render in golden-out/ (commit it to tests/golden/)`)
-          missing++
-          continue
-        }
-        const golden = nativeImage.createFromPath(goldenPath)
-        const gs = diffStats(pixels(img), pixels(golden), { threshold: 12 })
-        console.log(formatDiff(`${look.name} [golden]`, gs))
-        if (!gs.comparable || gs.pct > GOLDEN_MAX_PCT) {
-          console.error(`FAIL ${look.name}: render drifted from tests/golden/${look.name}.png (see the golden-out artifact; refresh via scripts/golden.cjs --update if intended)`)
-          failures++
-        }
-      } catch (err) {
-        console.error(`FAIL ${look.name}: render error —`, err)
+    const runLook = async (look) => {
+      const img = await render(win, look.name, look.search)
+      fs.writeFileSync(path.join(OUT_DIR, `${look.name}.png`), img.toPNG())
+      if (MODE === 'update') {
+        fs.writeFileSync(path.join(GOLDEN_DIR, `${look.name}.png`), img.toPNG())
+        console.log(`UPDATED tests/golden/${look.name}.png`)
+        return
+      }
+      // determinism: a second, fresh render of the same build must match
+      const repeat = await render(win, `${look.name} again`, look.search)
+      const rs = diffStats(pixels(img), pixels(repeat), { threshold: 4 })
+      console.log(formatDiff(`${look.name} [repeat]`, rs))
+      if (!rs.comparable || rs.pct > REPEAT_MAX_PCT) {
+        console.error(`FAIL ${look.name}: repeated render differs — the look is not deterministic`)
+        fs.writeFileSync(path.join(OUT_DIR, `${look.name}.repeat.png`), repeat.toPNG()) // for diffing
         failures++
-        win.destroy() // the shared window may be wedged — fresh one for the next look
-        win = newWin()
+      }
+      // golden: compare against the committed reference
+      const goldenPath = path.join(GOLDEN_DIR, `${look.name}.png`)
+      if (!fs.existsSync(goldenPath)) {
+        console.log(`::warning::${look.name}: no golden committed — bootstrap render in golden-out/ (commit it to tests/golden/)`)
+        missing++
+        return
+      }
+      const golden = nativeImage.createFromPath(goldenPath)
+      const gs = diffStats(pixels(img), pixels(golden), { threshold: 12 })
+      console.log(formatDiff(`${look.name} [golden]`, gs))
+      if (!gs.comparable || gs.pct > GOLDEN_MAX_PCT) {
+        console.error(`FAIL ${look.name}: render drifted from tests/golden/${look.name}.png (see the golden-out artifact; refresh via scripts/golden.cjs --update if intended)`)
+        failures++
+      }
+    }
+    for (const look of LOOKS) {
+      // one retry with a fresh window: a transient navigation/renderer failure
+      // (ERR_FAILED (-2) mid-run has happened on the runners) shouldn't fail the job
+      for (let attempt = 0; ; attempt++) {
+        try {
+          await runLook(look)
+          break
+        } catch (err) {
+          win.destroy() // the shared window may be wedged — fresh one either way
+          win = newWin()
+          if (attempt >= 1) {
+            console.error(`FAIL ${look.name}: render error —`, err)
+            failures++
+            break
+          }
+          console.log(`::warning::${look.name}: render error (${err?.code ?? err}) — retrying with a fresh window`)
+        }
       }
     }
     win.destroy()
