@@ -263,7 +263,9 @@ export function wrapDrawn(grid: DrawnGrid, R: number, side: 'front' | 'back', ba
   return out
 }
 
-function drawnGeometry(view: Float32Array, grid: DrawnGrid, flipWinding: boolean): THREE.BufferGeometry {
+/** Render geometry over a masked lattice (position view + panel-space UVs) —
+ *  shared with the multi-panel arrangement builder. */
+export function drawnGeometry(view: Float32Array, grid: DrawnGrid, flipWinding: boolean): THREE.BufferGeometry {
   let minX = Infinity
   let maxX = -Infinity
   let minY = Infinity
