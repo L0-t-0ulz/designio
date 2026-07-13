@@ -604,11 +604,11 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 ## 🌟 Roadmap — next 50 _(forward-looking features beyond the shipped core — bigger product bets, grouped by area)_
 
 **Menswear & tailoring**
-- [ ] **Menswear suit block** — a canvas-fronted blazer + trousers with a fly, welt pockets, and a structured shoulder
+- [x] **Menswear suit block** — `suit-jacket` (closer/structured than the blazer) + matching creased `suit-trousers`, one cloth — PR #293
 - [ ] **Lapel geometry** — notch / peak / shawl lapels with a configurable width + roll line
-- [ ] **Shirt tailoring** — back yoke + box pleat, a button placket, and a structured two-piece collar + barrel cuff
-- [ ] **Vest / waistcoat** — a shaped back with an adjustable buckle strap + welt pockets
-- [ ] **Overcoat blocks** — trench · peacoat · topcoat with a storm flap + set-in belt
+- [x] **Shirt tailoring** — `dress-shirt`: shirt collar · placket · buttoned cuffs · yoke · darts — PR #293
+- [x] **Vest / waistcoat** — `waistcoat`: fitted deep-V, buttoned, welts, lined — PR #293
+- [x] **Overcoat blocks** — `overcoat`: below-knee, roomy over a suit, flap pockets — PR #293
 - [x] **Trouser break + crease** — a pressed fore/aft crease baked into the leg rest shape (pure `creaseWave`, survives the drape) + a hem break that stacks on the ankle; trouser family only, on by default for Trousers (`?crease=1` · `?break=1`) — PR #254
 
 **Activewear, swim & foundation**
