@@ -499,6 +499,56 @@ export class XPBDSolver {
     this.wake()
   }
 
+  /**
+   * **Steam & press**: locally relax wrinkles — every free particle within `radius`
+   * of the point blends toward the average of its grid neighbours (a Laplacian
+   * smooth, weighted to fall off at the radius edge) and drops its velocity, like
+   * running an iron over the region. Call repeatedly along a drag.
+   */
+  pressAt(cx: number, cy: number, cz: number, radius: number): void {
+    const { positions: pos, vel, invMass: im, nx, ny, count } = this
+    const r2 = radius * radius
+    let touched = false
+    for (let k = 0; k < count; k++) {
+      if (im[k] === 0) continue
+      const i = k * 3
+      const dx = pos[i] - cx
+      const dy = pos[i + 1] - cy
+      const dz = pos[i + 2] - cz
+      const d2 = dx * dx + dy * dy + dz * dz
+      if (d2 > r2) continue
+      const ix = k % nx
+      const iy = Math.floor(k / nx)
+      // average the 4-neighbourhood (wrap-aware in x)
+      let ax = 0
+      let ay = 0
+      let az = 0
+      let n = 0
+      const nbr = (jx: number, jy: number): void => {
+        if (jy < 0 || jy >= ny) return
+        const wx = this.wrapX ? ((jx % nx) + nx) % nx : jx
+        if (wx < 0 || wx >= nx) return
+        const j = (jy * nx + wx) * 3
+        ax += pos[j]
+        ay += pos[j + 1]
+        az += pos[j + 2]
+        n++
+      }
+      nbr(ix - 1, iy)
+      nbr(ix + 1, iy)
+      nbr(ix, iy - 1)
+      nbr(ix, iy + 1)
+      if (!n) continue
+      const w = 0.5 * (1 - Math.sqrt(d2) / radius) // strongest at the iron's centre
+      pos[i] += (ax / n - pos[i]) * w
+      pos[i + 1] += (ay / n - pos[i + 1]) * w
+      pos[i + 2] += (az / n - pos[i + 2]) * w
+      vel[i] = vel[i + 1] = vel[i + 2] = 0 // pressed cloth settles, it doesn't spring
+      touched = true
+    }
+    if (touched) this.wake()
+  }
+
   /** Advance the simulation by `dt` seconds using `substeps` internal steps. */
   step(dt: number): void {
     // Follow the body: re-place pinned particles at the current anchor (the garment

@@ -38,6 +38,7 @@ export interface MenuActions {
   onToggleGhost: () => void
   onToggleHanger: () => void
   onDrapeComparator: () => void
+  onTogglePress: () => void
   onClearMeasure: () => void
   onRunwayLineup: () => void
   onContactSheet: () => void
@@ -199,6 +200,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Ghost mannequin (product shot)', run: a.onToggleGhost },
     { label: 'Hanger shot (hanging drape)', run: a.onToggleHanger },
     { label: 'Drape comparator…', run: a.onDrapeComparator },
+    { label: 'Steam & press (drag to relax wrinkles)', run: a.onTogglePress },
     { sep: true },
     { label: 'Wireframe', run: a.onToggleWireframe },
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }
