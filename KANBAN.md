@@ -139,7 +139,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Wind compass dial** — an interactive direction/strength dial in the Scene panel replacing the raw x/z sliders
 - [ ] **Pattern annotations** — text notes pinned to 2D panels, exported to SVG + a DXF ANNOTATION layer (round-trips with import)
 - [x] **Size-run strip** — XS→XXL worn side by side, block-labelled, settled synchronously per size (`studio/sizeRunStrip`, File menu) — PR #278
-- [ ] **Anatomy camera bookmarks** — one-click face · bust · waist · hem · back-detail framings computed from the live measurements (extends camera bookmarks)
+- [x] **Anatomy camera bookmarks** — five measurement-derived framings in the bookmarks panel; they reframe with resizes/presets (`studio/anatomyShots`) — PR #279
 
 
 **Features**
