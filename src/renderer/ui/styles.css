@@ -1750,6 +1750,22 @@ canvas {
 .dio-shortcuts-list dd {
   margin: 0;
 }
+/* Pattern-note floating input */
+.dio-pat-note-input {
+  position: fixed;
+  z-index: 10005;
+  font: 12.5px system-ui, sans-serif;
+  padding: 4px 8px;
+  background: #1b1b21;
+  color: #e8eaf0;
+  border: 1px solid var(--accent, #8b7cf8);
+  border-radius: 6px;
+  width: 200px;
+}
+.dio-pat-note-btn {
+  min-width: 64px;
+}
+
 /* Colour-harmony picker */
 .dio-harmony {
   display: flex;

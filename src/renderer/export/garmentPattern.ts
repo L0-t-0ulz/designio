@@ -479,7 +479,14 @@ export function placePrints(panels: PatternPanel[], prints: PatternPrintInput[])
 const xmlEscape = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-export function panelsToSVG(res: PatternResult, opts: { tints?: Record<string, string>; tintNote?: string } = {}): string {
+/** A pinned pattern note (mm, pattern-layout space) — exported to SVG + a DXF ANNOTATION layer. */
+export interface PatternNote {
+  x: number
+  y: number
+  text: string
+}
+
+export function panelsToSVG(res: PatternResult, opts: { tints?: Record<string, string>; tintNote?: string; notes?: PatternNote[] } = {}): string {
   const { panels, seam } = res
   const margin = 24
   const gap = 34
@@ -569,14 +576,19 @@ export function panelsToSVG(res: PatternResult, opts: { tints?: Record<string, s
 <svg xmlns="http://www.w3.org/2000/svg" width="${totalW.toFixed(0)}mm" height="${totalH.toFixed(0)}mm"
   viewBox="0 0 ${totalW.toFixed(0)} ${totalH.toFixed(0)}">
   <rect width="${totalW.toFixed(0)}" height="${totalH.toFixed(0)}" fill="#fff"/>
-  <text x="${margin}" y="${(totalH - 10).toFixed(0)}" font-family="sans-serif" font-size="11" fill="#9aa0aa">
+  ${(opts.notes ?? [])
+    .map(
+      (n) => `<g><circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="4" fill="#6b5bd6"/><line x1="${n.x.toFixed(1)}" y1="${n.y.toFixed(1)}" x2="${(n.x + 14).toFixed(1)}" y2="${(n.y - 14).toFixed(1)}" stroke="#6b5bd6" stroke-width="1.2"/><text x="${(n.x + 17).toFixed(1)}" y="${(n.y - 17).toFixed(1)}" font-family="sans-serif" font-size="12" fill="#4b3fb3">${xmlEscape(n.text)}</text></g>`
+    )
+    .join('')}
+    <text x="${margin}" y="${(totalH - 10).toFixed(0)}" font-family="sans-serif" font-size="11" fill="#9aa0aa">
     ${opts.tintNote ? xmlEscape(opts.tintNote) + ' · ' : ''}DesignIO pattern · solid = sew line · grey dashed = cut line (SA ${seam} mm) · gold dashed = topstitch · purple = CF closure${res.prints?.length ? ' / print placement' : ''} · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
   ${parts.join('\n')}
 </svg>`
 }
 
 // ---- DXF ------------------------------------------------------------------
-export function panelsToDXF(res: PatternResult, opts: { aama?: boolean } = {}): string {
+export function panelsToDXF(res: PatternResult, opts: { aama?: boolean; notes?: PatternNote[] } = {}): string {
   const { panels, seam } = res
   // AAMA/ASTM interchange layers (what Gerber · Lectra · Optitex import): 1 = piece
   // boundary, 8 = internal lines/drawings. Default = the app's named CUT/SEW/PRINT.
@@ -611,6 +623,9 @@ export function panelsToDXF(res: PatternResult, opts: { aama?: boolean } = {}): 
     }
     x += cb.maxX - cb.minX + 30
   }
+  for (const n of opts.notes ?? []) {
+    lines.push('0', 'TEXT', '8', 'ANNOTATION', '10', n.x.toFixed(2), '20', n.y.toFixed(2), '40', '12', '1', n.text)
+  }
   lines.push('0', 'ENDSEC', '0', 'EOF')
   return lines.join('\n')
 }
@@ -622,7 +637,7 @@ export function garmentPatternSVG(
   m: Measurements,
   colliders: Capsule[],
   prints: PatternPrintInput[] = [],
-  tints?: { tints: Record<string, string>; tintNote?: string }
+  tints?: { tints?: Record<string, string>; tintNote?: string; notes?: PatternNote[] }
 ): string {
   return panelsToSVG(garmentToPanels(def, params, m, colliders, undefined, prints), tints)
 }

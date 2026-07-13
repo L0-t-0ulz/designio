@@ -622,13 +622,16 @@ function initStudio(
             mannequin.measurements,
             mannequin.colliders,
             stack.active.prints,
-            stack.heatmap || stack.stress
-              ? {
-                  // project the live 3D strain onto the flat panels (heat tint per panel)
-                  tints: Object.fromEntries(Object.entries(stack.active.controller.panelStrains()).map(([k, v]) => [k, strainTint(v)])),
-                  tintNote: 'panel tint = live strain'
-                }
-              : undefined
+            {
+              notes: stack.active.data.patternNotes,
+              ...(stack.heatmap || stack.stress
+                ? {
+                    // project the live 3D strain onto the flat panels (heat tint per panel)
+                    tints: Object.fromEntries(Object.entries(stack.active.controller.panelStrains()).map(([k, v]) => [k, strainTint(v)])),
+                    tintNote: 'panel tint = live strain'
+                  }
+                : {})
+            }
           )
         : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
   // Read a DXF pattern file → parse → preview in the 2D pane (round-trips the export).
@@ -757,7 +760,7 @@ function initStudio(
     api.refresh()
   }
   const NECKS: NecklineStyle[] = ['scoop', 'crew', 'v', 'strapless']
-  const SLEEVES: SleeveStyle[] = ['none', 'short', 'long']
+  const SLEEVES: SleeveStyle[] = ['none', 'short', 'elbow', 'three-quarter', 'bracelet', 'long']
   const cycle = <T,>(list: T[], cur: T, d: number): T => list[((list.indexOf(cur) + d) % list.length + list.length) % list.length]
   const patternEditor: PatternEditor = {
     length: () => garment.length,
@@ -775,7 +778,16 @@ function initStudio(
     nudgeFlare: (d) => editFrom2D(() => (garment.flare = clampN(garment.flare + d, 0, 0.22))),
     nudgeSize: (d) => editFrom2D(() => (garment.size = SIZES[clampN(SIZES.indexOf(garment.size) + d, 0, SIZES.length - 1)])),
     nudgeNeckline: (d) => editFrom2D(() => (garment.neckline = cycle(NECKS, garment.neckline, d))),
-    nudgeSleeve: (d) => editFrom2D(() => (garment.sleeve = cycle(SLEEVES, garment.sleeve, d)))
+    nudgeSleeve: (d) => editFrom2D(() => (garment.sleeve = cycle(SLEEVES, garment.sleeve, d))),
+    addNote: (x, y, text) => {
+      const l = stack.active
+      ;(l.data.patternNotes ??= []).push({ x, y, text })
+      centerTabs.refresh()
+    },
+    clearNotes: () => {
+      stack.active.data.patternNotes = undefined
+      centerTabs.refresh()
+    },
   }
   // Render tab: supersample the current view to a PNG + save it to disk.
   const renderApi: RenderApi = {
