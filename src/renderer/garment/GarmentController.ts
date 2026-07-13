@@ -11,6 +11,7 @@ import type { GarmentParams, GarmentType } from './templates'
 import { buildGarment } from '../garments/factory'
 import { getGarment } from '../garments/registry'
 import { Topstitch } from './Topstitch'
+import { dashForSpi, SEAM_TYPES } from './stitchTypes'
 import { Fringe } from './Fringe'
 import { Piping, makePipingMaterial } from './Piping'
 
@@ -74,6 +75,8 @@ export class GarmentController {
   private windTurbulence = 0
   /** Shared thread material for every piece's topstitch (colour set by the stack). */
   private readonly stitchMat = new THREE.LineDashedMaterial({ color: 0x2c2c33, dashSize: 0.007, gapSize: 0.004 })
+  /** Twin topstitch rows (double needle) — read from the stitch spec at build. */
+  private doubleNeedle = false
   /** Shared strand material for the hem fringe (colour follows the stitch colour). */
   private readonly fringeMat = new THREE.LineBasicMaterial({ color: 0x2c2c33 })
   /** Shared cord material for piping (colour follows the stitch colour). */
@@ -94,6 +97,16 @@ export class GarmentController {
   /** (Re)build the garment from its data definition + fit params via the factory. */
   build(type: GarmentType, garmentParams: GarmentParams): void {
     this.dispose()
+    // seam & topstitch spec: SPI drives the thread dash pitch, the needle mode
+    // adds the twin rows — both read on the garment from this build on
+    if (garmentParams.stitch) {
+      const dash = dashForSpi(garmentParams.stitch.spi)
+      this.stitchMat.dashSize = dash.dashSize
+      this.stitchMat.gapSize = dash.gapSize
+      this.doubleNeedle = garmentParams.stitch.needle === 'double' || SEAM_TYPES[garmentParams.stitch.seamType].visibleRows === 2
+    } else {
+      this.doubleNeedle = false
+    }
     const def = getGarment(type)
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
       // fringe trim hangs from the garment's bottom hem — the body tube, not sleeves/legs
@@ -147,7 +160,7 @@ export class GarmentController {
       pinnedY += positions[idx * 3 + 1]
     }
     const n = pinnedTop.length || 1
-    const topstitch = new Topstitch(nx, ny, this.stitchMat)
+    const topstitch = new Topstitch(nx, ny, this.stitchMat, this.doubleNeedle)
     mesh.add(topstitch.object) // parent to the mesh so it inherits visibility
     let fringe: Fringe | null = null
     if (fringeOn) {

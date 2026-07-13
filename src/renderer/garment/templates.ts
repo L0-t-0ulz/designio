@@ -56,6 +56,8 @@ export interface GarmentParams {
   fringe?: boolean
   /** Piping — a corded contrast edge along the neckline + hem. */
   piping?: boolean
+  /** Seam & topstitch spec — SPI dash pitch + single/double needle rows on the 3D topstitch. */
+  stitch?: import('./stitchTypes').StitchSpec
   /** Pleat/gather fold style when `pleats` is on (knife / box / accordion / cartridge / gather). */
   pleatStyle?: PleatStyle
   /** Waist darts — a more fitted, shaped waist + dart wedges on the pattern. */

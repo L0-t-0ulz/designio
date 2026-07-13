@@ -13,10 +13,12 @@ export class Topstitch {
   readonly object = new THREE.Group()
   private readonly loops: { geom: THREE.BufferGeometry; line: THREE.LineLoop; idx: number[] }[] = []
 
-  constructor(nx: number, ny: number, material: THREE.LineDashedMaterial) {
+  constructor(nx: number, ny: number, material: THREE.LineDashedMaterial, double = false) {
     this.object.userData.topstitch = true
-    // Inset one row in from each raw edge (like a real topstitch margin).
-    const rows = ny >= 4 ? [1, ny - 2] : [Math.max(0, Math.floor(ny / 2))]
+    // Inset one row in from each raw edge (like a real topstitch margin); a
+    // DOUBLE needle adds the parallel twin row one further in (the jeans look).
+    const rows =
+      ny >= 6 && double ? [1, 2, ny - 3, ny - 2] : ny >= 4 ? [1, ny - 2] : [Math.max(0, Math.floor(ny / 2))]
     for (const iy of rows) {
       const idx = Array.from({ length: nx }, (_, ix) => iy * nx + ix)
       const geom = new THREE.BufferGeometry()

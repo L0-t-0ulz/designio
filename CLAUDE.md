@@ -162,7 +162,11 @@ Renderer modules:
   folded into the tube/sleeve specs so the 3D silhouette + the 2D pattern both reflect it), `decor`
   (`pocketPlacements` — pure patch-pocket positions; the stack renders them as non-sim patch meshes).
   Adding a garment or a supported detail is a data change, not new code.
-- `garment/` — `GarmentController` (one garment's multi-piece sim, consumes the factory; **binds each
+- `garment/` — `stitchTypes` (**seam & topstitch library** — plain · french · flat-fell · overlock seam
+  types (allowance/thread appetite/visible rows) + single/double needle + SPI + Tex thread weight; pure
+  `stitchLengthMm`/`dashForSpi`/`threadMetresFor`/`stitchSummary`/`parseStitchParams` unit-tested; SPI
+  drives the 3D topstitch dash pitch, double needle (or a flat-fell seam) adds the twin jeans rows, the
+  spec lands in the manufacturing pack spec sheet + factory JSON), `GarmentController` (one garment's multi-piece sim, consumes the factory; **binds each
   piece to body anchors** via the pure `pieceAnchor` — a top to the torso, a skirt/trouser to the hips, a
   **sleeve to its arm (+ elbow to the forearm)**, a **beanie/hat to the head** (turns/nods with it) — via
   the solver's pin groups, so each follows that part of the animated body); `templates`
@@ -315,6 +319,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?arranged=demo` (**sewing lines & arrangement** — the four-panel colour-block bodice: panels placed at arrangement points, side seams eased) ·
 `?styleLines=demo` (**style lines** — the bodice front split by a princess curve, colour-blocked + re-sewn) ·
 `?internalShapes=demo` (**internal shapes & notches** — waist darts stitched closed (real take-up) + a keyhole back cut-out) ·
+`?seamType=<plain|french|flat-fell|overlock>&spi=<4..22>&needle=<single|double>&threadWt=<tex-27|tex-40|tex-60>` (**seam & topstitch spec** — SPI dash pitch + twin double-needle rows read on the garment; the spec lands in the tech pack) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?open=1` (**functional opening** — the closure worn open: `TubeSpec.openFront` slits the mesh at `openSeamColumn` and `XPBDSolver.cutSeam` unsews the matching constraints, so the garment really gaps and hangs open) ·
 `?lined/interfaced/waistband/facing/drawstring/ruffles/boning/ribbing/yoke/princess=1` (more construction detail) ·
