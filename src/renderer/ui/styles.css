@@ -1750,6 +1750,23 @@ canvas {
 .dio-shortcuts-list dd {
   margin: 0;
 }
+/* Colour-harmony picker */
+.dio-harmony {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dio-harmony-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dio-harmony-name {
+  font-size: 11px;
+  color: var(--fg-1, #9aa0aa);
+  min-width: 96px;
+}
+
 /* Scene wind compass dial */
 .dio-wind-dial-row {
   display: flex;
