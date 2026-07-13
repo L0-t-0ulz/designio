@@ -128,7 +128,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **High-low & asymmetric hems** — a hem-shape function (shirttail · high-low · handkerchief) shaping the tube's bottom edge in 3D + the flat pattern's hem curve
 - [ ] **Sleeve length stops** — elbow · ¾ · bracelet stops between short/long (a real sleeve-length picker, graded + patterned)
 - [ ] **Jewellery accessories** — necklace (pearls · chain) + hoop earrings riding the head/neck frames like the headwear
-- [ ] **Pilling & fuzz aging** — a knit-aging slider: pill bumps + fuzz halo (pure noise field → normal/alpha), pairs with the distressed finishes
+- [x] **Pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, Appearance slider + `?pilling=<0..1>` (`fabric/pilling`) — PR #282
 - [x] **Colour-harmony palette picker** — wheel schemes from the current colour with readability clamps, one-click apply (`fabric/harmony`) — PR #281
 - [ ] **Print repeat preview** — a real-scale repeat-tile pane (with a cm ruler) for the textile/print so you can judge gauge before it hits the garment
 - [ ] **Drape swatch comparator** — two hanging cloth squares side by side (rod-pinned mini sims) to compare any two fabrics' drape directly
