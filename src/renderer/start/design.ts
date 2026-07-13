@@ -43,6 +43,7 @@ export interface DesignConfig {
   pocket?: boolean
   pocketStyle?: PocketStyle
   hem?: boolean
+  hemShape?: import('../cloth/Garment').HemShape
   closure?: boolean
   /** Wear the closure open (unbuttoned/unzipped) — the garment gaps at centre-front. */
   closureOpen?: boolean

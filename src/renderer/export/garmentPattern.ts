@@ -13,7 +13,7 @@ import type { GarmentParams } from '../garment/templates'
 import type { GarmentDefinition } from '../garments/schema'
 import { garmentPatternSpecs } from '../garments/factory'
 import { pocketPlacements } from '../garments/decor'
-import { radiusAt, topEdge, type AxisTubeSpec, type TubeSpec } from '../cloth/Garment'
+import { bottomEdge, radiusAt, topEdge, type AxisTubeSpec, type TubeSpec } from '../cloth/Garment'
 
 export interface Pt {
   x: number
@@ -110,7 +110,7 @@ function unwrapTube(spec: TubeSpec, centre: number): { outline: Pt[]; notches: P
   const colX = (a: number, t: number): number => radiusAt(spec, t) * (a - centre)
   const colY = (a: number, t: number): number => {
     const top = topAt(a)
-    return top + (spec.bottomY - top) * t
+    return top + (bottomEdge(spec, a) - top) * t // hem curve (high-low · shirttail · handkerchief)
   }
 
   const out: Pt[] = []
@@ -303,6 +303,7 @@ export function garmentToPanels(
     params.dart && 'darts',
     params.pocket && `${params.pocketStyle ?? 'patch'} pocket`,
     params.hem && 'rolled hem',
+    params.hemShape && params.hemShape !== 'straight' && `${params.hemShape} hem`,
     closure && `${closure} closure`,
     params.lined && 'lined',
     params.interfaced && 'interfaced',

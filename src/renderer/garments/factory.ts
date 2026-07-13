@@ -66,6 +66,7 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.7)
   }
   if (p.pleats) spec.pleat = p.pleatStyle ?? 'knife'
+  if (p.hemShape && p.hemShape !== 'straight') spec.hemShape = p.hemShape // curved hem (high-low · shirttail · handkerchief)
   // A worn-open closure splits the centre-front seam (only the torso piece has the placket).
   if (p.closure && p.closureOpen && pc.neckline) spec.openFront = true
   // Boning cinches the waist hard (corset silhouette) — overrides any softer cinch.
