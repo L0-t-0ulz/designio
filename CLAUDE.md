@@ -307,6 +307,9 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?pressure=1` (pressure / contact fit map — where the garment presses into the body) ·
 `?wrinkles=1` (strain-driven micro-wrinkles) · `?tearing=1` (**cloth tearing** — constraints rip past ~1.5× the fabric's stress-fail strain (`XPBDSolver.tearThreshold` + `onTear`), the mesh drops the bordering quads via the shared `tubeIndices` emitter) · `?wind=<still|breeze|gust|runway|storm>` (wind preset; **storm** = a turbulent noise *field* — `cloth/turbulence` per-particle swirl scaled by |wind|, so parts of the garment feel different air) ·
 `?simRes=<coarse|normal|fine|ultra>&simQuality=<0..1>` (dense-garment resolution + solver quality) ·
+`?freezeAt=<simSeconds>` (**deterministic snapshot mode** — the loop stops stepping at that exact sim
+step, frame-rate independent; capture tooling polls `window.__drapeSettled()`; used by
+`scripts/golden.cjs`, the golden-image CI) ·
 `?still=1` (freeze the start-page
 turntable) · `?page=start` (deep-link the
 builder) · `?page=projects[&demo]` (the Projects gallery; `demo` seeds a few looks). Entry is the homepage

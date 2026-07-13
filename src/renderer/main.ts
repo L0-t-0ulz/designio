@@ -542,6 +542,12 @@ function initStudio(
 
   // ---- loop ----
   let simTime = 0
+  // Deterministic snapshot mode (`?freezeAt=<simSeconds>` — capture tooling): stop
+  // stepping once sim time crosses the mark. The fixed-step sequence is frame-rate
+  // independent, so the frozen state is the SAME sim step every run — even for a
+  // look whose stack repulsion never lets the solvers reach their dead-stop sleep.
+  const freezeAtParam = new URLSearchParams(location.search).get('freezeAt')
+  const freezeAt = freezeAtParam === null ? null : Math.max(0, Number(freezeAtParam) || 0)
   let statusHandles: StatusHandles | null = null
   let frames = 0
   let fpsT = performance.now()
@@ -552,6 +558,7 @@ function initStudio(
   let drapeSettled = false
   const loop = new Loop(
     (dt) => {
+      if (freezeAt !== null && simTime >= freezeAt) return // frozen for deterministic capture
       simTime += dt
       if (windGust > 0) {
         const w = gustWind(windBaseX, windBaseZ, windGust, simTime) // pulse the wind (gust/breeze)
@@ -594,6 +601,15 @@ function initStudio(
   if (bt !== 'female' || Object.values(bodyScales).some((v) => v !== 1)) setBody(bodySize)
   applySkin() // complexion is independent of the geometry-resize condition above
   loop.start()
+
+  // Capture tooling (scripts/golden.cjs) polls this to snapshot the settled drape:
+  // true once the sim froze at its `?freezeAt` mark (or, without one, once every
+  // visible garment's solver reached its dead-stop sleep). A wall-clock wait breaks
+  // on CI's software rasterizer — the loop caps catch-up at 8 steps/frame, so slow
+  // frames make sim time lag wall time and a fixed wait can capture a mid-fall
+  // (nondeterministic) frame.
+  ;(window as unknown as { __drapeSettled?: () => boolean }).__drapeSettled = () =>
+    mode !== 'templates' || (freezeAt !== null ? simTime >= freezeAt : !stack.anyAdvanced())
 
   // ---- professional studio shell (menu bar · viewport · dock · status bar) ----
   const shell = createStudioShell(() => viewport.resize())
