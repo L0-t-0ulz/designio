@@ -1750,6 +1750,17 @@ canvas {
 .dio-shortcuts-list dd {
   margin: 0;
 }
+/* Scene wind compass dial */
+.dio-wind-dial-row {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+}
+.dio-wind-dial {
+  cursor: crosshair;
+  touch-action: none;
+}
+
 /* Render-tab focus pull */
 .dio-render-focus {
   display: inline-flex;
