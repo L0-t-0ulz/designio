@@ -17,6 +17,7 @@ import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
 import { TONE_MAPS, toneMappingMode, type ToneMapName } from '../core/tonemap'
 import { WIND_PRESETS } from '../cloth/windPresets'
+import { dialFromWind, windFromDial } from '../studio/windDial'
 import {
   bodyToMeasurements,
   setMeasurement,
@@ -1458,6 +1459,73 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   let windZ = 0
   const windXs = slider({ label: 'Wind ←→', min: -10, max: 10, step: 0.1, get: () => windX, set: (v) => { windX = v; opts.onSetWind(windX, windZ) } })
   const windZs = slider({ label: 'Wind ↕', min: -10, max: 10, step: 0.1, get: () => windZ, set: (v) => { windZ = v; opts.onSetWind(windX, windZ) } })
+  // Wind compass dial — drag to point the wind; distance from centre = strength.
+  const dial = el('canvas', 'dio-wind-dial') as HTMLCanvasElement
+  dial.width = dial.height = 116
+  const drawDial = (): void => {
+    const ctx = dial.getContext('2d')!
+    const c = dial.width / 2
+    ctx.clearRect(0, 0, dial.width, dial.height)
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.arc(c, c, c - 4, 0, Math.PI * 2)
+    ctx.stroke()
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2
+      ctx.beginPath()
+      ctx.moveTo(c + Math.sin(a) * (c - 9), c - Math.cos(a) * (c - 9))
+      ctx.lineTo(c + Math.sin(a) * (c - 4), c - Math.cos(a) * (c - 4))
+      ctx.stroke()
+    }
+    const d = dialFromWind(windX, windZ)
+    if (d.strength01 > 0.01) {
+      const len = d.strength01 * (c - 8)
+      const tipX = c + Math.sin(d.angle) * len
+      const tipY = c - Math.cos(d.angle) * len
+      ctx.strokeStyle = '#8b7cf8'
+      ctx.lineWidth = 2.5
+      ctx.beginPath()
+      ctx.moveTo(c, c)
+      ctx.lineTo(tipX, tipY)
+      ctx.stroke()
+      ctx.fillStyle = '#8b7cf8'
+      ctx.beginPath()
+      ctx.arc(tipX, tipY, 4, 0, Math.PI * 2)
+      ctx.fill()
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.35)'
+      ctx.beginPath()
+      ctx.arc(c, c, 3, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+  const dialSet = (ev: PointerEvent): void => {
+    const r = dial.getBoundingClientRect()
+    const c = r.width / 2
+    const dx = ev.clientX - r.left - c
+    const dy = ev.clientY - r.top - c
+    const strength01 = Math.min(1, Math.hypot(dx, dy) / (c - 8))
+    const angle = Math.atan2(dx, -dy)
+    const w = windFromDial(angle, strength01)
+    windX = Math.round(w.x * 10) / 10
+    windZ = Math.round(w.z * 10) / 10
+    opts.onSetWind(windX, windZ)
+    windXs.refresh()
+    windZs.refresh()
+    drawDial()
+  }
+  let dialDrag = false
+  dial.addEventListener('pointerdown', (ev) => {
+    dialDrag = true
+    dial.setPointerCapture(ev.pointerId)
+    dialSet(ev)
+  })
+  dial.addEventListener('pointermove', (ev) => dialDrag && dialSet(ev))
+  dial.addEventListener('pointerup', () => (dialDrag = false))
+  drawDial()
+  const dialRow = el('div', 'dio-wind-dial-row')
+  dialRow.append(dial)
   // Wind presets — art-direct the 4D secondary motion (still / breeze / gust / runway).
   const windRow = el('div', 'dio-actions')
   windRow.style.flexWrap = 'wrap'
@@ -1470,6 +1538,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
           windZ = base.z
           windXs.refresh()
           windZs.refresh()
+          drawDial()
         }
       })
       b.style.flex = '1 1 30%'
@@ -1525,6 +1594,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     ...(opts.scene ? [el('div', 'dio-field-label', 'Lighting'), lightRow, el('div', 'dio-field-label', 'Backdrop'), backdropRow] : []),
     slider({ label: 'Gravity', min: 0, max: 20, step: 0.1, get: () => gravity, set: (v) => { gravity = v; opts.onSetGravity(v) } }).row,
     ...(opts.onSetWindPreset ? [el('div', 'dio-field-label', 'Wind'), windRow] : []),
+    dialRow,
     windXs.row,
     windZs.row,
     el('div', 'dio-field-label', 'Tone-map'),
