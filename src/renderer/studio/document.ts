@@ -165,6 +165,8 @@ export interface GarmentLayerData {
   hemShape?: import('../cloth/Garment').HemShape
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
+  /** Closure decor design — button count/size/colour, zip tape + pull colours. */
+  closureDesign?: import('./closureDesign').ClosureDesign
   /** Wear the closure open (unbuttoned/unzipped) — the garment gaps at centre-front. */
   closureOpen?: boolean
   lined?: boolean
@@ -473,6 +475,7 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
   return {
     ...l,
     gradeRules: l.gradeRules ? { ...l.gradeRules } : undefined, // own copy — never share nested state across layers
+    closureDesign: l.closureDesign ? { ...l.closureDesign } : undefined,
     partFabrics: clonePartFabrics(l.partFabrics),
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined,
     textile: l.textile,
