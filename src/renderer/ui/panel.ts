@@ -35,6 +35,7 @@ import { getGarment } from '../garments/registry'
 import { button, colorField, el, section, slider, textField, toggle, type Refreshable } from './controls'
 import { patternSchematic } from './patternSchematic'
 import { DEFAULT_STITCH, SEAM_TYPES, THREAD_WEIGHTS, type StitchSpec } from '../garment/stitchTypes'
+import { physicalDefaults, clampPhysical, type PhysicalFabric } from '../fabric/physicalProps'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { ClosureDesign } from '../studio/closureDesign'
@@ -77,6 +78,8 @@ export interface GarmentState {
   piping?: boolean
   /** Seam & topstitch spec (type · needle · SPI · thread weight). */
   stitch?: import('../garment/stitchTypes').StitchSpec
+  /** Physical fabric override in real units (the fabric editor). */
+  physicalFabric?: import('../fabric/physicalProps').PhysicalFabric
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle
@@ -1539,6 +1542,31 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(slider({ label: 'Sheen streak', min: 0, max: 1, step: 0.01, get: () => current.anisotropy, set: (v) => { current.anisotropy = v; opts.onVisualEdit() } })),
     track(slider({ label: 'Sheerness', min: 0, max: 1, step: 0.01, get: () => current.transmission, set: (v) => { current.transmission = v; opts.onVisualEdit() } }))
   )
+  // Physical fabric editor — real units driving the solver (overrides the
+  // preset-derived drape; Reset returns to the preset). Seeds lazily from the
+  // current fabric so opening the editor changes nothing.
+  const phys = (): PhysicalFabric => garment.physicalFabric ?? physicalDefaults(opts.current)
+  const setPhys = (patch: Partial<PhysicalFabric>): void => {
+    garment.physicalFabric = clampPhysical({ ...phys(), ...patch })
+    opts.onGarmentEdit()
+  }
+  const physReset = button('Reset to preset', () => {
+    garment.physicalFabric = undefined
+    for (const r of physRows) r.refresh()
+    opts.onGarmentEdit()
+  })
+  const physRows: Refreshable[] = [
+    slider({ label: 'Weight', min: 40, max: 800, step: 5, format: (v) => `${v} g/m²`, get: () => phys().gsm, set: (v) => setPhys({ gsm: v }) }),
+    slider({ label: 'Thickness', min: 0.05, max: 4, step: 0.05, format: (v) => `${v.toFixed(2)} mm`, get: () => phys().thicknessMm, set: (v) => setPhys({ thicknessMm: v }) }),
+    slider({ label: 'Bending rigidity', min: 0.8, max: 120, step: 0.2, format: (v) => `${v.toFixed(1)} µN·m`, get: () => phys().bendRigidityUNm, set: (v) => setPhys({ bendRigidityUNm: v }) }),
+    slider({ label: 'Stretch (warp)', min: 0, max: 60, step: 1, format: (v) => `${v} %`, get: () => phys().stretchWarpPct, set: (v) => setPhys({ stretchWarpPct: v }) }),
+    slider({ label: 'Stretch (weft)', min: 0, max: 60, step: 1, format: (v) => `${v} %`, get: () => phys().stretchWeftPct, set: (v) => setPhys({ stretchWeftPct: v }) }),
+    slider({ label: 'Shear', min: 0, max: 60, step: 1, format: (v) => `${v} %`, get: () => phys().shearPct, set: (v) => setPhys({ shearPct: v }) })
+  ]
+  const physBlock = el('div')
+  physBlock.append(el('div', 'dio-field-label', 'Physical fabric (real units)'), ...physRows.map((r) => track(r)), physReset)
+  look.body.append(physBlock)
+
   if (opts.textile) look.body.append(textileControls(opts.textile))
   if (opts.ombre) look.body.append(ombreControls(opts.ombre))
   if (opts.wear) look.body.append(wearControls(opts.wear))

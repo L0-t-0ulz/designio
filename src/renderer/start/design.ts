@@ -41,6 +41,8 @@ export interface DesignConfig {
   piping?: boolean
   /** Seam & topstitch spec (type · needle · SPI · thread weight). */
   stitch?: import('../garment/stitchTypes').StitchSpec
+  /** Physical fabric override in real units. */
+  physicalFabric?: import('../fabric/physicalProps').PhysicalFabric
   dart?: boolean
   pocket?: boolean
   pocketStyle?: PocketStyle

@@ -57,6 +57,7 @@ import { demoArrangement } from './pattern/arrangement'
 import { demoStyleLines } from './pattern/styleLines'
 import { demoInternalShapes } from './pattern/panelFeatures'
 import { parseStitchParams, stitchSummary, SEAM_TYPES } from './garment/stitchTypes'
+import { parsePhysicalParams, physicalDefaults, physicalSummary } from './fabric/physicalProps'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
@@ -190,6 +191,7 @@ function initStudio(
     fringe: l0.fringe,
     piping: l0.piping,
     stitch: l0.stitch,
+    physicalFabric: l0.physicalFabric,
     dart: l0.dart,
     pocket: l0.pocket,
     pocketStyle: l0.pocketStyle,
@@ -339,6 +341,7 @@ function initStudio(
     garment.fringe = l.data.fringe
     garment.piping = l.data.piping
     garment.stitch = l.data.stitch
+    garment.physicalFabric = l.data.physicalFabric
     garment.dart = l.data.dart
     garment.pocket = l.data.pocket
     garment.pocketStyle = l.data.pocketStyle
@@ -758,6 +761,7 @@ function initStudio(
     l.data.fringe = garment.fringe
     l.data.piping = garment.piping
     l.data.stitch = garment.stitch
+    l.data.physicalFabric = garment.physicalFabric
     l.data.dart = garment.dart
     l.data.pocket = garment.pocket
     l.data.pocketStyle = garment.pocketStyle
@@ -1495,6 +1499,7 @@ function initStudio(
           // no explicit allowance → the seam type's recommended one (french/flat-fell need more)
           seam: l.data.seam ?? (l.data.stitch ? SEAM_TYPES[l.data.stitch.seamType].allowanceMm : 10),
           stitch: l.data.stitch ? { summary: stitchSummary(l.data.stitch), spec: l.data.stitch } : undefined,
+          physical: l.data.physicalFabric ? physicalSummary(l.data.physicalFabric) : undefined,
           fibre: careLabel(l.fabric).fibre,
           care: careLabel(l.fabric).care,
           careSymbols: careSymbols(careInstructions(l.fabric)),
@@ -2223,6 +2228,9 @@ if (skipStart) {
     // seam & topstitch spec: ?seamType= &needle= &spi= &threadWt=
     const stitch = parseStitchParams((k) => entryParams.get(k))
     if (stitch) cfg.stitch = stitch
+    // physical fabric override: ?gsm= &thickMm= &bend= &stretchWarp= &stretchWeft= &shear=
+    const phys = parsePhysicalParams((k) => entryParams.get(k), physicalDefaults(getFabric(cfg.fabricId ?? 'cotton-poplin')))
+    if (phys) cfg.physicalFabric = phys
   }
   if (entryParams.get('break')) cfg.trouserBreak = true
   if (entryParams.get('open')) (cfg.closure = true), (cfg.closureOpen = true) // worn-open placket/zip (functional opening)

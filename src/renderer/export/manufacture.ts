@@ -31,6 +31,8 @@ export interface ManufactureLayer {
   seam?: number
   /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
   stitch?: { summary: string; spec: import('../garment/stitchTypes').StitchSpec }
+  /** Physical fabric override in real units (one-line spec). */
+  physical?: string
   /** Auto-generated care label — fibre content + laundering instructions. */
   fibre?: string
   care?: string[]
@@ -163,6 +165,7 @@ function layerSection(l: ManufactureLayer): string {
             ${l.trim ? `<tr><td>Trim</td><td colspan="2">${esc(l.trim)}</td></tr>` : ''}
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
             ${l.stitch ? `<tr><td>Seams &amp; stitching</td><td colspan="2">${esc(l.stitch.summary)}</td></tr>` : ''}
+            ${l.physical ? `<tr><td>Fabric spec (measured)</td><td colspan="2">${esc(l.physical)}</td></tr>` : ''}
             <tr><td>Cloth area</td><td colspan="2">${l.metrics.fabricM2.toFixed(2)} m²</td></tr>
             ${
               l.marker
@@ -271,6 +274,7 @@ export function manufactureJSON(b: ManufactureBundle): string {
         marker_efficiency_pct: l.marker ? Math.round(l.marker.efficiency * 100) : null,
         seam_length_cm: l.metrics.seamCm,
         thread_m: l.stitch ? +threadMetresFor(l.metrics.seamCm, l.stitch.spec).toFixed(1) : threadMetres(l.metrics.seamCm),
+        fabric_physical: l.physical ?? null,
         stitching: l.stitch
           ? { ...l.stitch.spec, stitch_length_mm: +stitchLengthMm(l.stitch.spec.spi).toFixed(2), summary: l.stitch.summary }
           : null,
