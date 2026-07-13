@@ -138,20 +138,16 @@ export interface ArrangementOpts {
   pinTop?: boolean
 }
 
-/** Resample + centre one outline and mask its lattice (the panel's own frame). */
+/** Resample one outline and mask its lattice. The outline is taken AS DRAWN
+ *  relative to its arrangement azimuth (no centring) — a style-line piece's x
+ *  offset encodes its place in the original panel, so split pieces present
+ *  side by side instead of stacking on the azimuth. */
 function prepareGrid(outline: Pt[], spacing: number, samples: number): DrawnGrid {
   const sampled = resampleOutline(outline, samples)
   if (sampled.length < 3 || Math.abs(outlineArea(sampled)) < spacing * spacing * 4) {
     throw new Error('arranged panel outline is degenerate')
   }
-  let minX = Infinity
-  let maxX = -Infinity
-  for (const p of sampled) {
-    minX = Math.min(minX, p.x)
-    maxX = Math.max(maxX, p.x)
-  }
-  const midX = (minX + maxX) / 2
-  return panelGrid(sampled.map((p) => ({ x: p.x - midX, y: p.y })), spacing)
+  return panelGrid(sampled, spacing)
 }
 
 /**
