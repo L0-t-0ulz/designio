@@ -197,7 +197,13 @@ Renderer modules:
   side into one PNG; pure `lineupCells`/`lineupHues` are unit-tested, `main` snapshots per colourway +
   composites (the body/cloth sim is a singleton, so it composites snapshots rather than surgically
   offsetting colliders); File → Export runway line-up).
-- `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape).
+- `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape), `drawnPanel`
+  (**draw-your-own panel** — pure math from a sketched 2D outline to a sewn garment: `mirrorOutline`/
+  `resampleOutline`/`panelGrid` mask a lattice inside the outline, `classifyBoundary` splits its edge into
+  side seams (stitched front↔back) · top pins · open hem, `wrapDrawn` wraps front+back around the torso
+  arc-length-true, `buildDrawnPanel` sews it in a `ClothWorld`; unit-tested), `SketchPad` (the modal
+  sketch canvas — body guide + mirror symmetry, click/drag to draw, "Sew it" → `buildDrawn`; the sketch
+  sticks for fabric/body rebuilds while in Pattern mode).
 - `export/` — `exporters3d` (glTF/OBJ + **USDZ** for iOS AR Quick Look), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
   A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF; the cut line uses a
@@ -292,6 +298,7 @@ procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle 
 (two body prints) · `?prints=parts` (a print on the body + sleeves + legs — each print sits on its own
 piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
+`?drawnPanel=demo` (**draw-your-own panel** — sews the built-in demo sketch, a waisted scoop tank) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?open=1` (**functional opening** — the closure worn open: `TubeSpec.openFront` slits the mesh at `openSeamColumn` and `XPBDSolver.cutSeam` unsews the matching constraints, so the garment really gaps and hangs open) ·
 `?lined/interfaced/waistband/facing/drawstring/ruffles/boning/ribbing/yoke/princess=1` (more construction detail) ·

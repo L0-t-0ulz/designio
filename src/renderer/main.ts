@@ -51,6 +51,8 @@ import type { NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
+import { openSketchPad, sketchPadOpen, closeSketchPad } from './pattern/SketchPad'
+import { demoOutline } from './pattern/drawnPanel'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
@@ -813,6 +815,11 @@ function initStudio(
   // ---- deep-links (snapshots) ----
   const params = new URLSearchParams(location.search)
   if (params.get('mode') === 'pattern') setMode('pattern')
+  if (params.get('drawnPanel') === 'demo') {
+    // draw-your-own panel, exercised headlessly: sew the built-in demo sketch
+    setMode('pattern') // assigns patternCtl (the narrowing can't see through the call)
+    ;(patternCtl as PatternController | null)?.buildDrawn(demoOutline(), patternParams)
+  }
   const animParam = params.get('anim') as AnimationMode | null
   if (animParam) setAnimMode(animParam)
   const poseParam = params.get('pose')
@@ -1496,6 +1503,7 @@ function initStudio(
     const t = e.target as HTMLElement | null
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
     if (e.key === 'Escape' && shortcutsOpen()) return closeShortcuts()
+    if (e.key === 'Escape' && sketchPadOpen()) return closeSketchPad()
     if (e.key === 'Escape' && tourOpen()) return closeTour()
     if (e.key === '?') return e.preventDefault(), toggleShortcuts()
     const action = actionFor(keymap(), { key: e.key, mod: e.metaKey || e.ctrlKey, shift: e.shiftKey })
@@ -1715,6 +1723,9 @@ function initStudio(
       centerTabs.refresh()
     },
     onResew: () => patternCtl?.resew(),
+    // sketch a freeform panel → sew it (the pattern section is only visible in
+    // Pattern mode, so patternCtl exists when this fires)
+    onDrawPanel: () => openSketchPad((outline) => patternCtl?.buildDrawn(outline, patternParams)),
     onDrop: () => (mode === 'templates' ? stack.redrapeActive() : patternCtl?.resew()),
     recommendSize: () => {
       const l = stack.active
