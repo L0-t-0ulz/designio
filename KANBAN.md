@@ -134,7 +134,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Drape swatch comparator** — two hanging cloth squares side by side (rod-pinned mini sims) to compare any two fabrics' drape directly
 - [ ] **Slip / smoothing underlayer** — an optional invisible-in-render underlayer the outer garment drapes over (smooths body detail like real shapewear)
 - [ ] **Steam & press tool** — click-drag a region to relax its wrinkles (locally reset bend rest state) — the virtual iron
-- [ ] **Strain on the 2D pattern** — project the live 3D strain onto the flat panels so the pattern shows where it pulls (per-panel heat tint)
+- [x] **Strain on the 2D pattern** — per-panel mean-tension tint in the 2D pane while a strain view is on (`panelStrains` + `strainTint`; exports untinted) — PR #286
 - [ ] **Hanger shot** — the ghost-mannequin variant on a hanger: a hanger prop + shoulder-pinned hanging drape for the classic e-commerce alternate
 - [x] **Wind compass dial** — a drag compass (direction + radial strength) synced with the sliders/presets (`studio/windDial`) — PR #280
 - [ ] **Pattern annotations** — text notes pinned to 2D panels, exported to SVG + a DXF ANNOTATION layer (round-trips with import)
