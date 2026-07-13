@@ -146,6 +146,17 @@ export const GARMENTS: GarmentDefinition[] = [
     defaultFabric: 'silk-charmeuse'
   },
   {
+    id: 'dress-shirt',
+    name: 'Dress shirt',
+    category: 'top',
+    icon: 'top',
+    // the tailored shirt block: crisp shirt collar, front placket, buttoned cuffs, back yoke
+    pieces: [upperTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    defaults: { length: 0.66, ease: 0.03, flare: 0.03, neckline: 'crew', sleeve: 'long', collar: true, collarStyle: 'shirt', closure: true, cuff: true, yoke: true, dart: true },
+    defaultFabric: 'cotton-poplin'
+  },
+  {
     id: 'hoodie',
     name: 'Hoodie',
     category: 'top',
@@ -369,6 +380,54 @@ export const GARMENTS: GarmentDefinition[] = [
     pieces: [coatTube, { kind: 'sleeves' }],
     supports: upperCaps,
     defaults: { length: 0.85, ease: 0.06, flare: 0.08, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'flap', closure: true, lined: true, interfaced: true },
+    defaultFabric: 'wool-flannel'
+  },
+  {
+    id: 'waistcoat',
+    name: 'Waistcoat',
+    category: 'top',
+    icon: 'top',
+    // the vest block: fitted, deep-V, buttoned, cropped at the hip, no sleeves
+    pieces: [upperTube],
+    supports: { ...sleevelessCaps, cuff: false },
+    defaults: { length: 0.42, ease: 0.012, flare: 0, neckline: 'v', sleeve: 'none', closure: true, dart: true, lined: true, pocket: true, pocketStyle: 'welt' },
+    defaultFabric: 'wool-flannel'
+  },
+  {
+    id: 'suit-jacket',
+    name: 'Suit jacket',
+    category: 'outerwear',
+    icon: 'top',
+    // the suit block: a closer, more structured blazer — nipped waist, notch lapels,
+    // two-button front, welt pockets, fully lined + interfaced
+    pieces: [upperTube, { kind: 'sleeves' }],
+    supports: upperCaps,
+    defaults: { length: 0.7, ease: 0.035, flare: 0.03, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'welt', closure: true, lined: true, interfaced: true, dart: true },
+    defaultFabric: 'wool-flannel'
+  },
+  {
+    id: 'suit-trousers',
+    name: 'Suit trousers',
+    category: 'bottom',
+    icon: 'pants',
+    // the matching half of the suit: pressed crease + slight break, tapered, waistbanded
+    pieces: [{ kind: 'legTubes' }],
+    supports: { ...lowerCaps, ...trousersCaps },
+    defaults: { length: 0.62, ease: 0.02, flare: 0.02, crease: true, trouserBreak: true, waistband: true, dart: true },
+    defaultFabric: 'wool-flannel'
+  },
+  {
+    id: 'overcoat',
+    name: 'Overcoat',
+    category: 'outerwear',
+    icon: 'dress',
+    // the long formal block: below-knee, roomy over a suit, deep flap pockets
+    pieces: [
+      { kind: 'bodyTube', topAnchor: 'shoulder', hemDropHi: 0.9, hemDropLo: 1.35, topR: 'chest', botR: 'hip', flareScale: 0.8, neckline: true },
+      { kind: 'sleeves' }
+    ],
+    supports: upperCaps,
+    defaults: { length: 0.55, ease: 0.08, flare: 0.07, neckline: 'v', sleeve: 'long', collar: true, collarStyle: 'notch', pocket: true, pocketStyle: 'flap', closure: true, lined: true, interfaced: true },
     defaultFabric: 'wool-flannel'
   },
   {
