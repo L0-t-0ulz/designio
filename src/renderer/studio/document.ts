@@ -182,6 +182,8 @@ export interface GarmentLayerData {
   ribbing?: boolean
   yoke?: boolean
   princess?: boolean
+  /** Smoothing underlayer — simulated (outer garments drape over it) but never rendered. */
+  underlayer?: boolean
   /** Pinned pattern notes (mm, pattern-layout space) — rendered in the 2D pane + exported. */
   patternNotes?: { x: number; y: number; text: string }[]
   /** Pilling & fuzz aging (0…1) — bobbled, matte aged-knit surface. */
@@ -459,6 +461,12 @@ export function docFromConfig(c: DesignConfig, scene: SceneData = defaultScene()
     layers: [layerFromConfig(c)],
     activeIndex: 0
   }
+}
+
+/** Whether a layer's meshes render: visible AND not a smoothing underlayer
+ *  (underlayers keep visible=true so they simulate + collide, but never draw). */
+export function layerShown(d: Pick<GarmentLayerData, 'visible' | 'underlayer'>): boolean {
+  return !!d.visible && !d.underlayer
 }
 
 export function cloneLayer(l: GarmentLayerData): GarmentLayerData {

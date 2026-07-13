@@ -31,7 +31,7 @@ import { stressColor, stressThreshold } from '../fabric/stress'
 import { pressureColor } from '../fabric/pressure'
 import { makePillNormalMap } from '../fabric/pilling'
 import { wrinkleAmount, installWrinkle, uninstallWrinkle } from '../fabric/wrinkle'
-import { gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
+import { layerShown, gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
 const EMPTY_ART: DesignArtInput = { color: 0xffffff, prints: [] }
@@ -528,8 +528,10 @@ export class GarmentStack {
   }
 
   private applyVisibility(l: StackLayer): void {
-    for (const m of l.controller.getMeshes()) m.visible = l.data.visible
-    l.decor.visible = l.data.visible
+    // an underlayer simulates (visible=true keeps it stepping + colliding) but never renders
+    const shown = layerShown(l.data)
+    for (const m of l.controller.getMeshes()) m.visible = shown
+    l.decor.visible = shown
   }
 
   /** Dispose every decor mesh's geometry (recursively) + detach the children. Decor
@@ -1275,7 +1277,14 @@ export class GarmentStack {
 
   removeActive(): void {
     if (this.layers.length <= 1) return // always keep at least one garment
-    const [l] = this.layers.splice(this.activeIndex, 1)
+    this.removeLayer(this.layers[this.activeIndex])
+  }
+
+  /** Remove a specific layer (the smoothing slip toggle removes by reference). */
+  removeLayer(layer: StackLayer): void {
+    const i = this.layers.indexOf(layer)
+    if (i === -1 || this.layers.length <= 1) return
+    const [l] = this.layers.splice(i, 1)
     l.controller.clear()
     disposeMats(l)
     disposeDesigns(l)
