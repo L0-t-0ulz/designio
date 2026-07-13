@@ -674,8 +674,8 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 ## 🧭 Roadmap — 50 more _(deeper product bets — new categories, engineering & platform)_
 
 **Kids, maternity & adaptive**
-- [ ] **Kids' size range** — toddler → teen blocks with age-appropriate proportions
-- [ ] **Maternity fit** — an expandable belly panel + a drape that adjusts through trimesters
+- [x] **Kids' size range** — toddler → teen blocks with age-appropriate proportions (`avatar/kidsSizes` — head prominence + torso straightness fall with age; panel Life-stage buttons, `?kids=`) — PR #296
+- [x] **Maternity fit** — an expandable belly panel + a drape that adjusts through trimesters (`avatar/maternity` — one capsule = collider AND visual metaball at index 13; trimester slider, `?belly=0..3`) — PR #296
 - [ ] **Adaptive wear** — seated-fit patterns, magnetic closures, one-hand fastenings
 - [ ] **Petite / tall / plus auto-proportioning** — re-grade the whole catalog per body archetype
 - [ ] **Unisex / gender-neutral blocks** — a shared block that fits across bodies
