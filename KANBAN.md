@@ -138,7 +138,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Hanger shot** — the ghost-mannequin variant on a hanger: a hanger prop + shoulder-pinned hanging drape for the classic e-commerce alternate
 - [ ] **Wind compass dial** — an interactive direction/strength dial in the Scene panel replacing the raw x/z sliders
 - [ ] **Pattern annotations** — text notes pinned to 2D panels, exported to SVG + a DXF ANNOTATION layer (round-trips with import)
-- [ ] **Size-run strip** — one composite PNG of the garment at XS→XXL side by side on the graded body (the line-up machinery, sized not coloured)
+- [x] **Size-run strip** — XS→XXL worn side by side, block-labelled, settled synchronously per size (`studio/sizeRunStrip`, File menu) — PR #278
 - [ ] **Anatomy camera bookmarks** — one-click face · bust · waist · hem · back-detail framings computed from the live measurements (extends camera bookmarks)
 
 
