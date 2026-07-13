@@ -36,6 +36,7 @@ import { contactGrid, contactViews } from './studio/contactSheet'
 import { sizeRunPlan } from './studio/sizeRunStrip'
 import { anatomyShots } from './studio/anatomyShots'
 import { buildHangerProp, hangerCapsule } from './studio/hangerShot'
+import { openDrapeComparator } from './ui/drapeComparator'
 import { viewer360HTML } from './export/viewer360'
 import { lineSheetHTML } from './export/lineSheet'
 import { qcSheetHTML } from './export/qcSheet'
@@ -1544,6 +1545,7 @@ function initStudio(
     },
     onToggleGhost: () => setGhostMode(!ghostOn),
     onToggleHanger: () => setHangerShot(!stack.hangerMode),
+    onDrapeComparator: () => openDrapeComparator({ current: stack.active.fabric, library: FABRIC_LIBRARY }),
     onClearMeasure: () => {
       measureTool?.clear()
       setMeasureMode('off')

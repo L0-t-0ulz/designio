@@ -1750,6 +1750,15 @@ canvas {
 .dio-shortcuts-list dd {
   margin: 0;
 }
+/* Drape comparator labels */
+.dio-drape-labels {
+  display: flex;
+  justify-content: space-around;
+  font-size: 11.5px;
+  color: var(--fg-1, #9aa0aa);
+  margin: 6px 0;
+}
+
 /* Pattern-note floating input */
 .dio-pat-note-input {
   position: fixed;
