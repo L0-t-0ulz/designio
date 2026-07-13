@@ -141,7 +141,12 @@ Renderer modules:
   sheen for a fuzzy look, no extra geometry), `namedColors`
   (a curated **named textile colour library** — `TR-####` production refs; pure `nearestNamedColor`/
   `colorRefLabel` map any picked hue to its closest reference, shown in the panel + the tech-pack BOM),
-  `heatmap` (**fit / tension heatmap** — pure `strainToColor` slack→blue→tight→red ramp is unit-tested;
+  `drapeBench` (**virtual drape test** — the Cusick circular-drape bench MEASURED on the live solver
+  (a disc settles over a capsule pedestal → shadow-area **drape coefficient %**, deterministic,
+  milliseconds) + the Peirce cantilever DERIVED from flexural rigidity (G = w·c³ → bending length;
+  in-sim strips are non-physical at that scale — every fabric hangs a thin strip near-vertical);
+  `🧪 Virtual drape test` button under Appearance + `?drapeTest=1`; unit-tested against real-world
+  bending-length ranges), `heatmap` (**fit / tension heatmap** — pure `strainToColor` slack→blue→tight→red ramp is unit-tested;
   the stack bakes `XPBDSolver.strain` into mesh vertex colours so you see where a garment pulls; the same
   strain-view machinery also does `stress` — a **fabric-aware fit-failure** colouring, `stressThreshold`
   scaling by the fabric's stretch so a stiff woven reds out sooner than a knit — and `pressure` — the
@@ -321,6 +326,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?internalShapes=demo` (**internal shapes & notches** — waist darts stitched closed (real take-up) + a keyhole back cut-out) ·
 `?seamType=<plain|french|flat-fell|overlock>&spi=<4..22>&needle=<single|double>&threadWt=<tex-27|tex-40|tex-60>` (**seam & topstitch spec** — SPI dash pitch + twin double-needle rows read on the garment; the spec lands in the tech pack) ·
 `?gsm=<40..800>&thickMm=<0.05..4>&bend=<0.8..120>&stretchWarp=<0..60>&stretchWeft=<0..60>&shear=<0..60>` (**physical fabric override** — real units driving the solver; unset fields seed from the fabric preset) ·
+`?drapeTest=1` (**virtual drape test** — run the drape bench for the active fabric; drape coefficient % + bending length as a toast/console line) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?open=1` (**functional opening** — the closure worn open: `TubeSpec.openFront` slits the mesh at `openSeamColumn` and `XPBDSolver.cutSeam` unsews the matching constraints, so the garment really gaps and hangs open) ·
 `?lined/interfaced/waistband/facing/drawstring/ruffles/boning/ribbing/yoke/princess=1` (more construction detail) ·
