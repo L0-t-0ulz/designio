@@ -149,7 +149,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Draw-your-own panel** — sketch a custom 2D panel (freeform + mirror symmetry), then sew it onto the body — PR #298
 - [x] **Sewing lines & arrangement** — place pattern panels around the avatar with arrangement points, define **seam lines** between panel edges (mismatched lengths eased), then simulate to stitch + drape — the deferred half of #169, built on `ClothWorld` seam constraints — PR #299
 - [x] **Style lines** — draw a seam across a panel to split it (yoke + body, princess seam, colour-block), then re-sew the pieces; the split grades + exports as separate pattern panels — PR #300
-- [ ] **Internal shapes & notches** — darts, drill holes, notches and internal cut-outs authored on a panel (real fabric take-up in 3D + marked on the flat pattern)
+- [x] **Internal shapes & notches** — darts, drill holes, notches and internal cut-outs authored on a panel (real fabric take-up in 3D + marked on the flat pattern) — PR #301
 - [ ] **Seam & topstitch types** — a stitch library (plain / french / flat-fell seams; single- vs double-needle topstitch, SPI, thread weight) that reads on the 3D garment and in the tech pack
 
 **Fabric science** _(spec cloth the way a mill / Browzwear FAB does)_
