@@ -179,6 +179,8 @@ export interface GarmentLayerData {
   ribbing?: boolean
   yoke?: boolean
   princess?: boolean
+  /** Pilling & fuzz aging (0…1) — bobbled, matte aged-knit surface. */
+  pilling?: number
   /** Eco-material flags — recycled-content or deadstock fabric (sustainability pack). */
   recycledFabric?: boolean
   deadstockFabric?: boolean

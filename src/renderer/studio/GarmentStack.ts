@@ -29,6 +29,7 @@ import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
 import { pressureColor } from '../fabric/pressure'
+import { makePillNormalMap } from '../fabric/pilling'
 import { wrinkleAmount, installWrinkle, uninstallWrinkle } from '../fabric/wrinkle'
 import { gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
 
@@ -407,6 +408,14 @@ export class GarmentStack {
       // a surface finish sets its own scalar roughness — drop the weave roughness map
       // (set by applyFabric) so it doesn't modulate the sequin/quilt/foil/fur surface.
       if (sp || ql || ir || fur) m.roughnessMap = null
+      // pilling & fuzz aging — pill bobbles + a matte fuzz lift, unless a structural
+      // finish (sparkle/quilt/fur) already owns the normal map
+      if (!sp && !ql && !fur && (l.data.pilling ?? 0) > 0) {
+        m.normalMap = makePillNormalMap(l.data.pilling!)
+        m.normalScale.set(1, 1)
+        m.roughness = Math.min(1, m.roughness + 0.25 * l.data.pilling!)
+        m.roughnessMap = null
+      }
       if (sp && sparkleNormalMap) {
         m.normalMap = sparkleNormalMap
         m.normalScale.set(sp.normalStrength, sp.normalStrength)

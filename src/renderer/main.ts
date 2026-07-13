@@ -198,6 +198,7 @@ function initStudio(
     princess: l0.princess,
     seam: l0.seam,
     notches: l0.notches,
+    pilling: l0.pilling,
     recycledFabric: l0.recycledFabric,
     deadstockFabric: l0.deadstockFabric,
     trim: l0.trim
@@ -343,6 +344,7 @@ function initStudio(
     garment.princess = l.data.princess
     garment.seam = l.data.seam
     garment.notches = l.data.notches
+    garment.pilling = l.data.pilling
     garment.recycledFabric = l.data.recycledFabric
     garment.deadstockFabric = l.data.deadstockFabric
     garment.trim = l.data.trim
@@ -722,6 +724,7 @@ function initStudio(
     l.data.princess = garment.princess
     l.data.seam = garment.seam
     l.data.notches = garment.notches
+    l.data.pilling = garment.pilling
     l.data.recycledFabric = garment.recycledFabric
     l.data.deadstockFabric = garment.deadstockFabric
     l.data.trim = garment.trim
@@ -826,6 +829,11 @@ function initStudio(
   if (params.get('stress') === '1') stack.setStress(true)
   if (params.get('pressure') === '1') stack.setPressure(true)
   if (params.get('tearing') === '1') stack.setTearing(true)
+  const pillingParam = params.get('pilling')
+  if (pillingParam && Number.isFinite(+pillingParam)) {
+    stack.active.data.pilling = Math.max(0, Math.min(1, +pillingParam))
+    stack.applyLook(stack.active)
+  }
   // Ghost mannequin — hide the body/accessories/hair (colliders stay live) for a product shot
   let ghostOn = false
   const setGhostMode = (on: boolean): void => {

@@ -279,7 +279,7 @@ exports a PNG **with alpha**) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
 the garment, behind the prints) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
-into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) ·
+into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
 `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
 procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
