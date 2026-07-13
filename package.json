@@ -17,6 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "snapshot": "npm run build && electron scripts/capture.cjs docs/preview.png 8000",
+    "golden": "npm run build && electron scripts/golden.cjs --check",
+    "golden:update": "npm run build && electron scripts/golden.cjs --update",
     "capture": "npm run build && node scripts/capture-readme.cjs"
   },
   "dependencies": {

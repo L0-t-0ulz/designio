@@ -31,3 +31,25 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  golden:
+    name: golden images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      # Electron needs its binary here (it renders the frames), plus xvfb for a display.
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libnss3 libgbm1
+      - run: npm ci
+      - run: npm run build
+      - name: Render + compare golden images
+        run: xvfb-run -a --server-args="-screen 0 1280x900x24" npx electron scripts/golden.cjs --check
+      - name: Upload rendered frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-out
+          path: golden-out/
