@@ -58,6 +58,7 @@ import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack
 import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { strainTint } from './fabric/heatmap'
+import { openRepeatPreview } from './ui/repeatPreview'
 import { pomTable } from './export/pom'
 import { bodyToMeasurements } from './avatar/measure'
 import { recommendSize } from './avatar/sizeRecommend'
@@ -1590,6 +1591,12 @@ function initStudio(
       schedulePhysics()
     },
     onGarmentEdit: applyGarmentEdit,
+    onPreviewRepeat: () => {
+      const l = stack.active
+      if (!l.data.textile) return showToast('Pick a textile pattern first', 'info')
+      const chest = activeMetrics(l).rows.find((r) => r.label === 'Chest' || r.label === 'Waist')
+      openRepeatPreview({ pattern: l.data.textile, baseColor: l.data.color, girthCm: chest?.cm ?? 94 })
+    },
     onPatternEdit: () => {
       patternCtl?.build(patternParams)
       centerTabs.refresh()

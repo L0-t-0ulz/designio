@@ -218,6 +218,8 @@ export interface PanelOptions {
   prints?: PrintControls
   /** The repeating textile pattern tiled across the whole garment (optional). */
   textile?: { get: () => TextilePattern | undefined; set: (t: TextilePattern | undefined) => void }
+  /** Open the real-scale repeat preview for the current textile. */
+  onPreviewRepeat?: () => void
   /** A dip-dye / ombré gradient baked into the albedo (optional). */
   ombre?: { get: () => OmbreDirection | undefined; set: (d: OmbreDirection | undefined) => void }
   /** A distressed / washed / faded wear finish (optional). */
@@ -1011,7 +1013,12 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       })
       row.append(b)
     }
-    wrap.append(el('div', 'dio-field-label', 'Textile pattern'), row)
+    if (opts.onPreviewRepeat) {
+      const prev = button('Preview repeat (cm ruler)', () => opts.onPreviewRepeat!())
+      wrap.append(el('div', 'dio-field-label', 'Textile pattern'), row, prev)
+    } else {
+      wrap.append(el('div', 'dio-field-label', 'Textile pattern'), row)
+    }
     return wrap
   }
 
