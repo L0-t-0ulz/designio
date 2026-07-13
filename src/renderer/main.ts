@@ -33,6 +33,7 @@ import { MeasureTool, type MeasureMode } from './studio/MeasureTool'
 import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPattern } from './export/patternImport'
 import { lineupCells, lineupHues } from './studio/lineup'
 import { contactGrid, contactViews } from './studio/contactSheet'
+import { sizeRunPlan } from './studio/sizeRunStrip'
 import { viewer360HTML } from './export/viewer360'
 import { lineSheetHTML } from './export/lineSheet'
 import { qcSheetHTML } from './export/qcSheet'
@@ -1048,6 +1049,59 @@ function initStudio(
     statusHandles?.setSelection(`Runway line-up — ${colors.length} looks`)
   }
 
+  // Size-run strip — the garment worn at every size XS→XXL, side by side (the
+  // line-up machinery, sized not coloured). Each size is re-graded + settled
+  // synchronously before its still.
+  async function exportSizeRunStrip(): Promise<void> {
+    const l = stack.active
+    const origSize = l.data.size
+    const cellW = 520
+    const plan = sizeRunPlan()
+    const urls: string[] = []
+    for (const cell of plan) {
+      l.data.size = cell.size
+      stack.rebuild(l)
+      for (let i = 0; i < 150; i++) stack.step(1 / 60) // settle the fresh drape headlessly
+      stack.updateMeshes()
+      urls.push(viewport.renderStill(cellW))
+    }
+    l.data.size = origSize // restore the working design
+    stack.rebuild(l)
+    for (let i = 0; i < 150; i++) stack.step(1 / 60)
+    stack.updateMeshes()
+    const load = (u: string): Promise<HTMLImageElement> =>
+      new Promise((res, rej) => {
+        const im = new Image()
+        im.onload = () => res(im)
+        im.onerror = () => rej(new Error('image decode failed'))
+        im.src = u
+      })
+    const imgs = await Promise.all(urls.map(load))
+    const cellH = imgs[0]?.height ?? cellW
+    const labelH = 30
+    const { totalW, xs } = lineupCells(plan.length, cellW, 0)
+    const canvas = document.createElement('canvas')
+    canvas.width = totalW
+    canvas.height = cellH + labelH
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = '#101014'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.font = '600 15px system-ui, sans-serif'
+    ctx.textAlign = 'center'
+    imgs.forEach((im, i) => {
+      ctx.drawImage(im, xs[i], 0)
+      ctx.fillStyle = '#c9cbd4'
+      ctx.fillText(plan[i].label, xs[i] + cellW / 2, cellH + labelH * 0.7)
+    })
+    const b64 = canvas.toDataURL('image/png').split(',')[1] ?? ''
+    const bin = atob(b64)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'size-run'
+    await saveFile(`${safe}-size-run.png`, bytes, [{ name: 'PNG image', extensions: ['png'] }])
+    statusHandles?.setSelection(`Size-run strip — ${plan.length} sizes`)
+  }
+
   // Multi-angle contact sheet — the classic product-turnaround grid: the garment
   // shot from N angles around the current view, labelled + composited into one PNG.
   async function exportContactSheet(): Promise<void> {
@@ -1391,6 +1445,7 @@ function initStudio(
     },
     onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
     onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
+    onSizeRunStrip: () => void exportSizeRunStrip().catch((err) => showToast('Size-run strip failed: ' + (err as Error).message, 'error')),
     onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),
     onLineSheet: () => void exportLineSheet().catch((err) => showToast('Line sheet failed: ' + (err as Error).message, 'error')),
     onQcSheet: () => void exportQcSheet().catch((err) => showToast('QC sheet failed: ' + (err as Error).message, 'error')),

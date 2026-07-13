@@ -39,6 +39,7 @@ export interface MenuActions {
   onClearMeasure: () => void
   onRunwayLineup: () => void
   onContactSheet: () => void
+  onSizeRunStrip: () => void
   onViewer360: () => void
   onLineSheet: () => void
   onQcSheet: () => void
@@ -153,6 +154,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Record slow-motion clip (0.25×, 6 s)', run: a.onRecordSlowMo },
     { label: 'Export runway line-up (PNG)', run: a.onRunwayLineup },
     { label: 'Export contact sheet — multi-angle (PNG)', run: a.onContactSheet },
+    { label: 'Export size-run strip — XS→XXL (PNG)', run: a.onSizeRunStrip },
     { label: 'Export 360° viewer (HTML)', run: a.onViewer360 },
     { label: 'Export line sheet (HTML)', run: a.onLineSheet },
     { label: 'Export QC inspection sheet (HTML)', run: a.onQcSheet },
