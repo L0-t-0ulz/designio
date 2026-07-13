@@ -211,7 +211,12 @@ Renderer modules:
   `splitOutline` cuts a closed outline along a drawn polyline into two pieces (yoke · princess ·
   colour-block) that re-sew along the cut via the arrangement seam pairing; per-piece hue tints
   colour-block the pieces (`buildArranged(..., tints)`); `outlinesToSVG` exports the split pieces as
-  separate flat pattern panels; unit-tested).
+  separate flat pattern panels; unit-tested), `panelFeatures` (**internal shapes & notches** — `Dart`/
+  `dartWedge` wedges + internal cut-outs remove REAL lattice fabric (`panelGrid` holes; `classifyBoundary`
+  keeps hole borders free), `closeRegionStitches` sews a dart's wedge shut row by row for true fabric
+  take-up (the panel bows into 3D), `outlinePointAt` places seam-notch marks; cut-outs/darts/notches/
+  drills land on `outlinesToSVG` as dashed shapes · fold wedges · ticks · circles; unit-tested — incl.
+  a headless darted-vs-undarted hem-span take-up assertion).
 - `export/` — `exporters3d` (glTF/OBJ + **USDZ** for iOS AR Quick Look), `garmentPattern` (**real per-garment flat pattern**: unwraps the
   selected garment's `TubeSpec`s into true 2D panels — bodice front/back with the neckline curve + armhole,
   A-line skirt/dress panels, tapered trouser legs, shaped sleeve — as SVG/DXF; the cut line uses a
@@ -309,6 +314,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?drawnPanel=demo` (**draw-your-own panel** — sews the built-in demo sketch, a waisted scoop tank) ·
 `?arranged=demo` (**sewing lines & arrangement** — the four-panel colour-block bodice: panels placed at arrangement points, side seams eased) ·
 `?styleLines=demo` (**style lines** — the bodice front split by a princess curve, colour-blocked + re-sewn) ·
+`?internalShapes=demo` (**internal shapes & notches** — waist darts stitched closed (real take-up) + a keyhole back cut-out) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·
 `?open=1` (**functional opening** — the closure worn open: `TubeSpec.openFront` slits the mesh at `openSeamColumn` and `XPBDSolver.cutSeam` unsews the matching constraints, so the garment really gaps and hangs open) ·
 `?lined/interfaced/waistband/facing/drawstring/ruffles/boning/ribbing/yoke/princess=1` (more construction detail) ·

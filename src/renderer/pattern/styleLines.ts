@@ -1,5 +1,6 @@
 import { outlineArea, type Pt } from './drawnPanel'
 import { ARRANGEMENT_POINTS, type PlacedPanel, type SeamDef } from './arrangement'
+import { outlinePointAt } from './panelFeatures'
 
 /**
  * Style lines — draw a seam path across a panel and it splits into separate
@@ -134,7 +135,20 @@ export function demoStyleLines(): { panels: PlacedPanel[]; seams: SeamDef[] } {
 /** Export split pieces as separate flat pattern panels (pure SVG, mm scale,
  *  pieces laid side by side with labels — the style-line counterpart of
  *  `patternToSVG`). */
-export function outlinesToSVG(pieces: Array<{ name: string; outline: Pt[] }>, seamAllowanceM = 0.01): string {
+export interface ExportPiece {
+  name: string
+  outline: Pt[]
+  /** Internal cut-outs — dashed inner polygons. */
+  holes?: Pt[][]
+  /** Dart wedges — dash-dot fold wedges. */
+  sewnHoles?: Pt[][]
+  /** Seam notches: normalised arc positions [0..1] along the outline — ticks. */
+  notches?: number[]
+  /** Drill holes: marked circles (panel space, m). */
+  drills?: Pt[]
+}
+
+export function outlinesToSVG(pieces: ExportPiece[], seamAllowanceM = 0.01): string {
   const M = 20 // page margin, mm
   const GAP = 30
   const sa = seamAllowanceM * 1000
@@ -154,13 +168,40 @@ export function outlinesToSVG(pieces: Array<{ name: string; outline: Pt[] }>, se
     }
     const w = (maxX - minX) * 1000
     const h = (maxY - minY) * 1000
-    const pts = piece.outline
-      .map((p) => `${(x0 + sa + (p.x - minX) * 1000).toFixed(1)},${(M + sa + (maxY - p.y) * 1000).toFixed(1)}`)
-      .join(' ')
+    const X = (p: Pt): string => (x0 + sa + (p.x - minX) * 1000).toFixed(1)
+    const Y = (p: Pt): string => (M + sa + (maxY - p.y) * 1000).toFixed(1)
+    const poly = (o: Pt[]): string => o.map((p) => `${X(p)},${Y(p)}`).join(' ')
     blocks.push(
-      `<polygon points="${pts}" fill="none" stroke="#111" stroke-width="0.6"/>`,
+      `<polygon points="${poly(piece.outline)}" fill="none" stroke="#111" stroke-width="0.6"/>`,
       `<text x="${(x0 + sa + w / 2).toFixed(1)}" y="${(M + sa + h / 2).toFixed(1)}" font-size="10" text-anchor="middle" fill="#666">${piece.name}</text>`
     )
+    // internal cut-outs (cut away) vs dart wedges (fold + sew) get distinct dashes
+    for (const hole of piece.holes ?? []) {
+      blocks.push(`<polygon points="${poly(hole)}" fill="none" stroke="#111" stroke-width="0.4" stroke-dasharray="3 2"/>`)
+    }
+    for (const wedge of piece.sewnHoles ?? []) {
+      blocks.push(`<polygon points="${poly(wedge)}" fill="none" stroke="#111" stroke-width="0.4" stroke-dasharray="6 2 1 2"/>`)
+    }
+    // seam notches: 4 mm ticks pointing into the piece
+    let cx = 0
+    let cy = 0
+    for (const p of piece.outline) {
+      cx += p.x
+      cy += p.y
+    }
+    cx /= piece.outline.length
+    cy /= piece.outline.length
+    for (const t of piece.notches ?? []) {
+      const p = outlinePointAt(piece.outline, t)
+      const dx = cx - p.x
+      const dy = cy - p.y
+      const len = Math.hypot(dx, dy) || 1
+      const q = { x: p.x + (dx / len) * 0.004, y: p.y + (dy / len) * 0.004 }
+      blocks.push(`<line x1="${X(p)}" y1="${Y(p)}" x2="${X(q)}" y2="${Y(q)}" stroke="#111" stroke-width="0.8"/>`)
+    }
+    for (const d of piece.drills ?? []) {
+      blocks.push(`<circle cx="${X(d)}" cy="${Y(d)}" r="2" fill="none" stroke="#111" stroke-width="0.5"/>`)
+    }
     x0 += w + 2 * sa + GAP
     maxH = Math.max(maxH, h + 2 * sa)
   }

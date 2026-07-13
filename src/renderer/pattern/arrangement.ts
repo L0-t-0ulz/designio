@@ -7,6 +7,7 @@ import {
   gridConstraints,
   outlineArea,
   panelGrid,
+  pointInPolygon,
   resampleOutline,
   ROLE_PIN,
   SKETCH_BASE_Y,
@@ -45,6 +46,11 @@ export const ARRANGEMENT_POINTS: Record<'front' | 'right' | 'back' | 'left', Arr
 export interface PlacedPanel {
   outline: Pt[]
   at: ArrangementPoint
+  /** Internal cut-outs — real fabric removed, rendered see-through. */
+  holes?: Pt[][]
+  /** Regions removed AND stitched closed (dart wedges) — sewing the borders
+   *  together takes up the fabric so the panel bows into 3D shape. */
+  sewnHoles?: Pt[][]
 }
 
 export type PanelSide = 'left' | 'right' | 'top' | 'bottom'
@@ -138,16 +144,55 @@ export interface ArrangementOpts {
   pinTop?: boolean
 }
 
-/** Resample one outline and mask its lattice. The outline is taken AS DRAWN
- *  relative to its arrangement azimuth (no centring) — a style-line piece's x
- *  offset encodes its place in the original panel, so split pieces present
- *  side by side instead of stacking on the azimuth. */
-function prepareGrid(outline: Pt[], spacing: number, samples: number): DrawnGrid {
+/** Resample one outline and mask its lattice (minus any holes/dart wedges).
+ *  The outline is taken AS DRAWN relative to its arrangement azimuth (no
+ *  centring) — a style-line piece's x offset encodes its place in the original
+ *  panel, so split pieces present side by side instead of stacking. */
+function prepareGrid(outline: Pt[], spacing: number, samples: number, holes: Pt[][]): DrawnGrid {
   const sampled = resampleOutline(outline, samples)
   if (sampled.length < 3 || Math.abs(outlineArea(sampled)) < spacing * spacing * 4) {
     throw new Error('arranged panel outline is degenerate')
   }
-  return panelGrid(sampled, spacing)
+  return panelGrid(sampled, spacing, holes)
+}
+
+/**
+ * Stitch pairs that close a removed region (a dart wedge): for every lattice
+ * row the region spans, the nearest surviving node on each side pairs up.
+ * Sewing those pairs pulls the wedge shut — real fabric take-up, the panel
+ * bows out of plane like a sewn dart. Pure over the masked lattice.
+ */
+export function closeRegionStitches(grid: DrawnGrid, region: Pt[]): Array<[number, number]> {
+  const { cols, rows, index, spacing, minX, maxY } = grid
+  const pairs: Array<[number, number]> = []
+  for (let r = 0; r < rows; r++) {
+    const y = maxY - r * spacing
+    let firstIn = -1
+    let lastIn = -1
+    for (let c = 0; c < cols; c++) {
+      if (pointInPolygon({ x: minX + c * spacing, y }, region)) {
+        if (firstIn < 0) firstIn = c
+        lastIn = c
+      }
+    }
+    if (firstIn < 0) continue
+    let left = -1
+    for (let c = firstIn - 1; c >= 0; c--) {
+      if (index[r * cols + c] >= 0) {
+        left = index[r * cols + c]
+        break
+      }
+    }
+    let right = -1
+    for (let c = lastIn + 1; c < cols; c++) {
+      if (index[r * cols + c] >= 0) {
+        right = index[r * cols + c]
+        break
+      }
+    }
+    if (left >= 0 && right >= 0 && left !== right) pairs.push([left, right])
+  }
+  return pairs
 }
 
 /**
@@ -172,12 +217,16 @@ export function buildArrangedGarment(
   const grids: DrawnGrid[] = []
   const bases: number[] = []
   for (const panel of panels) {
-    const grid = prepareGrid(panel.outline, spacing, samples)
+    const holes = [...(panel.holes ?? []), ...(panel.sewnHoles ?? [])]
+    const grid = prepareGrid(panel.outline, spacing, samples, holes)
     const base = world.addParticles(placePanel(grid, R, panel.at, baseY))
     for (const con of gridConstraints(grid)) world.addConstraint(base + con.i, base + con.j, con.rest, con.bend)
     if (opts.pinTop !== false) {
-      const roles = classifyBoundary(grid)
+      const roles = classifyBoundary(grid, undefined, holes)
       for (let i = 0; i < grid.count; i++) if (roles[i] === ROLE_PIN) world.pin(base + i)
+    }
+    for (const wedge of panel.sewnHoles ?? []) {
+      for (const [i, j] of closeRegionStitches(grid, wedge)) world.stitch(base + i, base + j)
     }
     grids.push(grid)
     bases.push(base)

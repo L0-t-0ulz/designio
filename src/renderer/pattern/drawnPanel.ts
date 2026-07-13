@@ -108,10 +108,11 @@ export function outlineArea(poly: Pt[]): number {
 
 /**
  * Mask a regular lattice over the outline's bounding box: a node exists where
- * it falls inside the polygon. Nodes with no 4-neighbour at all are dropped
- * (a free-floating particle can't be constrained).
+ * it falls inside the polygon and outside every `hole` (internal cut-outs and
+ * dart wedges remove real fabric). Nodes with no 4-neighbour at all are
+ * dropped (a free-floating particle can't be constrained).
  */
-export function panelGrid(outline: Pt[], spacing: number): DrawnGrid {
+export function panelGrid(outline: Pt[], spacing: number, holes: Pt[][] = []): DrawnGrid {
   let minX = Infinity
   let maxX = -Infinity
   let minY = Infinity
@@ -128,7 +129,7 @@ export function panelGrid(outline: Pt[], spacing: number): DrawnGrid {
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const p = { x: minX + c * spacing, y: maxY - r * spacing }
-      if (pointInPolygon(p, outline)) inside[r * cols + c] = 1
+      if (pointInPolygon(p, outline) && !holes.some((h) => pointInPolygon(p, h))) inside[r * cols + c] = 1
     }
   }
   // drop isolated nodes, then compact into particle indices
@@ -155,24 +156,30 @@ export function panelGrid(outline: Pt[], spacing: number): DrawnGrid {
  * Classify each particle's boundary role. A node missing its up-neighbour
  * inside the top band pins (shoulder/chest edge); otherwise a missing left or
  * right neighbour is a side seam; otherwise a missing down-neighbour is the
- * open hem; interior nodes (and open scoops below the band) are free.
+ * open hem; interior nodes (and open scoops below the band) are free. A
+ * neighbour missing because it fell inside a `hole` (internal cut-out / dart
+ * wedge) does NOT drive classification — hole borders stay free instead of
+ * pinning or seaming to the other face.
  */
-export function classifyBoundary(grid: DrawnGrid, topBand = 0.15): Uint8Array {
-  const { cols, rows, index } = grid
+export function classifyBoundary(grid: DrawnGrid, topBand = 0.15, holes: Pt[][] = []): Uint8Array {
+  const { cols, rows, index, spacing, minX, maxY } = grid
   const roles = new Uint8Array(grid.count)
   const pinRows = topBand * (rows - 1)
   const at = (c: number, r: number): number => (c < 0 || r < 0 || c >= cols || r >= rows ? -1 : index[r * cols + c])
+  // a missing neighbour counts only when it isn't a hole interior
+  const miss = (c: number, r: number): boolean => {
+    if (at(c, r) >= 0) return false
+    if (holes.length === 0) return true
+    const p = { x: minX + c * spacing, y: maxY - r * spacing }
+    return !holes.some((h) => pointInPolygon(p, h))
+  }
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const i = index[r * cols + c]
       if (i < 0) continue
-      const missUp = at(c, r - 1) < 0
-      const missDown = at(c, r + 1) < 0
-      const missLeft = at(c - 1, r) < 0
-      const missRight = at(c + 1, r) < 0
-      if (missUp && r <= pinRows) roles[i] = ROLE_PIN
-      else if (missLeft || missRight) roles[i] = ROLE_SEAM
-      else if (missDown) roles[i] = ROLE_HEM
+      if (miss(c, r - 1) && r <= pinRows) roles[i] = ROLE_PIN
+      else if (miss(c - 1, r) || miss(c + 1, r)) roles[i] = ROLE_SEAM
+      else if (miss(c, r + 1)) roles[i] = ROLE_HEM
     }
   }
   return roles
