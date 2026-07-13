@@ -479,7 +479,7 @@ export function placePrints(panels: PatternPanel[], prints: PatternPrintInput[])
 const xmlEscape = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-export function panelsToSVG(res: PatternResult): string {
+export function panelsToSVG(res: PatternResult, opts: { tints?: Record<string, string>; tintNote?: string } = {}): string {
   const { panels, seam } = res
   const margin = 24
   const gap = 34
@@ -541,7 +541,7 @@ export function panelsToSVG(res: PatternResult): string {
     parts.push(`
       <g>
         <path d="${path(cut, dx, dy)}" fill="none" stroke="#9aa0aa" stroke-width="1.4" stroke-dasharray="7 4"/>
-        <path d="${path(p.outline, dx, dy)}" fill="#f4f2ee" stroke="#222" stroke-width="1.6"/>
+        <path d="${path(p.outline, dx, dy)}" fill="${opts.tints?.[p.name] ?? '#f4f2ee'}" stroke="#222" stroke-width="1.6"/>
         ${stitch ? `<path d="${path(stitch, dx, dy)}" fill="none" stroke="#b8863b" stroke-width="1" stroke-dasharray="4 3"/>` : ''}
         ${plk}
         ${princess}
@@ -570,7 +570,7 @@ export function panelsToSVG(res: PatternResult): string {
   viewBox="0 0 ${totalW.toFixed(0)} ${totalH.toFixed(0)}">
   <rect width="${totalW.toFixed(0)}" height="${totalH.toFixed(0)}" fill="#fff"/>
   <text x="${margin}" y="${(totalH - 10).toFixed(0)}" font-family="sans-serif" font-size="11" fill="#9aa0aa">
-    DesignIO pattern · solid = sew line · grey dashed = cut line (SA ${seam} mm) · gold dashed = topstitch · purple = CF closure${res.prints?.length ? ' / print placement' : ''} · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
+    ${opts.tintNote ? xmlEscape(opts.tintNote) + ' · ' : ''}DesignIO pattern · solid = sew line · grey dashed = cut line (SA ${seam} mm) · gold dashed = topstitch · purple = CF closure${res.prints?.length ? ' / print placement' : ''} · arrow = grainline · ○ = notch${res.detail ? ` · detail: ${res.detail}` : ''}</text>
   ${parts.join('\n')}
 </svg>`
 }
@@ -621,9 +621,10 @@ export function garmentPatternSVG(
   params: GarmentParams,
   m: Measurements,
   colliders: Capsule[],
-  prints: PatternPrintInput[] = []
+  prints: PatternPrintInput[] = [],
+  tints?: { tints: Record<string, string>; tintNote?: string }
 ): string {
-  return panelsToSVG(garmentToPanels(def, params, m, colliders, undefined, prints))
+  return panelsToSVG(garmentToPanels(def, params, m, colliders, undefined, prints), tints)
 }
 export function garmentPatternDXF(
   def: GarmentDefinition,
