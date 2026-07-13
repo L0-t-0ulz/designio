@@ -4,6 +4,7 @@ import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
 import type { ClothWorld } from '../cloth/ClothWorld'
 import { buildSewnTop, type PatternParams } from './pattern'
+import { buildDrawnPanel, type Pt } from './drawnPanel'
 
 /**
  * Owns the sewn-pattern garment: two flat panels stitched around the body into a
@@ -27,10 +28,16 @@ export class PatternController {
     private readonly bodyCollider: BodyCollider | null = null
   ) {}
 
+  // A sketched outline (draw-your-own panel) sticks: fabric changes and body
+  // resizes rebuild the drawn garment, not the parametric block.
+  private drawnOutline: Pt[] | null = null
+
   /** Build (or rebuild) the sewn garment from pattern params, and show it. */
   build(p: PatternParams): void {
     this.clear()
-    const sewn = buildSewnTop(p, this.params())
+    const sewn = this.drawnOutline
+      ? buildDrawnPanel(this.drawnOutline, { bust: p.bust }, this.params())
+      : buildSewnTop(p, this.params())
     this.world = sewn.world
     this.world.colliders = this.colliders
     this.world.bodyCollider = this.bodyCollider
@@ -46,6 +53,13 @@ export class PatternController {
       this.scene.add(mesh)
       this.meshes.push(mesh)
     }
+  }
+
+  /** Sew a sketched outline (draw-your-own panel) onto the body; it stays the
+   *  active pattern for fabric/body rebuilds until the mode is left. */
+  buildDrawn(outline: Pt[], p: PatternParams): void {
+    this.drawnOutline = outline
+    this.build(p)
   }
 
   step(dt: number): void {

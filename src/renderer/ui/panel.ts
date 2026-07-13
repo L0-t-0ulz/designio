@@ -180,6 +180,8 @@ export interface PanelOptions {
   onGarmentEdit: () => void
   onPatternEdit: () => void
   onResew: () => void
+  /** Open the draw-your-own-panel sketch pad (Pattern mode). */
+  onDrawPanel?: () => void
   onDrop: () => void
   /** The size of the graded run that best fits the current body (live size recommendation). */
   recommendSize?: () => string
@@ -670,6 +672,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     slider({ label: 'Length', min: 0.3, max: 0.9, step: 0.01, format: (v) => `${(v * 100) | 0} cm`, get: () => opts.patternParams.length, set: (v) => { opts.patternParams.length = v; refreshSchema(); opts.onPatternEdit() } }).row,
     button('✂  Sew & simulate', () => opts.onResew())
   )
+  if (opts.onDrawPanel) patternSec.body.append(button('✏️  Draw your own panel…', () => opts.onDrawPanel!()))
   refreshSchema()
 
   function switchMode(m: DesignMode): void {

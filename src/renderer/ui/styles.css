@@ -1750,6 +1750,70 @@ canvas {
 .dio-shortcuts-list dd {
   margin: 0;
 }
+/* Draw-your-own-panel sketch pad */
+.dio-sketch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+.dio-sketch-card {
+  background: var(--bg-2, #1c1c26);
+  color: var(--fg-0, #e8eaee);
+  border: 1px solid var(--dio-border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  max-width: 90vw;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+.dio-sketch-card h2 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.dio-sketch-hint {
+  margin: 0 0 10px;
+  max-width: 520px;
+  font-size: 11.5px;
+  color: var(--fg-1, #9aa0aa);
+}
+.dio-sketch-canvas {
+  display: block;
+  max-height: 62vh;
+  aspect-ratio: 520 / 640;
+  border: 1px solid var(--dio-border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: crosshair;
+  touch-action: none;
+}
+.dio-sketch-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dio-sketch-controls button {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--dio-border);
+  background: var(--bg-1, #14141c);
+  color: var(--fg-0, #e8eaee);
+  cursor: pointer;
+  font-size: 12px;
+}
+.dio-sketch-controls button:hover {
+  border-color: var(--dio-accent, #7c6cff);
+}
+.dio-sketch-controls button.primary {
+  background: var(--dio-accent, #7c6cff);
+  border-color: var(--dio-accent, #7c6cff);
+  color: #fff;
+}
+
 /* Drape comparator labels */
 .dio-drape-labels {
   display: flex;
