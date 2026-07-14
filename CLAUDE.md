@@ -400,6 +400,7 @@ piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appl
 `?embroidery=1` · `?applique=1` (raised print styles — same as `?prints=embroidery|applique`) ·
 `?easeChest/easeWaist/easeHip=<cm>` (**ease by zone** — per-landmark ease on top of Looseness) ·
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
+`?fringe=1` (**hem fringe** — REAL verlet strand chains (gravity + rope projection, pure `garment/Fringe.stepStrand`) hanging from the live hem: a skirt/dress bottom row, or a scarf's tail-end columns) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` · `?sleeveBackFabric=<id>` (per-panel fabric — the body/leg/sleeve **back** panel) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?stress=1` (fit-failure viz) ·
 `?pressure=1` (pressure / contact fit map — where the garment presses into the body) ·

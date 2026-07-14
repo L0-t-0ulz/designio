@@ -118,8 +118,9 @@ export class GarmentController {
     }
     const def = getGarment(type)
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
-      // fringe trim hangs from the garment's bottom hem — the body tube, not sleeves/legs
-      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol, !!garmentParams.fringe && p.name === 'Body', !!garmentParams.piping && p.name === 'Body', !!garmentParams.breath)
+      // fringe trim hangs from the garment's bottom hem — the body tube, not
+      // sleeves/legs — or from a scarf strip's END columns (the tail hems)
+      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol, !!garmentParams.fringe && (p.name === 'Body' || p.name === 'Scarf'), !!garmentParams.piping && p.name === 'Body', !!garmentParams.breath)
     }
     this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
@@ -181,7 +182,7 @@ export class GarmentController {
     mesh.add(topstitch.object) // parent to the mesh so it inherits visibility
     let fringe: Fringe | null = null
     if (fringeOn) {
-      fringe = new Fringe(nx, ny, this.fringeMat)
+      fringe = new Fringe(nx, ny, this.fringeMat, name === 'Scarf' ? 'ends' : 'hem')
       mesh.add(fringe.object)
       fringe.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
     }
