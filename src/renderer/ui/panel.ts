@@ -15,6 +15,7 @@ import { KIDS_BLOCKS, applyKidsBlock } from '../avatar/kidsSizes'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { CROWN_STYLES, CROWN_LABELS, type CrownStyle } from '../avatar/crown'
 import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from '../avatar/hatBand'
+import { UNDERBILL_CLASSIC, type CapBillParams } from '../avatar/capBill'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
@@ -319,6 +320,8 @@ export interface PanelOptions {
   crown?: { get: () => CrownStyle; set: (s: CrownStyle) => void }
   /** The hat band designer (fedora · sun hat) — grosgrain/leather/cord + bow/feather/buckle. */
   hatBand?: { get: () => HatBandParams; set: (p: Partial<HatBandParams>) => void }
+  /** The cap bill designer — flat↔pre-curved · contrast underbill · squatchee. */
+  capBill?: { get: () => CapBillParams; set: (p: Partial<CapBillParams>) => void }
   /** Hair + face customization on the avatar. */
   hair?: {
     getStyle: () => Hairstyle
@@ -1265,6 +1268,14 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       : []),
     ...(opts.crown ? [el('div', 'dio-field-label', 'Crown shape (fedora)'), crownRow] : []),
     ...(opts.hatBand ? [el('div', 'dio-field-label', 'Hat band (fedora · sun hat)'), bandStyleRow, el('div', 'dio-field-label', 'Band trim'), bandTrimRow] : []),
+    ...(opts.capBill
+      ? [
+          el('div', 'dio-field-label', 'Cap bill'),
+          track(slider({ label: 'Flat ↔ pre-curved', min: 0, max: 1, step: 0.05, get: () => opts.capBill!.get().curve, set: (v) => opts.capBill!.set({ curve: v }) })),
+          track(toggle({ label: 'Contrast underbill', get: () => opts.capBill!.get().underbill !== undefined, set: (v) => opts.capBill!.set({ underbill: v ? UNDERBILL_CLASSIC : undefined }) })),
+          track(toggle({ label: 'Squatchee button', get: () => opts.capBill!.get().squatchee, set: (v) => opts.capBill!.set({ squatchee: v }) }))
+        ]
+      : []),
     ...hairFaceEls,
     ...skinControlEls,
     bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,

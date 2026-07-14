@@ -3,6 +3,7 @@ import type { Capsule } from './colliders'
 import { brimProfile, DEFAULT_BRIM, type BrimParams } from './brim'
 import { crownDrop, DEFAULT_CROWN, type CrownStyle } from './crown'
 import { bandProfile, braidY, trimAnchor, BAND_COLORS, DEFAULT_HAT_BAND, type HatBandParams } from './hatBand'
+import { billCurl, DEFAULT_CAP_BILL, type CapBillParams } from './capBill'
 import { headFrame } from './face'
 
 /**
@@ -408,19 +409,88 @@ export class Accessories {
     return this.headItem('beanie', obj)
   }
 
+  private bill: CapBillParams = { ...DEFAULT_CAP_BILL }
+
+  /** The cap bill designer — re-shape the visor (+ underbill/squatchee) in place. */
+  setCapBill(p: Partial<CapBillParams>): void {
+    this.bill = { ...this.bill, ...p }
+    const it = this.items.find((i) => i.kind === 'cap')
+    const holder = it?.obj.getObjectByName('bill-holder') as THREE.Group | undefined
+    if (!it || !holder) return
+    for (const child of [...holder.children]) {
+      ;(child as THREE.Mesh).geometry?.dispose()
+      holder.remove(child)
+    }
+    this.addBillMeshes(holder, holder.userData.mat as THREE.Material)
+    const sq = it.obj.getObjectByName('squatchee')
+    if (sq) sq.visible = this.bill.squatchee
+  }
+  getCapBill(): CapBillParams {
+    return { ...this.bill }
+  }
+
+  /** The bill's forward fan grid (~120° — a real bill doesn't wrap the ears),
+   *  curled by the current pre-curve. Local frame: x lateral, y forward,
+   *  +z = downward once the mesh is pitched onto the cap. */
+  private billGeometry(): THREE.BufferGeometry {
+    const R = 1.15 // bill radius (unit head frame)
+    const F = 0.9 // fore-shortening
+    const rings = 12
+    const segs = 24
+    const pos: number[] = []
+    for (let i = 0; i <= rings; i++) {
+      for (let j = 0; j <= segs; j++) {
+        const a = Math.PI / 2 + (j / segs - 0.5) * 2.1 // the forward wedge
+        const u = i / rings
+        const x = Math.cos(a) * R * u
+        const y = Math.sin(a) * R * u * F
+        pos.push(x, y, billCurl(x / R, y / (R * F), this.bill.curve) * R)
+      }
+    }
+    const idx: number[] = []
+    for (let i = 0; i < rings; i++) {
+      for (let j = 0; j < segs; j++) {
+        const a = i * (segs + 1) + j
+        const b = a + segs + 1
+        idx.push(a, b, a + 1, b, b + 1, a + 1)
+      }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    geo.setIndex(idx)
+    geo.computeVertexNormals()
+    return geo
+  }
+
+  /** Build the visor (+ a contrast underbill when set) into a holder group. */
+  private addBillMeshes(holder: THREE.Group, mat: THREE.Material): void {
+    const place = (m: THREE.Mesh): THREE.Mesh => {
+      m.rotation.set(Math.PI / 2 + 0.32, 0, 0) // pitched down past the face
+      m.position.set(0, HC - 0.1, 0.98)
+      return m
+    }
+    holder.add(place(new THREE.Mesh(this.billGeometry(), mat)))
+    if (this.bill.underbill !== undefined) {
+      const under = place(new THREE.Mesh(this.billGeometry(), felt(this.bill.underbill)))
+      under.translateZ(0.025) // local +z = world down — the underbill hangs beneath
+      holder.add(under)
+    }
+  }
+
   private buildCap(): Item {
     const mat = felt(0x24304a)
     const dome = new THREE.Mesh(new THREE.SphereGeometry(1.04, 24, 18, 0, TAU, 0, Math.PI * 0.56), mat)
     dome.position.y = HC
-    // a curved bill projecting past the face (must clear the head sphere, z>1), angled down
-    const bill = new THREE.Mesh(new THREE.CircleGeometry(1.15, 22, 0, Math.PI), mat)
-    bill.rotation.set(Math.PI / 2 + 0.32, 0, 0)
-    bill.position.set(0, HC - 0.1, 0.98)
-    bill.scale.set(1, 0.9, 1)
+    const holder = new THREE.Group()
+    holder.name = 'bill-holder'
+    holder.userData.mat = mat
+    this.addBillMeshes(holder, mat)
     const btn = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), mat)
+    btn.name = 'squatchee'
     btn.position.y = HC + 1.04
+    btn.visible = this.bill.squatchee
     const obj = new THREE.Group()
-    obj.add(dome, bill, btn)
+    obj.add(dome, holder, btn)
     return this.headItem('cap', obj)
   }
 

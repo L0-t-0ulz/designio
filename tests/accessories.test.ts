@@ -177,6 +177,31 @@ describe('accessories — the fedora block (crown shapes + parametric brim)', ()
     for (const h of holders()) expect(h.children.length).toBe(0)
   })
 
+  it('the cap bill designer re-shapes the visor in place', () => {
+    const acc = new Accessories()
+    acc.setEnabled('cap', true)
+    acc.update(baseBody())
+    const cap = acc.group.getObjectByName('cap')!
+    const holder = cap.getObjectByName('bill-holder') as THREE.Group
+    expect(holder.children.length).toBe(1) // self-colour bill, no underbill
+    const billLowY = (): number => {
+      acc.update(baseBody())
+      acc.group.updateMatrixWorld(true)
+      return new THREE.Box3().setFromObject(holder).min.y
+    }
+    acc.setCapBill({ curve: 0 })
+    const flat = billLowY()
+    acc.setCapBill({ curve: 1 })
+    expect(billLowY()).toBeLessThan(flat - 0.005) // the curled edges roll down
+    acc.setCapBill({ underbill: 0x5e7160 })
+    expect(holder.children.length).toBe(2) // + the contrast underbill
+    const sq = cap.getObjectByName('squatchee')!
+    expect(sq.visible).toBe(true)
+    acc.setCapBill({ squatchee: false })
+    expect(sq.visible).toBe(false)
+    expect(acc.getCapBill().curve).toBe(1)
+  })
+
   it('the fedora joins the parametric brim — width re-blocks its footprint', () => {
     const stingy = new Accessories()
     stingy.setBrim({ width: 0.4 })
