@@ -43,6 +43,10 @@ export interface GarmentParams {
   faceStyle?: import('../garments/schema').BalaclavaFace
   /** Balaclava worn state — down over the face (default) or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
+  /** Scarf width multiplier, 0.5 (skinny) … 1.8 (blanket-wide). */
+  scarfWidth?: number
+  /** Gaiter worn state — bunched at the neck (default) or pulled up over the nose. */
+  gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Beanie cuff height, 0 (skull-cap edge) … 1 (deep double roll). */
   cuffHeight?: number
   /** Beanie slouch depth, 0 (fitted crown) … 1 (full slouch). */

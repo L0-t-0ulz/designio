@@ -477,6 +477,42 @@ export const GARMENTS: GarmentDefinition[] = [
     defaultFabric: 'rib-knit'
   },
   {
+    id: 'brimmed-beanie',
+    name: 'Brimmed beanie',
+    category: 'outerwear',
+    icon: 'top',
+    // a knit dome over a short stiff visor (the ski-patrol / streetwear hybrid)
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.24, dropLo: 0.29, topScale: 0.13, botScale: 1.3 }],
+    supports: { beanieFit: true, length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.004, flare: 0 },
+    defaultFabric: 'rib-knit',
+    visor: true
+  },
+  {
+    id: 'gaiter',
+    name: 'Neck gaiter',
+    category: 'outerwear',
+    icon: 'top',
+    // a thin stretch tube bunched at the neck; worn UP it pulls over the chin/nose
+    pieces: [{ kind: 'headTube', anchor: 'neck', riseHi: 0.02, dropHi: 0.15, dropLo: 0.19, topScale: 1.25, botScale: 1.7, gaiter: true }],
+    supports: { gaiterWorn: true, length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.004, flare: 0 },
+    defaultFabric: 'jersey-knit'
+  },
+  {
+    id: 'headband',
+    name: 'Twisted headband',
+    category: 'outerwear',
+    icon: 'top',
+    // a knit ear-warmer band around the forehead (open crown) with a front twist;
+    // negative rise drops the band's top edge from the crown to mid-forehead
+    pieces: [{ kind: 'headTube', anchor: 'crown', riseHi: -0.06, dropHi: 0.07, dropLo: 0.085, topScale: 1.2, botScale: 1.24 }],
+    supports: { ease: true, flare: true, length: true },
+    defaults: { length: 0.5, ease: 0.003, flare: 0 },
+    defaultFabric: 'rib-knit',
+    twist: true
+  },
+  {
     id: 'ski-mask',
     name: 'Ski mask',
     category: 'outerwear',
@@ -539,7 +575,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     // a wide knit panel draped once around the neck with the two ends hanging down the front
     pieces: [{ kind: 'scarfPanel', width: 0.28, wrapEase: 0.05, tailHi: 0.42, tailLo: 0.85 }],
-    supports: { length: true, ease: true },
+    supports: { scarfFit: true, length: true, ease: true },
     defaults: { length: 0.6, ease: 0.01 },
     defaultFabric: 'cable-knit'
   }

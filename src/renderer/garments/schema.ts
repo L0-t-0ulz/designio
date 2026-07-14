@@ -25,6 +25,10 @@ export interface GarmentDefinition {
   hood?: boolean
   /** A faux-fur/yarn pom riding the crown (pom-pom beanie). */
   pom?: boolean
+  /** A short stiff visor under the knit dome (brimmed beanie). */
+  visor?: boolean
+  /** A crossed-knit twist at the band front (twisted headband). */
+  twist?: boolean
   /** How the front closure reads when enabled: a button placket (default) or a zip. */
   closureStyle?: 'button' | 'zip'
 }
@@ -40,6 +44,10 @@ export interface ConstructionCaps {
   faceStyle?: boolean
   /** Beanie fit sliders — cuff height + slouch depth (crown headwear). */
   beanieFit?: boolean
+  /** Scarf fit — the width slider (scarfPanel garments; Length drives the tails). */
+  scarfFit?: boolean
+  /** Gaiter worn toggle — bunched at the neck vs pulled over the nose. */
+  gaiterWorn?: boolean
   length?: boolean
   ease?: boolean
   flare?: boolean
@@ -130,7 +138,13 @@ export interface HeadTubePiece {
   /** Balaclava face opening — real eye/mouth cut-outs in the shell (full = none).
    *  Implies full-head coverage (the tube bellies to clear the face). */
   face?: BalaclavaFace
+  /** A neck gaiter / buff — `gaiterWorn: 'up'` pulls it over the nose. */
+  gaiter?: boolean
 }
+
+/** How a gaiter is worn — bunched at the neck, or pulled up over the nose. */
+export type GaiterWorn = 'down' | 'up'
+export const GAITER_WORN: GaiterWorn[] = ['down', 'up']
 
 /** Balaclava / ski-mask face-opening styles. */
 export type BalaclavaFace = 'full' | 'eyes' | 'three-hole' | 'open-face'

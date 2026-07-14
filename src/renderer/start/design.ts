@@ -32,6 +32,8 @@ export interface DesignConfig {
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   cuffHeight?: number
   slouch?: number
+  scarfWidth?: number
+  gaiterWorn?: import('../garments/schema').GaiterWorn
   pomScale?: number
   pomColor?: number
   pomFur?: boolean

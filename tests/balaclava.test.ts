@@ -248,3 +248,87 @@ describe('cuff patch persistence', () => {
     expect(back.layers[0].cuffPatch).toBe('leather')
   })
 })
+
+describe('brimmed beanie', () => {
+  it('is a crown headTube with the visor flag, and drapes bounded', () => {
+    const def = getGarment('brimmed-beanie')
+    expect(def.visor).toBe(true)
+    const spec = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+    const build = buildTubeGarment(spec)
+    const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 150; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
+})
+
+describe('twisted headband', () => {
+  it('is an open-crown band at the forehead (not a dome), and drapes bounded', () => {
+    const def = getGarment('headband')
+    expect(def.twist).toBe(true)
+    const spec = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+    expect(spec.topY).toBeLessThan(mann.measurements.crownY - 0.05) // sits below the crown
+    expect(spec.topY - spec.bottomY).toBeGreaterThan(0.05) // a real band, not a strip
+    expect(spec.topY - spec.bottomY).toBeLessThan(0.12)
+    expect(spec.radiusTop).toBeGreaterThan(mann.measurements.headR) // wraps the head, no gathered dome
+    const build = buildTubeGarment(spec)
+    const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 150; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
+})
+
+describe('scarf dimension designer', () => {
+  it('scarfWidth scales the panel width (and its lattice rows) through gradeParams', async () => {
+    const { scarfToSpec } = await import('../src/renderer/garments/factory')
+    const { gradeParams, defaultLayer } = await import('../src/renderer/studio/document')
+    const pc = { kind: 'scarfPanel' as const, width: 0.24, tailHi: 0.3, tailLo: 0.55, wrapEase: 0.02 }
+    const l = defaultLayer('scarf')
+    const base = scarfToSpec(pc, gradeParams(l), mann.measurements)
+    l.scarfWidth = 1.8
+    const wide = scarfToSpec(pc, gradeParams(l), mann.measurements)
+    expect(wide.width).toBeCloseTo(base.width * 1.8, 5)
+    expect(wide.ny).toBeGreaterThan(base.ny)
+  })
+})
+
+describe('neck gaiter up/down', () => {
+  const spec = (worn?: 'down' | 'up') => {
+    const def = getGarment('gaiter')
+    const l = { ...DEFAULT_PARAMS, ...def.defaults, ...(worn === 'up' ? { gaiterWorn: 'up' as const } : {}) }
+    return garmentTubeSpecs(def, l, mann.measurements)[0]
+  }
+
+  it('down bunches at the neck; up rises over the chin toward the nose with a bridge grip', () => {
+    const down = spec()
+    const up = spec('up')
+    expect(down.topY).toBeLessThan(mann.measurements.headBaseY) // at the neck
+    expect(up.topY).toBeGreaterThan(mann.measurements.headBaseY) // over the chin/nose
+    expect(up.extraPins?.length).toBe(1)
+    expect(up.dome).toBeDefined()
+    expect(down.extraPins).toBeUndefined()
+  })
+
+  it('both states drape bounded on the body', () => {
+    for (const worn of [undefined, 'up'] as const) {
+      const build = buildTubeGarment(spec(worn))
+      const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+      solver.colliders = mann.colliders
+      solver.bodyCollider = mann.bodyCollider
+      for (let i = 0; i < 150; i++) solver.step(1 / 60)
+      let mx = 0
+      for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+      expect(Number.isFinite(mx), `worn=${worn}`).toBe(true)
+      expect(mx, `worn=${worn}`).toBeLessThan(3)
+    }
+  }, 30000)
+})

@@ -614,6 +614,8 @@ export class GarmentStack {
 
     if (l.data.closure && !l.data.closureOpen) this.buildClosure(l) // worn open → no fastened placket; the seam itself gaps
     if (getGarment(l.data.garmentType).pom) this.buildPom(l) // pom-pom beanie — a yarn pom riding the crown
+    if (getGarment(l.data.garmentType).visor) this.buildVisor(l) // brimmed beanie — a stiff bill under the dome
+    if (getGarment(l.data.garmentType).twist) this.buildTwist(l) // twisted headband — crossed knit bars at the front
     if (l.data.cuffPatch && getGarment(l.data.garmentType).supports.beanieFit) this.buildCuffPatch(l) // brand patch on the band
     if (l.data.collar) this.buildCollar(l)
     if (l.data.waistband) this.buildWaistband(l)
@@ -1067,6 +1069,43 @@ export class GarmentStack {
    * or a **zip tape + metal pull** (chosen by the garment's `closureStyle`). Non-sim
    * decoration, sized/placed from the garment's tube spec so it fits any figure/size.
    */
+  /** The crossed-knit twist at a headband's front — two soft bars in the garment
+   *  colour crossing in an X, tracked to the live band like the cuff patch. */
+  private buildTwist(l: StackLayer): void {
+    const head = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).head[0]
+    if (!head) return
+    const bandH = Math.max(0.05, head.topY - head.bottomY)
+    const mat = new THREE.MeshPhysicalMaterial({ color: l.data.color, roughness: 0.85, sheen: 0.8, sheenRoughness: 0.5, sheenColor: new THREE.Color(l.data.color).offsetHSL(0, -0.08, 0.15) })
+    const grp = new THREE.Group()
+    for (const sgn of [-1, 1]) {
+      const bar = new THREE.Mesh(new THREE.CapsuleGeometry(bandH * 0.13, bandH * 0.52, 4, 10), mat)
+      bar.rotation.z = sgn * 0.55 // the X cross
+      bar.position.x = sgn * bandH * 0.05
+      grp.add(bar)
+    }
+    l.decor.add(grp)
+    l.pockets.push({ grp, x: 0, y: head.bottomY + bandH / 2, hemOffset: bandH * 0.72 })
+  }
+
+  /** A short stiff visor under a brimmed beanie's knit dome — rides the live band
+   *  front via the hem-anchored pocket tracker (like the cuff patch), angled down. */
+  private buildVisor(l: StackLayer): void {
+    const head = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).head[0]
+    if (!head) return
+    const r = this.measurements.headR
+    const bill = new THREE.Mesh(
+      // a 120° front wedge (not a brim ring): centred on +y pre-rotation → forward after it
+      new THREE.CircleGeometry(r * 0.78, 22, Math.PI / 6, (2 * Math.PI) / 3),
+      new THREE.MeshPhysicalMaterial({ color: 0x22242c, roughness: 0.62, clearcoat: 0.25, clearcoatRoughness: 0.5, side: THREE.DoubleSide })
+    )
+    bill.rotation.set(Math.PI / 2 + 0.34, 0, 0) // project forward past the brow, angled down
+    bill.castShadow = true
+    const grp = new THREE.Group()
+    grp.add(bill)
+    l.decor.add(grp)
+    l.pockets.push({ grp, x: 0, y: head.bottomY + 0.02, hemOffset: 0.012 })
+  }
+
   /** A small brand patch / woven label on the beanie band — tracked to the live
    *  cloth via the patch-pocket raycast machinery, so it rides the draped cuff. */
   private buildCuffPatch(l: StackLayer): void {
