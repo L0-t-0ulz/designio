@@ -19,6 +19,7 @@ import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
 import type { LacePattern } from '../fabric/lace'
 import type { FurKind } from '../fabric/fur'
+import { cloneDraft, type WeaveDraft } from '../fabric/weaveDraft'
 import { getGarment } from '../garments/registry'
 
 /** Manufacturing sizes. `M` is the drafted block; each step grades the girth. */
@@ -221,6 +222,8 @@ export interface GarmentLayerData {
   quilt?: QuiltPattern
   lace?: LacePattern
   fur?: FurKind
+  /** Custom weave draft (threading · tie-up · treadling) — replaces the fabric's preset weave maps. */
+  weaveDraft?: WeaveDraft
   /** Saved colour/fabric variants of this design (compared in the swatch grid). */
   colorways?: Colorway[]
   visible: boolean
@@ -246,6 +249,7 @@ export interface Colorway {
   quilt?: QuiltPattern
   lace?: LacePattern
   fur?: FurKind
+  weaveDraft?: WeaveDraft
 }
 
 let cwSeq = 0
@@ -280,7 +284,8 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     iridescent: l.iridescent,
     quilt: l.quilt,
     lace: l.lace,
-    fur: l.fur
+    fur: l.fur,
+    weaveDraft: l.weaveDraft && cloneDraft(l.weaveDraft)
   }
 }
 
@@ -300,6 +305,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.quilt = cw.quilt
   l.lace = cw.lace
   l.fur = cw.fur
+  l.weaveDraft = cw.weaveDraft && cloneDraft(cw.weaveDraft)
 }
 
 export interface BodyData {
@@ -495,7 +501,10 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     quilt: l.quilt,
     lace: l.lace,
     fur: l.fur,
-    colorways: l.colorways ? l.colorways.map((cw) => ({ ...cw, partFabrics: clonePartFabrics(cw.partFabrics) })) : undefined
+    weaveDraft: l.weaveDraft && cloneDraft(l.weaveDraft),
+    colorways: l.colorways
+      ? l.colorways.map((cw) => ({ ...cw, partFabrics: clonePartFabrics(cw.partFabrics), weaveDraft: cw.weaveDraft && cloneDraft(cw.weaveDraft) }))
+      : undefined
   }
 }
 
