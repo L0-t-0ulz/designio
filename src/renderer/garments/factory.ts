@@ -85,6 +85,9 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
  * collider set), so it drapes onto the neck/shoulders.
  */
 export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measurements): TubeSpec {
+  // crown pieces tolerate only MODEST compression: harder negative ease spawns the
+  // cone deep inside the skull and the push-out shoves the piece off the head
+  if (p.ease < -0.012) p = { ...p, ease: -0.012 }
   const crown = pc.anchor === 'crown'
   const baseY = crown ? m.crownY : m.neckY // the measured skull top, or the neck base
   const baseR = crown ? m.headR : m.neckR
@@ -96,11 +99,27 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   const cuff = crown ? Math.max(0, Math.min(1, p.cuffHeight ?? 0)) : 0
   const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length + slouch * 0.04 - cuff * 0.045
   const bottomY = Math.max(m.chestY - 0.03, topY - drop) // never past the upper chest
-  const rTop = baseR * pc.topScale * (1 + 0.3 * slouch) + p.ease // the slouchy variant's proven gather (0.13 → ~0.17)
+  // compression squeezes the BAND, never the gather (a negative ease would collapse
+  // the tiny crown ring into a spike and destabilise the whole cone)
+  const rTop = baseR * pc.topScale * (1 + 0.3 * slouch) + Math.max(0, p.ease)
   const rBot = baseR * pc.botScale * (1 + 0.22 * cuff) + p.ease + p.flare
   const spec = piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
   spec.rings = Math.max(10, spec.rings) // a very short band (headband) still meshes finely enough to drape
+  // a COMPRESSED crown piece spawns clamped to the skull dome — negative ease pulls
+  // the spawn cone deep inside the head where the push-out resolves to the wrong
+  // side (the balaclava lesson); the neutral drape keeps its proven spawn
+  if (crown && p.ease < 0) spec.dome = { cy: topY - m.headR, r: m.headR * 1.02 }
   if (p.hemShape && p.hemShape !== 'straight') spec.hemShape = p.hemShape // ear flaps · a bandana point
+  if (pc.face && p.convertibleWorn === 'gaiter') {
+    // the convertible worn as a NECK GAITER: the whole tube pushed down off the
+    // head, bunched around the neck (crown-anchored piece, neck-state geometry)
+    spec.topY = m.neckY + 0.02
+    spec.bottomY = Math.max(m.chestY - 0.03, spec.topY - 0.17)
+    spec.radiusTop = m.neckR * 1.25 + p.ease
+    spec.radiusBottom = m.neckR * 1.7 + p.ease + p.flare
+    spec.radiusWaist = undefined
+    return spec
+  }
   if (pc.gaiter && p.gaiterWorn === 'up') {
     // pulled up over the chin + nose: the top edge rises to just under the eyes,
     // hugs the face (dome-clamped spawn + a nose-bridge grip pin)
@@ -118,7 +137,7 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
     return spec
   }
   const face = pc.face && (p.faceStyle ?? pc.face)
-  if (face && p.balaclavaWorn === 'rolled') {
+  if (face && (p.balaclavaWorn === 'rolled' || p.convertibleWorn === 'beanie')) {
     // the convertible fold: worn ROLLED UP as a beanie — the face/neck half is
     // rolled into a fat doubled band (holes + pins ride inside the roll), so the
     // same piece re-specs as a rolled-band beanie shape

@@ -340,6 +340,8 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?scarfWidth=<0.5..1.8>` (the **scarf dimension designer** — width multiplier; Length drives the tails) ·
 `?garment=gaiter&gaiterWorn=<down|up>` (the **neck gaiter** — bunched at the neck, or pulled up over the chin + nose with a nose-bridge grip) ·
 `?breath=1` (**breath-warp** — a ~0.3 Hz cyclic exhale puffs the mask's mouth opening; keeps the cloth awake) ·
+`?garment=convertible&convertibleWorn=<balaclava|beanie|gaiter>` (the **convertible 3-way** — one knit tube worn three ways) ·
+`?ease=<-0.03..0.12>` (base looseness in metres — negative = **compression fit**; pair with `?pressure=1` on a snug beanie for the negative-ease band heatmap) ·
 `?distressed=1` (the **distressed mask** — deterministically chewed/frayed cut-out edges, no binding; pair with `?pilling=&wear=` for the full aged look) ·
 `?garment=helmet-liner&layers=ski-mask` (the **two-layer balaclava** — the liner + shell simulate as layered cloth, kept apart by the inter-garment repulsion) ·
 `?garment=<skinny-scarf|bandana|chullo|helmet-liner>` (more cloth-sim headwear: a charmeuse ribbon scarf · the outlaw bandana (worn up, one `point-front` hem point) · the Andean ear-flap chullo (`ear-flap` hem + pom) · the under-helmet liner (snug open-face)) ·

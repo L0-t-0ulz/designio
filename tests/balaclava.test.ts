@@ -478,3 +478,28 @@ describe('chin/jaw shaping + the distressed mask', () => {
     expect(mx).toBeLessThan(3)
   }, 20000)
 })
+
+describe('the convertible three-way + negative-ease compression', () => {
+  const conv = (worn?: 'balaclava' | 'beanie' | 'gaiter') => {
+    const def = getGarment('convertible')
+    return garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults, ...(worn && worn !== 'balaclava' ? { convertibleWorn: worn } : {}) }, mann.measurements)[0]
+  }
+
+  it('one piece, three distinct states: balaclava (holes) · beanie (rolled band) · gaiter (at the neck)', () => {
+    const bala = conv()
+    const beanie = conv('beanie')
+    const gaiter = conv('gaiter')
+    expect(bala.cutouts?.length).toBe(3) // the balaclava face
+    expect(beanie.cutouts).toBeUndefined() // rolled — holes inside the roll
+    expect(beanie.bottomY).toBeGreaterThan(bala.bottomY) // short crown coverage
+    expect(gaiter.topY).toBeLessThan(mann.measurements.headBaseY) // pushed down off the head
+    expect(gaiter.cutouts).toBeUndefined()
+  })
+
+  it('negative ease tightens every state below the neutral radii (the compression band)', () => {
+    const def = getGarment('convertible')
+    const snug = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults, ease: -0.02 }, mann.measurements)[0]
+    const neutral = conv()
+    expect(snug.radiusBottom).toBeLessThan(neutral.radiusBottom)
+  })
+})

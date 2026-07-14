@@ -48,6 +48,8 @@ export interface ConstructionCaps {
   scarfFit?: boolean
   /** Gaiter worn toggle — bunched at the neck vs pulled over the nose. */
   gaiterWorn?: boolean
+  /** The convertible three-way picker (beanie · balaclava · gaiter). */
+  convertible?: boolean
   length?: boolean
   ease?: boolean
   flare?: boolean
@@ -141,6 +143,10 @@ export interface HeadTubePiece {
   /** A neck gaiter / buff — `gaiterWorn: 'up'` pulls it over the nose. */
   gaiter?: boolean
 }
+
+/** The convertible tube's three worn states. */
+export type ConvertibleWorn = 'balaclava' | 'beanie' | 'gaiter'
+export const CONVERTIBLE_WORN: ConvertibleWorn[] = ['balaclava', 'beanie', 'gaiter']
 
 /** How a gaiter is worn — bunched at the neck, or pulled up over the nose. */
 export type GaiterWorn = 'down' | 'up'
