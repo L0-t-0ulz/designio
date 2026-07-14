@@ -53,7 +53,7 @@ import { turntablePose } from './studio/turntable'
 import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
-import type { NecklineStyle } from './cloth/Garment'
+import { HEM_SHAPES, type HemShape, type NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
@@ -2455,7 +2455,9 @@ if (skipStart) {
   }
   if (entryParams.get('fringe')) cfg.fringe = true
   const hemShapeParam = entryParams.get('hemShape')
-  if (hemShapeParam && ['high-low', 'shirttail', 'handkerchief'].includes(hemShapeParam)) cfg.hemShape = hemShapeParam as 'high-low' | 'shirttail' | 'handkerchief'
+  // validate against the canonical list — a literal copy here silently dropped
+  // ear-flap + point-front when the hem library grew (#317)
+  if (hemShapeParam && (HEM_SHAPES as string[]).includes(hemShapeParam)) cfg.hemShape = hemShapeParam as HemShape
   if (entryParams.get('piping')) cfg.piping = true
   {
     // seam & topstitch spec: ?seamType= &needle= &spi= &threadWt=
