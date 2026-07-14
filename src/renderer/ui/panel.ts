@@ -1143,6 +1143,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     beret: 'Beret',
     sunhat: 'Sun hat',
     visor: 'Sport visor',
+    cowboy: 'Cowboy hat',
     goggles: 'Ski goggles',
     necklace: 'Necklace',
     hoops: 'Hoop earrings'
