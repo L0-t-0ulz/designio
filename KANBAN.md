@@ -259,7 +259,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Blanket scarf** — an oversized square with a plaid check + fringe
 - [ ] **Silk neck scarf** — a small square knotted at the neck (knot styles)
 - [ ] **Snood / cowl** — a wide knit tube around the neck
-- [ ] **Neck gaiter / buff** — a thin stretch tube (pull up over the nose)
+- [x] **Neck gaiter / buff** — a thin stretch tube (pull up over the nose): the `gaiter` catalog garment (neck-anchored headTube, stretch jersey, `HeadTubePiece.gaiter`) — worn states above — PR #316
 - [ ] **Scarf drape styles** — once-around · wrapped · draped-tails · Parisian knot
 - [ ] **Fringe & tassels** — a configurable knotted fringe / tassel trim on scarf ends
 
@@ -315,9 +315,9 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Pom customizer** — pom size · fluff · contrast colour · faux-fur pom (drives the fur finish): `pomScale` (0.4…2, bigger sits higher) · `pomColor` (contrast, defaults to the garment) · `pomFur` (fur-finish pile normal + sheen) on LayerData, read by `buildPom` decor; 'Pom-pom' panel block gated on `def.pom`; `?pomScale=&pomColor=&pomFur=1` — PR #314
 - [ ] **Chullo** — ear flaps + braided tie cords + an alpaca colourwork band
 - [ ] **Crown decrease swirl** — the real spiral-decrease shading at a beanie crown, knit-chart driven
-- [ ] **Beanie gauge presets** — fine machine knit → hand-knit super-chunky, driven by the yarn library
-- [ ] **Cuff patch & label** — leather patch · woven label · flag embroidery placement on the cuff
-- [ ] **Brimmed beanie** — a short stiff visor under the knit dome
+- [x] **Beanie gauge presets** — fine machine knit → hand-knit super-chunky, driven by the yarn library: `BEANIE_GAUGES` (validity + monotonic-chunkiness unit-tested) set yarn + stitch chart in one click via the 'Knit gauge' chips — PR #316
+- [x] **Cuff patch & label** — leather patch · woven label placement on the cuff: `cuffPatch` builds a rounded-rect patch tracked to the LIVE band via the pocket tracker's new `hemOffset` (the spec hem vs the settled band differ — the fixed ray landed on the back panel); 'Band patch' picker; `?cuffPatch=` — PR #315 _(flag embroidery later)_
+- [x] **Brimmed beanie** — a short stiff visor under the knit dome: new catalog garment + `GarmentDefinition.visor` → a 120° front-wedge bill riding the live band (hem-anchored tracker) — PR #316
 - [ ] **Beanie negative-ease heatmap** — show the stretch-band pressure of a snug knit on the head
 - [ ] **Convertible three-way** — one knit piece worn as beanie · balaclava · neck gaiter (three states)
 
@@ -336,7 +336,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Visor** — a brim + band with an open crown (ponytail-friendly)
 
 **Perfection — Scarves & neckwear**
-- [ ] **Scarf dimension designer** — length · width · gauge with live re-sim
+- [x] **Scarf dimension designer** — length · width · gauge with live re-sim: `scarfWidth` (0.5–1.8×) through `gradeParams` scales the panel width AND its sim lattice; Length drives the tails (labelled); gauge via the yarn/knit systems; `?scarfWidth=` — PR #316
 - [ ] **Cloth-sim scarf fringe** — real hanging fringe strands on the tail hems (not painted)
 - [ ] **Parisian knot sim** — fold-in-half + pull-through, pinned at the loop like the real knot
 - [ ] **Double-wrap states** — once-around vs doubled neck turns with stable self-collision
@@ -346,7 +346,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Skinny silk scarf** — a narrow charmeuse ribbon tied loose at the throat
 - [ ] **Tartan sett designer** — a real sett (thread-count stripes) driving the scarf plaid
 - [ ] **Scarf gift-fold render** — a flat folded product shot for the line sheet
-- [ ] **Gaiter up/down states** — bunched at the neck vs pulled over the nose — two rest states
+- [x] **Gaiter up/down states** — bunched at the neck vs pulled over the nose — two rest states: `gaiterWorn` ('down' · 'up') — UP rises to headBase + 0.34·skull, dome-clamped + a nose-bridge grip pin so it rides head turns; `?gaiterWorn=` — PR #316
 - [ ] **Cowl-to-hood hybrid** — a snood that pulls up over the crown and drapes back down
 
 **Perfection — Head scarves & wraps**
@@ -356,7 +356,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Durag** — skull wrap + long tie tails + the back flap draping the neck
 - [ ] **Bandana face-cover state** — the folded triangle tied over the nose
 - [ ] **Satin-lined bonnet** — elastic edge ruche + the satin interior sheen
-- [ ] **Twisted headband** — a knit ear-warmer band with the front twist
+- [x] **Twisted headband** — a knit ear-warmer band with the front twist: the first open-crown headTube (negative rise to the brow, a ring floor for short bands, 1.2× to clear the GLB face-blob at the brow) + the crossed-knit twist tracked to the live band front — PR #316
 - [ ] **Pre-tied wrap presets** — one-click wrap styles with the knot geometry baked in
 
 **Perfection — Fit & physics**
