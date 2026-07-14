@@ -363,6 +363,14 @@ describe('scarf (flat draped panel)', () => {
     expect(Number.isFinite(mx)).toBe(true)
     expect(mx).toBeLessThan(3)
   }, 20000)
+
+  it('scarfDouble sets the double wrap; the knot wins when both are worn', () => {
+    const pc = { kind: 'scarfPanel', width: 0.16, wrapEase: 0.035, tailHi: 0.3, tailLo: 0.6 } as const
+    expect(scarfToSpec(pc, { ...DEFAULT_PARAMS, scarfDouble: true }, mann.measurements).double).toBe(true)
+    const both = scarfToSpec(pc, { ...DEFAULT_PARAMS, scarfDouble: true, scarfKnot: true }, mann.measurements)
+    expect(both.double).toBeFalsy() // the knot takes over
+    expect(both.knot).toBe(true)
+  })
 })
 
 describe('pieceAnchor (pin routing)', () => {

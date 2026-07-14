@@ -214,7 +214,7 @@ export function scarfToSpec(pc: ScarfPiece, p: GarmentParams, m: Measurements): 
   const nx = Math.max(24, Math.min(120, Math.round((len / 0.02) * simScale)))
   const ny = Math.max(4, Math.min(24, Math.round((width / 0.03) * simScale)))
   // tails hang in front of the chest, clear of the torso capsule
-  return { nx, ny, neckY: m.neckY, wrapR, width, tailLen, tailZ: m.chestR + 0.04, knot: p.scarfKnot }
+  return { nx, ny, neckY: m.neckY, wrapR, width, tailLen, tailZ: m.chestR + 0.04, knot: p.scarfKnot, double: p.scarfDouble && !p.scarfKnot }
 }
 
 /** The two trouser legs (hip → knee/ankle by length). */

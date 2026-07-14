@@ -523,6 +523,8 @@ export interface ScarfSpec {
   tailZ: number
   /** The Parisian knot — fold in half, wrap the neck doubled, tails through the bight. */
   knot?: boolean
+  /** The double wrap — the strip spirals TWICE around the neck (knot wins if both set). */
+  double?: boolean
 }
 
 // The wrap (collar) occupies the middle of the length; the two ends are the front tails.
@@ -609,6 +611,36 @@ export function parisianPinPairs(nx: number, ny: number): [number, number][] {
   return pairs
 }
 
+// ---- the double wrap — the strip spirals twice around the neck ----
+// A bigger share of the strip lives in the wrap (the tails come out shorter,
+// like a real double-wrapped scarf), sweeping ~3.3π as an outward + downward
+// spiral so the second turn spawns cleanly OVER the first (never coincident —
+// the particle repulsion then keeps the layers apart, so it stays stable).
+const DBL_A = 0.18
+const DBL_B = 0.82
+const DBL_SWEEP = 3.3 * Math.PI
+
+/** The double-wrap centreline at length param `u` ∈ [0,1]. Pure. */
+export function doubleCentre(u: number, s: ScarfSpec, out: THREE.Vector3): THREE.Vector3 {
+  const spiral = (k: number): THREE.Vector3 => {
+    // k ∈ [0,1] along the wrap: front-left → 3.3π around → front-right
+    const th = -0.35 * Math.PI - k * DBL_SWEEP
+    const r = s.wrapR + 0.016 * k // outward — the later turn lies over the earlier
+    return out.set(Math.sin(th) * r, s.neckY + 0.014 - 0.028 * k, Math.cos(th) * r)
+  }
+  if (u >= DBL_A && u <= DBL_B) return spiral((u - DBL_A) / (DBL_B - DBL_A))
+  // a front tail: from the wrap's end forward + down to the hanging tip
+  const left = u < DBL_A
+  spiral(left ? 0 : 1)
+  const ex = out.x
+  const ey = out.y
+  const ez = out.z
+  const s01 = left ? u / DBL_A : (1 - u) / (1 - DBL_B) // 1 at the join … 0 at the tip
+  const tailDrop = s.tailLen * 0.55 // the double wrap eats strip length — shorter tails
+  const tipX = (left ? -1 : 1) * s.wrapR * 0.55
+  return out.set(tipX + (ex - tipX) * s01, ey - tailDrop + tailDrop * s01, s.tailZ + (ez - s.tailZ) * s01)
+}
+
 const _sp = new THREE.Vector3()
 const _sw = new THREE.Vector3()
 
@@ -622,6 +654,10 @@ export function fillScarf(positions: Float32Array, s: ScarfSpec): void {
       // only the collar wrap stands as a vertical band
       const t = Math.abs(u - 0.5) / 0.5
       const flat = Math.min(1, Math.max(0, Math.max((KNOT_FB + 0.05 - t) / 0.05, (t - (KNOT_FB + KNOT_WK - 0.05)) / 0.05)))
+      _sw.set(flat, 1 - flat, 0).normalize()
+    } else if (s.double) {
+      doubleCentre(u, s, _sp)
+      const flat = Math.min(1, Math.max(0, Math.max((DBL_A - u) / 0.06, (u - DBL_B) / 0.06)))
       _sw.set(flat, 1 - flat, 0).normalize()
     } else {
       scarfCentre(u, s, _sp)
@@ -670,12 +706,18 @@ export function buildScarf(s: ScarfSpec): TubeBuild {
   const positions = new Float32Array(s.nx * s.ny * 3)
   fillScarf(positions, s)
   // Pin the collar (a stable band that follows the body); for the knot that's the
-  // doubled wrap only — the bight U and the threaded tails drape freely.
+  // doubled wrap only — the bight U and the threaded tails drape freely. The
+  // double wrap pins both turns' BACK halves (spawn z < 0) so the spiral rides
+  // the neck while the front crossings + tails drape on the repulsion.
   const pinned: number[] = []
+  const _pc = new THREE.Vector3()
   for (let ix = 0; ix < s.nx; ix++) {
     const u = s.nx > 1 ? ix / (s.nx - 1) : 0.5
     const t = Math.abs(u - 0.5) / 0.5
-    const inCollar = s.knot ? t > KNOT_FB + 0.02 && t < KNOT_FB + KNOT_WK - 0.02 : Math.abs(u - 0.5) < 0.26
+    let inCollar: boolean
+    if (s.knot) inCollar = t > KNOT_FB + 0.02 && t < KNOT_FB + KNOT_WK - 0.02
+    else if (s.double) inCollar = u >= DBL_A && u <= DBL_B && doubleCentre(u, s, _pc).z < 0
+    else inCollar = Math.abs(u - 0.5) < 0.26
     if (inCollar) for (let iy = 0; iy < s.ny; iy++) pinned.push(iy * s.nx + ix)
   }
   return finishPanel(positions, s.nx, s.ny, pinned)
