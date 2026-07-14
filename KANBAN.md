@@ -306,14 +306,14 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Balaclava breath-warp** — a subtle cyclic wind source at the mouth hole so the fabric visibly breathes
 - [x] **Ski-mask jacquard presets** — skull · flame · frostbite colourwork charts mapped to the face tube. Three fair-isle charts as data on the colourwork system: a symmetric bone-white skull with hollow eye sockets (tested), soot/red/ember flame tongues, a midnight/ice/glacier frostbite band — they tile the whole mask (and compose with knit-chart structure on any garment); `?colourwork=skull|flame|frost` — PR #311
 - [ ] **Distressed ski mask** — frayed hole edges + pilling concentrated on the high-wear zones
-- [ ] **Helmet-liner balaclava** — a low-profile thin snug variant (no cuff) that fits under a helmet/hood
+- [x] **Helmet-liner balaclava** — a low-profile thin snug variant (no cuff) that fits under a helmet/hood: the `helmet-liner` garment (snug open-face headTube, spandex) — PR #317
 - [ ] **Ski goggles accessory** — strap + mirrored lens riding the balaclava/head frame
 
 **Perfection — Beanies & knit caps**
 - [x] **Cuff height slider** — skull-cap → single roll → deep double roll, one beanie, live re-sim: `cuffHeight` (0…1) widens the band +22% and eats drop length in `headTubeToSpec`; 'Beanie fit' slider gated on `supports.beanieFit` (all 5 beanies); `?cuffHeight=` — PR #312
 - [x] **Slouch depth control** — crown length slider from fitted to full slouch; the gather auto-tunes so it stays on: `slouch` (0…1) adds up to +10 cm crown length while the gather tightens (−30%) per the #276 lesson; spec math + extremes-stability unit-tested; `?slouch=` — PR #312
 - [x] **Pom customizer** — pom size · fluff · contrast colour · faux-fur pom (drives the fur finish): `pomScale` (0.4…2, bigger sits higher) · `pomColor` (contrast, defaults to the garment) · `pomFur` (fur-finish pile normal + sheen) on LayerData, read by `buildPom` decor; 'Pom-pom' panel block gated on `def.pom`; `?pomScale=&pomColor=&pomFur=1` — PR #314
-- [ ] **Chullo** — ear flaps + braided tie cords + an alpaca colourwork band
+- [x] **Chullo** — ear flaps + braided tie cords + an alpaca colourwork band: the `chullo` garment — a gathered-crown pom beanie with the new `ear-flap` hem (deep side flaps, pure `bottomEdge` branch feeding 3D + 2D) in cable knit — PR #317 _(braided ties + the colourwork band later)_
 - [ ] **Crown decrease swirl** — the real spiral-decrease shading at a beanie crown, knit-chart driven
 - [x] **Beanie gauge presets** — fine machine knit → hand-knit super-chunky, driven by the yarn library: `BEANIE_GAUGES` (validity + monotonic-chunkiness unit-tested) set yarn + stitch chart in one click via the 'Knit gauge' chips — PR #316
 - [x] **Cuff patch & label** — leather patch · woven label placement on the cuff: `cuffPatch` builds a rounded-rect patch tracked to the LIVE band via the pocket tracker's new `hemOffset` (the spec hem vs the settled band differ — the fixed ray landed on the back panel); 'Band patch' picker; `?cuffPatch=` — PR #315 _(flag embroidery later)_
@@ -343,7 +343,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Scarf pin / brooch** — pin two cloth points together where placed (an extra stitch constraint)
 - [ ] **Scarf tuck-into-coat** — tails tucked under a layered coat front (layer-aware pinning)
 - [ ] **Blanket-scarf shoulder drape** — the oversized square folded diagonally over the shoulders
-- [ ] **Skinny silk scarf** — a narrow charmeuse ribbon tied loose at the throat
+- [x] **Skinny silk scarf** — a narrow charmeuse ribbon tied loose at the throat: the `skinny-scarf` catalog garment (8.5 cm scarfPanel, silk charmeuse, long tails) — PR #317
 - [ ] **Tartan sett designer** — a real sett (thread-count stripes) driving the scarf plaid
 - [ ] **Scarf gift-fold render** — a flat folded product shot for the line sheet
 - [x] **Gaiter up/down states** — bunched at the neck vs pulled over the nose — two rest states: `gaiterWorn` ('down' · 'up') — UP rises to headBase + 0.34·skull, dome-clamped + a nose-bridge grip pin so it rides head turns; `?gaiterWorn=` — PR #316
@@ -354,7 +354,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Hijab under-cap** — a snug jersey cap layer the wrap drapes over
 - [ ] **Turban wrap count** — visible wrap layers + the front twist knot
 - [ ] **Durag** — skull wrap + long tie tails + the back flap draping the neck
-- [ ] **Bandana face-cover state** — the folded triangle tied over the nose
+- [x] **Bandana face-cover state** — the folded triangle tied over the nose: the `bandana` garment wears the gaiter-up mechanics by default + the new `point-front` hem (one centre-front triangle point); gaiter-up now grips nose bridge + nape (one pin can't hold non-stretch poplin with a weighted point); top edge verified settling at the nose line — PR #317
 - [ ] **Satin-lined bonnet** — elastic edge ruche + the satin interior sheen
 - [x] **Twisted headband** — a knit ear-warmer band with the front twist: the first open-crown headTube (negative rise to the brow, a ring floor for short bands, 1.2× to clear the GLB face-blob at the brow) + the crossed-knit twist tracked to the live band front — PR #316
 - [ ] **Pre-tied wrap presets** — one-click wrap styles with the knot geometry baked in
