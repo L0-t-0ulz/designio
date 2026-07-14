@@ -131,8 +131,10 @@ export interface StackLayer {
   swatch: SwatchTextures | null
   /** Non-simulated decoration (patch pockets + trim bands) parented to the layer. */
   decor: THREE.Group
-  /** Patch-pocket groups, each tracked to the live draped surface (raycast per frame) at (x,y). */
-  pockets: { grp: THREE.Group; x: number; y: number }[]
+  /** Patch-pocket groups, each tracked to the live draped surface (raycast per frame) at (x,y).
+   *  `hemOffset` re-anchors y to the piece's LIVE settled hem each frame (a beanie band patch —
+   *  the spec hem and where the band actually catches on the skull differ). */
+  pockets: { grp: THREE.Group; x: number; y: number; hemOffset?: number }[]
   /** Placed prints (logos + text) — runtime (images live here). */
   prints: Print[]
 }
@@ -612,6 +614,7 @@ export class GarmentStack {
 
     if (l.data.closure && !l.data.closureOpen) this.buildClosure(l) // worn open → no fastened placket; the seam itself gaps
     if (getGarment(l.data.garmentType).pom) this.buildPom(l) // pom-pom beanie — a yarn pom riding the crown
+    if (l.data.cuffPatch && getGarment(l.data.garmentType).supports.beanieFit) this.buildCuffPatch(l) // brand patch on the band
     if (l.data.collar) this.buildCollar(l)
     if (l.data.waistband) this.buildWaistband(l)
     if (l.data.drawstring) this.buildDrawstring(l)
@@ -1017,8 +1020,16 @@ export class GarmentStack {
     if (!l.pockets.length) return
     const meshes = l.controller.getPieces().map((pc) => pc.mesh)
     if (!meshes.length) return
-    for (const { grp, x, y } of l.pockets) {
-      this._pocketRay.set(new THREE.Vector3(x, y, 0.6), new THREE.Vector3(0, 0, -1))
+    for (const { grp, x, y, hemOffset } of l.pockets) {
+      let rayY = y
+      if (hemOffset != null) {
+        // anchor to the LIVE hem: the lowest settled particle of the first piece
+        const pos = meshes[0].geometry.getAttribute('position') as THREE.BufferAttribute
+        let minY = Infinity
+        for (let i = 1; i < pos.count * 3; i += 3) if ((pos.array as Float32Array)[i] < minY) minY = (pos.array as Float32Array)[i]
+        if (Number.isFinite(minY)) rayY = minY + hemOffset
+      }
+      this._pocketRay.set(new THREE.Vector3(x, rayY, 0.6), new THREE.Vector3(0, 0, -1))
       const hit = this._pocketRay.intersectObjects(meshes, false)[0]
       if (!hit || !hit.face) continue
       const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()
@@ -1056,6 +1067,39 @@ export class GarmentStack {
    * or a **zip tape + metal pull** (chosen by the garment's `closureStyle`). Non-sim
    * decoration, sized/placed from the garment's tube spec so it fits any figure/size.
    */
+  /** A small brand patch / woven label on the beanie band — tracked to the live
+   *  cloth via the patch-pocket raycast machinery, so it rides the draped cuff. */
+  private buildCuffPatch(l: StackLayer): void {
+    const head = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).head[0]
+    if (!head) return
+    const leather = l.data.cuffPatch === 'leather'
+    const w = 0.036
+    const h = 0.02
+    const shape = new THREE.Shape()
+    const r = 0.004
+    shape.moveTo(-w / 2 + r, -h / 2)
+    shape.lineTo(w / 2 - r, -h / 2)
+    shape.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r)
+    shape.lineTo(w / 2, h / 2 - r)
+    shape.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2)
+    shape.lineTo(-w / 2 + r, h / 2)
+    shape.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r)
+    shape.lineTo(-w / 2, -h / 2 + r)
+    shape.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2)
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.002, bevelEnabled: false })
+    const mat = leather
+      ? new THREE.MeshPhysicalMaterial({ color: 0x6b4a2f, roughness: 0.52, clearcoat: 0.3, clearcoatRoughness: 0.5 })
+      : new THREE.MeshPhysicalMaterial({ color: 0xf2efe6, roughness: 0.85, sheen: 0.4, sheenRoughness: 0.6 })
+    const patch = new THREE.Mesh(geo, mat)
+    patch.castShadow = true
+    const grp = new THREE.Group()
+    grp.add(patch)
+    l.decor.add(grp)
+    // ride the live band via the pocket tracker — anchored 2.4 cm above the piece's
+    // LIVE hem each frame, so it sits on the band wherever it actually settles
+    l.pockets.push({ grp, x: 0, y: head.bottomY + 0.03, hemOffset: 0.024 })
+  }
+
   /** A fuzzy yarn pom sitting on the crown of a pom-pom beanie (decor, crown-anchored). */
   private buildPom(l: StackLayer): void {
     const head = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).head[0]

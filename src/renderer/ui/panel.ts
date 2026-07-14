@@ -85,6 +85,8 @@ export interface GarmentState {
   pomScale?: number
   pomColor?: number
   pomFur?: boolean
+  /** A brand patch on the beanie band — leather patch or woven label. */
+  cuffPatch?: 'leather' | 'woven'
   size: SizeLabel
   gradeRules?: GradeRules
   collar?: boolean
@@ -447,8 +449,15 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   // beanie fit sliders (cuff roll + slouch; shown when the garment supports them)
   const cuffS = slider({ label: 'Cuff roll', min: 0, max: 1, step: 0.05, get: () => garment.cuffHeight ?? 0, set: (v) => { garment.cuffHeight = v || undefined; syncGarment(); opts.onGarmentEdit() } })
   const slouchS = slider({ label: 'Slouch', min: 0, max: 1, step: 0.05, get: () => garment.slouch ?? 0, set: (v) => { garment.slouch = v || undefined; syncGarment(); opts.onGarmentEdit() } })
+  const patchRow = el('div', 'dio-actions')
+  const patchBtns = new Map<string, HTMLButtonElement>()
+  for (const [label, kind] of [['None', undefined], ['Leather patch', 'leather'], ['Woven label', 'woven']] as const) {
+    const b = button(label, () => { garment.cuffPatch = kind; syncGarment(); opts.onGarmentEdit() }, garment.cuffPatch === kind)
+    patchBtns.set(kind ?? 'none', b)
+    patchRow.append(b)
+  }
   const beanieFitBlock = el('div')
-  beanieFitBlock.append(el('div', 'dio-field-label', 'Beanie fit'), track(cuffS), track(slouchS))
+  beanieFitBlock.append(el('div', 'dio-field-label', 'Beanie fit'), track(cuffS), track(slouchS), el('div', 'dio-field-label', 'Band patch'), patchRow)
 
   // pom customizer (pom-pom beanie only)
   const pomSize = slider({ label: 'Pom size', min: 0.4, max: 2, step: 0.05, get: () => garment.pomScale ?? 1, set: (v) => { garment.pomScale = v === 1 ? undefined : v; syncGarment(); opts.onGarmentEdit() } })
@@ -631,6 +640,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
     for (const [f, node] of faceBtns) node.classList.toggle('primary', (garment.faceStyle ?? 'three-hole') === f)
     for (const [w, node] of wornBtns) node.classList.toggle('primary', (garment.balaclavaWorn ?? 'down') === w)
+    for (const [k, node] of patchBtns) node.classList.toggle('primary', (garment.cuffPatch ?? 'none') === k)
     // the pocket library shows only when the Pocket detail is supported + on
     pocketBlock.classList.toggle('dio-hidden', !def.supports.pocket || !garment.pocket)
     for (const [ps, node] of pocketBtns) node.classList.toggle('primary', (garment.pocketStyle ?? 'patch') === ps)

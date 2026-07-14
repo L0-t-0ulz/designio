@@ -239,3 +239,12 @@ describe('pom customizer persistence', () => {
     expect(back.layers[0].pomFur).toBe(true)
   })
 })
+
+describe('cuff patch persistence', () => {
+  it('cuffPatch survives a .dio round trip', () => {
+    const doc = docFromConfig(defaultConfig())
+    doc.layers[0].cuffPatch = 'leather'
+    const back = parseDoc(serializeDoc(doc))
+    expect(back.layers[0].cuffPatch).toBe('leather')
+  })
+})

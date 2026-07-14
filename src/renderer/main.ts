@@ -193,6 +193,7 @@ function initStudio(
     balaclavaWorn: l0.balaclavaWorn,
     cuffHeight: l0.cuffHeight,
     slouch: l0.slouch,
+    cuffPatch: l0.cuffPatch,
     pomScale: l0.pomScale,
     pomColor: l0.pomColor,
     pomFur: l0.pomFur,
@@ -350,6 +351,7 @@ function initStudio(
     garment.balaclavaWorn = l.data.balaclavaWorn
     garment.cuffHeight = l.data.cuffHeight
     garment.slouch = l.data.slouch
+    garment.cuffPatch = l.data.cuffPatch
     garment.pomScale = l.data.pomScale
     garment.pomColor = l.data.pomColor
     garment.pomFur = l.data.pomFur
@@ -777,6 +779,7 @@ function initStudio(
     l.data.balaclavaWorn = garment.balaclavaWorn
     l.data.cuffHeight = garment.cuffHeight
     l.data.slouch = garment.slouch
+    l.data.cuffPatch = garment.cuffPatch
     l.data.pomScale = garment.pomScale
     l.data.pomColor = garment.pomColor
     l.data.pomFur = garment.pomFur
@@ -2225,7 +2228,9 @@ function initStudio(
           }
         }
       }
+      const pk = (stack.active as unknown as { pockets: { grp: { position: { x: number; y: number; z: number } }; x: number; y: number }[] }).pockets
       console.log('[capture-log]', JSON.stringify({
+        pockets: pk?.map((q) => ({ rayY: q.y, at: [q.grp.position.x, q.grp.position.y, q.grp.position.z].map((v) => +v.toFixed(3)) })),
         crownY: m.crownY, headBaseY: m.headBaseY,
         cap0: { ay: c0.a.y, by: c0.b.y, r: c0.radius },
         face: { a: mannequin.colliders[14]?.a.y, az: mannequin.colliders[14]?.a.z, r: mannequin.colliders[14]?.radius },
@@ -2345,6 +2350,8 @@ if (skipStart) {
   const pCol = entryParams.get('pomColor')
   if (pCol) cfg.pomColor = parseInt(pCol, 16)
   if (entryParams.get('pomFur') === '1') cfg.pomFur = true
+  const cpatch = entryParams.get('cuffPatch')
+  if (cpatch === 'leather' || cpatch === 'woven') cfg.cuffPatch = cpatch
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
   const pl = entryParams.get('pleatStyle')
