@@ -345,7 +345,7 @@ fit & physics 0/10 · materials & production 0/10)_
 
 **Perfection — Scarves & neckwear**
 - [x] **Scarf dimension designer** — length · width · gauge with live re-sim: `scarfWidth` (0.5–1.8×) through `gradeParams` scales the panel width AND its sim lattice; Length drives the tails (labelled); gauge via the yarn/knit systems; `?scarfWidth=` — PR #316
-- [ ] **Cloth-sim scarf fringe** — real hanging fringe strands on the tail hems (not painted)
+- [x] **Cloth-sim scarf fringe** — real hanging fringe strands on the tail hems (not painted): every fringe strand is now a 4-point verlet chain (pure `stepStrand` — gravity + rope projection; settles plumb, follows a dragged top, byte-deterministic) driven by the live hem particles; pure `fringeEdgeIndices` hangs a scarf's fringe off the strip's END columns (the grid runs lengthwise) vs a skirt's bottom row; scarf + skinny-scarf gain `supports.fringe`, the existing `?fringe=1` lights up — PR #335
 - [ ] **Parisian knot sim** — fold-in-half + pull-through, pinned at the loop like the real knot
 - [ ] **Double-wrap states** — once-around vs doubled neck turns with stable self-collision
 - [ ] **Scarf pin / brooch** — pin two cloth points together where placed (an extra stitch constraint)
