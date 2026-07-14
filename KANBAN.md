@@ -322,7 +322,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Convertible three-way** — one knit piece worn as beanie · balaclava · neck gaiter (three states): the `convertible` garment — `convertibleWorn` routes to the group's spec branches (face · rolled · a neck state); 3-seg picker + `?convertibleWorn=` — PR #321
 
 **Perfection — Structured hats**
-- [ ] **Parametric brim designer** — width · droop/flip curve · edge wire, for any hat block
+- [x] **Parametric brim designer** — width · droop/flip curve · edge wire, for any hat block: pure `avatar/brim.brimProfile` (per-kind spreads, run-scaled droop so wide brims actually slope, negative droop = flipped up) + `Accessories.setBrim` rebuilding the bucket/sun-hat brims in place + a wired-edge torus; Avatar-panel sliders + `?brimWidth/brimDroop/brimWire` — PR #322 _(the fedora joins with the crown-shapes card)_
 - [ ] **Crown shape library** — teardrop · centre-dent · diamond · telescope (pork-pie) crown creases
 - [ ] **Hat band designer** — grosgrain · leather · braided cord bands + bow/feather/buckle trims
 - [ ] **5-panel vs 6-panel cap** — real panel seams + crown topstitch, construction picker
