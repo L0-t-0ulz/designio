@@ -42,6 +42,10 @@ const shots = [
   ['docs/headwear.png', 4500, 'garment=long-sleeve&fabric=wool-flannel&accessories=beanie,scarf&start=0'],
   ['docs/balaclava.png', 4500, 'garment=long-sleeve&fabric=jersey-knit&accessories=balaclava&start=0'],
   ['docs/beanie-cloth.png', 6000, 'garment=beanie&fabric=rib-knit&start=0'],
+  // The structured-hat studio
+  ['docs/hats-fedora.png', 5000, 'garment=top&fabric=jersey-knit&accessories=hat&crownShape=teardrop&hatBand=grosgrain&bandTrim=bow&bandColor=7a2233&closeup=head&headDist=0.9&start=0'],
+  ['docs/hats-cowboy.png', 5000, 'garment=top&fabric=jersey-knit&accessories=cowboy&closeup=head&headDist=1.0&start=0'],
+  ['docs/hats-straw.png', 5000, 'garment=top&fabric=jersey-knit&accessories=sunhat&brimWidth=1.5&brimDroop=0.55&brimWire=1&bandTrim=bow&closeup=head&headDist=1.05&start=0'],
   // Surface finishes
   ['docs/textile-plaid.png', 6000, 'garment=dress&fabric=wool-flannel&textile=plaid&start=0'],
   ['docs/ombre.png', 6500, 'garment=gown&fabric=chiffon&ombre=top-down&start=0'],

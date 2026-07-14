@@ -358,12 +358,28 @@ Then **make it yours**:
 
 
 Dress the avatar beyond the garment. **Rigid accessories** ride the live (and animated) body — **shoes ·
-belt · hat · bag**, plus a full set of **headwear & neckwear**: **beanie · cap · bucket hat · balaclava
-(ski mask) · scarf · neck gaiter**, each placed by the head/neck frame so it turns and nods with the head.
+belt · bag**, plus a full set of **headwear & neckwear**: **fedora · cap · bucket hat · sun hat · beret ·
+sport visor · cowboy · top hat · bowler · boonie · baker boy · beanie · balaclava (ski mask) · ski goggles ·
+scarf · neck gaiter**, each placed by the head/neck frame so it turns and nods with the head.
 
 | Accessories (hat · belt · bag · shoes) | Headwear & neckwear (beanie · scarf) | Balaclava (ski mask) |
 | --- | --- | --- |
 | ![A dress with a hat, belt, bag and shoes](docs/accessories.png) | ![A beanie and scarf on the avatar](docs/headwear.png) | ![A full-head balaclava](docs/balaclava.png) |
+
+### The structured-hat studio
+
+Blocked hats are **parametric**. The **crown shape library** presses real creases into the fedora
+(teardrop · centre-dent · diamond · telescope), the **brim designer** re-blocks width / droop / a wired
+edge on the fedora + bucket + sun hat, and the **hat band designer** wraps grosgrain / leather /
+braided-cord bands with bow / feather / buckle trims. The cap gets its own **bill designer**
+(flat ↔ pre-curved · contrast underbill · squatchee), a **5- vs 6-panel construction picker** with real
+seams + topstitch, and **3D puff embroidery**. The cowboy carries a cattleman crease over a side-rolled
+brim, the boonie snaps its brim sides up over a chin cord, the baker boy puffs an 8-gore crown, and the
+sun hat is woven from a real **straw basket draft** under a dry sheen.
+
+| Fedora (teardrop crown · grosgrain bow) | Cowboy (cattleman crease · side roll) | Straw sun hat (basket-draft plait) |
+| --- | --- | --- |
+| ![The fedora with a teardrop crease and a wine grosgrain bow band](docs/hats-fedora.png) | ![The cowboy hat with its creased crown and side-rolled brim](docs/hats-cowboy.png) | ![The wide wired-brim straw sun hat](docs/hats-straw.png) |
 
 And three of them are **real cloth-sim catalog garments** that drape with physics — a **snood** (cowl), a
 knit **beanie** that hugs the crown, and a **scarf** wrapped once around the neck with hanging tails.
