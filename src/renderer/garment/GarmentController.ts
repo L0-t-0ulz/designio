@@ -3,7 +3,7 @@ import type { Capsule } from '../avatar/colliders'
 import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
-import { tornCellsForPair, tubeIndices, type TubeBuild } from '../cloth/Garment'
+import { deadFromCells, tornCellsForPair, tubeIndices, type TubeBuild } from '../cloth/Garment'
 import { XPBDSolver } from '../cloth/XPBDSolver'
 import { computeAngleWeightedNormals } from '../cloth/normals'
 import type { SimPieceView } from '../cloth/ClothCollision'
@@ -124,7 +124,15 @@ export class GarmentController {
     mesh.frustumCulled = false
     this.scene.add(mesh)
 
-    const solver = new XPBDSolver(nx, ny, positions, this.params(name), { pinned: pinnedTop, wrapX })
+    // build-time cut-outs (a balaclava's eye/mouth holes): orphaned interior
+    // particles go dead so nothing holds or collides them; the quads are already
+    // dropped from the geometry, and piece.torn keeps them dropped on tear rebuilds
+    const cutCells = build.cutCells
+    const solver = new XPBDSolver(nx, ny, positions, this.params(name), {
+      pinned: pinnedTop,
+      wrapX,
+      dead: cutCells?.size ? deadFromCells(cutCells, nx, ny) : undefined
+    })
     if (cutCol != null) solver.cutSeam(cutCol) // functional opening — the placket seam is unsewn
     solver.colliders = this.colliders
     solver.bodyCollider = this.bodyCollider
@@ -176,7 +184,7 @@ export class GarmentController {
     }
     computeAngleWeightedNormals(geometry)
     topstitch.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
-    const piece: Piece = { geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, fringe, piping, wrapX, torn: new Set(), openFront: cutCol != null }
+    const piece: Piece = { geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, fringe, piping, wrapX, torn: new Set(cutCells ?? []), openFront: cutCol != null }
     // Cloth tearing: when constraints rip, drop the bordering quads from the mesh.
     solver.onTear = (pairs) => {
       for (const [i, j] of pairs) for (const c of tornCellsForPair(i, j, nx, ny)) piece.torn.add(c)

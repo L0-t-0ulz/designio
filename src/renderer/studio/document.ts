@@ -145,6 +145,8 @@ export interface GarmentLayerData {
   neckline: NecklineStyle
   sleeve: SleeveStyle
   sleeveShape?: SleeveShape
+  /** Balaclava face opening (ski mask) — full · eyes · three-hole · open-face. */
+  faceStyle?: import('../garments/schema').BalaclavaFace
   /** Manufacturing size (grades the girth). */
   size: SizeLabel
   /** Custom per-point grade increments (cm / size step); default = uniform girth grade. */
@@ -375,6 +377,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     neckline: c.neckline,
     sleeve: c.sleeve,
     sleeveShape: c.sleeveShape,
+    faceStyle: c.faceStyle,
     size: c.size,
     collar: c.collar,
     collarStyle: c.collarStyle,
@@ -439,6 +442,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     neckline: d.neckline ?? 'scoop',
     sleeve: d.sleeve ?? 'short',
     sleeveShape: d.sleeveShape,
+    faceStyle: d.faceStyle,
     size: 'M',
     collar: d.collar,
     collarStyle: d.collarStyle,

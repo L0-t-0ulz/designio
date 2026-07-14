@@ -12,9 +12,10 @@ import {
   type AxisTubeSpec,
   type ScarfSpec,
   type TubeBuild,
+  type TubeCutout,
   type TubeSpec
 } from '../cloth/Garment'
-import type { BodyTubePiece, GarmentDefinition, HeadTubePiece, ScarfPiece } from './schema'
+import type { BalaclavaFace, BodyTubePiece, GarmentDefinition, HeadTubePiece, ScarfPiece } from './schema'
 import { simTube, getResolutionScale, type SimResolution } from '../cloth/simQuality'
 
 const RADIAL = 60
@@ -92,7 +93,42 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   const bottomY = Math.max(m.chestY - 0.03, topY - drop) // never past the upper chest
   const rTop = baseR * pc.topScale + p.ease
   const rBot = baseR * pc.botScale + p.ease + p.flare
-  return piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
+  const spec = piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
+  const face = pc.face && (p.faceStyle ?? pc.face)
+  if (face) {
+    // a face style implies full-head coverage: belly the tube out at face height so
+    // it spawns just off the face (not inside the head) and narrows to the neck
+    spec.radiusWaist = baseR * 1.06 + p.ease
+    spec.waistT = 0.34
+    const cuts = balaclavaCutouts(face, topY, bottomY, m)
+    if (cuts.length) spec.cutouts = cuts
+  }
+  return spec
+}
+
+/**
+ * The balaclava's face openings as tube cut-outs — eye holes on the front
+ * (centre-front is u = 0.25), a mouth hole below, or one open-face oval; sized
+ * from the head radius so they land on the eye/mouth lines of any figure. Pure.
+ */
+export function balaclavaCutouts(face: BalaclavaFace, topY: number, bottomY: number, m: Measurements): TubeCutout[] {
+  if (face === 'full') return []
+  const span = Math.max(0.05, topY - bottomY)
+  const v = (y: number): number => Math.min(0.94, Math.max(0.06, (topY - y) / span))
+  const eyeY = m.neckY + m.headR * 1.9 // the eye line up the head
+  const mouthY = m.neckY + m.headR * 1.05
+  const eyeHalf = (m.headR * 0.18) / span // half-heights as v spans
+  const mouthHalf = (m.headR * 0.16) / span
+  const U = 0.25
+  if (face === 'open-face') {
+    return [{ u0: U - 0.085, u1: U + 0.085, v0: v(eyeY) - eyeHalf * 1.4, v1: v(mouthY) + mouthHalf * 1.6 }]
+  }
+  const eyes: TubeCutout[] = [
+    { u0: U - 0.095, u1: U - 0.022, v0: v(eyeY) - eyeHalf, v1: v(eyeY) + eyeHalf },
+    { u0: U + 0.022, u1: U + 0.095, v0: v(eyeY) - eyeHalf, v1: v(eyeY) + eyeHalf }
+  ]
+  if (face === 'eyes') return eyes
+  return [...eyes, { u0: U - 0.05, u1: U + 0.05, v0: v(mouthY) - mouthHalf, v1: v(mouthY) + mouthHalf }]
 }
 
 /** A flat scarf panel spec (wrapped once around the neck, tails hanging) from a `scarfPanel` piece. */

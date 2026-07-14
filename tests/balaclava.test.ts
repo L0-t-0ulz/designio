@@ -1,0 +1,119 @@
+import { describe, it, expect } from 'vitest'
+import { cutoutCells, deadFromCells, buildTubeGarment, type TubeCutout } from '../src/renderer/cloth/Garment'
+import { balaclavaCutouts, garmentTubeSpecs } from '../src/renderer/garments/factory'
+import { getGarment } from '../src/renderer/garments/registry'
+import { BALACLAVA_FACES, type BalaclavaFace } from '../src/renderer/garments/schema'
+import { DEFAULT_PARAMS } from '../src/renderer/garment/templates'
+import { buildMannequin } from '../src/renderer/avatar/Mannequin'
+import { XPBDSolver } from '../src/renderer/cloth/XPBDSolver'
+import { FABRICS } from '../src/renderer/cloth/fabricPresets'
+
+const mann = buildMannequin()
+
+const skiMaskSpec = (face?: BalaclavaFace) => {
+  const def = getGarment('ski-mask')
+  const p = { ...DEFAULT_PARAMS, ...def.defaults, ...(face ? { faceStyle: face } : {}) }
+  return garmentTubeSpecs(def, p, mann.measurements)[0]
+}
+
+describe('cutoutCells + deadFromCells', () => {
+  it('marks exactly the cells inside the rect', () => {
+    // a 10×11-node grid (10 columns of cells × 10 rows); rect covering cells x 2..4, y 3..5
+    const cuts: TubeCutout[] = [{ u0: 0.2, u1: 0.5, v0: 0.3, v1: 0.6 }]
+    const cells = cutoutCells(cuts, 10, 11)
+    expect(cells.size).toBe(9)
+    for (const cy of [3, 4, 5]) for (const cx of [2, 3, 4]) expect(cells.has(cy * 10 + cx)).toBe(true)
+  })
+
+  it('no cutouts → no cells; a rect off the grid → no cells', () => {
+    expect(cutoutCells(undefined, 10, 11).size).toBe(0)
+    expect(cutoutCells([{ u0: 2, u1: 3, v0: 2, v1: 3 }], 10, 11).size).toBe(0)
+  })
+
+  it('kills exactly the strictly-interior nodes of a 3×3 hole (the 2×2 orphans)', () => {
+    const cells = cutoutCells([{ u0: 0.2, u1: 0.5, v0: 0.3, v1: 0.6 }], 10, 11)
+    const dead = deadFromCells(cells, 10, 11)
+    expect(dead.size).toBe(4)
+    for (const iy of [4, 5]) for (const ix of [3, 4]) expect(dead.has(iy * 10 + ix)).toBe(true)
+  })
+
+  it('a 1-cell hole orphans nobody (its rim holds every node)', () => {
+    const cells = new Set([4 * 10 + 4])
+    expect(deadFromCells(cells, 10, 11).size).toBe(0)
+  })
+})
+
+describe('balaclavaCutouts', () => {
+  const m = mann.measurements
+  const topY = m.neckY + m.headR * 2.7
+  const bottomY = m.neckY - 0.02
+
+  it('produces the right opening count per style, all rects inside the tube', () => {
+    const counts: Record<BalaclavaFace, number> = { full: 0, eyes: 2, 'three-hole': 3, 'open-face': 1 }
+    for (const face of BALACLAVA_FACES) {
+      const cuts = balaclavaCutouts(face, topY, bottomY, m)
+      expect(cuts.length, face).toBe(counts[face])
+      for (const c of cuts) {
+        expect(c.u0).toBeGreaterThan(0)
+        expect(c.u1).toBeLessThan(1)
+        expect(c.v0).toBeGreaterThan(0)
+        expect(c.v1).toBeLessThan(1)
+        expect(c.u1).toBeGreaterThan(c.u0)
+        expect(c.v1).toBeGreaterThan(c.v0)
+      }
+    }
+  })
+
+  it('the eye holes sit symmetric about centre-front (u = 0.25), above the mouth', () => {
+    const [l, r, mouth] = balaclavaCutouts('three-hole', topY, bottomY, m)
+    expect((l.u0 + l.u1) / 2 + (r.u0 + r.u1) / 2).toBeCloseTo(0.5, 5)
+    expect(l.u1).toBeLessThan(0.25)
+    expect(r.u0).toBeGreaterThan(0.25)
+    // v runs top→down: the mouth's band starts below the eyes'
+    expect(mouth.v0).toBeGreaterThan(l.v1)
+  })
+})
+
+describe('the ski-mask garment', () => {
+  it('is a crown headTube with real face holes — the mesh drops quads per style', () => {
+    const counts = (['full', 'eyes', 'three-hole', 'open-face'] as BalaclavaFace[]).map((face) => {
+      const spec = skiMaskSpec(face)
+      expect(spec).toBeDefined()
+      const build = buildTubeGarment(spec)
+      return build.geometry.getIndex()!.count
+    })
+    const [full, eyes, three, open] = counts
+    expect(eyes).toBeLessThan(full) // eye holes dropped quads
+    expect(three).toBeLessThan(eyes) // + the mouth
+    expect(open).toBeLessThan(eyes) // the open face drops the most
+  })
+
+  it('bellies past the head radius at face height so it spawns off the face', () => {
+    const spec = skiMaskSpec()
+    expect(spec.radiusWaist).toBeGreaterThan(mann.measurements.headR)
+  })
+
+  it('drapes finite + bounded on the body with its holes cut (dead particles pinned)', () => {
+    const spec = skiMaskSpec('three-hole')
+    const build = buildTubeGarment(spec)
+    expect(build.cutCells && build.cutCells.size).toBeGreaterThan(0)
+    const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, {
+      pinned: build.pinnedTop,
+      wrapX: true,
+      dead: deadFromCells(build.cutCells!, build.nx, build.ny) // orphaned interior particles, as the controller wires it
+    })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 150; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
+
+  it('the faceStyle param overrides the definition default', () => {
+    const three = buildTubeGarment(skiMaskSpec()).geometry.getIndex()!.count // def default: three-hole
+    const full = buildTubeGarment(skiMaskSpec('full')).geometry.getIndex()!.count
+    expect(full).toBeGreaterThan(three)
+  })
+})

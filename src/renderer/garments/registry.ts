@@ -477,6 +477,18 @@ export const GARMENTS: GarmentDefinition[] = [
     defaultFabric: 'rib-knit'
   },
   {
+    id: 'ski-mask',
+    name: 'Ski mask',
+    category: 'outerwear',
+    icon: 'top',
+    // a conforming knit hood over the whole head down to the neck, with REAL face
+    // openings (cut-out quads + dead particles) — see through the eye/mouth holes
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.3, dropLo: 0.36, topScale: 0.13, botScale: 0.9, face: 'three-hole' }],
+    supports: { length: true, ease: true, flare: true, faceStyle: true },
+    defaults: { length: 0.5, ease: 0.004, flare: 0 },
+    defaultFabric: 'rib-knit'
+  },
+  {
     id: 'cuffed-beanie',
     name: 'Cuffed beanie',
     category: 'outerwear',

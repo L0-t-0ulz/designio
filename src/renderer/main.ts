@@ -62,6 +62,7 @@ import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
 import { knitPreset, cloneChart } from './fabric/knitChart'
 import { colourworkPreset, cloneColourwork } from './fabric/colourwork'
+import { BALACLAVA_FACES, type BalaclavaFace } from './garments/schema'
 import { yarnPreset } from './fabric/yarn'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
@@ -184,6 +185,7 @@ function initStudio(
     neckline: l0.neckline,
     sleeve: l0.sleeve,
     sleeveShape: l0.sleeveShape,
+    faceStyle: l0.faceStyle,
     size: l0.size,
     gradeRules: l0.gradeRules,
     collar: l0.collar,
@@ -334,6 +336,7 @@ function initStudio(
     garment.neckline = l.data.neckline
     garment.sleeve = l.data.sleeve
     garment.sleeveShape = l.data.sleeveShape
+    garment.faceStyle = l.data.faceStyle
     garment.size = l.data.size
     garment.gradeRules = l.data.gradeRules
     garment.collar = l.data.collar
@@ -754,6 +757,7 @@ function initStudio(
     l.data.neckline = garment.neckline
     l.data.sleeve = garment.sleeve
     l.data.sleeveShape = garment.sleeveShape
+    l.data.faceStyle = garment.faceStyle
     l.data.size = garment.size
     l.data.gradeRules = garment.gradeRules
     l.data.collar = garment.collar
@@ -2251,6 +2255,8 @@ if (skipStart) {
   }
   const ss = entryParams.get('sleeveShape')
   if (ss && (SLEEVE_SHAPES as string[]).includes(ss)) cfg.sleeveShape = ss as SleeveShape
+  const balFace = entryParams.get('balaclavaFace')
+  if (balFace && (BALACLAVA_FACES as string[]).includes(balFace)) cfg.faceStyle = balFace as BalaclavaFace
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
   const pl = entryParams.get('pleatStyle')
