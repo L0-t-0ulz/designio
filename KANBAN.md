@@ -312,7 +312,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 **Perfection — Beanies & knit caps**
 - [x] **Cuff height slider** — skull-cap → single roll → deep double roll, one beanie, live re-sim: `cuffHeight` (0…1) widens the band +22% and eats drop length in `headTubeToSpec`; 'Beanie fit' slider gated on `supports.beanieFit` (all 5 beanies); `?cuffHeight=` — PR #312
 - [x] **Slouch depth control** — crown length slider from fitted to full slouch; the gather auto-tunes so it stays on: `slouch` (0…1) adds up to +10 cm crown length while the gather tightens (−30%) per the #276 lesson; spec math + extremes-stability unit-tested; `?slouch=` — PR #312
-- [ ] **Pom customizer** — pom size · fluff · contrast colour · faux-fur pom (drives the fur finish)
+- [x] **Pom customizer** — pom size · fluff · contrast colour · faux-fur pom (drives the fur finish): `pomScale` (0.4…2, bigger sits higher) · `pomColor` (contrast, defaults to the garment) · `pomFur` (fur-finish pile normal + sheen) on LayerData, read by `buildPom` decor; 'Pom-pom' panel block gated on `def.pom`; `?pomScale=&pomColor=&pomFur=1` — PR #314
 - [ ] **Chullo** — ear flaps + braided tie cords + an alpaca colourwork band
 - [ ] **Crown decrease swirl** — the real spiral-decrease shading at a beanie crown, knit-chart driven
 - [ ] **Beanie gauge presets** — fine machine knit → hand-knit super-chunky, driven by the yarn library
