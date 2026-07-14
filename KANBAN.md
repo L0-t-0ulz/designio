@@ -304,7 +304,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Balaclava chin & jaw shaping** — under-jaw darts so the shell hugs the jawline instead of tenting
 - [ ] **Two-layer balaclava** — an inner liner + outer shell simulated as layered cloth that slide on each other
 - [ ] **Balaclava breath-warp** — a subtle cyclic wind source at the mouth hole so the fabric visibly breathes
-- [ ] **Ski-mask jacquard presets** — skull · flame · frostbite colourwork charts mapped to the face tube
+- [x] **Ski-mask jacquard presets** — skull · flame · frostbite colourwork charts mapped to the face tube. Three fair-isle charts as data on the colourwork system: a symmetric bone-white skull with hollow eye sockets (tested), soot/red/ember flame tongues, a midnight/ice/glacier frostbite band — they tile the whole mask (and compose with knit-chart structure on any garment); `?colourwork=skull|flame|frost` — PR #311
 - [ ] **Distressed ski mask** — frayed hole edges + pilling concentrated on the high-wear zones
 - [ ] **Helmet-liner balaclava** — a low-profile thin snug variant (no cuff) that fits under a helmet/hood
 - [ ] **Ski goggles accessory** — strap + mirrored lens riding the balaclava/head frame
