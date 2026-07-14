@@ -307,7 +307,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Ski-mask jacquard presets** — skull · flame · frostbite colourwork charts mapped to the face tube. Three fair-isle charts as data on the colourwork system: a symmetric bone-white skull with hollow eye sockets (tested), soot/red/ember flame tongues, a midnight/ice/glacier frostbite band — they tile the whole mask (and compose with knit-chart structure on any garment); `?colourwork=skull|flame|frost` — PR #311
 - [ ] **Distressed ski mask** — frayed hole edges + pilling concentrated on the high-wear zones
 - [x] **Helmet-liner balaclava** — a low-profile thin snug variant (no cuff) that fits under a helmet/hood: the `helmet-liner` garment (snug open-face headTube, spandex) — PR #317
-- [ ] **Ski goggles accessory** — strap + mirrored lens riding the balaclava/head frame
+- [x] **Ski goggles accessory** — strap + mirrored lens riding the balaclava/head frame: `AccessoryKind 'goggles'` — a mirrored sphere-patch lens band + white frame shell + strap torus at eye level, placed by the unit head frame (verified worn OVER the cloth ski mask); `?accessories=goggles` — PR #318
 
 **Perfection — Beanies & knit caps**
 - [x] **Cuff height slider** — skull-cap → single roll → deep double roll, one beanie, live re-sim: `cuffHeight` (0…1) widens the band +22% and eats drop length in `headTubeToSpec`; 'Beanie fit' slider gated on `supports.beanieFit` (all 5 beanies); `?cuffHeight=` — PR #312
