@@ -14,6 +14,7 @@ import { Topstitch } from './Topstitch'
 import { dashForSpi, SEAM_TYPES } from './stitchTypes'
 import { Fringe } from './Fringe'
 import { Piping, makePipingMaterial } from './Piping'
+import { HoleBinding } from './HoleBinding'
 
 /** Weighted-hem multiplier for every piece — the free hem hangs plumb (couture chain-weight). */
 const HEM_WEIGHT = 2.2
@@ -55,6 +56,8 @@ interface Piece {
   fringe: Fringe | null
   /** Drape-following piping cord along the neckline + hem (piping detail). */
   piping: Piping | null
+  /** Ribbed binding cords around cut openings (a balaclava's face holes). */
+  binding: HoleBinding | null
   /** false for a flat open panel (a scarf) — the grid doesn't close in X. */
   wrapX: boolean
   /** Cells torn out of the mesh (cloth tearing); the index buffer is rebuilt without them. */
@@ -81,6 +84,12 @@ export class GarmentController {
   private readonly fringeMat = new THREE.LineBasicMaterial({ color: 0x2c2c33 })
   /** Shared cord material for piping (colour follows the stitch colour). */
   private readonly pipingMat = makePipingMaterial()
+  /** Shared cord material for opening bindings — a touch fatter than piping (a rib band). */
+  private readonly bindingMat = (() => {
+    const m = makePipingMaterial()
+    m.linewidth = 0.0055
+    return m
+  })()
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -182,9 +191,18 @@ export class GarmentController {
       mesh.add(piping.object)
       piping.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
     }
+    // Opening binding — cut holes get a ribbed edge: a traced cord (visual) + much
+    // stiffer rim constraints (physics), so the opening reads finished AND holds.
+    let binding: HoleBinding | null = null
+    if (build.cutRims?.length) {
+      binding = new HoleBinding(build.cutRims, this.bindingMat)
+      mesh.add(binding.object)
+      binding.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
+      solver.stiffenAmong(new Set(build.cutRims.flat()), 0.2)
+    }
     computeAngleWeightedNormals(geometry)
     topstitch.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
-    const piece: Piece = { geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, fringe, piping, wrapX, torn: new Set(cutCells ?? []), openFront: cutCol != null }
+    const piece: Piece = { geometry, positions, mesh, solver, name, topRing, midRing, waistRing, pinnedX: pinnedX / n, pinnedY: pinnedY / n, pinGroups: [], refill: () => fill(positions), topstitch, fringe, piping, binding, wrapX, torn: new Set(cutCells ?? []), openFront: cutCol != null }
     // Cloth tearing: when constraints rip, drop the bordering quads from the mesh.
     solver.onTear = (pairs) => {
       for (const [i, j] of pairs) for (const c of tornCellsForPair(i, j, nx, ny)) piece.torn.add(c)
@@ -201,6 +219,7 @@ export class GarmentController {
   setStitchColor(hex: number): void {
     this.fringeMat.color.setHex(hex)
     this.pipingMat.color.setHex(hex)
+    this.bindingMat.color.setHex(hex)
     this.stitchMat.color.set(hex)
   }
 
@@ -426,6 +445,7 @@ export class GarmentController {
       p.topstitch.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
       p.fringe?.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
       p.piping?.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
+      p.binding?.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
     }
   }
 
@@ -476,6 +496,7 @@ export class GarmentController {
       this.scene.remove(p.mesh)
       p.topstitch.dispose()
       p.fringe?.dispose()
+      p.binding?.dispose()
       p.piping?.dispose()
       p.geometry.dispose()
     }

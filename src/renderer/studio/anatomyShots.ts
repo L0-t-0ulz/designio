@@ -14,7 +14,7 @@ export interface AnatomyShot {
   pose: CameraPose
 }
 
-const FRONT = Math.PI / 2 // +z faces the camera at this azimuth (front centre)
+const FRONT = 0 // spherical azimuth 0 = the camera on +z — facing the body's front
 
 export function anatomyShots(m: Measurements): AnatomyShot[] {
   const headY = m.neckY + m.headR * 2 // ≈ face centre

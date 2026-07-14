@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cutoutCells, deadFromCells, buildTubeGarment, type TubeCutout } from '../src/renderer/cloth/Garment'
+import { cutoutCells, cutoutRims, deadFromCells, buildTubeGarment, type TubeCutout } from '../src/renderer/cloth/Garment'
 import { balaclavaCutouts, garmentTubeSpecs } from '../src/renderer/garments/factory'
 import { getGarment } from '../src/renderer/garments/registry'
 import { BALACLAVA_FACES, type BalaclavaFace } from '../src/renderer/garments/schema'
@@ -40,6 +40,45 @@ describe('cutoutCells + deadFromCells', () => {
   it('a 1-cell hole orphans nobody (its rim holds every node)', () => {
     const cells = new Set([4 * 10 + 4])
     expect(deadFromCells(cells, 10, 11).size).toBe(0)
+  })
+})
+
+describe('cutoutRims (the opening binding path)', () => {
+  const grid = (i: number): [number, number] => [i % 10, Math.floor(i / 10)]
+
+  it('walks a closed, step-adjacent loop around the hole', () => {
+    const rims = cutoutRims([{ u0: 0.2, u1: 0.5, v0: 0.3, v1: 0.6 }], 10, 11)
+    expect(rims.length).toBe(1)
+    const loop = rims[0]
+    expect(loop.length).toBe(12) // a 3×3-cell hole has a 4×4 node boundary
+    expect(new Set(loop).size).toBe(loop.length) // no repeats
+    for (let k = 0; k < loop.length; k++) {
+      const [ax, ay] = grid(loop[k])
+      const [bx, by] = grid(loop[(k + 1) % loop.length])
+      expect(Math.abs(ax - bx) + Math.abs(ay - by), `step ${k}`).toBe(1) // grid neighbours, loop closed
+    }
+  })
+
+  it('rim nodes are never dead (the binding always has live particles to ride)', () => {
+    const cuts: TubeCutout[] = [{ u0: 0.2, u1: 0.5, v0: 0.3, v1: 0.6 }]
+    const cells = cutoutCells(cuts, 10, 11)
+    const dead = deadFromCells(cells, 10, 11)
+    for (const nIdx of cutoutRims(cuts, 10, 11)[0]) expect(dead.has(nIdx)).toBe(false)
+  })
+
+  it('the ski mask exposes one rim per opening', () => {
+    const build = buildTubeGarment(skiMaskSpec('three-hole'))
+    expect(build.cutRims?.length).toBe(3)
+    const open = buildTubeGarment(skiMaskSpec('open-face'))
+    expect(open.cutRims?.length).toBe(1)
+  })
+
+  it('stiffenAmong tightens exactly the rim-to-rim constraints', () => {
+    const build = buildTubeGarment(skiMaskSpec('three-hole'))
+    const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+    const touched = solver.stiffenAmong(new Set(build.cutRims!.flat()), 0.2)
+    expect(touched).toBeGreaterThan(0)
+    expect(solver.stiffenAmong(new Set(), 0.2)).toBe(0)
   })
 })
 

@@ -85,6 +85,9 @@ export interface TubeSpec {
    *  is kept outside this sphere's cross-section, so the tube spawns ON the skull
    *  dome instead of inside it (a deep-inside spawn resolves to the wrong side). */
   dome?: { cy: number; r: number }
+  /** Extra anchor pins at (u, v) tube fractions — a balaclava grips the nose
+   *  bridge + chin so it can't spin around the rotationally-symmetric head. */
+  extraPins?: Array<{ u: number; v: number }>
 }
 
 /** A sphere's cross-section radius at height `y` (0 outside the sphere). Pure. */
@@ -120,6 +123,45 @@ export function cutoutCells(cutouts: TubeCutout[] | undefined, nx: number, ny: n
     }
   }
   return cells
+}
+
+/**
+ * The ordered node loop around each cutout's rim — the path a **binding**
+ * (the ribbed elastic edge finishing a balaclava's eye/mouth holes) traces.
+ * Cutouts sit on the tube's front, away from the wrap seam, so rects don't
+ * wrap; the loop runs top edge → right → bottom → left, closed. Pure.
+ */
+export function cutoutRims(cutouts: TubeCutout[] | undefined, nx: number, ny: number): number[][] {
+  const rims: number[][] = []
+  if (!cutouts?.length || ny < 2) return rims
+  for (const c of cutouts) {
+    // the covered cell rect — same centre-inside test as `cutoutCells`
+    let cx0 = Infinity
+    let cx1 = -Infinity
+    let cy0 = Infinity
+    let cy1 = -Infinity
+    for (let cy = 0; cy < ny - 1; cy++) {
+      const v = (cy + 0.5) / (ny - 1)
+      if (v < c.v0 || v > c.v1) continue
+      for (let cx = 0; cx < nx; cx++) {
+        const u = (cx + 0.5) / nx
+        if (u < c.u0 || u > c.u1) continue
+        cx0 = Math.min(cx0, cx)
+        cx1 = Math.max(cx1, cx)
+        cy0 = Math.min(cy0, cy)
+        cy1 = Math.max(cy1, cy)
+      }
+    }
+    if (cx0 > cx1 || cy0 > cy1) continue // the rect covers no cells at this resolution
+    const loop: number[] = []
+    const node = (ix: number, iy: number): number => iy * nx + ((ix + nx) % nx)
+    for (let ix = cx0; ix <= cx1 + 1; ix++) loop.push(node(ix, cy0)) // top, left → right
+    for (let iy = cy0 + 1; iy <= cy1 + 1; iy++) loop.push(node(cx1 + 1, iy)) // right, down
+    for (let ix = cx1; ix >= cx0; ix--) loop.push(node(ix, cy1 + 1)) // bottom, right → left
+    for (let iy = cy1; iy >= cy0 + 1; iy--) loop.push(node(cx0, iy)) // left, back up
+    rims.push(loop)
+  }
+  return rims
 }
 
 /** Grid nodes orphaned by a cut — every one of their (in-range) surrounding cells is
@@ -259,6 +301,8 @@ export interface TubeBuild {
   /** Build-time cut-out cells (already dropped from the index buffer) — the
    *  controller seeds `piece.torn` + the solver's dead set from these. */
   cutCells?: Set<number>
+  /** Ordered rim node loops per cutout — the binding traces + stiffens these. */
+  cutRims?: number[][]
 }
 
 /** Adaptive-remeshing ring heights for a body tube (packs rings where the
@@ -341,7 +385,16 @@ export function buildTubeGarment(spec: TubeSpec): TubeBuild {
   const ringT = tubeRingT(spec)
   fillTube(positions, spec, ringT)
   const cut = cutoutCells(spec.cutouts, spec.radial, spec.rings)
-  return finishTube(positions, spec.radial, spec.rings, ringT, spec.openFront, cut.size ? cut : undefined)
+  const build = finishTube(positions, spec.radial, spec.rings, ringT, spec.openFront, cut.size ? cut : undefined)
+  if (cut.size) build.cutRims = cutoutRims(spec.cutouts, spec.radial, spec.rings)
+  for (const pin of spec.extraPins ?? []) {
+    const ix = ((Math.round(pin.u * spec.radial) % spec.radial) + spec.radial) % spec.radial
+    let iy = 0
+    for (let k = 1; k < spec.rings; k++) if (Math.abs(ringT[k] - pin.v) < Math.abs(ringT[iy] - pin.v)) iy = k
+    const idx = iy * spec.radial + ix
+    if (!build.pinnedTop.includes(idx)) build.pinnedTop.push(idx)
+  }
+  return build
 }
 
 /** A tube that follows an arbitrary segment a→b (e.g. a sleeve along the arm). */

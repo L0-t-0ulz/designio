@@ -2177,7 +2177,6 @@ function initStudio(
       try {
       const m = mannequin.measurements
       const c0 = mannequin.colliders[0]
-      const head = mannequin.anchors().head.elements
       const piece = stack.active.controller.getPieces()[0]
       const pos = piece ? (piece.mesh.geometry.getAttribute('position').array as Float32Array) : null
       let minY = Infinity
@@ -2192,11 +2191,28 @@ function initStudio(
           cy += y
         }
       }
+      // face-window census: is the front fabric ON the face (z past the skull) or gone?
+      let faceFront = 0
+      let faceBehind = 0
+      let maxZ = -Infinity
+      if (pos) {
+        for (let k = 0; k < n; k++) {
+          const x = pos[k * 3]
+          const y = pos[k * 3 + 1]
+          const z = pos[k * 3 + 2]
+          if (Math.abs(x) < 0.06 && y > m.headBaseY - 0.03 && y < m.crownY - 0.02) {
+            if (z > 0.055) faceFront++
+            else if (z > -0.02) faceBehind++
+            if (z > maxZ) maxZ = z
+          }
+        }
+      }
       console.log('[capture-log]', JSON.stringify({
-        neckY: m.neckY, headR: m.headR,
-        cap0: { ax: c0.a.x, ay: c0.a.y, az: c0.a.z, by: c0.b.y, bz: c0.b.z, r: c0.radius },
-        headAnchorY: head[13], headAnchorZ: head[14],
-        pieceY: pos ? { minY, maxY, cy: cy / n } : null
+        crownY: m.crownY, headBaseY: m.headBaseY,
+        cap0: { ay: c0.a.y, by: c0.b.y, r: c0.radius },
+        face: { a: mannequin.colliders[14]?.a.y, az: mannequin.colliders[14]?.a.z, r: mannequin.colliders[14]?.radius },
+        faceFront, faceBehind, maxZ,
+        pieceY: pos ? { minY, maxY } : null
       }))
       } catch (err) {
         console.log('[capture-log] debugHead failed:', String(err))
@@ -2205,7 +2221,10 @@ function initStudio(
   }
   if (params.get('closeup') === 'head') {
     // the Face anatomy shot — frames the head for headwear verification
-    viewport.setCameraPose(anatomyShots(mannequin.measurements)[0].pose)
+    // (?headDist=<m> tightens/loosens the framing)
+    const pose = anatomyShots(mannequin.measurements)[0].pose
+    const dist = parseFloat(params.get('headDist') ?? '')
+    viewport.setCameraPose(Number.isFinite(dist) && dist > 0 ? { ...pose, distance: dist } : pose)
   }
   if (params.get('tour') === '1') window.setTimeout(() => startTour(), 500) // force the tour (verify/share)
   if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)
