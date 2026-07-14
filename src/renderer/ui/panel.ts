@@ -76,6 +76,8 @@ export interface GarmentState {
   sleeveShape?: SleeveShape
   /** Balaclava face opening (shown when the garment supports it). */
   faceStyle?: BalaclavaFace
+  /** Balaclava worn state — down over the face or rolled up into a beanie. */
+  balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
   cuffHeight?: number
   slouch?: number
@@ -427,8 +429,16 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     faceBtns.set(f, b)
     faceRow.append(b)
   }
+  // worn-state toggle (down over the face / rolled up into a beanie)
+  const wornRow = el('div', 'dio-actions')
+  const wornBtns = new Map<string, HTMLButtonElement>()
+  for (const [label, w] of [['Worn down', 'down'], ['Rolled up (beanie)', 'rolled']] as const) {
+    const b = button(label, () => { garment.balaclavaWorn = w === 'down' ? undefined : w; syncGarment(); opts.onGarmentEdit() }, (garment.balaclavaWorn ?? 'down') === w)
+    wornBtns.set(w, b)
+    wornRow.append(b)
+  }
   const faceBlock = el('div')
-  faceBlock.append(el('div', 'dio-field-label', 'Face opening'), faceRow)
+  faceBlock.append(el('div', 'dio-field-label', 'Face opening'), faceRow, el('div', 'dio-field-label', 'Worn'), wornRow)
 
   // beanie fit sliders (cuff roll + slouch; shown when the garment supports them)
   const cuffS = slider({ label: 'Cuff roll', min: 0, max: 1, step: 0.05, get: () => garment.cuffHeight ?? 0, set: (v) => { garment.cuffHeight = v || undefined; syncGarment(); opts.onGarmentEdit() } })
@@ -608,6 +618,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     beanieFitBlock.classList.toggle('dio-hidden', !def.supports.beanieFit)
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
     for (const [f, node] of faceBtns) node.classList.toggle('primary', (garment.faceStyle ?? 'three-hole') === f)
+    for (const [w, node] of wornBtns) node.classList.toggle('primary', (garment.balaclavaWorn ?? 'down') === w)
     // the pocket library shows only when the Pocket detail is supported + on
     pocketBlock.classList.toggle('dio-hidden', !def.supports.pocket || !garment.pocket)
     for (const [ps, node] of pocketBtns) node.classList.toggle('primary', (garment.pocketStyle ?? 'patch') === ps)
