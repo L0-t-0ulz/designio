@@ -29,7 +29,7 @@ function baseBody(): Capsule[] {
 
 describe('accessories — body attach anchors', () => {
   it('exposes the accessory set incl. headwear & neckwear', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'necklace', 'hoops'])
+    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'goggles', 'necklace', 'hoops'])
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
