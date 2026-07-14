@@ -94,12 +94,24 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   // band and shortens the drop (rolling up eats length)
   const slouch = crown ? Math.max(0, Math.min(1, p.slouch ?? 0)) : 0
   const cuff = crown ? Math.max(0, Math.min(1, p.cuffHeight ?? 0)) : 0
-  const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length + slouch * 0.1 - cuff * 0.045
+  const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length + slouch * 0.04 - cuff * 0.045
   const bottomY = Math.max(m.chestY - 0.03, topY - drop) // never past the upper chest
-  const rTop = baseR * pc.topScale * (1 - 0.3 * slouch) + p.ease
+  const rTop = baseR * pc.topScale * (1 + 0.3 * slouch) + p.ease // the slouchy variant's proven gather (0.13 → ~0.17)
   const rBot = baseR * pc.botScale * (1 + 0.22 * cuff) + p.ease + p.flare
   const spec = piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
   const face = pc.face && (p.faceStyle ?? pc.face)
+  if (face && p.balaclavaWorn === 'rolled') {
+    // the convertible fold: worn ROLLED UP as a beanie — the face/neck half is
+    // rolled into a fat doubled band (holes + pins ride inside the roll), so the
+    // same piece re-specs as a rolled-band beanie shape
+    const rolledDrop = 0.19 + 0.03 * p.length
+    spec.bottomY = Math.max(m.chestY - 0.03, topY - rolledDrop)
+    spec.radiusTop = baseR * 0.13 + p.ease
+    spec.radiusBottom = baseR * 1.32 + p.ease + p.flare // the doubled roll reads as a snug fat band
+    spec.radiusWaist = undefined
+    spec.dome = { cy: topY - m.headR, r: m.headR * 1.14 + p.ease }
+    return spec
+  }
   if (face) {
     // a face style implies full-head coverage: belly the tube out at face height,
     // narrow to the neck, and spawn every ring ON the skull dome (never inside —

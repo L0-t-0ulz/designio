@@ -136,6 +136,10 @@ export interface HeadTubePiece {
 export type BalaclavaFace = 'full' | 'eyes' | 'three-hole' | 'open-face'
 export const BALACLAVA_FACES: BalaclavaFace[] = ['full', 'eyes', 'three-hole', 'open-face']
 
+/** How a balaclava is worn — down over the face, or rolled up into a beanie. */
+export type BalaclavaWorn = 'down' | 'rolled'
+export const BALACLAVA_WORN: BalaclavaWorn[] = ['down', 'rolled']
+
 /**
  * A **flat scarf panel** (a rectangular knit strip) draped once around the back of the
  * neck with two ends hanging down the front — an *open* cloth panel (not a tube). Simulated

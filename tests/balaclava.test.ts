@@ -163,11 +163,11 @@ describe('beanie fit (cuff roll + slouch)', () => {
     return garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults, ...over }, mann.measurements)[0]
   }
 
-  it('slouch adds crown length and shrinks the gather so it stays on', () => {
+  it('slouch adds crown length and eases the gather toward the slouchy variant', () => {
     const base = spec({})
     const slouched = spec({ slouch: 1 })
     expect(slouched.bottomY).toBeLessThan(base.bottomY) // longer drop
-    expect(slouched.radiusTop).toBeLessThan(base.radiusTop) // tighter gather
+    expect(slouched.radiusTop).toBeGreaterThan(base.radiusTop) // the proven slouchy gather (0.13 → ~0.17)
   })
 
   it('a rolled cuff widens the band and eats drop length', () => {
@@ -183,6 +183,37 @@ describe('beanie fit (cuff roll + slouch)', () => {
     const b = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
     expect(a.radiusTop).toBe(b.radiusTop)
     const build = buildTubeGarment(spec({ slouch: 1, cuffHeight: 1 }))
+    const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 150; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
+})
+
+describe('balaclava convertible fold', () => {
+  const spec = (worn?: 'down' | 'rolled') => {
+    const def = getGarment('ski-mask')
+    return garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults, ...(worn ? { balaclavaWorn: worn } : {}) }, mann.measurements)[0]
+  }
+
+  it('rolled re-specs the mask as a rolled-band beanie — short, fat band, no face holes', () => {
+    const down = spec()
+    const rolled = spec('rolled')
+    expect(rolled.bottomY).toBeGreaterThan(down.bottomY) // much shorter (crown coverage only)
+    expect(rolled.radiusBottom).toBeGreaterThan(down.radiusBottom) // the doubled roll band
+    expect(rolled.cutouts).toBeUndefined() // the holes ride inside the roll
+    expect(rolled.extraPins).toBeUndefined() // no face grips when rolled
+    expect(down.cutouts?.length).toBe(3) // worn down is unchanged
+  })
+
+  it('rolled still spawns on the dome and drapes bounded', () => {
+    const rolled = spec('rolled')
+    expect(rolled.dome).toBeDefined()
+    const build = buildTubeGarment(rolled)
     const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
     solver.colliders = mann.colliders
     solver.bodyCollider = mann.bodyCollider

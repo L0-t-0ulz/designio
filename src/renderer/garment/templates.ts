@@ -41,6 +41,8 @@ export interface GarmentParams {
   sleeveShape?: SleeveShape
   /** Balaclava face-opening override (full · eyes · three-hole · open-face). */
   faceStyle?: import('../garments/schema').BalaclavaFace
+  /** Balaclava worn state — down over the face (default) or rolled up into a beanie. */
+  balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Beanie cuff height, 0 (skull-cap edge) … 1 (deep double roll). */
   cuffHeight?: number
   /** Beanie slouch depth, 0 (fitted crown) … 1 (full slouch). */

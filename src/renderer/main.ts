@@ -62,7 +62,7 @@ import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
 import { knitPreset, cloneChart } from './fabric/knitChart'
 import { colourworkPreset, cloneColourwork } from './fabric/colourwork'
-import { BALACLAVA_FACES, type BalaclavaFace } from './garments/schema'
+import { BALACLAVA_FACES, BALACLAVA_WORN, type BalaclavaFace, type BalaclavaWorn } from './garments/schema'
 import { yarnPreset } from './fabric/yarn'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
@@ -190,6 +190,7 @@ function initStudio(
     sleeve: l0.sleeve,
     sleeveShape: l0.sleeveShape,
     faceStyle: l0.faceStyle,
+    balaclavaWorn: l0.balaclavaWorn,
     cuffHeight: l0.cuffHeight,
     slouch: l0.slouch,
     size: l0.size,
@@ -343,6 +344,7 @@ function initStudio(
     garment.sleeve = l.data.sleeve
     garment.sleeveShape = l.data.sleeveShape
     garment.faceStyle = l.data.faceStyle
+    garment.balaclavaWorn = l.data.balaclavaWorn
     garment.cuffHeight = l.data.cuffHeight
     garment.slouch = l.data.slouch
     garment.size = l.data.size
@@ -766,6 +768,7 @@ function initStudio(
     l.data.sleeve = garment.sleeve
     l.data.sleeveShape = garment.sleeveShape
     l.data.faceStyle = garment.faceStyle
+    l.data.balaclavaWorn = garment.balaclavaWorn
     l.data.cuffHeight = garment.cuffHeight
     l.data.slouch = garment.slouch
     l.data.size = garment.size
@@ -2322,6 +2325,8 @@ if (skipStart) {
   if (ss && (SLEEVE_SHAPES as string[]).includes(ss)) cfg.sleeveShape = ss as SleeveShape
   const balFace = entryParams.get('balaclavaFace')
   if (balFace && (BALACLAVA_FACES as string[]).includes(balFace)) cfg.faceStyle = balFace as BalaclavaFace
+  const bw = entryParams.get('balaclavaWorn')
+  if (bw && (BALACLAVA_WORN as string[]).includes(bw)) cfg.balaclavaWorn = bw as BalaclavaWorn
   const cuffH = parseFloat(entryParams.get('cuffHeight') ?? '')
   if (Number.isFinite(cuffH)) cfg.cuffHeight = Math.max(0, Math.min(1, cuffH))
   const slch = parseFloat(entryParams.get('slouch') ?? '')
