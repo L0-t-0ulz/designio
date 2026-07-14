@@ -42,7 +42,7 @@ If you are unsure whether something is allowed, **ask first.**
 - [At a glance](#at-a-glance)
 - [The homepage & "Design your piece"](#the-homepage--design-your-piece)
 - [The professional studio — every panel](#the-professional-studio--every-panel)
-- [The garment catalog — 47 garments](#the-garment-catalog--47-garments)
+- [The garment catalog — 51 garments](#the-garment-catalog--51-garments)
 - [Construction detail](#construction-detail)
 - [The fabric library — 29 fabrics](#the-fabric-library--29-fabrics)
 - [Surface design & fabric finishes](#surface-design--fabric-finishes)
@@ -157,7 +157,7 @@ once automatically and is always re-openable from **Help → Take the tour**.
 
 ---
 
-## The garment catalog — 47 garments
+## The garment catalog — 51 garments
 
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
 pieces), so breadth comes from data, not bespoke code. **Adding a garment is a data change, not new code.**
@@ -348,6 +348,14 @@ Then **make it yours**:
 ---
 
 ## Accessories, headwear & neckwear
+
+### Cloth-sim headwear — designed, not just worn
+
+| Jacquard ski mask | Custom pom beanie | Chullo |
+| --- | --- | --- |
+| ![A skull-jacquard balaclava with real eye/mouth cut-outs](docs/ski-mask-jacquard.png) | ![A pom beanie with an oversized fur pom + woven label](docs/beanie-custom.png) | ![The Andean ear-flap chullo with its pom](docs/gaiter-headband.png) |
+| real face cut-outs · 4 opening styles · convertible fold · skull/flame/frost knits | pom size/colour/fur · cuff & slouch sliders · gauge presets · band patches | ear-flap hem · plus: twisted headband · neck gaiter (worn up/down) · bandana · helmet liner · skinny silk scarf |
+
 
 Dress the avatar beyond the garment. **Rigid accessories** ride the live (and animated) body — **shoes ·
 belt · hat · bag**, plus a full set of **headwear & neckwear**: **beanie · cap · bucket hat · balaclava

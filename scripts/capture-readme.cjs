@@ -52,6 +52,10 @@ const shots = [
   ['docs/lace.png', 6000, 'garment=dress&fabric=organza&lace=chantilly&start=0'],
   ['docs/quilt.png', 6000, 'garment=bomber&fabric=satin&quilt=diamond&start=0'],
   ['docs/fur.png', 6000, 'garment=coat&fabric=wool-flannel&fur=shearling&start=0'],
+  // Cloth-sim headwear (the head-framed Face shot)
+  ['docs/ski-mask-jacquard.png', 11000, 'garment=ski-mask&colourwork=skull&closeup=head&headDist=0.42&start=0'],
+  ['docs/beanie-custom.png', 11000, 'garment=pom-beanie&pomScale=1.6&pomFur=1&pomColor=f2efe6&cuffPatch=woven&closeup=head&headDist=0.5&start=0'],
+  ['docs/gaiter-headband.png', 11000, 'garment=chullo&closeup=head&headDist=0.5&start=0'],
   // The weave & knit design studio
   ['docs/weave-draft.png', 6000, 'garment=dress&fabric=cotton-poplin&closeup=1&weaveDraft=herringbone&start=0'],
   ['docs/colourwork.png', 6000, 'garment=top&fabric=jersey-knit&knitChart=stockinette&colourwork=fairisle&start=0'],
