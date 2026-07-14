@@ -132,8 +132,9 @@ Renderer modules:
   placed front-body chest block; yarn-1 cells transparent so the garment shows through); pure
   `colourworkIndex` UV→yarn field (mirror-corrected so charts read as authored), `paintColourwork` bakes
   crisp stitch blocks with alternate-course shading into the design-art albedo behind the prints — the
-  colour layer composes with the knit chart / weave draft structure into a true jacquard; 5 presets
-  (Fair Isle band · argyle · zigzag · heart · star) + a yarn-palette painting modal (`ui/colourworkEditor`);
+  colour layer composes with the knit chart / weave draft structure into a true jacquard; 8 presets
+  (Fair Isle band · argyle · zigzag · heart · star + the **ski-mask jacquards**: skull · flame ·
+  frostbite allover knits) + a yarn-palette painting modal (`ui/colourworkEditor`);
   per-layer, `.dio` + colorways; `?colourwork=<preset>`; unit-tested), `yarn` (**yarn library** — the
   yarn a fabric is spun from: **count** (tex) · **ply** · **twist**; pure `yarnHand` derives hand
   multipliers (chunky = heavier/coarser/deeper relief · fine = light/dense · high twist = crisp + springy ·
@@ -348,7 +349,7 @@ procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone>`
 threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·
 `?knitChart=<stockinette|garter|rib-1x1|rib-2x2|seed|cable>` (a **knit stitch chart** — knit/purl/cable
 cells replacing the preset weave maps) ·
-`?colourwork=<fairisle|argyle|zigzag|heart|star>` (**intarsia / colourwork** — a fair-isle jacquard tiled
+`?colourwork=<fairisle|argyle|zigzag|heart|star|skull|flame|frost>` (**intarsia / colourwork** — a fair-isle jacquard tiled
 allover or a placed intarsia chest block, painted into the albedo behind the prints) ·
 `?yarn=<lace|fingering|dk|worsted|chunky|single-ply|crepe>` (the **yarn** the fabric is spun from —
 count/ply/twist adjust the fabric's hand: drape + surface together) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·

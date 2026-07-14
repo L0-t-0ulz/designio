@@ -37,6 +37,14 @@ describe('colourwork presets', () => {
     const c = heart()
     for (const row of c.cells) expect(row).toEqual([...row].reverse())
   })
+
+  it('the skull jacquard is symmetric with hollow eye sockets', () => {
+    const c = colourworkPreset('skull')!.chart
+    for (const row of c.cells) expect(row).toEqual([...row].reverse())
+    // the eye-socket rows read ground through the sockets
+    const eyeRows = c.cells.filter((r) => r.join('').includes('110011'))
+    expect(eyeRows.length).toBeGreaterThanOrEqual(2)
+  })
 })
 
 describe('validateColourwork', () => {
