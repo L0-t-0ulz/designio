@@ -348,6 +348,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?garment=headband` (the **twisted headband** — an open-crown knit ear-warmer band with a front twist) ·
 `?scarfWidth=<0.5..1.8>` (the **scarf dimension designer** — width multiplier; Length drives the tails) ·
 `?scarfPin=1&pinAt=<0.02..0.45>` (the **scarf pin / brooch** — `XPBDSolver.pinTogether` sews the two tails with one extra stitch constraint at that fraction in from the tail ends + a metal disc riding the pinned point) ·
+`?scarfKnot=1` (the **Parisian knot** — the scarf spawns folded in half: pure `knotCentre` runs the bight U down the chest, wraps the doubled collar a full turn each half, and threads the tails through the loop; `parisianPinPairs` stitches each tail to its side of the bight — "pinned at the loop like the real knot") ·
 `?garment=gaiter&gaiterWorn=<down|up>` (the **neck gaiter** — bunched at the neck, or pulled up over the chin + nose with a nose-bridge grip) ·
 `?breath=1` (**breath-warp** — a ~0.3 Hz cyclic exhale puffs the mask's mouth opening; keeps the cloth awake) ·
 `?garment=convertible&convertibleWorn=<balaclava|beanie|gaiter>` (the **convertible 3-way** — one knit tube worn three ways) ·

@@ -53,6 +53,8 @@ export interface GarmentParams {
   scarfWidth?: number
   /** Scarf pin / brooch — one extra stitch constraint sewing the tails together. */
   scarfPin?: boolean
+  /** Wear the scarf in the Parisian knot — folded double, tails through the bight. */
+  scarfKnot?: boolean
   /** Where the pin sits, 0.02 (at the tail ends) … 0.45 (up by the wrap). */
   pinAt?: number
   /** Gaiter worn state — bunched at the neck (default) or pulled up over the nose. */
