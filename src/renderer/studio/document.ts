@@ -84,6 +84,8 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     cuffHeight: l.cuffHeight,
     slouch: l.slouch,
     scarfWidth: l.scarfWidth,
+    scarfPin: l.scarfPin,
+    pinAt: l.pinAt,
     gaiterWorn: l.gaiterWorn,
     collar: l.collar,
     collarStyle: l.collarStyle,
@@ -169,6 +171,9 @@ export interface GarmentLayerData {
   slouch?: number
   /** Scarf width multiplier (0.5…1.8). */
   scarfWidth?: number
+  /** Scarf pin / brooch on + its position along the tails (0.02…0.45). */
+  scarfPin?: boolean
+  pinAt?: number
   /** Gaiter worn state — bunched at the neck or pulled over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Pom customizer (pom-pom beanie) — size scale · contrast colour · faux-fur pile. */
@@ -415,6 +420,8 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     cuffHeight: c.cuffHeight,
     slouch: c.slouch,
     scarfWidth: c.scarfWidth,
+    scarfPin: c.scarfPin,
+    pinAt: c.pinAt,
     gaiterWorn: c.gaiterWorn,
     pomScale: c.pomScale,
     pomColor: c.pomColor,

@@ -124,7 +124,28 @@ export class GarmentController {
     }
     this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
+    if (garmentParams.scarfPin) this.applyScarfPin(garmentParams.pinAt ?? 0.12)
   }
+
+  /** The scarf pin / brooch: one extra stitch constraint sewing the two tails
+   *  together at fraction `f` in from each tail end, + a small metal disc that
+   *  rides the pinned point each frame. */
+  private applyScarfPin(f: number): void {
+    const p = this.pieces.find((x) => x.name === 'Scarf')
+    if (!p) return
+    const nx = p.solver.nx
+    const ny = p.solver.ny
+    const row = Math.floor(ny / 2)
+    const cA = Math.max(0, Math.min(nx - 1, Math.round(f * (nx - 1))))
+    const ia = row * nx + cA
+    const ib = row * nx + (nx - 1 - cA)
+    p.solver.pinTogether(ia, ib)
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.005, 14), new THREE.MeshStandardMaterial({ color: 0xc9b477, roughness: 0.3, metalness: 0.9 }))
+    disc.rotation.x = Math.PI / 2 // face outward off the chest
+    this.brooch = { disc, ia, ib, piece: p }
+    p.mesh.add(disc)
+  }
+  private brooch: { disc: THREE.Mesh; ia: number; ib: number; piece: Piece } | null = null
 
   private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true, cutCol?: number, fringeOn = false, pipingOn = false, breathOn = false): void {
     const { geometry, positions, nx, ny, pinnedTop } = build
@@ -453,6 +474,13 @@ export class GarmentController {
       p.fringe?.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
       p.piping?.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
       p.binding?.update(p.positions, p.geometry.attributes.normal.array as Float32Array)
+      if (this.brooch?.piece === p) {
+        // the disc rides the midpoint of the pinned pair
+        const b = this.brooch
+        const a3 = b.ia * 3
+        const c3 = b.ib * 3
+        b.disc.position.set((p.positions[a3] + p.positions[c3]) / 2, (p.positions[a3 + 1] + p.positions[c3 + 1]) / 2, (p.positions[a3 + 2] + p.positions[c3 + 2]) / 2 + 0.008)
+      }
     }
   }
 
@@ -508,5 +536,10 @@ export class GarmentController {
       p.geometry.dispose()
     }
     this.pieces = []
+    if (this.brooch) {
+      this.brooch.disc.geometry.dispose()
+      ;(this.brooch.disc.material as THREE.Material).dispose()
+      this.brooch = null // the disc itself went with its piece mesh
+    }
   }
 }
