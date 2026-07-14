@@ -168,7 +168,7 @@ export function balaclavaCutouts(face: BalaclavaFace, topY: number, bottomY: num
 export function scarfToSpec(pc: ScarfPiece, p: GarmentParams, m: Measurements): ScarfSpec {
   const wrapR = m.neckR + pc.wrapEase + p.ease
   const tailLen = pc.tailHi + (pc.tailLo - pc.tailHi) * p.length
-  const width = pc.width
+  const width = pc.width * Math.max(0.5, Math.min(1.8, p.scarfWidth ?? 1)) // the dimension designer's width
   const len = 1.3 * Math.PI * wrapR + 2 * tailLen // ≈ total centreline length (~234° wrap + tails)
   const nx = Math.max(24, Math.min(120, Math.round((len / 0.02) * simScale)))
   const ny = Math.max(4, Math.min(24, Math.round((width / 0.03) * simScale)))

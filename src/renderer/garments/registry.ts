@@ -564,7 +564,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     // a wide knit panel draped once around the neck with the two ends hanging down the front
     pieces: [{ kind: 'scarfPanel', width: 0.28, wrapEase: 0.05, tailHi: 0.42, tailLo: 0.85 }],
-    supports: { length: true, ease: true },
+    supports: { scarfFit: true, length: true, ease: true },
     defaults: { length: 0.6, ease: 0.01 },
     defaultFabric: 'cable-knit'
   }

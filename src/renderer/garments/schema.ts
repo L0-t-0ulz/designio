@@ -44,6 +44,8 @@ export interface ConstructionCaps {
   faceStyle?: boolean
   /** Beanie fit sliders — cuff height + slouch depth (crown headwear). */
   beanieFit?: boolean
+  /** Scarf fit — the width slider (scarfPanel garments; Length drives the tails). */
+  scarfFit?: boolean
   length?: boolean
   ease?: boolean
   flare?: boolean

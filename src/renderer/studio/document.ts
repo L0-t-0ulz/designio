@@ -80,6 +80,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     balaclavaWorn: l.balaclavaWorn,
     cuffHeight: l.cuffHeight,
     slouch: l.slouch,
+    scarfWidth: l.scarfWidth,
     collar: l.collar,
     collarStyle: l.collarStyle,
     cuff: l.cuff,
@@ -156,6 +157,8 @@ export interface GarmentLayerData {
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
   cuffHeight?: number
   slouch?: number
+  /** Scarf width multiplier (0.5…1.8). */
+  scarfWidth?: number
   /** Pom customizer (pom-pom beanie) — size scale · contrast colour · faux-fur pile. */
   pomScale?: number
   pomColor?: number
@@ -396,6 +399,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     balaclavaWorn: c.balaclavaWorn,
     cuffHeight: c.cuffHeight,
     slouch: c.slouch,
+    scarfWidth: c.scarfWidth,
     pomScale: c.pomScale,
     pomColor: c.pomColor,
     pomFur: c.pomFur,

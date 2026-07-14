@@ -286,3 +286,17 @@ describe('twisted headband', () => {
     expect(mx).toBeLessThan(3)
   }, 20000)
 })
+
+describe('scarf dimension designer', () => {
+  it('scarfWidth scales the panel width (and its lattice rows) through gradeParams', async () => {
+    const { scarfToSpec } = await import('../src/renderer/garments/factory')
+    const { gradeParams, defaultLayer } = await import('../src/renderer/studio/document')
+    const pc = { kind: 'scarfPanel' as const, width: 0.24, tailHi: 0.3, tailLo: 0.55, wrapEase: 0.02 }
+    const l = defaultLayer('scarf')
+    const base = scarfToSpec(pc, gradeParams(l), mann.measurements)
+    l.scarfWidth = 1.8
+    const wide = scarfToSpec(pc, gradeParams(l), mann.measurements)
+    expect(wide.width).toBeCloseTo(base.width * 1.8, 5)
+    expect(wide.ny).toBeGreaterThan(base.ny)
+  })
+})

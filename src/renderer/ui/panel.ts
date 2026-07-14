@@ -81,6 +81,8 @@ export interface GarmentState {
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
   cuffHeight?: number
   slouch?: number
+  /** Scarf width multiplier (0.5…1.8). */
+  scarfWidth?: number
   /** Pom customizer (pom-pom beanie) — size · contrast colour · faux-fur pile. */
   pomScale?: number
   pomColor?: number
@@ -465,6 +467,10 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       opts.knitChart?.set(cloneChart(knitPreset(g.chart)!.chart))
     }))
   }
+  const scarfW = slider({ label: 'Scarf width', min: 0.5, max: 1.8, step: 0.05, format: (v) => `${Math.round(v * 100)}%`, get: () => garment.scarfWidth ?? 1, set: (v) => { garment.scarfWidth = v === 1 ? undefined : v; syncGarment(); opts.onGarmentEdit() } })
+  const scarfBlock = el('div')
+  scarfBlock.append(el('div', 'dio-field-label', 'Scarf fit (Length drives the tails)'), track(scarfW))
+
   const beanieFitBlock = el('div')
   beanieFitBlock.append(el('div', 'dio-field-label', 'Beanie fit'), track(cuffS), track(slouchS), el('div', 'dio-field-label', 'Knit gauge'), gaugeRow, el('div', 'dio-field-label', 'Band patch'), patchRow)
 
@@ -645,6 +651,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     sleeveShapeBlock.classList.toggle('dio-hidden', !def.supports.sleeve || garment.sleeve === 'none')
     faceBlock.classList.toggle('dio-hidden', !def.supports.faceStyle)
     beanieFitBlock.classList.toggle('dio-hidden', !def.supports.beanieFit)
+    scarfBlock.classList.toggle('dio-hidden', !def.supports.scarfFit)
     pomBlock.classList.toggle('dio-hidden', !def.pom)
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
     for (const [f, node] of faceBtns) node.classList.toggle('primary', (garment.faceStyle ?? 'three-hole') === f)
@@ -794,7 +801,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
 
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, beanieFitBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, beanieFitBlock, scarfBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

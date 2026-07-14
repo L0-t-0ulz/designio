@@ -193,6 +193,7 @@ function initStudio(
     balaclavaWorn: l0.balaclavaWorn,
     cuffHeight: l0.cuffHeight,
     slouch: l0.slouch,
+    scarfWidth: l0.scarfWidth,
     cuffPatch: l0.cuffPatch,
     pomScale: l0.pomScale,
     pomColor: l0.pomColor,
@@ -351,6 +352,7 @@ function initStudio(
     garment.balaclavaWorn = l.data.balaclavaWorn
     garment.cuffHeight = l.data.cuffHeight
     garment.slouch = l.data.slouch
+    garment.scarfWidth = l.data.scarfWidth
     garment.cuffPatch = l.data.cuffPatch
     garment.pomScale = l.data.pomScale
     garment.pomColor = l.data.pomColor
@@ -779,6 +781,7 @@ function initStudio(
     l.data.balaclavaWorn = garment.balaclavaWorn
     l.data.cuffHeight = garment.cuffHeight
     l.data.slouch = garment.slouch
+    l.data.scarfWidth = garment.scarfWidth
     l.data.cuffPatch = garment.cuffPatch
     l.data.pomScale = garment.pomScale
     l.data.pomColor = garment.pomColor
@@ -2350,6 +2353,8 @@ if (skipStart) {
   const pCol = entryParams.get('pomColor')
   if (pCol) cfg.pomColor = parseInt(pCol, 16)
   if (entryParams.get('pomFur') === '1') cfg.pomFur = true
+  const sw = parseFloat(entryParams.get('scarfWidth') ?? '')
+  if (Number.isFinite(sw)) cfg.scarfWidth = Math.max(0.5, Math.min(1.8, sw))
   const cpatch = entryParams.get('cuffPatch')
   if (cpatch === 'leather' || cpatch === 'woven') cfg.cuffPatch = cpatch
   if (entryParams.get('cuff')) cfg.cuff = true

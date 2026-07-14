@@ -32,6 +32,7 @@ export interface DesignConfig {
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   cuffHeight?: number
   slouch?: number
+  scarfWidth?: number
   pomScale?: number
   pomColor?: number
   pomFur?: boolean
