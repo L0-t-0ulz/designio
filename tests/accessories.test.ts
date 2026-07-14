@@ -164,6 +164,19 @@ describe('accessories — the fedora block (crown shapes + parametric brim)', ()
     expect(telescope.getCrown()).toBe('telescope')
   })
 
+  it('the hat band designer re-trims the fedora + sun hat in place', () => {
+    const acc = new Accessories()
+    const holders = (): THREE.Group[] =>
+      (['hat', 'sunhat'] as const).map((k) => acc.group.getObjectByName(k)!.getObjectByName('band-holder') as THREE.Group)
+    // default: a plain grosgrain ribbon on both banded blocks
+    for (const h of holders()) expect(h.children.length).toBe(1)
+    acc.setHatBand({ style: 'cord', trim: 'bow' })
+    for (const h of holders()) expect(h.children.length).toBe(3) // two strands + the bow
+    expect(acc.getHatBand().style).toBe('cord')
+    acc.setHatBand({ style: 'none' })
+    for (const h of holders()) expect(h.children.length).toBe(0)
+  })
+
   it('the fedora joins the parametric brim — width re-blocks its footprint', () => {
     const stingy = new Accessories()
     stingy.setBrim({ width: 0.4 })

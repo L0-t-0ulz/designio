@@ -14,6 +14,7 @@ import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { KIDS_BLOCKS, applyKidsBlock } from '../avatar/kidsSizes'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { CROWN_STYLES, CROWN_LABELS, type CrownStyle } from '../avatar/crown'
+import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from '../avatar/hatBand'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
@@ -316,6 +317,8 @@ export interface PanelOptions {
   brim?: { get: () => { width: number; droop: number; wire: boolean }; set: (p: Partial<{ width: number; droop: number; wire: boolean }>) => void }
   /** The crown shape library (fedora) — teardrop · centre-dent · diamond · telescope. */
   crown?: { get: () => CrownStyle; set: (s: CrownStyle) => void }
+  /** The hat band designer (fedora · sun hat) — grosgrain/leather/cord + bow/feather/buckle. */
+  hatBand?: { get: () => HatBandParams; set: (p: Partial<HatBandParams>) => void }
   /** Hair + face customization on the avatar. */
   hair?: {
     getStyle: () => Hairstyle
@@ -1224,6 +1227,25 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     }
   }
 
+  // hat-band chips (style + side trim) — the hat band designer
+  const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
+  const bandChipRow = <T extends string>(all: readonly T[], get: () => T, set: (v: T) => void): HTMLElement => {
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    for (const s of all) {
+      const b = el('button', 'dio-seg-btn' + (get() === s ? ' on' : ''), cap(s))
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        set(s)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    return row
+  }
+  const bandStyleRow = opts.hatBand ? bandChipRow<HatBandStyle>(HAT_BAND_STYLES, () => opts.hatBand!.get().style, (v) => opts.hatBand!.set({ style: v })) : el('div')
+  const bandTrimRow = opts.hatBand ? bandChipRow<BandTrim>(BAND_TRIMS, () => opts.hatBand!.get().trim, (v) => opts.hatBand!.set({ trim: v })) : el('div')
+
   bodySec.body.append(
     figRow,
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
@@ -1242,6 +1264,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         ]
       : []),
     ...(opts.crown ? [el('div', 'dio-field-label', 'Crown shape (fedora)'), crownRow] : []),
+    ...(opts.hatBand ? [el('div', 'dio-field-label', 'Hat band (fedora · sun hat)'), bandStyleRow, el('div', 'dio-field-label', 'Band trim'), bandTrimRow] : []),
     ...hairFaceEls,
     ...skinControlEls,
     bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,
