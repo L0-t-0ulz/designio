@@ -154,7 +154,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 
 **Fabric science** _(spec cloth the way a mill / Browzwear FAB does)_
 - [x] **Physical fabric properties** — a fabric editor in **real units** (weight GSM · thickness mm · bending rigidity · stretch % warp/weft · shear) that drives the solver and round-trips into the tech pack, instead of derived presets — PR #303
-- [ ] **Virtual drape test** — a cantilever / circular-drape bench that measures a fabric's **drape coefficient**, so its physics can be validated + compared like real cloth
+- [x] **Virtual drape test** — a cantilever / circular-drape bench that measures a fabric's **drape coefficient**, so its physics can be validated + compared like real cloth. The Cusick circular-drape bench runs **on the live solver** (a fabric disc settles over a capsule pedestal → shadow-area **drape coefficient %**, deterministic, milliseconds); the Peirce cantilever **bending length** is derived from flexural rigidity (G = w·c³ — an in-sim strip is non-physical at that scale: every fabric hangs a thin strip near-vertical). `🧪 Virtual drape test` button under Appearance + `?drapeTest=1`; unit-tested against real-world bending-length ranges (`fabric/drapeBench`) — PR #304
 - [ ] **Fusible interlining & lining layers** — a structured under-layer (fusible / canvas / lining) that stiffens a collar · placket · waistband, simulated + rendered as its own layer
 
 **Trims & notions** _(placed hardware, counted in the BOM)_
