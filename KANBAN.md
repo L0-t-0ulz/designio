@@ -11,7 +11,8 @@ the **ski mask & balaclava group (10/10)** and the **structured hats group (12/1
 baker boy · visor · straw weave, all on the parametric brim keystone), beanies at 9/10 (crown-decrease
 swirl deferred). Suite 883. **GitHub Actions is billing-blocked** (Settings → Billing) — every PR since
 #315 merged on local verification, and a full **manual containerized CI run** (Node 20/22 check matrix +
-the SwiftShader golden job in Docker) came back green at #329's HEAD._
+the SwiftShader golden job in Docker) came back green at #329's HEAD. README fully re-captured
+post-hats-group with the new structured-hat-studio section (PR #334, 55 shots)._
 
 _Earlier sweep — 2026-07-12: PRs #244–#277 (48 cards) — the fit-analysis trio, functional openings +
 tearing, activewear/fabric/headwear catalog growth, the capture suite, the production paperwork loop,
@@ -123,7 +124,7 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 
 ## 🔄 In progress
 
-- 🔄 **README re-capture** — all ~55 doc shots re-rendered post-hats-group (fedora/cap/sunhat drifted) + a new structured-hat-studio section (3 shots) — rendering now, lands as a docs PR
+- _(nothing right now — pick the next card from the backlog: scarves & neckwear is the open headwear group)_
 
 ---
 
