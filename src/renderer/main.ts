@@ -205,6 +205,7 @@ function initStudio(
     scarfWidth: l0.scarfWidth,
     scarfPin: l0.scarfPin,
     pinAt: l0.pinAt,
+    scarfKnot: l0.scarfKnot,
     gaiterWorn: l0.gaiterWorn,
     cuffPatch: l0.cuffPatch,
     pomScale: l0.pomScale,
@@ -370,6 +371,7 @@ function initStudio(
     garment.scarfWidth = l.data.scarfWidth
     garment.scarfPin = l.data.scarfPin
     garment.pinAt = l.data.pinAt
+    garment.scarfKnot = l.data.scarfKnot
     garment.gaiterWorn = l.data.gaiterWorn
     garment.cuffPatch = l.data.cuffPatch
     garment.pomScale = l.data.pomScale
@@ -805,6 +807,7 @@ function initStudio(
     l.data.scarfWidth = garment.scarfWidth
     l.data.scarfPin = garment.scarfPin
     l.data.pinAt = garment.pinAt
+    l.data.scarfKnot = garment.scarfKnot
     l.data.gaiterWorn = garment.gaiterWorn
     l.data.cuffPatch = garment.cuffPatch
     l.data.pomScale = garment.pomScale
@@ -2430,6 +2433,7 @@ if (skipStart) {
   const sw = parseFloat(entryParams.get('scarfWidth') ?? '')
   if (Number.isFinite(sw)) cfg.scarfWidth = Math.max(0.5, Math.min(1.8, sw))
   if (entryParams.get('scarfPin')) cfg.scarfPin = true
+  if (entryParams.get('scarfKnot')) cfg.scarfKnot = true
   const pa = parseFloat(entryParams.get('pinAt') ?? '')
   if (Number.isFinite(pa)) {
     cfg.scarfPin = true

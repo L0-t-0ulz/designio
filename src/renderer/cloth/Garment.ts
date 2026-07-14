@@ -521,6 +521,8 @@ export interface ScarfSpec {
   tailLen: number
   /** Z of the front where the tails hang. */
   tailZ: number
+  /** The Parisian knot — fold in half, wrap the neck doubled, tails through the bight. */
+  knot?: boolean
 }
 
 // The wrap (collar) occupies the middle of the length; the two ends are the front tails.
@@ -558,6 +560,55 @@ function scarfWidthDir(u: number, out: THREE.Vector3): THREE.Vector3 {
   return out.set(tail, 1 - tail, 0).normalize() // X on the tail, Y on the collar
 }
 
+// ---- the Parisian knot — fold at u=0.5, doubled wrap, tails through the bight ----
+// Fractions of each HALF (t = |u−0.5|/0.5): the bight U, then the full doubled
+// neck wrap (each half sweeps ~1.72π so the two layers overlap all round), then
+// the hanging tail threading the U.
+const KNOT_FB = 0.2
+const KNOT_WK = 0.52
+
+/** The knot centreline at length param `u` ∈ [0,1] (fold = 0.5). Pure. */
+export function knotCentre(u: number, s: ScarfSpec, out: THREE.Vector3): THREE.Vector3 {
+  const half = u >= 0.5 ? 1 : -1
+  const t = Math.abs(u - 0.5) / 0.5
+  const z0 = s.tailZ
+  if (t < KNOT_FB) {
+    // the bight U: fold tip below the chin → up to the neck-front join
+    const k = t / KNOT_FB
+    return out.set(half * 0.05 * k, s.neckY - 0.16 + k * 0.14, z0 + (s.wrapR - z0) * k * 0.55)
+  }
+  if (t < KNOT_FB + KNOT_WK) {
+    // the doubled collar: front → all the way around the neck → front again
+    const k = (t - KNOT_FB) / KNOT_WK
+    const th = half * (0.12 + k * 1.72) * Math.PI
+    const r = s.wrapR + (half > 0 ? 0.013 : 0) // layered, never coincident
+    return out.set(Math.sin(th) * r, s.neckY, Math.cos(th) * r)
+  }
+  // the tail: wrap exit → down through the bight opening → hang in front
+  const k = (t - KNOT_FB - KNOT_WK) / (1 - KNOT_FB - KNOT_WK)
+  const exTh = half * (0.12 + 1.72) * Math.PI
+  const ex = Math.sin(exTh) * s.wrapR
+  const ez = Math.cos(exTh) * s.wrapR
+  return out.set(ex + (-half * 0.025 - ex) * k, s.neckY - k * s.tailLen, ez + (z0 - 0.028 - ez) * k)
+}
+
+/**
+ * The stitch pairs that lock the knot — each tail pinned to its side of the
+ * bight where it threads the loop ("pinned at the loop like the real knot").
+ * Mid-width row; pure + unit-tested.
+ */
+export function parisianPinPairs(nx: number, ny: number): [number, number][] {
+  const row = Math.floor(ny / 2) * nx
+  const col = (u: number): number => Math.max(0, Math.min(nx - 1, Math.round(u * (nx - 1))))
+  const pairs: [number, number][] = []
+  for (const half of [-1, 1]) {
+    const uTail = 0.5 + half * 0.5 * (KNOT_FB + KNOT_WK + 0.3 * (1 - KNOT_FB - KNOT_WK))
+    const uBight = 0.5 + half * 0.5 * (KNOT_FB * 0.5)
+    pairs.push([row + col(uTail), row + col(uBight)])
+  }
+  return pairs
+}
+
 const _sp = new THREE.Vector3()
 const _sw = new THREE.Vector3()
 
@@ -565,8 +616,17 @@ const _sw = new THREE.Vector3()
 export function fillScarf(positions: Float32Array, s: ScarfSpec): void {
   for (let ix = 0; ix < s.nx; ix++) {
     const u = s.nx > 1 ? ix / (s.nx - 1) : 0.5
-    scarfCentre(u, s, _sp)
-    scarfWidthDir(u, _sw)
+    if (s.knot) {
+      knotCentre(u, s, _sp)
+      // the hanging sections (the bight U AND the tails) lie flat like ribbons;
+      // only the collar wrap stands as a vertical band
+      const t = Math.abs(u - 0.5) / 0.5
+      const flat = Math.min(1, Math.max(0, Math.max((KNOT_FB + 0.05 - t) / 0.05, (t - (KNOT_FB + KNOT_WK - 0.05)) / 0.05)))
+      _sw.set(flat, 1 - flat, 0).normalize()
+    } else {
+      scarfCentre(u, s, _sp)
+      scarfWidthDir(u, _sw)
+    }
     for (let iy = 0; iy < s.ny; iy++) {
       const w = (s.ny > 1 ? iy / (s.ny - 1) - 0.5 : 0) * s.width
       const k = (iy * s.nx + ix) * 3
@@ -609,12 +669,14 @@ function finishPanel(positions: Float32Array, nx: number, ny: number, pinned: nu
 export function buildScarf(s: ScarfSpec): TubeBuild {
   const positions = new Float32Array(s.nx * s.ny * 3)
   fillScarf(positions, s)
-  // Pin the whole collar wrap (a stable band that follows the body) + the tail roots; only
-  // the two front tails below drape freely.
+  // Pin the collar (a stable band that follows the body); for the knot that's the
+  // doubled wrap only — the bight U and the threaded tails drape freely.
   const pinned: number[] = []
   for (let ix = 0; ix < s.nx; ix++) {
     const u = s.nx > 1 ? ix / (s.nx - 1) : 0.5
-    if (Math.abs(u - 0.5) < 0.26) for (let iy = 0; iy < s.ny; iy++) pinned.push(iy * s.nx + ix)
+    const t = Math.abs(u - 0.5) / 0.5
+    const inCollar = s.knot ? t > KNOT_FB + 0.02 && t < KNOT_FB + KNOT_WK - 0.02 : Math.abs(u - 0.5) < 0.26
+    if (inCollar) for (let iy = 0; iy < s.ny; iy++) pinned.push(iy * s.nx + ix)
   }
   return finishPanel(positions, s.nx, s.ny, pinned)
 }

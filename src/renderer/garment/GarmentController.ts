@@ -3,7 +3,7 @@ import type { Capsule } from '../avatar/colliders'
 import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
 import type { FabricParams } from '../cloth/fabricPresets'
-import { deadFromCells, tornCellsForPair, tubeIndices, type TubeBuild } from '../cloth/Garment'
+import { deadFromCells, parisianPinPairs, tornCellsForPair, tubeIndices, type TubeBuild } from '../cloth/Garment'
 import { XPBDSolver } from '../cloth/XPBDSolver'
 import { computeAngleWeightedNormals } from '../cloth/normals'
 import type { SimPieceView } from '../cloth/ClothCollision'
@@ -125,6 +125,11 @@ export class GarmentController {
     this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
     if (garmentParams.scarfPin) this.applyScarfPin(garmentParams.pinAt ?? 0.12)
+    if (garmentParams.scarfKnot) {
+      // the Parisian knot: each tail stitched to its side of the bight
+      const p = this.pieces.find((x) => x.name === 'Scarf')
+      if (p) for (const [i, j] of parisianPinPairs(p.solver.nx, p.solver.ny)) p.solver.pinTogether(i, j, 0.008)
+    }
   }
 
   /** The scarf pin / brooch: one extra stitch constraint sewing the two tails
