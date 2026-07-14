@@ -120,7 +120,13 @@ Renderer modules:
   into a custom normal + roughness map replacing the fabric preset's weave; 6 preset drafts (plain ·
   basket · 2/2 twill · 3/1 denim · 5-end satin · herringbone) + a grid-editor modal
   (`ui/weaveDraftEditor`, live drawdown preview) under Appearance; per-layer, saved in the `.dio` +
-  colorways; `?weaveDraft=<preset>`; pure math unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
+  colorways; `?weaveDraft=<preset>`; pure math unit-tested), `knitChart` (**knit stitch designer** —
+  a hand-knitter's stitch chart: a cell per stitch (knit · purl · cable crossing left/right, course 0 at
+  the chart bottom) → a pure height field (raised knit wales with a V notch, squat purl bumps, cables
+  leaning into a braid) baked into custom normal + roughness maps replacing the preset weave; 6 preset
+  charts (stockinette · garter · 1×1/2×2 rib · seed · cable rope) + a cell-cycling editor modal with a
+  live shaded preview (`ui/knitChartEditor`); mutually exclusive with the weave draft (one structure owns
+  the surface); per-layer, `.dio` + colorways; `?knitChart=<preset>`; unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
   finish gradients so they don't 8-bit band; unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
   `paintTextile` tiles it across the albedo), `ombre` (**dip-dye / ombré gradient** — top-down · bottom-up ·
@@ -319,7 +325,9 @@ the garment, behind the prints) · `?ombre=<top-down|bottom-up|radial>` (a dip-d
 into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
 `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
 procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone>` (a **weave draft** —
-threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
+threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·
+`?knitChart=<stockinette|garter|rib-1x1|rib-2x2|seed|cable>` (a **knit stitch chart** — knit/purl/cable
+cells replacing the preset weave maps) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
 `?quilt=<channel|diamond|box>` (a quilted-loft finish) ·
 `?lace=<chantilly|geometric|fishnet>` (a sheer alpha-cutout lace finish) ·

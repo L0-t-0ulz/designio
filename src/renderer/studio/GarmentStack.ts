@@ -26,6 +26,7 @@ import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { iridescentParams, makeIridescenceThicknessMap } from '../fabric/iridescent'
 import { makeLaceAlphaMap } from '../fabric/lace'
 import { makeDraftNormalMap, makeDraftRoughnessMap, validateDraft } from '../fabric/weaveDraft'
+import { makeChartNormalMap, makeChartRoughnessMap, validateChart } from '../fabric/knitChart'
 import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
@@ -392,12 +393,15 @@ export class GarmentStack {
     // are already DoubleSide, so the inside shows through the holes; the lining shell
     // is dropped for a lace garment (see updateLining) so it truly sees through.
     const laceMap = l.data.lace ? makeLaceAlphaMap(l.data.lace) : null
-    // Custom weave draft — the designer's drawdown replaces the fabric preset's
-    // procedural weave normal + roughness maps. A structural finish (sparkle/quilt/
-    // fur) or a photo swatch owns the surface instead; a broken draft is ignored.
-    const draft = !sp && !ql && !l.data.fur && !l.swatch && l.data.weaveDraft && !validateDraft(l.data.weaveDraft) ? l.data.weaveDraft : undefined
-    const draftNormalMap = draft ? makeDraftNormalMap(draft) : null
-    const draftRoughMap = draft ? makeDraftRoughnessMap(draft) : null
+    // Custom weave draft / knit stitch chart — the designer's structure replaces
+    // the fabric preset's procedural weave normal + roughness maps. A structural
+    // finish (sparkle/quilt/fur) or a photo swatch owns the surface instead; a
+    // broken draft/chart is ignored; the knit chart wins if both are set.
+    const surfaceFree = !sp && !ql && !l.data.fur && !l.swatch
+    const chart = surfaceFree && l.data.knitChart && !validateChart(l.data.knitChart) ? l.data.knitChart : undefined
+    const draft = surfaceFree && !chart && l.data.weaveDraft && !validateDraft(l.data.weaveDraft) ? l.data.weaveDraft : undefined
+    const draftNormalMap = chart ? makeChartNormalMap(chart) : draft ? makeDraftNormalMap(draft) : null
+    const draftRoughMap = chart ? makeChartRoughnessMap(chart) : draft ? makeDraftRoughnessMap(draft) : null
     for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
       // metallic props applyFabric doesn't touch — default matte unless a finish sets them
       m.metalness = sp ? sp.metalness : ir ? ir.metalness : m.metalness // keep the per-fabric value applyFabric set (lamé/sequin-base)

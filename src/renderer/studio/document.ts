@@ -20,6 +20,7 @@ import type { QuiltPattern } from '../fabric/quilt'
 import type { LacePattern } from '../fabric/lace'
 import type { FurKind } from '../fabric/fur'
 import { cloneDraft, type WeaveDraft } from '../fabric/weaveDraft'
+import { cloneChart, type KnitChart } from '../fabric/knitChart'
 import { getGarment } from '../garments/registry'
 
 /** Manufacturing sizes. `M` is the drafted block; each step grades the girth. */
@@ -224,6 +225,8 @@ export interface GarmentLayerData {
   fur?: FurKind
   /** Custom weave draft (threading · tie-up · treadling) — replaces the fabric's preset weave maps. */
   weaveDraft?: WeaveDraft
+  /** Custom knit stitch chart (knit/purl/cable cells) — replaces the fabric's preset weave maps. */
+  knitChart?: KnitChart
   /** Saved colour/fabric variants of this design (compared in the swatch grid). */
   colorways?: Colorway[]
   visible: boolean
@@ -250,6 +253,7 @@ export interface Colorway {
   lace?: LacePattern
   fur?: FurKind
   weaveDraft?: WeaveDraft
+  knitChart?: KnitChart
 }
 
 let cwSeq = 0
@@ -285,7 +289,8 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     quilt: l.quilt,
     lace: l.lace,
     fur: l.fur,
-    weaveDraft: l.weaveDraft && cloneDraft(l.weaveDraft)
+    weaveDraft: l.weaveDraft && cloneDraft(l.weaveDraft),
+    knitChart: l.knitChart && cloneChart(l.knitChart)
   }
 }
 
@@ -306,6 +311,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.lace = cw.lace
   l.fur = cw.fur
   l.weaveDraft = cw.weaveDraft && cloneDraft(cw.weaveDraft)
+  l.knitChart = cw.knitChart && cloneChart(cw.knitChart)
 }
 
 export interface BodyData {
@@ -502,8 +508,14 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     lace: l.lace,
     fur: l.fur,
     weaveDraft: l.weaveDraft && cloneDraft(l.weaveDraft),
+    knitChart: l.knitChart && cloneChart(l.knitChart),
     colorways: l.colorways
-      ? l.colorways.map((cw) => ({ ...cw, partFabrics: clonePartFabrics(cw.partFabrics), weaveDraft: cw.weaveDraft && cloneDraft(cw.weaveDraft) }))
+      ? l.colorways.map((cw) => ({
+          ...cw,
+          partFabrics: clonePartFabrics(cw.partFabrics),
+          weaveDraft: cw.weaveDraft && cloneDraft(cw.weaveDraft),
+          knitChart: cw.knitChart && cloneChart(cw.knitChart)
+        }))
       : undefined
   }
 }

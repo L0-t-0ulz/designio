@@ -39,6 +39,8 @@ import { physicalDefaults, clampPhysical, type PhysicalFabric } from '../fabric/
 import { drapeBench, benchSummary } from '../fabric/drapeBench'
 import { DRAFT_PRESETS, cloneDraft, draftKey, type WeaveDraft } from '../fabric/weaveDraft'
 import { openWeaveDraftEditor } from './weaveDraftEditor'
+import { KNIT_PRESETS, cloneChart, chartKey, type KnitChart } from '../fabric/knitChart'
+import { openKnitChartEditor } from './knitChartEditor'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { ClosureDesign } from '../studio/closureDesign'
@@ -254,6 +256,8 @@ export interface PanelOptions {
   fur?: { get: () => FurKind | undefined; set: (k: FurKind | undefined) => void }
   /** A custom weave draft (threading · tie-up · treadling) replacing the preset weave (optional). */
   weaveDraft?: { get: () => WeaveDraft | undefined; set: (d: WeaveDraft | undefined) => void }
+  /** A custom knit stitch chart (knit/purl/cable cells) replacing the preset weave (optional). */
+  knitChart?: { get: () => KnitChart | undefined; set: (c: KnitChart | undefined) => void }
   /** Saved colour/fabric variants of the design, compared in a swatch grid (optional). */
   colorways?: {
     list: () => ColorwayItem[]
@@ -1286,6 +1290,34 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A custom knit stitch chart — preset chips + the cell-editor modal.
+  function knitChartControls(kc: NonNullable<PanelOptions['knitChart']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const renderRow = (): void => {
+      row.replaceChildren()
+      const currentKey = kc.get() && chartKey(kc.get()!)
+      const choices: [string, KnitChart | undefined][] = [['None', undefined], ...KNIT_PRESETS.map((p) => [p.name, p.chart] as [string, KnitChart])]
+      for (const [label, chart] of choices) {
+        const on = chart ? currentKey === chartKey(chart) : !currentKey
+        const b = el('button', 'dio-seg-btn' + (on ? ' on' : ''), label)
+        b.setAttribute('type', 'button')
+        b.addEventListener('click', () => {
+          kc.set(chart && cloneChart(chart))
+          renderRow()
+        })
+        row.append(b)
+      }
+      const custom = el('button', 'dio-seg-btn' + (currentKey && !KNIT_PRESETS.some((p) => chartKey(p.chart) === currentKey) ? ' on' : ''), 'Custom…')
+      custom.setAttribute('type', 'button')
+      custom.addEventListener('click', () => openKnitChartEditor(kc.get(), (c) => { kc.set(c); renderRow() }))
+      row.append(custom)
+    }
+    renderRow()
+    wrap.append(el('div', 'dio-field-label', 'Knit stitch chart'), row)
+    return wrap
+  }
+
   // A faux-fur / shearling / fleece pile finish.
   const FUR_LABELS: Record<FurKind, string> = { shearling: 'Shearling', 'faux-fur': 'Faux fur', fleece: 'Fleece' }
   function furControls(fr: NonNullable<PanelOptions['fur']>): HTMLElement {
@@ -1620,6 +1652,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.lace) look.body.append(laceControls(opts.lace))
   if (opts.fur) look.body.append(furControls(opts.fur))
   if (opts.weaveDraft) look.body.append(weaveDraftControls(opts.weaveDraft))
+  if (opts.knitChart) look.body.append(knitChartControls(opts.knitChart))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.colorways) look.body.append(colorwaysControls(opts.colorways))
   if (opts.prints) look.body.append(printsControls(opts.prints))
