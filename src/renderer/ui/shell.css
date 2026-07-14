@@ -620,6 +620,42 @@
   font-size: 13px;
   font-weight: 600;
 }
+/* ---- path-traced hero render: toggle + quality + convergence progress ---- */
+.dio-render-pt-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dio-render-ptbtn {
+  border: 1px solid var(--hairline) !important;
+}
+.dio-render-progress {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-weight: 600;
+}
+.dio-render-progress.dio-hidden {
+  display: none;
+}
+.dio-render-progbar {
+  width: 200px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--glass-hi);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+.dio-render-progfill {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.12s linear;
+}
 /* ---- 2D pattern edit tools (design straight from 2D) ---- */
 .dio-pattern-tools {
   display: flex;

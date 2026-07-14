@@ -1,4 +1,5 @@
 import { el } from '../ui/controls'
+import type { PathTraceQuality } from '../core/pathTracePlan'
 
 /** Live edits from the quick toolbar — the *same* garment they drive in 3D + 2D. */
 export interface PatternEditor {
@@ -26,6 +27,16 @@ export interface CenterTabsHandle {
   refresh: () => void
   /** Programmatically switch tab (used by the `?view=pattern` / `?view=render` deep-links). */
   show: (which: '3d' | 'pattern' | 'render') => void
+  /** Open the Render tab in path-traced mode + kick off a hero render (the `?pathtrace=` deep-link). */
+  pathTrace: (quality?: PathTraceQuality) => void
+}
+
+/** Progress + cancel handle a path trace reports to. */
+export interface PathTraceRun {
+  width: number
+  quality: PathTraceQuality
+  onProgress: (frac: number) => void
+  signal: { cancelled: boolean }
 }
 
 /** Drives the Render tab: capture a high-res still + save it as a PNG. */
@@ -36,7 +47,15 @@ export interface RenderApi {
   save: (dataUrl: string) => void | Promise<void>
   /** Rack focus: null = depth-of-field off; 0…1 sweeps near → subject → far. */
   focusPull?: (t: number | null) => void
+  /** Offline path-traced hero render — converges async, resolves to a PNG data URL. */
+  pathTrace?: (run: PathTraceRun) => Promise<string>
 }
+
+const PT_QUALITIES: { label: string; value: PathTraceQuality }[] = [
+  { label: 'Draft', value: 'draft' },
+  { label: 'High', value: 'high' },
+  { label: 'Ultra', value: 'ultra' }
+]
 
 const RES: { label: string; width: number }[] = [
   { label: 'HD', width: 1280 },
@@ -79,17 +98,56 @@ export function buildCenterTabs(
   const rstage = el('div', 'dio-render-stage')
   rstage.append(rimg)
   const rsave = el('button', 'dio-render-save', 'Save PNG')
+  // Path-traced hero-render progress overlay (a label + a thin bar over the stage).
+  const rprog = el('div', 'dio-render-progress dio-hidden')
+  const rproglabel = el('span', 'dio-render-proglabel', 'Path tracing…')
+  const rprogbar = el('div', 'dio-render-progbar')
+  const rprogfill = el('div', 'dio-render-progfill')
+  rprogbar.append(rprogfill)
+  rprog.append(rproglabel, rprogbar)
+  rstage.append(rprog)
   let curUrl = ''
   let curWidth = RES[1].width
-  const capture = (): void => {
+  let ptOn = false
+  let ptQuality: PathTraceQuality = 'high'
+  let ptRun: { cancelled: boolean } | null = null
+  const setProgress = (frac: number): void => {
+    rprogfill.style.width = `${Math.round(frac * 100)}%`
+    rproglabel.textContent = `Path tracing… ${Math.round(frac * 100)}%`
+  }
+  const capture = async (): Promise<void> => {
     if (!render) return
-    rpane.classList.add('dio-render-busy')
-    // let the "Rendering…" state paint before the (blocking) supersample
-    requestAnimationFrame(() => {
-      curUrl = render.capture(curWidth)
-      rimg.src = curUrl
-      rpane.classList.remove('dio-render-busy')
-    })
+    // Cancel any path trace already in flight (a new resolution/quality supersedes it).
+    if (ptRun) ptRun.cancelled = true
+    if (ptOn && render.pathTrace) {
+      const signal = { cancelled: false }
+      ptRun = signal
+      setProgress(0)
+      rprog.classList.remove('dio-hidden')
+      try {
+        const url = await render.pathTrace({ width: curWidth, quality: ptQuality, onProgress: setProgress, signal })
+        if (!signal.cancelled) {
+          curUrl = url
+          rimg.src = url
+        }
+      } catch (err) {
+        if (!signal.cancelled) rproglabel.textContent = 'Path trace failed — see console'
+        console.error('Path trace failed:', err)
+      } finally {
+        if (ptRun === signal) {
+          ptRun = null
+          rprog.classList.add('dio-hidden')
+        }
+      }
+    } else {
+      rpane.classList.add('dio-render-busy')
+      // let the "Rendering…" state paint before the (blocking) supersample
+      requestAnimationFrame(() => {
+        curUrl = render.capture(curWidth)
+        rimg.src = curUrl
+        rpane.classList.remove('dio-render-busy')
+      })
+    }
   }
   const resButtons: HTMLButtonElement[] = RES.map((r) => {
     const b = el('button', 'dio-render-resbtn' + (r.width === curWidth ? ' on' : ''), `${r.label} · ${r.width}px`) as HTMLButtonElement
@@ -125,7 +183,28 @@ export function buildCenterTabs(
     capture()
   })
   focusWrap.append(focusBtn, focusRange)
-  rbar.append(rres, focusWrap, rhint, rsave)
+  // Path-traced hero render — a toggle + Draft/High/Ultra quality selector (offline GI still).
+  const ptWrap = el('div', 'dio-render-pt-wrap')
+  const ptBtn = el('button', 'dio-render-resbtn dio-render-ptbtn', '✦ Path traced') as HTMLButtonElement
+  const ptQualGroup = el('div', 'dio-render-res dio-render-ptqual dio-hidden')
+  const ptQualBtns: HTMLButtonElement[] = PT_QUALITIES.map((q) => {
+    const b = el('button', 'dio-render-resbtn' + (q.value === ptQuality ? ' on' : ''), q.label) as HTMLButtonElement
+    b.addEventListener('click', () => {
+      ptQuality = q.value
+      ptQualBtns.forEach((x, i) => x.classList.toggle('on', PT_QUALITIES[i].value === ptQuality))
+      if (ptOn) void capture()
+    })
+    return b
+  })
+  ptQualGroup.append(...ptQualBtns)
+  ptBtn.addEventListener('click', () => {
+    ptOn = !ptOn
+    ptBtn.classList.toggle('on', ptOn)
+    ptQualGroup.classList.toggle('dio-hidden', !ptOn)
+    void capture()
+  })
+  ptWrap.append(ptBtn, ptQualGroup)
+  rbar.append(rres, focusWrap, ...(render?.pathTrace ? [ptWrap] : []), rhint, rsave)
   rpane.append(rbar, rstage)
 
   center.append(tabs, tools, pane, rpane)
@@ -256,6 +335,18 @@ export function buildCenterTabs(
       renderTools()
       if (!pane.classList.contains('dio-hidden')) inner.innerHTML = patternSvg()
     },
-    show
+    show,
+    pathTrace: (quality?: PathTraceQuality) => {
+      if (quality) {
+        ptQuality = quality
+        ptQualBtns.forEach((x, i) => x.classList.toggle('on', PT_QUALITIES[i].value === ptQuality))
+      }
+      if (!ptOn) {
+        ptOn = true
+        ptBtn.classList.add('on')
+        ptQualGroup.classList.remove('dio-hidden')
+      }
+      show('render') // switches to the render pane + kicks off the (path-traced) capture
+    }
   }
 }

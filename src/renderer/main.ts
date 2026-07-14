@@ -18,6 +18,8 @@ import { buildCenterTabs, type PatternEditor, type RenderApi } from './shell/cen
 import type { Preset } from './start/presets'
 import { setupEnvironment } from './core/Environment'
 import { Loop } from './core/Loop'
+import { renderPathTraced } from './core/PathTracer'
+import { pathTraceProgress, type PathTraceQuality } from './core/pathTracePlan'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { skinLook, SKIN_LOOK, SKIN_TONES, UNDERTONES, type SkinTone, type Undertone } from './avatar/skin'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
@@ -899,6 +901,22 @@ function initStudio(
   const renderApi: RenderApi = {
     capture: (width) => viewport.renderStill(width),
       focusPull: (t) => viewport.setFocusPull(t),
+    // Offline path-traced hero render: pause the loop (we own the canvas), converge, resume.
+    pathTrace: async ({ width, quality, onProgress, signal }) => {
+      const wasRunning = loop.isRunning()
+      loop.setRunning(false)
+      try {
+        return await renderPathTraced(viewport, {
+          width,
+          quality,
+          signal,
+          onProgress: (s, t) => onProgress(pathTraceProgress(s, t))
+        })
+      } finally {
+        loop.setRunning(wasRunning)
+        viewport.requestRender() // repaint the live view under the render pane
+      }
+    },
     save: async (dataUrl) => {
       const b64 = dataUrl.split(',')[1] ?? ''
       const bin = atob(b64)
@@ -1190,6 +1208,17 @@ function initStudio(
   if (sqParam) {
     simQuality = Math.max(0, Math.min(1, +sqParam))
     stack.setSimQuality(qualityToSubsteps(simQuality))
+  }
+
+  // ---- path-traced hero render deep-link (`?pathtrace=1[&ptQuality=draft|high|ultra]`) ----
+  // Once the drape settles, open the Render tab in path-traced mode + converge a hero still.
+  if (params.get('pathtrace') === '1') {
+    const q = (params.get('ptQuality') as PathTraceQuality) || 'high'
+    void (async () => {
+      const settled = (window as unknown as { __drapeSettled?: () => boolean }).__drapeSettled
+      for (let i = 0; i < 600 && !(settled?.() ?? true); i++) await new Promise((r) => setTimeout(r, 50))
+      centerTabs.pathTrace(q)
+    })()
   }
 
   // ---- autosave + crash recovery ----

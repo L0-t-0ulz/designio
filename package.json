@@ -28,6 +28,7 @@
     "motion": "^12.42.2",
     "split.js": "^1.6.5",
     "three": "^0.185.1",
+    "three-gpu-pathtracer": "^0.0.24",
     "three-mesh-bvh": "^0.9.10"
   },
   "devDependencies": {
