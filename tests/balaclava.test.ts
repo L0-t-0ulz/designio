@@ -313,7 +313,7 @@ describe('neck gaiter up/down', () => {
     const up = spec('up')
     expect(down.topY).toBeLessThan(mann.measurements.headBaseY) // at the neck
     expect(up.topY).toBeGreaterThan(mann.measurements.headBaseY) // over the chin/nose
-    expect(up.extraPins?.length).toBe(1)
+    expect(up.extraPins?.length).toBe(2) // nose bridge + nape grips
     expect(up.dome).toBeDefined()
     expect(down.extraPins).toBeUndefined()
   })
