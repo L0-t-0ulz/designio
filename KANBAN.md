@@ -318,8 +318,8 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Beanie gauge presets** — fine machine knit → hand-knit super-chunky, driven by the yarn library: `BEANIE_GAUGES` (validity + monotonic-chunkiness unit-tested) set yarn + stitch chart in one click via the 'Knit gauge' chips — PR #316
 - [x] **Cuff patch & label** — leather patch · woven label placement on the cuff: `cuffPatch` builds a rounded-rect patch tracked to the LIVE band via the pocket tracker's new `hemOffset` (the spec hem vs the settled band differ — the fixed ray landed on the back panel); 'Band patch' picker; `?cuffPatch=` — PR #315 _(flag embroidery later)_
 - [x] **Brimmed beanie** — a short stiff visor under the knit dome: new catalog garment + `GarmentDefinition.visor` → a 120° front-wedge bill riding the live band (hem-anchored tracker) — PR #316
-- [ ] **Beanie negative-ease heatmap** — show the stretch-band pressure of a snug knit on the head
-- [ ] **Convertible three-way** — one knit piece worn as beanie · balaclava · neck gaiter (three states)
+- [x] **Beanie negative-ease heatmap** — show the stretch-band pressure of a snug knit on the head: `?ease=` deep-link (the slider already reached −3 cm); crown pieces now survive compression (ease floored −1.2 cm, the band compresses but never the gather, compressed spawns dome-clamped — neutral drape verified unregressed); snug band + `?pressure=1` reads the contact heatmap — PR #321
+- [x] **Convertible three-way** — one knit piece worn as beanie · balaclava · neck gaiter (three states): the `convertible` garment — `convertibleWorn` routes to the group's spec branches (face · rolled · a neck state); 3-seg picker + `?convertibleWorn=` — PR #321
 
 **Perfection — Structured hats**
 - [ ] **Parametric brim designer** — width · droop/flip curve · edge wire, for any hat block
