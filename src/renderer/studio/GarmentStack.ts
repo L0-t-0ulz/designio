@@ -1060,11 +1060,20 @@ export class GarmentStack {
   private buildPom(l: StackLayer): void {
     const head = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).head[0]
     if (!head) return
-    const pom = new THREE.Mesh(
-      new THREE.SphereGeometry(0.045, 18, 14),
-      new THREE.MeshPhysicalMaterial({ color: l.data.color, roughness: 1, sheen: 1, sheenRoughness: 0.4, sheenColor: new THREE.Color(l.data.color).offsetHSL(0, -0.1, 0.18) })
-    )
-    pom.position.set(0, head.topY + 0.032, 0)
+    // the pom customizer: size scale · contrast colour · a faux-fur pile finish
+    const scale = Math.max(0.4, Math.min(2, l.data.pomScale ?? 1))
+    const colour = l.data.pomColor ?? l.data.color
+    const r = 0.045 * scale
+    const mat = new THREE.MeshPhysicalMaterial({ color: colour, roughness: 1, sheen: 1, sheenRoughness: 0.4, sheenColor: new THREE.Color(colour).offsetHSL(0, -0.1, 0.18) })
+    if (l.data.pomFur) {
+      const fp = furParams('faux-fur')
+      mat.normalMap = makeFurNormalMap('faux-fur')
+      mat.normalScale.set(fp.normalStrength, fp.normalStrength)
+      mat.sheen = fp.sheen
+      mat.sheenRoughness = fp.sheenRoughness
+    }
+    const pom = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 14), mat)
+    pom.position.set(0, head.topY + 0.02 + r * 0.28, 0) // bigger poms sit a touch higher
     pom.castShadow = true
     l.decor.add(pom)
   }

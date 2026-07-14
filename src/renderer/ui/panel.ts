@@ -81,6 +81,10 @@ export interface GarmentState {
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
   cuffHeight?: number
   slouch?: number
+  /** Pom customizer (pom-pom beanie) — size · contrast colour · faux-fur pile. */
+  pomScale?: number
+  pomColor?: number
+  pomFur?: boolean
   size: SizeLabel
   gradeRules?: GradeRules
   collar?: boolean
@@ -446,6 +450,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const beanieFitBlock = el('div')
   beanieFitBlock.append(el('div', 'dio-field-label', 'Beanie fit'), track(cuffS), track(slouchS))
 
+  // pom customizer (pom-pom beanie only)
+  const pomSize = slider({ label: 'Pom size', min: 0.4, max: 2, step: 0.05, get: () => garment.pomScale ?? 1, set: (v) => { garment.pomScale = v === 1 ? undefined : v; syncGarment(); opts.onGarmentEdit() } })
+  const pomCol = colorField({ label: 'Pom colour', get: () => garment.pomColor ?? 0xffffff, set: (v) => { garment.pomColor = v; syncGarment(); opts.onGarmentEdit() } })
+  const pomFurT = toggle({ label: 'Faux-fur pom', get: () => !!garment.pomFur, set: (v) => { garment.pomFur = v || undefined; syncGarment(); opts.onGarmentEdit() } })
+  const pomBlock = el('div')
+  pomBlock.append(el('div', 'dio-field-label', 'Pom-pom'), track(pomSize), track(pomCol), track(pomFurT))
+
   // frill picker (ruffles/flounces/godets; shown when the Ruffles detail is on)
   const frillLabels: Record<FrillStyle, string> = { ruffle: 'Ruffle', flounce: 'Flounce', godet: 'Godet' }
   const frillRow = el('div', 'dio-actions')
@@ -616,6 +627,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     sleeveShapeBlock.classList.toggle('dio-hidden', !def.supports.sleeve || garment.sleeve === 'none')
     faceBlock.classList.toggle('dio-hidden', !def.supports.faceStyle)
     beanieFitBlock.classList.toggle('dio-hidden', !def.supports.beanieFit)
+    pomBlock.classList.toggle('dio-hidden', !def.pom)
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
     for (const [f, node] of faceBtns) node.classList.toggle('primary', (garment.faceStyle ?? 'three-hole') === f)
     for (const [w, node] of wornBtns) node.classList.toggle('primary', (garment.balaclavaWorn ?? 'down') === w)
@@ -763,7 +775,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
 
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, beanieFitBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, beanieFitBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

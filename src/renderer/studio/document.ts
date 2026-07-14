@@ -156,6 +156,10 @@ export interface GarmentLayerData {
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
   cuffHeight?: number
   slouch?: number
+  /** Pom customizer (pom-pom beanie) — size scale · contrast colour · faux-fur pile. */
+  pomScale?: number
+  pomColor?: number
+  pomFur?: boolean
   /** Manufacturing size (grades the girth). */
   size: SizeLabel
   /** Custom per-point grade increments (cm / size step); default = uniform girth grade. */
@@ -390,6 +394,9 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     balaclavaWorn: c.balaclavaWorn,
     cuffHeight: c.cuffHeight,
     slouch: c.slouch,
+    pomScale: c.pomScale,
+    pomColor: c.pomColor,
+    pomFur: c.pomFur,
     size: c.size,
     collar: c.collar,
     collarStyle: c.collarStyle,

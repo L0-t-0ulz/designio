@@ -193,6 +193,9 @@ function initStudio(
     balaclavaWorn: l0.balaclavaWorn,
     cuffHeight: l0.cuffHeight,
     slouch: l0.slouch,
+    pomScale: l0.pomScale,
+    pomColor: l0.pomColor,
+    pomFur: l0.pomFur,
     size: l0.size,
     gradeRules: l0.gradeRules,
     collar: l0.collar,
@@ -347,6 +350,9 @@ function initStudio(
     garment.balaclavaWorn = l.data.balaclavaWorn
     garment.cuffHeight = l.data.cuffHeight
     garment.slouch = l.data.slouch
+    garment.pomScale = l.data.pomScale
+    garment.pomColor = l.data.pomColor
+    garment.pomFur = l.data.pomFur
     garment.size = l.data.size
     garment.gradeRules = l.data.gradeRules
     garment.collar = l.data.collar
@@ -771,6 +777,9 @@ function initStudio(
     l.data.balaclavaWorn = garment.balaclavaWorn
     l.data.cuffHeight = garment.cuffHeight
     l.data.slouch = garment.slouch
+    l.data.pomScale = garment.pomScale
+    l.data.pomColor = garment.pomColor
+    l.data.pomFur = garment.pomFur
     l.data.size = garment.size
     l.data.gradeRules = garment.gradeRules
     l.data.collar = garment.collar
@@ -2331,6 +2340,11 @@ if (skipStart) {
   if (Number.isFinite(cuffH)) cfg.cuffHeight = Math.max(0, Math.min(1, cuffH))
   const slch = parseFloat(entryParams.get('slouch') ?? '')
   if (Number.isFinite(slch)) cfg.slouch = Math.max(0, Math.min(1, slch))
+  const pScale = parseFloat(entryParams.get('pomScale') ?? '')
+  if (Number.isFinite(pScale)) cfg.pomScale = Math.max(0.4, Math.min(2, pScale))
+  const pCol = entryParams.get('pomColor')
+  if (pCol) cfg.pomColor = parseInt(pCol, 16)
+  if (entryParams.get('pomFur') === '1') cfg.pomFur = true
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
   const pl = entryParams.get('pleatStyle')

@@ -32,6 +32,9 @@ export interface DesignConfig {
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   cuffHeight?: number
   slouch?: number
+  pomScale?: number
+  pomColor?: number
+  pomFur?: boolean
   /** Manufacturing size (grades the garment girth). */
   size: SizeLabel
   /** Construction detail (optional). */
