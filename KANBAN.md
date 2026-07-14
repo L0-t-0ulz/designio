@@ -310,8 +310,8 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Ski goggles accessory** — strap + mirrored lens riding the balaclava/head frame
 
 **Perfection — Beanies & knit caps**
-- [ ] **Cuff height slider** — skull-cap → single roll → deep double roll, one beanie, live re-sim
-- [ ] **Slouch depth control** — crown length slider from fitted to full slouch; the gather auto-tunes so it stays on
+- [x] **Cuff height slider** — skull-cap → single roll → deep double roll, one beanie, live re-sim: `cuffHeight` (0…1) widens the band +22% and eats drop length in `headTubeToSpec`; 'Beanie fit' slider gated on `supports.beanieFit` (all 5 beanies); `?cuffHeight=` — PR #312
+- [x] **Slouch depth control** — crown length slider from fitted to full slouch; the gather auto-tunes so it stays on: `slouch` (0…1) adds up to +10 cm crown length while the gather tightens (−30%) per the #276 lesson; spec math + extremes-stability unit-tested; `?slouch=` — PR #312
 - [ ] **Pom customizer** — pom size · fluff · contrast colour · faux-fur pom (drives the fur finish)
 - [ ] **Chullo** — ear flaps + braided tie cords + an alpaca colourwork band
 - [ ] **Crown decrease swirl** — the real spiral-decrease shading at a beanie crown, knit-chart driven
