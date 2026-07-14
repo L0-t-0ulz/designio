@@ -39,11 +39,11 @@ import { physicalDefaults, clampPhysical, type PhysicalFabric } from '../fabric/
 import { drapeBench, benchSummary } from '../fabric/drapeBench'
 import { DRAFT_PRESETS, cloneDraft, draftKey, type WeaveDraft } from '../fabric/weaveDraft'
 import { openWeaveDraftEditor } from './weaveDraftEditor'
-import { KNIT_PRESETS, cloneChart, chartKey, type KnitChart } from '../fabric/knitChart'
+import { KNIT_PRESETS, cloneChart, chartKey, knitPreset, type KnitChart } from '../fabric/knitChart'
 import { openKnitChartEditor } from './knitChartEditor'
 import { COLOURWORK_PRESETS, cloneColourwork, colourworkKey, type ColourworkChart } from '../fabric/colourwork'
 import { openColourworkEditor } from './colourworkEditor'
-import { YARN_PRESETS, DK_TEX, type YarnSpec } from '../fabric/yarn'
+import { YARN_PRESETS, BEANIE_GAUGES, yarnPreset, DK_TEX, type YarnSpec } from '../fabric/yarn'
 import { BALACLAVA_FACES, type BalaclavaFace } from '../garments/schema'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
@@ -456,8 +456,17 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     patchBtns.set(kind ?? 'none', b)
     patchRow.append(b)
   }
+  // gauge presets — one click sets the yarn + the stitch chart together
+  const gaugeRow = el('div', 'dio-actions')
+  gaugeRow.style.flexWrap = 'wrap'
+  for (const g of BEANIE_GAUGES) {
+    gaugeRow.append(button(g.name, () => {
+      opts.yarn?.set({ ...yarnPreset(g.yarn)!.yarn })
+      opts.knitChart?.set(cloneChart(knitPreset(g.chart)!.chart))
+    }))
+  }
   const beanieFitBlock = el('div')
-  beanieFitBlock.append(el('div', 'dio-field-label', 'Beanie fit'), track(cuffS), track(slouchS), el('div', 'dio-field-label', 'Band patch'), patchRow)
+  beanieFitBlock.append(el('div', 'dio-field-label', 'Beanie fit'), track(cuffS), track(slouchS), el('div', 'dio-field-label', 'Knit gauge'), gaugeRow, el('div', 'dio-field-label', 'Band patch'), patchRow)
 
   // pom customizer (pom-pom beanie only)
   const pomSize = slider({ label: 'Pom size', min: 0.4, max: 2, step: 0.05, get: () => garment.pomScale ?? 1, set: (v) => { garment.pomScale = v === 1 ? undefined : v; syncGarment(); opts.onGarmentEdit() } })

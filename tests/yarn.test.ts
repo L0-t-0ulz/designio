@@ -111,3 +111,20 @@ describe('yarn persistence', () => {
     expect(l.yarn.ply).toBe(yarnPreset('crepe')!.yarn.ply)
   })
 })
+
+describe('beanie gauge presets', () => {
+  it('every gauge references a real yarn preset and a real knit chart', async () => {
+    const { BEANIE_GAUGES } = await import('../src/renderer/fabric/yarn')
+    const { knitPreset } = await import('../src/renderer/fabric/knitChart')
+    for (const g of BEANIE_GAUGES) {
+      expect(yarnPreset(g.yarn), `${g.id} yarn`).toBeDefined()
+      expect(knitPreset(g.chart), `${g.id} chart`).toBeDefined()
+    }
+  })
+
+  it('gauges get chunkier monotonically (heavier yarn down the list)', async () => {
+    const { BEANIE_GAUGES } = await import('../src/renderer/fabric/yarn')
+    const texes = BEANIE_GAUGES.map((g) => yarnPreset(g.yarn)!.yarn.tex)
+    for (let i = 1; i < texes.length; i++) expect(texes[i]).toBeGreaterThanOrEqual(texes[i - 1])
+  })
+})

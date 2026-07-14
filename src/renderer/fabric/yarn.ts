@@ -110,6 +110,28 @@ export const YARN_PRESETS: YarnPreset[] = [
 
 export const yarnPreset = (id: string): YarnPreset | undefined => YARN_PRESETS.find((p) => p.id === id)
 
+/**
+ * Beanie **gauge presets** — one click sets the knit's whole hand: the yarn
+ * (weight/ply/twist from the yarn library) + the stitch structure (a knit
+ * chart), from a fine machine knit to a hand-knit super-chunky. Pure data;
+ * validity (every referenced preset exists) is unit-tested.
+ */
+export interface BeanieGauge {
+  id: string
+  name: string
+  /** A yarn-library preset id (fabric/yarn). */
+  yarn: YarnPresetId
+  /** A knit-chart preset id (fabric/knitChart). */
+  chart: string
+}
+
+export const BEANIE_GAUGES: BeanieGauge[] = [
+  { id: 'machine-fine', name: 'Fine machine', yarn: 'fingering', chart: 'stockinette' },
+  { id: 'standard', name: 'Standard', yarn: 'dk', chart: 'rib-1x1' },
+  { id: 'hand-chunky', name: 'Hand chunky', yarn: 'chunky', chart: 'rib-2x2' },
+  { id: 'super-chunky', name: 'Super chunky', yarn: 'chunky', chart: 'cable' }
+]
+
 /** One-line label for the panel ("DK · 4-ply · std twist"). */
 export function yarnLabel(y: YarnSpec): string {
   const preset = YARN_PRESETS.find((p) => p.yarn.tex === y.tex && p.yarn.ply === y.ply && p.yarn.twist === y.twist)
