@@ -30,6 +30,7 @@ import { CROWN_STYLES, type CrownStyle } from './avatar/crown'
 import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from './avatar/hatBand'
 import { UNDERBILL_CLASSIC, type CapBillParams } from './avatar/capBill'
 import { CAP_PANEL_COUNTS, type CapPanelCount } from './avatar/capPanels'
+import { PUFF_SHAPES, type PuffLogoParams, type PuffShape } from './avatar/puffLogo'
 import { FaceRig, HAIRSTYLES, type Hairstyle } from './avatar/face'
 import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
 import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
@@ -1144,6 +1145,13 @@ function initStudio(
     // ?capPanels=5|6 — the crown construction picker
     const cp = parseInt(params.get('capPanels') ?? '', 10)
     if ((CAP_PANEL_COUNTS as number[]).includes(cp)) accessories.setCapPanels(cp as CapPanelCount)
+    // ?puffLogo= & ?puffColor= — 3D puff cap embroidery
+    const puffPatch: Partial<PuffLogoParams> = {}
+    const pl = params.get('puffLogo')
+    if (pl && (PUFF_SHAPES as string[]).includes(pl)) puffPatch.shape = pl as PuffShape
+    const pc = params.get('puffColor')
+    if (pc) puffPatch.color = parseInt(pc.replace('#', ''), 16)
+    if (Object.keys(puffPatch).length) accessories.setPuffLogo(puffPatch)
   }
   const hairParam = params.get('hair')
   if (hairParam && (HAIRSTYLES as string[]).includes(hairParam)) faceRig.setHairstyle(hairParam as Hairstyle)
@@ -1901,6 +1909,7 @@ function initStudio(
     hatBand: { get: () => accessories.getHatBand(), set: (p) => accessories.setHatBand(p) },
     capBill: { get: () => accessories.getCapBill(), set: (p) => accessories.setCapBill(p) },
     capPanels: { get: () => accessories.getCapPanels(), set: (n) => accessories.setCapPanels(n) },
+    puffLogo: { get: () => accessories.getPuffLogo(), set: (p) => accessories.setPuffLogo(p) },
     hair: {
       getStyle: () => faceRig.getHairstyle(),
       setStyle: (s) => faceRig.setHairstyle(s),

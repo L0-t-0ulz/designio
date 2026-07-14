@@ -17,6 +17,7 @@ import { CROWN_STYLES, CROWN_LABELS, type CrownStyle } from '../avatar/crown'
 import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from '../avatar/hatBand'
 import { UNDERBILL_CLASSIC, type CapBillParams } from '../avatar/capBill'
 import { CAP_PANEL_COUNTS, type CapPanelCount } from '../avatar/capPanels'
+import { PUFF_SHAPES, type PuffLogoParams, type PuffShape } from '../avatar/puffLogo'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
@@ -325,6 +326,8 @@ export interface PanelOptions {
   capBill?: { get: () => CapBillParams; set: (p: Partial<CapBillParams>) => void }
   /** 5-panel vs 6-panel cap construction. */
   capPanels?: { get: () => CapPanelCount; set: (n: CapPanelCount) => void }
+  /** 3D puff cap embroidery — a raised front-panel mark. */
+  puffLogo?: { get: () => PuffLogoParams; set: (p: Partial<PuffLogoParams>) => void }
   /** Hair + face customization on the avatar. */
   hair?: {
     getStyle: () => Hairstyle
@@ -1282,6 +1285,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       : []),
     ...(opts.capPanels
       ? [el('div', 'dio-field-label', 'Cap construction'), bandChipRow(CAP_PANEL_COUNTS.map((n) => `${n}-panel`), () => `${opts.capPanels!.get()}-panel`, (v) => opts.capPanels!.set(parseInt(v, 10) as CapPanelCount))]
+      : []),
+    ...(opts.puffLogo
+      ? [el('div', 'dio-field-label', 'Puff embroidery'), bandChipRow<PuffShape>(PUFF_SHAPES, () => opts.puffLogo!.get().shape, (v) => opts.puffLogo!.set({ shape: v }))]
       : []),
     ...hairFaceEls,
     ...skinControlEls,

@@ -211,6 +211,21 @@ describe('accessories — the fedora block (crown shapes + parametric brim)', ()
     expect(acc.getCapPanels()).toBe(5)
   })
 
+  it('puff embroidery lofts a mark off the cap front and clears away again', () => {
+    const acc = new Accessories()
+    const holder = acc.group.getObjectByName('cap')!.getObjectByName('puff-holder') as THREE.Group
+    expect(holder.children.length).toBe(0) // ships unmarked
+    acc.setPuffLogo({ shape: 'peak', color: 0xffffff })
+    expect(holder.children.length).toBe(1)
+    const geo = (holder.children[0] as THREE.Mesh).geometry
+    geo.computeBoundingBox()
+    // the mark stands proud of the dome front (z beyond the 1.046 patch base)
+    expect(geo.boundingBox!.max.z).toBeGreaterThan(1.05)
+    acc.setPuffLogo({ shape: 'none' })
+    expect(holder.children.length).toBe(0)
+    expect(acc.getPuffLogo().shape).toBe('none')
+  })
+
   it('the visor shares the parametric bill on an open crown', () => {
     const acc = new Accessories()
     acc.setEnabled('visor', true)
