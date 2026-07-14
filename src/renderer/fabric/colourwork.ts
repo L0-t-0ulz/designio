@@ -90,7 +90,7 @@ export function cloneColourwork(c: ColourworkChart): ColourworkChart {
 
 // ---- presets — classic colourwork, as data ----
 
-export type ColourworkPresetId = 'fairisle' | 'argyle' | 'zigzag' | 'heart' | 'star'
+export type ColourworkPresetId = 'fairisle' | 'argyle' | 'zigzag' | 'heart' | 'star' | 'skull' | 'flame' | 'frost'
 
 export interface ColourworkPreset {
   id: ColourworkPresetId
@@ -161,6 +161,65 @@ export const COLOURWORK_PRESETS: ColourworkPreset[] = [
         '001111100',
         '000111000',
         '000010000'
+      ])
+    }
+  },
+  // ---- the ski-mask jacquards (allover streetwear knits — great on any garment too) ----
+  {
+    id: 'skull',
+    name: 'Skull jacquard',
+    chart: {
+      mode: 'fairisle',
+      palette: [0x14161c, 0xe8e6df], // near-black ground · bone white
+      cells: rows([
+        '0000000000',
+        '0011111100',
+        '0111111110',
+        '1111111111',
+        '1100110011',
+        '1100110011',
+        '1111111111',
+        '1111001111',
+        '0110110110',
+        '0011111100'
+      ])
+    }
+  },
+  {
+    id: 'flame',
+    name: 'Flame jacquard',
+    chart: {
+      mode: 'fairisle',
+      palette: [0x16151a, 0xa82f27, 0xe08a2e], // soot ground · flame red · ember orange
+      cells: rows([
+        '00010000',
+        '00011001',
+        '00110011',
+        '01120011',
+        '01220110',
+        '11221121',
+        '12211221',
+        '12222122',
+        '11222211',
+        '11122111'
+      ])
+    }
+  },
+  {
+    id: 'frost',
+    name: 'Frostbite jacquard',
+    chart: {
+      mode: 'fairisle',
+      palette: [0x1d2a44, 0xdfe8f2, 0x6f93c4], // midnight ground · ice white · glacier blue
+      cells: rows([
+        '1000100010',
+        '0101110101',
+        '0011211100',
+        '1112121110',
+        '0011211100',
+        '0101110101',
+        '1000100010',
+        '0020002000'
       ])
     }
   },
