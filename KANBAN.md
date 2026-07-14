@@ -332,7 +332,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Baker boy volume** — the 8-panel puffed crown over the flat-cap base
 - [ ] **Straw weave material** — an open straw weave draft + dry sheen for sun hats
 - [x] **Cowboy hat** — creased crown + upturned brim + band: the `cowboy` accessory kind — `crownDrop('centre-dent')` pressed 1.6× into a taller block (the cattleman gutter) + a brim annulus lifted per-azimuth by the pure `avatar/cowboy.cowboyBrimLift` (sides roll up, front/back dip — beyond the uniform-droop brim) + a leather band & buckle; `?accessories=cowboy` — PR #329
-- [ ] **Top hat & bowler** — the formal blocked-felt pair
+- [x] **Top hat & bowler** — the formal blocked-felt pair: `tophat` + `bowler` accessory kinds — pure `avatar/formalHats.formalBrimLift` (topper: sides curl, front/back dead level; bowler: the whole edge rolls, strongest at the sides) + proportions (flared 1.7-radii stovepipe · hard 0.88-squashed dome); the cowboy's brim annulus extracted into the shared `rolledBrimGeometry`; `?accessories=tophat,bowler` — PR #330
 - [x] **Visor** — a brim + band with an open crown (ponytail-friendly): the `visor` accessory kind — an open sweatband cylinder at the brow wearing the cap's parametric bill (`setCapBill` loops the billed blocks, so curve/underbill shape both); pure-white fabric bloomed under the key light → toned grey-white; `?accessories=visor` — PR #326
 
 **Perfection — Scarves & neckwear**
