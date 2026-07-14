@@ -16,6 +16,7 @@ import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
 import { CROWN_STYLES, CROWN_LABELS, type CrownStyle } from '../avatar/crown'
 import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from '../avatar/hatBand'
 import { UNDERBILL_CLASSIC, type CapBillParams } from '../avatar/capBill'
+import { CAP_PANEL_COUNTS, type CapPanelCount } from '../avatar/capPanels'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
@@ -322,6 +323,8 @@ export interface PanelOptions {
   hatBand?: { get: () => HatBandParams; set: (p: Partial<HatBandParams>) => void }
   /** The cap bill designer — flat↔pre-curved · contrast underbill · squatchee. */
   capBill?: { get: () => CapBillParams; set: (p: Partial<CapBillParams>) => void }
+  /** 5-panel vs 6-panel cap construction. */
+  capPanels?: { get: () => CapPanelCount; set: (n: CapPanelCount) => void }
   /** Hair + face customization on the avatar. */
   hair?: {
     getStyle: () => Hairstyle
@@ -1276,6 +1279,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
           track(toggle({ label: 'Contrast underbill', get: () => opts.capBill!.get().underbill !== undefined, set: (v) => opts.capBill!.set({ underbill: v ? UNDERBILL_CLASSIC : undefined }) })),
           track(toggle({ label: 'Squatchee button', get: () => opts.capBill!.get().squatchee, set: (v) => opts.capBill!.set({ squatchee: v }) }))
         ]
+      : []),
+    ...(opts.capPanels
+      ? [el('div', 'dio-field-label', 'Cap construction'), bandChipRow(CAP_PANEL_COUNTS.map((n) => `${n}-panel`), () => `${opts.capPanels!.get()}-panel`, (v) => opts.capPanels!.set(parseInt(v, 10) as CapPanelCount))]
       : []),
     ...hairFaceEls,
     ...skinControlEls,

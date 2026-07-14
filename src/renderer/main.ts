@@ -29,6 +29,7 @@ import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/acces
 import { CROWN_STYLES, type CrownStyle } from './avatar/crown'
 import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from './avatar/hatBand'
 import { UNDERBILL_CLASSIC, type CapBillParams } from './avatar/capBill'
+import { CAP_PANEL_COUNTS, type CapPanelCount } from './avatar/capPanels'
 import { FaceRig, HAIRSTYLES, type Hairstyle } from './avatar/face'
 import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
 import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
@@ -1140,6 +1141,9 @@ function initStudio(
     if (ub) billPatch.underbill = ub === '1' ? UNDERBILL_CLASSIC : parseInt(ub.replace('#', ''), 16)
     if (params.get('squatchee') === '0') billPatch.squatchee = false
     if (Object.keys(billPatch).length) accessories.setCapBill(billPatch)
+    // ?capPanels=5|6 — the crown construction picker
+    const cp = parseInt(params.get('capPanels') ?? '', 10)
+    if ((CAP_PANEL_COUNTS as number[]).includes(cp)) accessories.setCapPanels(cp as CapPanelCount)
   }
   const hairParam = params.get('hair')
   if (hairParam && (HAIRSTYLES as string[]).includes(hairParam)) faceRig.setHairstyle(hairParam as Hairstyle)
@@ -1896,6 +1900,7 @@ function initStudio(
     crown: { get: () => accessories.getCrown(), set: (s) => accessories.setCrown(s) },
     hatBand: { get: () => accessories.getHatBand(), set: (p) => accessories.setHatBand(p) },
     capBill: { get: () => accessories.getCapBill(), set: (p) => accessories.setCapBill(p) },
+    capPanels: { get: () => accessories.getCapPanels(), set: (n) => accessories.setCapPanels(n) },
     hair: {
       getStyle: () => faceRig.getHairstyle(),
       setStyle: (s) => faceRig.setHairstyle(s),
