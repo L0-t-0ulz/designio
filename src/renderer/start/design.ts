@@ -29,6 +29,7 @@ export interface DesignConfig {
   sleeve: SleeveStyle
   sleeveShape?: SleeveShape
   faceStyle?: import('../garments/schema').BalaclavaFace
+  breath?: boolean
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   cuffHeight?: number
   slouch?: number

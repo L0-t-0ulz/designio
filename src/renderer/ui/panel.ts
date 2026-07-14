@@ -76,6 +76,8 @@ export interface GarmentState {
   sleeveShape?: SleeveShape
   /** Balaclava face opening (shown when the garment supports it). */
   faceStyle?: BalaclavaFace
+  /** Breathing preview — a cyclic exhale puffing the mask's mouth opening. */
+  breath?: boolean
   /** Balaclava worn state — down over the face or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
@@ -447,8 +449,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     wornBtns.set(w, b)
     wornRow.append(b)
   }
+  const breathT = toggle({ label: 'Breathing preview', get: () => !!garment.breath, set: (v) => { garment.breath = v || undefined; syncGarment(); opts.onGarmentEdit() } })
   const faceBlock = el('div')
-  faceBlock.append(el('div', 'dio-field-label', 'Face opening'), faceRow, el('div', 'dio-field-label', 'Worn'), wornRow)
+  faceBlock.append(el('div', 'dio-field-label', 'Face opening'), faceRow, el('div', 'dio-field-label', 'Worn'), wornRow, track(breathT))
 
   // beanie fit sliders (cuff roll + slouch; shown when the garment supports them)
   const cuffS = slider({ label: 'Cuff roll', min: 0, max: 1, step: 0.05, get: () => garment.cuffHeight ?? 0, set: (v) => { garment.cuffHeight = v || undefined; syncGarment(); opts.onGarmentEdit() } })

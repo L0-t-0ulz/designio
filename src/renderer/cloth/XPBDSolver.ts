@@ -568,10 +568,25 @@ export class XPBDSolver {
   }
 
   /** Advance the simulation by `dt` seconds using `substeps` internal steps. */
+  // ---- breathing preview (a balaclava's mouth): a cyclic exhale on rim particles ----
+  private breathNodes: number[] | null = null
+  private breathAmp = 0
+  private breathT = 0
+
+  /** Enable the breathing preview: a soft cyclic outward puff (~0.3 Hz exhale) on
+   *  the given particles (a mouth rim). Keeps the cloth awake while on. */
+  setBreath(nodes: Iterable<number> | null, amplitude = 2.4): void {
+    this.breathNodes = nodes ? [...nodes] : null
+    this.breathAmp = amplitude
+    this.breathT = 0
+    this.wake()
+  }
+
   step(dt: number): void {
     // Follow the body: re-place pinned particles at the current anchor (the garment
     // hangs from the moving shoulders/waist), and wake if the body moved.
     if (this.applyPins()) this.wake()
+    if (this.breathNodes?.length) this.wake() // breathing cloth never dead-stops
     const sig = this.colliderSignature()
     if (sig !== this.colliderSig) {
       this.colliderSig = sig
@@ -586,6 +601,24 @@ export class XPBDSolver {
 
     if (this.params.aero > 0 || this.pressure > 0) this.computeNormals() // once per frame, reused across substeps + pressure
     this.sampleTurbulence() // per-particle swirling wind offsets, once per frame
+    // the exhale: strongest mid-breath, pushing the mouth fabric radially out + a little down
+    if (this.breathNodes?.length && this.breathAmp > 0) {
+      this.breathT += dt
+      const puff = Math.max(0, Math.sin(this.breathT * Math.PI * 2 * 0.3)) ** 2
+      if (puff > 0) {
+        const a = this.breathAmp * puff * dt
+        for (const k of this.breathNodes) {
+          if (this.invMass[k] === 0) continue
+          const i = k * 3
+          const px = this.positions[i]
+          const pz = this.positions[i + 2]
+          const r = Math.hypot(px, pz) || 1
+          this.vel[i] += (px / r) * a
+          this.vel[i + 1] -= 0.25 * a
+          this.vel[i + 2] += (pz / r) * a
+        }
+      }
+    }
     const sub = dt / this.substeps
     for (let s = 0; s < this.substeps; s++) this.substep(sub)
     if (this.bodyCollider?.ready) this.solveBody()

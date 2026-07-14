@@ -119,13 +119,13 @@ export class GarmentController {
     const def = getGarment(type)
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
       // fringe trim hangs from the garment's bottom hem — the body tube, not sleeves/legs
-      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol, !!garmentParams.fringe && p.name === 'Body', !!garmentParams.piping && p.name === 'Body')
+      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol, !!garmentParams.fringe && p.name === 'Body', !!garmentParams.piping && p.name === 'Body', !!garmentParams.breath)
     }
     this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
   }
 
-  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true, cutCol?: number, fringeOn = false, pipingOn = false): void {
+  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true, cutCol?: number, fringeOn = false, pipingOn = false, breathOn = false): void {
     const { geometry, positions, nx, ny, pinnedTop } = build
     const mesh = new THREE.Mesh(geometry, this.material)
     mesh.castShadow = true
@@ -199,6 +199,12 @@ export class GarmentController {
       mesh.add(binding.object)
       binding.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0
       solver.stiffenAmong(new Set(build.cutRims.flat()), 0.2)
+      if (breathOn) {
+        // the breathing preview puffs the LOWEST opening (the mouth of a three-hole mask)
+        const meanY = (rim: number[]): number => rim.reduce((a, k) => a + positions[k * 3 + 1], 0) / rim.length
+        const mouth = [...build.cutRims].sort((a, b) => meanY(a) - meanY(b))[0]
+        solver.setBreath(mouth)
+      }
     }
     computeAngleWeightedNormals(geometry)
     topstitch.update(positions, geometry.attributes.normal.array as Float32Array) // seed frame 0

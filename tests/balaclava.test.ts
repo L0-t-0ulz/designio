@@ -378,3 +378,44 @@ describe('headwear batch 3 (skinny scarf · bandana · chullo · helmet liner)',
     expect(liner.cutouts?.length).toBe(1) // open-face
   })
 })
+
+describe('breath-warp + the two-layer balaclava', () => {
+  it('a breathing mask keeps moving (never dead-stops) while a still one sleeps', () => {
+    const spec = skiMaskSpec('three-hole')
+    const mk = () => {
+      const build = buildTubeGarment(spec)
+      const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, {
+        pinned: build.pinnedTop,
+        wrapX: true,
+        dead: deadFromCells(build.cutCells!, build.nx, build.ny)
+      })
+      solver.colliders = mann.colliders
+      solver.bodyCollider = mann.bodyCollider
+      return { build, solver }
+    }
+    const still = mk()
+    const breathing = mk()
+    const meanY = (rim: number[], pos: Float32Array): number => rim.reduce((a, k) => a + pos[k * 3 + 1], 0) / rim.length
+    const mouth = [...breathing.build.cutRims!].sort((a, b) => meanY(a, breathing.build.positions) - meanY(b, breathing.build.positions))[0]
+    breathing.solver.setBreath(mouth)
+    for (let i = 0; i < 500; i++) {
+      still.solver.step(1 / 60)
+      breathing.solver.step(1 / 60)
+    }
+    expect(still.solver.advanced).toBe(false) // settled → dead stop
+    expect(breathing.solver.advanced).toBe(true) // the exhale keeps it alive
+    // and it stays finite
+    let mx = 0
+    for (let k = 0; k < breathing.build.positions.length; k++) mx = Math.max(mx, Math.abs(breathing.build.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 30000)
+
+  it('the liner nests inside the mask by construction (the two-layer pair)', async () => {
+    const { gradeParams, defaultLayer } = await import('../src/renderer/studio/document')
+    const liner = garmentTubeSpecs(getGarment('helmet-liner'), gradeParams(defaultLayer('helmet-liner')), mann.measurements)[0]
+    const mask = skiMaskSpec()
+    expect(liner.radiusBottom).toBeLessThan(mask.radiusBottom)
+    expect(liner.radiusWaist ?? 0).toBeLessThanOrEqual(mask.radiusWaist ?? Infinity)
+  })
+})
