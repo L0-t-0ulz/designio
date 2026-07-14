@@ -25,6 +25,7 @@ import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { iridescentParams, makeIridescenceThicknessMap } from '../fabric/iridescent'
 import { makeLaceAlphaMap } from '../fabric/lace'
+import { makeDraftNormalMap, makeDraftRoughnessMap, validateDraft } from '../fabric/weaveDraft'
 import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
@@ -391,6 +392,12 @@ export class GarmentStack {
     // are already DoubleSide, so the inside shows through the holes; the lining shell
     // is dropped for a lace garment (see updateLining) so it truly sees through.
     const laceMap = l.data.lace ? makeLaceAlphaMap(l.data.lace) : null
+    // Custom weave draft — the designer's drawdown replaces the fabric preset's
+    // procedural weave normal + roughness maps. A structural finish (sparkle/quilt/
+    // fur) or a photo swatch owns the surface instead; a broken draft is ignored.
+    const draft = !sp && !ql && !l.data.fur && !l.swatch && l.data.weaveDraft && !validateDraft(l.data.weaveDraft) ? l.data.weaveDraft : undefined
+    const draftNormalMap = draft ? makeDraftNormalMap(draft) : null
+    const draftRoughMap = draft ? makeDraftRoughnessMap(draft) : null
     for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
       // metallic props applyFabric doesn't touch — default matte unless a finish sets them
       m.metalness = sp ? sp.metalness : ir ? ir.metalness : m.metalness // keep the per-fabric value applyFabric set (lamé/sequin-base)
@@ -413,6 +420,17 @@ export class GarmentStack {
       // a surface finish sets its own scalar roughness — drop the weave roughness map
       // (set by applyFabric) so it doesn't modulate the sequin/quilt/foil/fur surface.
       if (sp || ql || ir || fur) m.roughnessMap = null
+      if (draftNormalMap && draftRoughMap) {
+        const repeat = Math.max(1, Math.round(l.fabric.weaveScale / 16))
+        draftNormalMap.repeat.set(repeat, repeat)
+        m.normalMap = draftNormalMap
+        m.normalScale.set(l.fabric.normalStrength, l.fabric.normalStrength)
+        if (!ir) {
+          // iridescent keeps its scalar gloss; everything else gets the draft's crown/valley field
+          draftRoughMap.repeat.set(repeat, repeat)
+          m.roughnessMap = draftRoughMap
+        }
+      }
       // pilling & fuzz aging — pill bobbles + a matte fuzz lift, unless a structural
       // finish (sparkle/quilt/fur) already owns the normal map
       if (!sp && !ql && !fur && (l.data.pilling ?? 0) > 0) {

@@ -114,7 +114,13 @@ Renderer modules:
   `weaveTexture` (procedural weave **normal + roughness** maps — yarn crowns glossier, valleys matte via the
   pure `weaveRoughness` field baked into a cached `roughnessMap`; **specular-AA** `toksvigRoughness` lifts the
   base roughness by the weave's normal strength so strong weaves don't shimmer at distance; pure math
-  unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
+  unit-tested), `weaveDraft` (**weave draft designer** — author the interlacement like a weaver:
+  threading · tie-up · treadling → the pure `drawdown` grid + wrapped float lengths → a
+  float-length-aware height field (long satin floats sit high + flat, plain interlacements ridge) baked
+  into a custom normal + roughness map replacing the fabric preset's weave; 6 preset drafts (plain ·
+  basket · 2/2 twill · 3/1 denim · 5-end satin · herringbone) + a grid-editor modal
+  (`ui/weaveDraftEditor`, live drawdown preview) under Appearance; per-layer, saved in the `.dio` +
+  colorways; `?weaveDraft=<preset>`; pure math unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
   finish gradients so they don't 8-bit band; unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
   `paintTextile` tiles it across the albedo), `ombre` (**dip-dye / ombré gradient** — top-down · bottom-up ·
@@ -312,7 +318,8 @@ back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repe
 the garment, behind the prints) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
 into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
 `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
-procedural swatch) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
+procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone>` (a **weave draft** —
+threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
 `?quilt=<channel|diamond|box>` (a quilted-loft finish) ·
 `?lace=<chantilly|geometric|fishnet>` (a sheer alpha-cutout lace finish) ·

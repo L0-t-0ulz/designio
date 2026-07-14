@@ -37,6 +37,8 @@ import { patternSchematic } from './patternSchematic'
 import { DEFAULT_STITCH, SEAM_TYPES, THREAD_WEIGHTS, type StitchSpec } from '../garment/stitchTypes'
 import { physicalDefaults, clampPhysical, type PhysicalFabric } from '../fabric/physicalProps'
 import { drapeBench, benchSummary } from '../fabric/drapeBench'
+import { DRAFT_PRESETS, cloneDraft, draftKey, type WeaveDraft } from '../fabric/weaveDraft'
+import { openWeaveDraftEditor } from './weaveDraftEditor'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { ClosureDesign } from '../studio/closureDesign'
@@ -250,6 +252,8 @@ export interface PanelOptions {
   lace?: { get: () => LacePattern | undefined; set: (p: LacePattern | undefined) => void }
   /** A faux-fur / shearling / fleece pile finish (optional). */
   fur?: { get: () => FurKind | undefined; set: (k: FurKind | undefined) => void }
+  /** A custom weave draft (threading · tie-up · treadling) replacing the preset weave (optional). */
+  weaveDraft?: { get: () => WeaveDraft | undefined; set: (d: WeaveDraft | undefined) => void }
   /** Saved colour/fabric variants of the design, compared in a swatch grid (optional). */
   colorways?: {
     list: () => ColorwayItem[]
@@ -1253,6 +1257,35 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A custom weave draft — preset chips + the grid-editor modal. The chip row marks
+  // the matching preset (or "Custom…" when the draft matches none).
+  function weaveDraftControls(wd: NonNullable<PanelOptions['weaveDraft']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const renderRow = (): void => {
+      row.replaceChildren()
+      const currentKey = wd.get() && draftKey(wd.get()!)
+      const choices: [string, WeaveDraft | undefined][] = [['None', undefined], ...DRAFT_PRESETS.map((p) => [p.name, p.draft] as [string, WeaveDraft])]
+      for (const [label, draft] of choices) {
+        const on = draft ? currentKey === draftKey(draft) : !currentKey
+        const b = el('button', 'dio-seg-btn' + (on ? ' on' : ''), label)
+        b.setAttribute('type', 'button')
+        b.addEventListener('click', () => {
+          wd.set(draft && cloneDraft(draft))
+          renderRow()
+        })
+        row.append(b)
+      }
+      const custom = el('button', 'dio-seg-btn' + (currentKey && !DRAFT_PRESETS.some((p) => draftKey(p.draft) === currentKey) ? ' on' : ''), 'Custom…')
+      custom.setAttribute('type', 'button')
+      custom.addEventListener('click', () => openWeaveDraftEditor(wd.get(), (d) => { wd.set(d); renderRow() }))
+      row.append(custom)
+    }
+    renderRow()
+    wrap.append(el('div', 'dio-field-label', 'Weave draft (threading · tie-up · treadling)'), row)
+    return wrap
+  }
+
   // A faux-fur / shearling / fleece pile finish.
   const FUR_LABELS: Record<FurKind, string> = { shearling: 'Shearling', 'faux-fur': 'Faux fur', fleece: 'Fleece' }
   function furControls(fr: NonNullable<PanelOptions['fur']>): HTMLElement {
@@ -1586,6 +1619,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.quilt) look.body.append(quiltControls(opts.quilt))
   if (opts.lace) look.body.append(laceControls(opts.lace))
   if (opts.fur) look.body.append(furControls(opts.fur))
+  if (opts.weaveDraft) look.body.append(weaveDraftControls(opts.weaveDraft))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.colorways) look.body.append(colorwaysControls(opts.colorways))
   if (opts.prints) look.body.append(printsControls(opts.prints))

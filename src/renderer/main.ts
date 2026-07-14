@@ -59,6 +59,7 @@ import { demoInternalShapes } from './pattern/panelFeatures'
 import { parseStitchParams, stitchSummary, SEAM_TYPES } from './garment/stitchTypes'
 import { parsePhysicalParams, physicalDefaults, physicalSummary } from './fabric/physicalProps'
 import { drapeBench, benchSummary } from './fabric/drapeBench'
+import { draftPreset, cloneDraft } from './fabric/weaveDraft'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
@@ -870,6 +871,14 @@ function initStudio(
     const line = `${stack.active.fabric.name}: ${benchSummary(bench)}`
     console.log('[drape-bench]', line)
     showToast(line, 'info', 12000)
+  }
+  {
+    // ?weaveDraft=<preset> — a custom weave draft on the active garment
+    const preset = draftPreset(params.get('weaveDraft') ?? '')
+    if (preset) {
+      stack.active.data.weaveDraft = cloneDraft(preset.draft)
+      stack.applyLook(stack.active)
+    }
   }
   if (params.get('internalShapes') === 'demo') {
     // internal shapes & notches: waist darts (real take-up) + a keyhole cut-out
@@ -1976,6 +1985,13 @@ function initStudio(
       get: () => stack.active.data.fur,
       set: (k) => {
         stack.active.data.fur = k
+        stack.applyLook(stack.active)
+      }
+    },
+    weaveDraft: {
+      get: () => stack.active.data.weaveDraft,
+      set: (d) => {
+        stack.active.data.weaveDraft = d
         stack.applyLook(stack.active)
       }
     },
