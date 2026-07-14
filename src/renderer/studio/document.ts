@@ -78,6 +78,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     sleeveShape: l.sleeveShape,
     faceStyle: l.faceStyle,
     breath: l.breath,
+    distressed: l.distressed,
     balaclavaWorn: l.balaclavaWorn,
     cuffHeight: l.cuffHeight,
     slouch: l.slouch,
@@ -156,6 +157,8 @@ export interface GarmentLayerData {
   faceStyle?: import('../garments/schema').BalaclavaFace
   /** Breathing preview — a cyclic exhale puffing the mask's mouth opening. */
   breath?: boolean
+  /** Distressed mask — chewed/frayed cut-out edges. */
+  distressed?: boolean
   /** Balaclava worn state — down over the face or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
@@ -403,6 +406,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     sleeveShape: c.sleeveShape,
     faceStyle: c.faceStyle,
     breath: c.breath,
+    distressed: c.distressed,
     balaclavaWorn: c.balaclavaWorn,
     cuffHeight: c.cuffHeight,
     slouch: c.slouch,

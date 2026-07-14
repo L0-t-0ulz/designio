@@ -88,6 +88,13 @@ export interface TubeSpec {
   /** Extra anchor pins at (u, v) tube fractions — a balaclava grips the nose
    *  bridge + chin so it can't spin around the rotationally-symmetric head. */
   extraPins?: Array<{ u: number; v: number }>
+  /** Multi-stop radius profile (t ascending, exclusive of the ends) — richer shaping
+   *  than the single waist: a balaclava's face belly + under-jaw nip. Wins over
+   *  radiusWaist when present. */
+  radiusStops?: Array<{ t: number; r: number }>
+  /** Chew the cut-out edges (a distressed mask): rim-adjacent quads drop by a
+   *  deterministic hash, and the neat binding is skipped — raw frayed holes. */
+  fray?: boolean
 }
 
 /** A sphere's cross-section radius at height `y` (0 outside the sphere). Pure. */
@@ -164,6 +171,32 @@ export function cutoutRims(cutouts: TubeCutout[] | undefined, nx: number, ny: nu
   return rims
 }
 
+/**
+ * Chew a cut set's edges for a **distressed** look: every cell bordering the cut
+ * (wrap-aware) joins it when its deterministic hash clears the threshold — ragged,
+ * repeatable frayed holes with no RNG (golden-CI safe). Pure.
+ */
+export function frayedCells(cells: ReadonlySet<number>, nx: number, ny: number, amount = 0.42): Set<number> {
+  const out = new Set(cells)
+  const hash = (n: number): number => {
+    let h = (n * 2654435761) >>> 0
+    h ^= h >> 13
+    h = (h * 2246822519) >>> 0
+    return ((h ^ (h >> 16)) >>> 0) / 4294967295
+  }
+  for (const c of cells) {
+    const cx = c % nx
+    const cy = Math.floor(c / nx)
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const ny2 = cy + dy
+      if (ny2 < 0 || ny2 > ny - 2) continue
+      const n = ny2 * nx + ((cx + dx + nx) % nx)
+      if (!cells.has(n) && hash(n) < amount) out.add(n)
+    }
+  }
+  return out
+}
+
 /** Grid nodes orphaned by a cut — every one of their (in-range) surrounding cells is
  *  dropped, so no quad or constraint holds them: they go **dead** (invMass 0, skipped
  *  by constraints + collision, invisible since their quads are gone). Pure. */
@@ -227,8 +260,19 @@ export function topEdge(spec: TubeSpec, angle: number): number {
   return shoulderY - dip
 }
 
-/** Radius along the height, with an optional cinched waist. */
+/** Radius along the height: a straight lerp, an optional cinched waist, or a
+ *  multi-stop piecewise profile (`radiusStops`, which wins when present). */
 export function radiusAt(spec: TubeSpec, t: number): number {
+  if (spec.radiusStops?.length) {
+    let prevT = 0
+    let prevR = spec.radiusTop
+    for (const stop of spec.radiusStops) {
+      if (t <= stop.t) return prevR + (stop.r - prevR) * ((t - prevT) / Math.max(1e-6, stop.t - prevT))
+      prevT = stop.t
+      prevR = stop.r
+    }
+    return prevR + (spec.radiusBottom - prevR) * ((t - prevT) / Math.max(1e-6, 1 - prevT))
+  }
   if (spec.radiusWaist == null) return spec.radiusTop + (spec.radiusBottom - spec.radiusTop) * t
   const wt = spec.waistT ?? 0.45
   if (t <= wt) return spec.radiusTop + (spec.radiusWaist - spec.radiusTop) * (t / wt)
@@ -386,9 +430,11 @@ export function buildTubeGarment(spec: TubeSpec): TubeBuild {
   const positions = new Float32Array(spec.radial * spec.rings * 3)
   const ringT = tubeRingT(spec)
   fillTube(positions, spec, ringT)
-  const cut = cutoutCells(spec.cutouts, spec.radial, spec.rings)
+  let cut = cutoutCells(spec.cutouts, spec.radial, spec.rings)
+  if (spec.fray && cut.size) cut = frayedCells(cut, spec.radial, spec.rings)
   const build = finishTube(positions, spec.radial, spec.rings, ringT, spec.openFront, cut.size ? cut : undefined)
-  if (cut.size) build.cutRims = cutoutRims(spec.cutouts, spec.radial, spec.rings)
+  // a frayed mask loses its neat bound edge — raw chewed holes, no binding/stiffening
+  if (cut.size && !spec.fray) build.cutRims = cutoutRims(spec.cutouts, spec.radial, spec.rings)
   for (const pin of spec.extraPins ?? []) {
     const ix = ((Math.round(pin.u * spec.radial) % spec.radial) + spec.radial) % spec.radial
     let iy = 0

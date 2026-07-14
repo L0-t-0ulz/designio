@@ -43,6 +43,8 @@ export interface GarmentParams {
   faceStyle?: import('../garments/schema').BalaclavaFace
   /** Breathing preview — a cyclic exhale puffing the mask's mouth opening. */
   breath?: boolean
+  /** Distressed mask — chewed/frayed cut-out edges (pair with ?pilling & ?wear). */
+  distressed?: boolean
   /** Balaclava worn state — down over the face (default) or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Scarf width multiplier, 0.5 (skinny) … 1.8 (blanket-wide). */

@@ -135,10 +135,15 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
     // narrow to the neck, and spawn every ring ON the skull dome (never inside —
     // a deep-inside spawn resolves the face fabric to the wrong side of the head)
     // clearances that verified on the GLB: belly past the skull + hair shell,
-    // spawn clamped to the dome (never inside the head)
-    spec.radiusWaist = baseR * 1.18 + p.ease
-    spec.waistT = 0.34
+    // spawn clamped to the dome (never inside the head) — then the chin & jaw
+    // shaping: the shell nips IN under the jaw (a dart's take-up) instead of
+    // tenting straight from the face belly to the hem
+    spec.radiusStops = [
+      { t: 0.34, r: baseR * 1.18 + p.ease }, // the face belly
+      { t: 0.62, r: baseR * 0.7 + p.ease } // the under-jaw nip — hugs, not tents
+    ]
     spec.dome = { cy: topY - m.headR, r: m.headR * 1.14 + p.ease }
+    if (p.distressed) spec.fray = true // chewed hole edges (the distressed mask)
     const cuts = balaclavaCutouts(face, topY, bottomY, m)
     if (cuts.length) spec.cutouts = cuts
     // grip the nose bridge + chin (anchor pins) so the mask can't spin around the
