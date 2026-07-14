@@ -31,6 +31,7 @@ import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, typ
 import { UNDERBILL_CLASSIC, type CapBillParams } from './avatar/capBill'
 import { CAP_PANEL_COUNTS, type CapPanelCount } from './avatar/capPanels'
 import { PUFF_SHAPES, type PuffLogoParams, type PuffShape } from './avatar/puffLogo'
+import { BOONIE_SNAPS, type BoonieSnap } from './avatar/boonie'
 import { FaceRig, HAIRSTYLES, type Hairstyle } from './avatar/face'
 import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
 import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
@@ -1152,6 +1153,9 @@ function initStudio(
     const pc = params.get('puffColor')
     if (pc) puffPatch.color = parseInt(pc.replace('#', ''), 16)
     if (Object.keys(puffPatch).length) accessories.setPuffLogo(puffPatch)
+    // ?boonieSnap= — snap the boonie's brim sides up
+    const bs = params.get('boonieSnap')
+    if (bs && (BOONIE_SNAPS as string[]).includes(bs)) accessories.setBoonieSnap(bs as BoonieSnap)
   }
   const hairParam = params.get('hair')
   if (hairParam && (HAIRSTYLES as string[]).includes(hairParam)) faceRig.setHairstyle(hairParam as Hairstyle)
@@ -1910,6 +1914,7 @@ function initStudio(
     capBill: { get: () => accessories.getCapBill(), set: (p) => accessories.setCapBill(p) },
     capPanels: { get: () => accessories.getCapPanels(), set: (n) => accessories.setCapPanels(n) },
     puffLogo: { get: () => accessories.getPuffLogo(), set: (p) => accessories.setPuffLogo(p) },
+    boonieSnap: { get: () => accessories.getBoonieSnap(), set: (s) => accessories.setBoonieSnap(s) },
     hair: {
       getStyle: () => faceRig.getHairstyle(),
       setStyle: (s) => faceRig.setHairstyle(s),

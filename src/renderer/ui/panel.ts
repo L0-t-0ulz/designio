@@ -18,6 +18,7 @@ import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, typ
 import { UNDERBILL_CLASSIC, type CapBillParams } from '../avatar/capBill'
 import { CAP_PANEL_COUNTS, type CapPanelCount } from '../avatar/capPanels'
 import { PUFF_SHAPES, type PuffLogoParams, type PuffShape } from '../avatar/puffLogo'
+import { BOONIE_SNAPS, type BoonieSnap } from '../avatar/boonie'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
@@ -328,6 +329,8 @@ export interface PanelOptions {
   capPanels?: { get: () => CapPanelCount; set: (n: CapPanelCount) => void }
   /** 3D puff cap embroidery — a raised front-panel mark. */
   puffLogo?: { get: () => PuffLogoParams; set: (p: Partial<PuffLogoParams>) => void }
+  /** The boonie's snap-up brim sides. */
+  boonieSnap?: { get: () => BoonieSnap; set: (s: BoonieSnap) => void }
   /** Hair + face customization on the avatar. */
   hair?: {
     getStyle: () => Hairstyle
@@ -1146,6 +1149,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     cowboy: 'Cowboy hat',
     tophat: 'Top hat',
     bowler: 'Bowler',
+    boonie: 'Boonie hat',
     goggles: 'Ski goggles',
     necklace: 'Necklace',
     hoops: 'Hoop earrings'
@@ -1291,6 +1295,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       : []),
     ...(opts.puffLogo
       ? [el('div', 'dio-field-label', 'Puff embroidery'), bandChipRow<PuffShape>(PUFF_SHAPES, () => opts.puffLogo!.get().shape, (v) => opts.puffLogo!.set({ shape: v }))]
+      : []),
+    ...(opts.boonieSnap
+      ? [el('div', 'dio-field-label', 'Boonie brim snap'), bandChipRow<BoonieSnap>(BOONIE_SNAPS, () => opts.boonieSnap!.get(), (v) => opts.boonieSnap!.set(v))]
       : []),
     ...hairFaceEls,
     ...skinControlEls,

@@ -8,6 +8,7 @@ import { panelSeamAzimuths, DEFAULT_CAP_PANELS, type CapPanelCount } from './cap
 import { puffHeight, DEFAULT_PUFF_LOGO, type PuffLogoParams } from './puffLogo'
 import { COWBOY, cowboyBrimLift } from './cowboy'
 import { FORMAL, formalBrimLift } from './formalHats'
+import { BOONIE, boonieBrimLift, CHIN_CORD, type BoonieSnap } from './boonie'
 import { headFrame } from './face'
 
 /**
@@ -20,8 +21,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'goggles' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'goggles', 'necklace', 'hoops']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'goggles' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'goggles', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -113,6 +114,7 @@ export class Accessories {
       this.buildCowboy(),
       this.buildTopHat(),
       this.buildBowler(),
+      this.buildBoonie(),
       this.buildBucket(),
       this.buildBalaclava(),
       this.buildGoggles(),
@@ -663,6 +665,62 @@ export class Accessories {
     geo.setIndex(idx)
     geo.computeVertexNormals()
     return geo
+  }
+
+  private boonieSnap: BoonieSnap = 'none'
+
+  /** Snap the boonie's brim sides up (or let them back down) in place. */
+  setBoonieSnap(s: BoonieSnap): void {
+    this.boonieSnap = s
+    const it = this.items.find((i) => i.kind === 'boonie')
+    const holder = it?.obj.getObjectByName('snap-holder') as THREE.Group | undefined
+    if (!it || !holder) return
+    for (const child of [...holder.children]) {
+      ;(child as THREE.Mesh).geometry?.dispose()
+      holder.remove(child)
+    }
+    this.addBoonieBrim(holder, holder.userData.mat as THREE.Material)
+  }
+  getBoonieSnap(): BoonieSnap {
+    return this.boonieSnap
+  }
+
+  private addBoonieBrim(holder: THREE.Group, mat: THREE.Material): void {
+    const brim = new THREE.Mesh(this.rolledBrimGeometry(BOONIE.brimInnerR, BOONIE.brimOuterR, (az) => boonieBrimLift(az, this.boonieSnap)), mat)
+    brim.position.y = HC - 0.02
+    holder.add(brim)
+  }
+
+  private buildBoonie(): Item {
+    const mat = felt(0x6b6a4d) // faded olive field cloth
+    // a low soft crown: a short wall + a squashed dome top clearing the skull
+    const wall = new THREE.Mesh(new THREE.CylinderGeometry(BOONIE.crownR + 0.04, BOONIE.crownR + 0.04, BOONIE.crownH, 32, 1, true), mat)
+    wall.position.y = HC - 0.02 + BOONIE.crownH / 2
+    const topGeo = new THREE.SphereGeometry(BOONIE.crownR + 0.04, 32, 16, 0, TAU, 0, Math.PI / 2)
+    topGeo.scale(1, 0.52, 1)
+    const top = new THREE.Mesh(topGeo, mat)
+    top.position.y = HC - 0.02 + BOONIE.crownH
+    // the snap-up brim (rebuilt by setBoonieSnap)
+    const holder = new THREE.Group()
+    holder.name = 'snap-holder'
+    holder.userData.mat = mat
+    this.addBoonieBrim(holder, mat)
+    // the chin cord: brim anchors → the slider bead → a short tail
+    const cordMat = new THREE.MeshStandardMaterial({ color: 0x3c3a2e, roughness: 0.9 })
+    const seg = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }): THREE.Mesh => {
+      const va = new THREE.Vector3(a.x, a.y, a.z)
+      const vb = new THREE.Vector3(b.x, b.y, b.z)
+      const dir = vb.clone().sub(va)
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, dir.length(), 6), cordMat)
+      m.position.copy(va).add(vb).multiplyScalar(0.5)
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize())
+      return m
+    }
+    const bead = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), cordMat)
+    bead.position.set(CHIN_CORD.bead.x, CHIN_CORD.bead.y, CHIN_CORD.bead.z)
+    const obj = new THREE.Group()
+    obj.add(wall, top, holder, seg(CHIN_CORD.anchorL, CHIN_CORD.bead), seg(CHIN_CORD.anchorR, CHIN_CORD.bead), seg(CHIN_CORD.bead, CHIN_CORD.tailEnd), bead)
+    return this.headItem('boonie', obj)
   }
 
   private buildTopHat(): Item {

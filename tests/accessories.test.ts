@@ -29,7 +29,7 @@ function baseBody(): Capsule[] {
 
 describe('accessories — body attach anchors', () => {
   it('exposes the accessory set incl. headwear & neckwear', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'goggles', 'necklace', 'hoops'])
+    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'goggles', 'necklace', 'hoops'])
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
@@ -98,7 +98,7 @@ describe('accessories — headwear / neckwear anchors', () => {
 describe('accessories — worn headwear/neckwear meshes ride the head/neck', () => {
   it('each new kind builds visible geometry positioned up around the head/neck', () => {
     const acc = new Accessories()
-    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'necklace', 'hoops'] as const
+    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'necklace', 'hoops'] as const
     for (const k of kinds) {
       acc.setEnabled(k, true)
       expect(acc.isEnabled(k)).toBe(true)
@@ -224,6 +224,21 @@ describe('accessories — the fedora block (crown shapes + parametric brim)', ()
     acc.setPuffLogo({ shape: 'none' })
     expect(holder.children.length).toBe(0)
     expect(acc.getPuffLogo().shape).toBe('none')
+  })
+
+  it('the boonie brim snaps up in place', () => {
+    const acc = new Accessories()
+    acc.setEnabled('boonie', true)
+    const box = (): THREE.Box3 => {
+      acc.update(baseBody())
+      acc.group.updateMatrixWorld(true)
+      return new THREE.Box3().setFromObject(acc.group.getObjectByName('boonie')!.getObjectByName('snap-holder')!)
+    }
+    const dropped = box()
+    acc.setBoonieSnap('both')
+    const snapped = box()
+    expect(snapped.max.y).toBeGreaterThan(dropped.max.y + 0.02) // sides swept up
+    expect(acc.getBoonieSnap()).toBe('both')
   })
 
   it('the visor shares the parametric bill on an open crown', () => {
