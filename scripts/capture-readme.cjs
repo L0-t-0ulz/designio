@@ -52,6 +52,10 @@ const shots = [
   ['docs/lace.png', 6000, 'garment=dress&fabric=organza&lace=chantilly&start=0'],
   ['docs/quilt.png', 6000, 'garment=bomber&fabric=satin&quilt=diamond&start=0'],
   ['docs/fur.png', 6000, 'garment=coat&fabric=wool-flannel&fur=shearling&start=0'],
+  // The weave & knit design studio
+  ['docs/weave-draft.png', 6000, 'garment=dress&fabric=cotton-poplin&closeup=1&weaveDraft=herringbone&start=0'],
+  ['docs/colourwork.png', 6000, 'garment=top&fabric=jersey-knit&knitChart=stockinette&colourwork=fairisle&start=0'],
+  ['docs/yarn-chunky.png', 6500, 'garment=dress&fabric=jersey-knit&yarn=chunky&start=0'],
   // Lighting & backdrops
   ['docs/light-dramatic.png', 6000, 'garment=gown&fabric=satin&light=dramatic&start=0'],
   ['docs/light-runway.png', 6000, 'garment=dress&fabric=crepe&light=runway&start=0'],

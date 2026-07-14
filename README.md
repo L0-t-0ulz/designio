@@ -219,8 +219,8 @@ wool coat sits visibly thicker than a light poplin.
 
 - **Wovens** (9) — poplin, oxford, chino twill, denim, canvas, corduroy, linen, wool flannel, tweed
 - **Silks & smooth** (5) — charmeuse, satin, crepe, organza, chiffon
-- **Knits** (5) — jersey, rib, French terry, fleece, cable knit
-- **Specialty** (5) — leather, suede, velvet, tulle, spandex
+- **Knits** (7) — jersey, rib, waffle, French terry, fleece, cable knit, athletic mesh (real perforated cutout)
+- **Specialty** (8) — leather, suede, velvet, tulle, spandex, lamé (metallic), neoprene (scuba), sequin base
 
 | A velvet dress — each fabric drives look **and** drape | Macro close-up of satin — procedural weave + sheen |
 | --- | --- |
@@ -261,6 +261,28 @@ You can also **import a fabric photo** and DesignIO bakes it into a **seamless t
 weave** (a paired normal **and** roughness map so yarn crowns catch the light and valleys stay matte),
 per-family **cloth sheen**, and a warp-aligned **anisotropic** highlight — so satins streak and wovens read
 matte, not plastic.
+
+### The weave & knit design studio
+
+Design the *textile itself*, not just pick one:
+
+| Weave draft designer | Knit stitch + colourwork | Yarn library |
+| --- | --- | --- |
+| ![A herringbone weave draft on a dress](docs/weave-draft.png) | ![A fair-isle colourwork knit](docs/colourwork.png) | ![The same jersey in chunky yarn](docs/yarn-chunky.png) |
+| threading · tie-up · treadling → the real drawdown | knit/purl/cable charts + fair-isle / intarsia colour | count · ply · twist change the hand — look **and** drape |
+
+- **Weave draft designer** — author a real loom draft (threading · tie-up · treadling); the drawdown's
+  interlacement + float lengths bake into the weave's normal + roughness maps (plain · basket · twills ·
+  satin · herringbone presets, or draw your own).
+- **Knit stitch designer** — a hand-knitter's chart (knit · purl · cable crossings) drives the knit
+  surface: ribs, seed, garter, a braided cable rope.
+- **Intarsia / colourwork** — a yarn-palette colour chart, tiled allover (fair-isle) or placed as a chest
+  block (intarsia); composes with the stitch chart into a true jacquard.
+- **Yarn library** — count (tex) · ply · twist grade the yarn; the same fabric in lace vs chunky yarn
+  genuinely drapes heavier and shows a coarser gauge.
+- **Physical fabric editor + virtual drape test** — dial real units (GSM · thickness · bending rigidity ·
+  stretch · shear) and *measure* the result like a textile lab: a Cusick drape-coefficient bench runs on
+  the live solver, plus the Peirce cantilever bending length.
 
 ---
 
