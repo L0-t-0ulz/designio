@@ -6,6 +6,7 @@ import { bandProfile, braidY, trimAnchor, BAND_COLORS, DEFAULT_HAT_BAND, type Ha
 import { billCurl, DEFAULT_CAP_BILL, type CapBillParams } from './capBill'
 import { panelSeamAzimuths, DEFAULT_CAP_PANELS, type CapPanelCount } from './capPanels'
 import { puffHeight, DEFAULT_PUFF_LOGO, type PuffLogoParams } from './puffLogo'
+import { COWBOY, cowboyBrimLift } from './cowboy'
 import { headFrame } from './face'
 
 /**
@@ -18,8 +19,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'goggles' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'goggles', 'necklace', 'hoops']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'goggles' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'goggles', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -108,6 +109,7 @@ export class Accessories {
       this.buildBeanie(),
       this.buildCap(),
       this.buildVisor(),
+      this.buildCowboy(),
       this.buildBucket(),
       this.buildBalaclava(),
       this.buildGoggles(),
@@ -630,6 +632,60 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(band, holder)
     return this.headItem('visor', obj)
+  }
+
+  private buildCowboy(): Item {
+    const mat = felt(0x8a6a4a) // tan western felt
+    // the cattleman crease: the centre-dent gutter pressed DEEP into a taller block
+    const geo = new THREE.SphereGeometry(1, 48, 36, 0, TAU, 0, Math.PI * 0.53)
+    geo.scale(COWBOY.crownR, COWBOY.crownYScale, COWBOY.crownR)
+    const pos = geo.attributes.position
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i)
+      const y = pos.getY(i)
+      const z = pos.getZ(i)
+      const blend = Math.max(0, Math.min(1, (y / COWBOY.crownYScale - 0.12) / 0.5))
+      const drop = crownDrop('centre-dent', x / COWBOY.crownR, z / COWBOY.crownR) * 1.6
+      pos.setY(i, y - drop * blend * blend * (3 - 2 * blend))
+    }
+    geo.computeVertexNormals()
+    const crown = new THREE.Mesh(geo, mat)
+    crown.position.y = HC
+    // the side-rolled brim — an annulus whose rim lifts by cowboyBrimLift(az)
+    const NR = 10
+    const NA = 48
+    const bpos: number[] = []
+    for (let i = 0; i <= NR; i++) {
+      for (let j = 0; j <= NA; j++) {
+        const t = i / NR
+        const az = (j / NA) * TAU
+        const r = COWBOY.brimInnerR + t * (COWBOY.brimOuterR - COWBOY.brimInnerR)
+        bpos.push(Math.sin(az) * r, cowboyBrimLift(az) * t * t, Math.cos(az) * r)
+      }
+    }
+    const bidx: number[] = []
+    for (let i = 0; i < NR; i++) {
+      for (let j = 0; j < NA; j++) {
+        const a = i * (NA + 1) + j
+        const b = a + NA + 1
+        bidx.push(a, b, a + 1, b, b + 1, a + 1)
+      }
+    }
+    const bgeo = new THREE.BufferGeometry()
+    bgeo.setAttribute('position', new THREE.Float32BufferAttribute(bpos, 3))
+    bgeo.setIndex(bidx)
+    bgeo.computeVertexNormals()
+    const brim = new THREE.Mesh(bgeo, mat)
+    brim.position.y = HC - 0.06
+    // the leather band + buckle at the crown base
+    const band = new THREE.Mesh(new THREE.TorusGeometry(1.07, 0.05, 8, 40), LEATHER)
+    band.rotation.x = Math.PI / 2
+    band.position.y = HC + 0.04
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.09, 0.03), METAL)
+    buckle.position.set(0, HC + 0.04, 1.11)
+    const obj = new THREE.Group()
+    obj.add(crown, brim, band, buckle)
+    return this.headItem('cowboy', obj)
   }
 
   private buildBucket(): Item {
