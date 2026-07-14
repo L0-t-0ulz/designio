@@ -26,6 +26,7 @@ import { WALK_STYLE_NAMES, type WalkStyleName } from './avatar/walkStyles'
 import { getBodyPreset } from './avatar/bodyPresets'
 import { getKidsBlock } from './avatar/kidsSizes'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
+import { CROWN_STYLES, type CrownStyle } from './avatar/crown'
 import { FaceRig, HAIRSTYLES, type Hairstyle } from './avatar/face'
 import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
 import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
@@ -1117,6 +1118,9 @@ function initStudio(
     if (Number.isFinite(bd)) patch.droop = bd
     if (params.get('brimWire') === '1') patch.wire = true
     if (Object.keys(patch).length) accessories.setBrim(patch)
+    // ?crownShape= — the crown shape library (the fedora's blocked crease)
+    const cs = params.get('crownShape')
+    if (cs && (CROWN_STYLES as string[]).includes(cs)) accessories.setCrown(cs as CrownStyle)
   }
   const hairParam = params.get('hair')
   if (hairParam && (HAIRSTYLES as string[]).includes(hairParam)) faceRig.setHairstyle(hairParam as Hairstyle)
@@ -1870,6 +1874,7 @@ function initStudio(
     wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },
     accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
     brim: { get: () => accessories.getBrim(), set: (p) => accessories.setBrim(p) },
+    crown: { get: () => accessories.getCrown(), set: (s) => accessories.setCrown(s) },
     hair: {
       getStyle: () => faceRig.getHairstyle(),
       setStyle: (s) => faceRig.setHairstyle(s),

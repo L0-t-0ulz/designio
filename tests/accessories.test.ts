@@ -131,3 +131,44 @@ describe('accessories — worn headwear/neckwear meshes ride the head/neck', () 
     expect(hoops.min.x).toBeLessThan(-0.07)
   })
 })
+
+describe('accessories — the fedora block (crown shapes + parametric brim)', () => {
+  const hatBox = (acc: Accessories): THREE.Box3 => {
+    acc.setEnabled('hat', true)
+    acc.update(baseBody())
+    acc.group.updateMatrixWorld(true)
+    const hat = acc.group.getObjectByName('hat')!
+    return new THREE.Box3().setFromObject(hat)
+  }
+
+  it('the fedora rides the head frame with a crown-holder + brim-holder', () => {
+    const acc = new Accessories()
+    const box = hatBox(acc)
+    expect(box.max.y).toBeGreaterThan(1.66) // the blocked crown stands above the skull
+    expect(box.max.y).toBeLessThan(1.95)
+    const hat = acc.group.getObjectByName('hat')!
+    expect(hat.getObjectByName('crown-holder')).toBeTruthy()
+    expect(hat.getObjectByName('brim-holder')).toBeTruthy()
+  })
+
+  it('a crease presses the crown top down; the telescope keeps its centre popped', () => {
+    const dome = new Accessories()
+    dome.setCrown('dome')
+    const domeTop = hatBox(dome).max.y
+    const teardrop = new Accessories()
+    teardrop.setCrown('teardrop')
+    expect(hatBox(teardrop).max.y).toBeLessThan(domeTop - 0.01) // pressed down ≥ 1 cm
+    const telescope = new Accessories()
+    telescope.setCrown('telescope')
+    expect(hatBox(telescope).max.y).toBeCloseTo(domeTop, 3) // the pop survives the gutter
+    expect(telescope.getCrown()).toBe('telescope')
+  })
+
+  it('the fedora joins the parametric brim — width re-blocks its footprint', () => {
+    const stingy = new Accessories()
+    stingy.setBrim({ width: 0.4 })
+    const statement = new Accessories()
+    statement.setBrim({ width: 2.2 })
+    expect(hatBox(statement).max.x).toBeGreaterThan(hatBox(stingy).max.x + 0.05)
+  })
+})

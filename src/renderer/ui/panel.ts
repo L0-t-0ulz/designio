@@ -13,6 +13,7 @@ import { loadProfiles, profileFromBody, removeProfile, saveProfiles, upsertProfi
 import { BODY_PRESETS, applyBodyPreset } from '../avatar/bodyPresets'
 import { KIDS_BLOCKS, applyKidsBlock } from '../avatar/kidsSizes'
 import { ACCESSORY_KINDS, type AccessoryKind } from '../avatar/accessories'
+import { CROWN_STYLES, CROWN_LABELS, type CrownStyle } from '../avatar/crown'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
@@ -313,6 +314,8 @@ export interface PanelOptions {
   accessories?: { get: (kind: AccessoryKind) => boolean; set: (kind: AccessoryKind, on: boolean) => void }
   /** The parametric brim designer (structured hats) — width · droop/flip · edge wire. */
   brim?: { get: () => { width: number; droop: number; wire: boolean }; set: (p: Partial<{ width: number; droop: number; wire: boolean }>) => void }
+  /** The crown shape library (fedora) — teardrop · centre-dent · diamond · telescope. */
+  crown?: { get: () => CrownStyle; set: (s: CrownStyle) => void }
   /** Hair + face customization on the avatar. */
   hair?: {
     getStyle: () => Hairstyle
@@ -1206,6 +1209,21 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
   const skinControlEls = opts.skin ? skinEls(opts.skin) : []
 
+  // crown-shape chips (the fedora's blocked-felt crease)
+  const crownRow = el('div', 'dio-seg dio-seg-wrap')
+  if (opts.crown) {
+    for (const s of CROWN_STYLES) {
+      const b = el('button', 'dio-seg-btn' + (opts.crown.get() === s ? ' on' : ''), CROWN_LABELS[s])
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        opts.crown!.set(s)
+        for (const n of Array.from(crownRow.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      crownRow.append(b)
+    }
+  }
+
   bodySec.body.append(
     figRow,
     toggle({ label: 'Imported body (GLB)', get: () => realisticBody, set: (v) => { realisticBody = v; opts.onBodyMode(v) } }).row,
@@ -1217,12 +1235,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     ...(opts.accessories ? [el('div', 'dio-field-label', 'Accessories'), accRow] : []),
     ...(opts.brim
       ? [
-          el('div', 'dio-field-label', 'Brim designer (bucket · sun hat)'),
+          el('div', 'dio-field-label', 'Brim designer (fedora · bucket · sun hat)'),
           track(slider({ label: 'Brim width', min: 0.4, max: 2.2, step: 0.05, get: () => opts.brim!.get().width, set: (v) => opts.brim!.set({ width: v }) })),
           track(slider({ label: 'Droop ↔ flip', min: -1, max: 1, step: 0.05, get: () => opts.brim!.get().droop, set: (v) => opts.brim!.set({ droop: v }) })),
           track(toggle({ label: 'Wired edge', get: () => opts.brim!.get().wire, set: (v) => opts.brim!.set({ wire: v }) }))
         ]
       : []),
+    ...(opts.crown ? [el('div', 'dio-field-label', 'Crown shape (fedora)'), crownRow] : []),
     ...hairFaceEls,
     ...skinControlEls,
     bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,
