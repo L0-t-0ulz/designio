@@ -19,6 +19,9 @@ export interface Measurements {
   /** Head + neck radii (for headwear specs + fit). */
   headR: number
   neckR: number
+  /** The real skull top (m) — measured off the GLB skin on load; procedural = neckY + 2.7·headR.
+   *  Crown headwear hangs from here, so it lands on the ACTUAL head of either body. */
+  crownY: number
   neckY: number
   shoulderY: number
   chestY: number
@@ -75,7 +78,7 @@ function measurementsFor(type: BodyType): Measurements {
   const p = PROPORTIONS[type]
   return {
     chestR: p.chestR, waistR: p.waistR, hipR: p.hipR, thighR: p.thighR,
-    headR: p.headR, neckR: p.neckR,
+    headR: p.headR, neckR: p.neckR, crownY: LANDMARKS.neckY + p.headR * 2.7,
     hipHalfX: p.hipHalfX, shoulderHalfX: p.shoulderHalfX, ...LANDMARKS
   }
 }
@@ -271,7 +274,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
       glb = b
       group.add(b.model)
       b.fit(body.height, body.build)
-      applyBodyMode() // honour any toggle made while the model was still loading
+      applyBodyMode() // fits colliders + crownY, then rebuilds garments onto them
     },
     () => {
       wantGlb = false
@@ -424,6 +427,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     measurements.hipHalfX = p.hipHalfX * b * body.hips
     measurements.shoulderHalfX = p.shoulderHalfX * b
     measurements.neckY = LANDMARKS.neckY * h
+    measurements.crownY = LANDMARKS.neckY * h + measurements.headR * 2.7 // ≈ the visual crown
     measurements.shoulderY = LANDMARKS.shoulderY * h
     measurements.chestY = LANDMARKS.chestY * h
     measurements.waistY = LANDMARKS.waistY * h
@@ -497,7 +501,19 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     const b = glb.bones
     setCap(2, b.hips, b.chest) // torso
     setCap(1, b.chest, b.neck)
-    setCap(0, b.neck, b.head)
+    // The head BONE is a joint at the skull BASE — a neck→head capsule is really
+    // the neck, leaving the whole skull uncollidable (headwear slid off the phantom
+    // head, hats floated). Span the head capsule from the head joint UP the neck→
+    // head axis over the skull; its radius still reaches down across the jaw.
+    if (b.neck && b.head) {
+      b.neck.getWorldPosition(wp)
+      b.head.getWorldPosition(wp2)
+      const r = colliders[0].radius
+      wp.subVectors(wp2, wp).normalize() // the skull's up axis
+      colliders[0].a.copy(wp2)
+      colliders[0].b.copy(wp2).addScaledVector(wp, 1.15 * r)
+      measurements.crownY = colliders[0].b.y + r // the real skull top — crown headwear hangs from here
+    }
     setCap(3, b.lArm, b.rArm) // shoulder line
     setCap(4, b.lUpLeg, b.rUpLeg) // hip line
     // Match the procedural left capsules (−x) to whichever GLB side is on −x.
@@ -707,6 +723,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     }
     applyVisibility()
     syncBodyBVH(false) // GLB → invalidate (no metaball surface); metaball → rebuild
+    if (useGlb) fitCollidersToGlb() // colliders + crownY must be real before garments rebuild on them
     onBodyChange?.() // the body swapped (e.g. async GLB load) → garments re-drape + re-pin to it
   }
   /** Switch between the realistic GLB (static) and the animatable metaball body. */

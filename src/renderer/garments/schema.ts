@@ -36,6 +36,8 @@ export type GarmentIcon = 'top' | 'skirt' | 'dress' | 'pants'
 export interface ConstructionCaps {
   neckline?: boolean
   sleeve?: boolean
+  /** Balaclava face-opening picker (full · eyes · three-hole · open-face). */
+  faceStyle?: boolean
   length?: boolean
   ease?: boolean
   flare?: boolean
@@ -123,7 +125,14 @@ export interface HeadTubePiece {
   /** Radius multiples on the head/neck radius at the top / bottom edge. */
   topScale: number
   botScale: number
+  /** Balaclava face opening — real eye/mouth cut-outs in the shell (full = none).
+   *  Implies full-head coverage (the tube bellies to clear the face). */
+  face?: BalaclavaFace
 }
+
+/** Balaclava / ski-mask face-opening styles. */
+export type BalaclavaFace = 'full' | 'eyes' | 'three-hole' | 'open-face'
+export const BALACLAVA_FACES: BalaclavaFace[] = ['full', 'eyes', 'three-hole', 'open-face']
 
 /**
  * A **flat scarf panel** (a rectangular knit strip) draped once around the back of the

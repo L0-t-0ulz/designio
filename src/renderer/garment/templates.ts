@@ -39,6 +39,8 @@ export interface GarmentParams {
   sleeve?: SleeveStyle
   /** Sleeve shape (set-in / raglan / dolman / bishop / puff / bell). */
   sleeveShape?: SleeveShape
+  /** Balaclava face-opening override (full · eyes · three-hole · open-face). */
+  faceStyle?: import('../garments/schema').BalaclavaFace
   // ---- construction detail (all optional) ----
   /** Collar stand — raises/closes the neckline + a collar band on the pattern. */
   collar?: boolean

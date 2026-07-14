@@ -189,8 +189,11 @@ Renderer modules:
   **`scarfPanel`** — a flat *open* panel (`wrapX: false`) wrapped once around the neck with hanging tails) +
   `ConstructionCaps` — neckline/sleeve/length/ease/flare + **collar/cuff/pleats/dart/pocket/hem**
   detail), `registry` (the garments, as data — incl. the **snood**/**beanie**/**scarf** cloth-sim headwear),
-  `factory` (`buildGarment` composes pieces; `headTubeToSpec` builds a head/neck tube from `headR`/`neckR`
-  measurements, colliding with the head/neck capsules for free; construction detail is
+  `factory` (`buildGarment` composes pieces; `headTubeToSpec` builds a head/neck tube from `headR`/`neckR`/**`crownY`**
+  measurements (crownY = the REAL skull top — capsule-derived on the GLB, whose head bone is a joint at the
+  skull base; the GLB head capsule now spans the skull so headwear rests on it instead of a phantom head),
+  colliding with the head/neck capsules for free; a `face` style (balaclava) adds real eye/mouth
+  **cut-outs** + a dome-clamped spawn; construction detail is
   folded into the tube/sleeve specs so the 3D silhouette + the 2D pattern both reflect it), `decor`
   (`pocketPlacements` — pure patch-pocket positions; the stack renders them as non-sim patch meshes).
   Adding a garment or a supported detail is a data change, not new code.
@@ -325,6 +328,8 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?belly=<0..3>` (**maternity** — a trimester belly bump the garments drape over) ·
 `?buttons=<2..9>&buttonMm=<8..30>&buttonColor=<hex>&zipColor=<hex>` (the **closure designer** — button count/size/colour · zip tape colour) ·
 `?accessories=<shoes,belt,hat,bag,beanie,cap,bucket,balaclava,scarf,gaiter>` (worn accessories, incl. **headwear & neckwear** placed by the head/neck frame) ·
+`?garment=ski-mask&balaclavaFace=<full|eyes|three-hole|open-face>` (the **cloth-sim balaclava** — a conforming knit hood with REAL face cut-outs: `TubeSpec.cutouts` drops the quads + orphaned particles go dead, so you see through the eye/mouth holes; the picker is under Construction) ·
+`?closeup=head` (the Face anatomy camera — frames the head for headwear shots) ·
 `?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
 `?undertone=<warm|neutral|cool>` (its undertone) ·
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face

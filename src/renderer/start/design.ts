@@ -28,6 +28,7 @@ export interface DesignConfig {
   neckline: NecklineStyle
   sleeve: SleeveStyle
   sleeveShape?: SleeveShape
+  faceStyle?: import('../garments/schema').BalaclavaFace
   /** Manufacturing size (grades the garment girth). */
   size: SizeLabel
   /** Construction detail (optional). */

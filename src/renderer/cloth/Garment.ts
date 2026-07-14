@@ -78,6 +78,64 @@ export interface TubeSpec {
    *  the quad column at `openSeamColumn` is skipped and the solver cuts the matching
    *  constraints, so the garment really gaps and hangs open. */
   openFront?: boolean
+  /** Cut-out openings (a balaclava's eye/mouth holes): quads inside are dropped and
+   *  fully-orphaned particles go dead, so the holes are real — you see through them. */
+  cutouts?: TubeCutout[]
+  /** Spawn-shape clamp for full-head pieces (a balaclava): every ring's rest radius
+   *  is kept outside this sphere's cross-section, so the tube spawns ON the skull
+   *  dome instead of inside it (a deep-inside spawn resolves to the wrong side). */
+  dome?: { cy: number; r: number }
+}
+
+/** A sphere's cross-section radius at height `y` (0 outside the sphere). Pure. */
+export function domeCross(dome: { cy: number; r: number }, y: number): number {
+  const d = dome.r * dome.r - (y - dome.cy) * (y - dome.cy)
+  return d > 0 ? Math.sqrt(d) : 0
+}
+
+/** A rectangular opening in tube-fraction space — `u` around the tube (0…1,
+ *  centre-front ≈ 0.25) · `v` down it (0 top … 1 hem). */
+export interface TubeCutout {
+  u0: number
+  u1: number
+  v0: number
+  v1: number
+}
+
+/** The quad cells (cy·nx+cx) whose centre falls inside any cutout rect — the cells
+ *  `tubeIndices` drops (same mechanism as tearing, decided at build time). Pure. */
+export function cutoutCells(cutouts: TubeCutout[] | undefined, nx: number, ny: number): Set<number> {
+  const cells = new Set<number>()
+  if (!cutouts?.length || ny < 2) return cells
+  for (let cy = 0; cy < ny - 1; cy++) {
+    const v = (cy + 0.5) / (ny - 1)
+    for (let cx = 0; cx < nx; cx++) {
+      const u = (cx + 0.5) / nx
+      for (const c of cutouts) {
+        if (u >= c.u0 && u <= c.u1 && v >= c.v0 && v <= c.v1) {
+          cells.add(cy * nx + cx)
+          break
+        }
+      }
+    }
+  }
+  return cells
+}
+
+/** Grid nodes orphaned by a cut — every one of their (in-range) surrounding cells is
+ *  dropped, so no quad or constraint holds them: they go **dead** (invMass 0, skipped
+ *  by constraints + collision, invisible since their quads are gone). Pure. */
+export function deadFromCells(cells: ReadonlySet<number>, nx: number, ny: number): Set<number> {
+  const dead = new Set<number>()
+  if (!cells.size) return dead
+  const isCut = (cx: number, cy: number): boolean =>
+    cy < 0 || cy > ny - 2 || cells.has(cy * nx + ((cx + nx) % nx))
+  for (let iy = 0; iy < ny; iy++) {
+    for (let ix = 0; ix < nx; ix++) {
+      if (isCut(ix - 1, iy - 1) && isCut(ix, iy - 1) && isCut(ix - 1, iy) && isCut(ix, iy)) dead.add(iy * nx + ix)
+    }
+  }
+  return dead
 }
 
 /** The quad column whose boundary sits nearest centre-front (+z, angle π/2) — where
@@ -198,6 +256,9 @@ export interface TubeBuild {
   ny: number
   /** Indices of the top ring — pinned so the garment hangs from the shoulders. */
   pinnedTop: number[]
+  /** Build-time cut-out cells (already dropped from the index buffer) — the
+   *  controller seeds `piece.torn` + the solver's dead set from these. */
+  cutCells?: Set<number>
 }
 
 /** Adaptive-remeshing ring heights for a body tube (packs rings where the
@@ -228,6 +289,7 @@ export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[
       if (spec.crease) r *= 1 + 0.07 * creaseWave(a) // pressed fore/aft trouser crease
       const top = topEdge(spec, a) // per-column top so the neckline is shaped
       const y = top + (bottomEdge(spec, a) - top) * t // per-column hem (high-low · shirttail · handkerchief)
+      if (spec.dome) r = Math.max(r, domeCross(spec.dome, y) + 0.004) // spawn on/off the skull, never inside
       const k = (iy * radial + ix) * 3
       positions[k] = cx + Math.cos(a) * r
       positions[k + 1] = y
@@ -244,7 +306,7 @@ export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[
 /** Build the wrapped-tube geometry (uvs + closed-seam indices) + pinned top ring.
  *  `ringT` (adaptive ring heights) drives the vertical UV so a placed print stays
  *  at its physical height even when the rings are packed non-uniformly. */
-function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: number[], openFront = false): TubeBuild {
+function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: number[], openFront = false, cutCells?: Set<number>): TubeBuild {
   const uvs = new Float32Array(nx * ny * 2)
   for (let iy = 0; iy < ny; iy++) {
     const v = 1 - (ringT ? ringT[iy] : ny > 1 ? iy / (ny - 1) : 0)
@@ -254,7 +316,7 @@ function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: num
       uvs[k * 2 + 1] = v
     }
   }
-  const { indices, frontCount } = tubeIndices(nx, ny, { openFront })
+  const { indices, frontCount } = tubeIndices(nx, ny, { openFront, torn: cutCells?.size ? cutCells : undefined })
 
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
@@ -267,7 +329,7 @@ function finishTube(positions: Float32Array, nx: number, ny: number, ringT?: num
 
   const pinnedTop: number[] = []
   for (let ix = 0; ix < nx; ix++) pinnedTop.push(ix) // iy = 0
-  return { geometry, positions, nx, ny, pinnedTop }
+  return { geometry, positions, nx, ny, pinnedTop, cutCells }
 }
 
 /**
@@ -278,7 +340,8 @@ export function buildTubeGarment(spec: TubeSpec): TubeBuild {
   const positions = new Float32Array(spec.radial * spec.rings * 3)
   const ringT = tubeRingT(spec)
   fillTube(positions, spec, ringT)
-  return finishTube(positions, spec.radial, spec.rings, ringT, spec.openFront)
+  const cut = cutoutCells(spec.cutouts, spec.radial, spec.rings)
+  return finishTube(positions, spec.radial, spec.rings, ringT, spec.openFront, cut.size ? cut : undefined)
 }
 
 /** A tube that follows an arbitrary segment a→b (e.g. a sleeve along the arm). */

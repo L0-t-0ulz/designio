@@ -44,6 +44,7 @@ import { openKnitChartEditor } from './knitChartEditor'
 import { COLOURWORK_PRESETS, cloneColourwork, colourworkKey, type ColourworkChart } from '../fabric/colourwork'
 import { openColourworkEditor } from './colourworkEditor'
 import { YARN_PRESETS, DK_TEX, type YarnSpec } from '../fabric/yarn'
+import { BALACLAVA_FACES, type BalaclavaFace } from '../garments/schema'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { ClosureDesign } from '../studio/closureDesign'
@@ -73,6 +74,8 @@ export interface GarmentState {
   neckline: NecklineStyle
   sleeve: SleeveStyle
   sleeveShape?: SleeveShape
+  /** Balaclava face opening (shown when the garment supports it). */
+  faceStyle?: BalaclavaFace
   size: SizeLabel
   gradeRules?: GradeRules
   collar?: boolean
@@ -411,6 +414,19 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sleeveShapeBlock = el('div')
   sleeveShapeBlock.append(el('div', 'dio-field-label', 'Sleeve shape'), sleeveShapeRow)
 
+  // face-opening picker (balaclava / ski mask; shown when the garment supports it)
+  const faceLabels: Record<BalaclavaFace, string> = { full: 'Full', eyes: 'Eyes', 'three-hole': 'Three-hole', 'open-face': 'Open face' }
+  const faceRow = el('div', 'dio-actions')
+  faceRow.style.flexWrap = 'wrap'
+  const faceBtns = new Map<BalaclavaFace, HTMLButtonElement>()
+  for (const f of BALACLAVA_FACES) {
+    const b = button(faceLabels[f], () => { garment.faceStyle = f; syncGarment(); opts.onGarmentEdit() }, (garment.faceStyle ?? 'three-hole') === f)
+    faceBtns.set(f, b)
+    faceRow.append(b)
+  }
+  const faceBlock = el('div')
+  faceBlock.append(el('div', 'dio-field-label', 'Face opening'), faceRow)
+
   // frill picker (ruffles/flounces/godets; shown when the Ruffles detail is on)
   const frillLabels: Record<FrillStyle, string> = { ruffle: 'Ruffle', flounce: 'Flounce', godet: 'Godet' }
   const frillRow = el('div', 'dio-actions')
@@ -579,7 +595,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     for (const [cstyle, node] of collarBtns) node.classList.toggle('primary', (garment.collarStyle ?? 'band') === cstyle)
     // the sleeve library shows only when the garment has sleeves selected
     sleeveShapeBlock.classList.toggle('dio-hidden', !def.supports.sleeve || garment.sleeve === 'none')
+    faceBlock.classList.toggle('dio-hidden', !def.supports.faceStyle)
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
+    for (const [f, node] of faceBtns) node.classList.toggle('primary', (garment.faceStyle ?? 'three-hole') === f)
     // the pocket library shows only when the Pocket detail is supported + on
     pocketBlock.classList.toggle('dio-hidden', !def.supports.pocket || !garment.pocket)
     for (const [ps, node] of pocketBtns) node.classList.toggle('primary', (garment.pocketStyle ?? 'patch') === ps)
@@ -724,7 +742,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
 
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
   syncGarment()
 
   // ---- pattern (sew) ----
