@@ -16,8 +16,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'goggles' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'goggles', 'necklace', 'hoops']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'goggles' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'goggles', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -105,6 +105,7 @@ export class Accessories {
       this.buildBag(),
       this.buildBeanie(),
       this.buildCap(),
+      this.buildVisor(),
       this.buildBucket(),
       this.buildBalaclava(),
       this.buildGoggles(),
@@ -411,19 +412,21 @@ export class Accessories {
 
   private bill: CapBillParams = { ...DEFAULT_CAP_BILL }
 
-  /** The cap bill designer — re-shape the visor (+ underbill/squatchee) in place. */
+  /** The cap bill designer — re-shape every billed block (cap · visor) in place. */
   setCapBill(p: Partial<CapBillParams>): void {
     this.bill = { ...this.bill, ...p }
-    const it = this.items.find((i) => i.kind === 'cap')
-    const holder = it?.obj.getObjectByName('bill-holder') as THREE.Group | undefined
-    if (!it || !holder) return
-    for (const child of [...holder.children]) {
-      ;(child as THREE.Mesh).geometry?.dispose()
-      holder.remove(child)
+    for (const kind of ['cap', 'visor'] as AccessoryKind[]) {
+      const it = this.items.find((i) => i.kind === kind)
+      const holder = it?.obj.getObjectByName('bill-holder') as THREE.Group | undefined
+      if (!it || !holder) continue
+      for (const child of [...holder.children]) {
+        ;(child as THREE.Mesh).geometry?.dispose()
+        holder.remove(child)
+      }
+      this.addBillMeshes(holder, holder.userData.mat as THREE.Material)
+      const sq = it.obj.getObjectByName('squatchee')
+      if (sq) sq.visible = this.bill.squatchee
     }
-    this.addBillMeshes(holder, holder.userData.mat as THREE.Material)
-    const sq = it.obj.getObjectByName('squatchee')
-    if (sq) sq.visible = this.bill.squatchee
   }
   getCapBill(): CapBillParams {
     return { ...this.bill }
@@ -492,6 +495,22 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(dome, holder, btn)
     return this.headItem('cap', obj)
+  }
+
+  private buildVisor(): Item {
+    // the sport visor — the cap's parametric bill on an open-crown band
+    // (ponytail-friendly: no dome, just the sweatband wrapping the brow).
+    // Kept off pure white — a big flat bright plane blooms under the key light.
+    const mat = felt(0xb9bdc4)
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(1.06, 1.08, 0.3, 32, 1, true), mat)
+    band.position.y = HC + 0.02
+    const holder = new THREE.Group()
+    holder.name = 'bill-holder'
+    holder.userData.mat = mat
+    this.addBillMeshes(holder, mat)
+    const obj = new THREE.Group()
+    obj.add(band, holder)
+    return this.headItem('visor', obj)
   }
 
   private buildBucket(): Item {
