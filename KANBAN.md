@@ -703,7 +703,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 **Textile & knit engineering**
 - [ ] **Knit stitch designer** — a cable/rib/jacquard chart → the 3D knit surface
-- [ ] **Weave draft designer** — threading/treadling → the procedural weave map
+- [x] **Weave draft designer** — threading/treadling → the procedural weave map. A real loom draft (threading · tie-up · treadling) → the pure **drawdown** interlacement grid + wrapped float lengths → a float-length-aware height field (long satin floats sit high + flat, plain interlacements ridge) baked into custom normal + roughness maps that replace the fabric preset's weave; 6 preset drafts (plain · basket · 2/2 twill · 3/1 denim · 5-end satin · herringbone) + the classic four-quadrant grid-editor modal with a live drawdown preview (`fabric/weaveDraft` + `ui/weaveDraftEditor`); per-layer, saved in the `.dio` + colorways; `?weaveDraft=<preset>`; unit-tested — PR #305
 - [ ] **Yarn library** — count · ply · twist that change the fabric hand
 - [ ] **Fully-fashioned knit shaping** — shaped panels with no cut edges
 - [ ] **Intarsia / colourwork** — placed colour blocks in the knit
