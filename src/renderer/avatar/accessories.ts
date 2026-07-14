@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { Capsule } from './colliders'
 import { brimProfile, DEFAULT_BRIM, type BrimParams } from './brim'
 import { crownDrop, DEFAULT_CROWN, type CrownStyle } from './crown'
+import { bandProfile, braidY, trimAnchor, BAND_COLORS, DEFAULT_HAT_BAND, type HatBandParams } from './hatBand'
 import { headFrame } from './face'
 
 /**
@@ -161,6 +162,91 @@ export class Accessories {
     return this.crown
   }
 
+  private band: HatBandParams = { ...DEFAULT_HAT_BAND }
+
+  /** The hat band designer — re-trim every banded hat's crown base in place. */
+  setHatBand(p: Partial<HatBandParams>): void {
+    this.band = { ...this.band, ...p }
+    for (const kind of ['hat', 'sunhat'] as AccessoryKind[]) {
+      const it = this.items.find((i) => i.kind === kind)
+      const holder = it?.obj.getObjectByName('band-holder') as THREE.Group | undefined
+      if (!it || !holder) continue
+      for (const child of [...holder.children]) {
+        ;(child as THREE.Mesh).geometry?.dispose()
+        holder.remove(child)
+      }
+      this.addBandMeshes(holder)
+    }
+  }
+  getHatBand(): HatBandParams {
+    return { ...this.band }
+  }
+
+  /** Build the current band (+ side trim) around a crown-base holder group. */
+  private addBandMeshes(holder: THREE.Group): void {
+    const prof = bandProfile(this.band.style)
+    if (!prof) return
+    const bandR = (holder.userData.bandR as number) + prof.standoff
+    const bandY = holder.userData.bandY as number
+    const color = this.band.color ?? BAND_COLORS[this.band.style as keyof typeof BAND_COLORS]
+    const mat = new THREE.MeshStandardMaterial({
+      color,
+      roughness: this.band.style === 'leather' ? 0.5 : 0.88,
+      metalness: 0,
+      side: THREE.DoubleSide
+    })
+    if (this.band.style === 'cord') {
+      // two phase-shifted strands crossing each other around the crown
+      class BraidPath extends THREE.Curve<THREE.Vector3> {
+        constructor(private readonly phase: number) {
+          super()
+        }
+        getPoint(t: number): THREE.Vector3 {
+          return new THREE.Vector3(Math.sin(t * TAU) * bandR, bandY + braidY(t, this.phase), Math.cos(t * TAU) * bandR)
+        }
+      }
+      for (const phase of [0, Math.PI]) holder.add(new THREE.Mesh(new THREE.TubeGeometry(new BraidPath(phase), 220, prof.strandR, 6, true), mat))
+    } else {
+      const ribbon = new THREE.Mesh(new THREE.CylinderGeometry(bandR, bandR, prof.height, 40, 1, true), mat)
+      ribbon.position.y = bandY
+      holder.add(ribbon)
+    }
+    const ta = trimAnchor(this.band.trim)
+    if (!ta) return
+    const trim = new THREE.Group()
+    trim.position.set(Math.sin(ta.az) * bandR, bandY + ta.y, Math.cos(ta.az) * bandR)
+    trim.rotation.y = ta.az // local +z points radially out of the band
+    if (this.band.trim === 'bow') {
+      // a self-fabric side bow: two loops + the knot
+      for (const s of [-1, 1]) {
+        const loop = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), mat)
+        loop.scale.set(0.2, 0.09, 0.05)
+        loop.position.x = s * 0.13
+        loop.rotation.z = s * 0.25
+        trim.add(loop)
+      }
+      const knot = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.06), mat)
+      trim.add(knot)
+    } else if (this.band.trim === 'feather') {
+      const plume = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.6, 8), new THREE.MeshStandardMaterial({ color: 0xc99a52, roughness: 0.9, side: THREE.DoubleSide }))
+      plume.scale.set(1, 1, 0.3) // flattened vane
+      plume.rotation.set(0.15, 0, 0.55) // leaning back around the crown
+      plume.position.set(-0.1, 0.24, 0)
+      const quill = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.2, 6), new THREE.MeshStandardMaterial({ color: 0xe8dcc4, roughness: 0.7 }))
+      quill.rotation.z = 0.55
+      quill.position.set(0.02, 0.04, 0.01)
+      trim.add(plume, quill)
+    } else if (this.band.trim === 'buckle') {
+      // a metal frame lying flat on the band + the prong bar
+      const frame = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.018, 8, 4), METAL)
+      frame.rotation.z = Math.PI / 4 // square-on
+      frame.scale.set(0.85, 1.25, 1)
+      const prong = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.17, 0.014), METAL)
+      trim.add(frame, prong)
+    }
+    holder.add(trim)
+  }
+
   /** Build the blocked fedora crown — a tall dome with the current crease
    *  pressed straight down into its top — into a holder group. */
   private addCrownMesh(holder: THREE.Group, mat: THREE.Material): void {
@@ -273,8 +359,13 @@ export class Accessories {
     holder.userData.mat = FELT
     holder.userData.brimY = HC - 0.06 // the brim leaves the crown wall at the brow
     this.addBrimMeshes('hat', holder, FELT)
+    const band = new THREE.Group()
+    band.name = 'band-holder'
+    band.userData.bandR = 1.05
+    band.userData.bandY = HC + 0.07 // the ribbon hugs the crown base above the brim
+    this.addBandMeshes(band)
     const obj = new THREE.Group()
-    obj.add(crown, holder)
+    obj.add(crown, holder, band)
     return this.headItem('hat', obj)
   }
 
@@ -372,9 +463,11 @@ export class Accessories {
     holder.userData.mat = mat
     holder.userData.brimY = HC - 0.03
     this.addBrimMeshes('sunhat', holder, mat)
-    const band = new THREE.Mesh(new THREE.TorusGeometry(1.03, 0.06, 8, 32), felt(0x2b2b30))
-    band.rotation.x = Math.PI / 2
-    band.position.y = HC - 0.02
+    const band = new THREE.Group()
+    band.name = 'band-holder'
+    band.userData.bandR = 1.02
+    band.userData.bandY = HC + 0.1
+    this.addBandMeshes(band)
     const obj = new THREE.Group()
     obj.add(dome, holder, band)
     return this.headItem('sunhat', obj)

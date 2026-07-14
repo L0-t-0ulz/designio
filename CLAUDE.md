@@ -331,6 +331,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?accessories=<shoes,belt,hat,bag,beanie,cap,bucket,balaclava,scarf,gaiter,goggles>` (worn accessories, incl. **headwear & neckwear** placed by the head/neck frame) ·
 `?brimWidth=<0.4..2.2>&brimDroop=<-1..1>&brimWire=1` (the **parametric brim designer** — width · droop/flip · a wired edge on the fedora + bucket + sun-hat blocks; pure `avatar/brim.brimProfile`) ·
 `?crownShape=<dome|teardrop|centre-dent|diamond|telescope>` (the **crown shape library** — blocked-felt creases pressed into the fedora accessory's crown; pure `avatar/crown.crownDrop` plan-disc depth fields) ·
+`?hatBand=<none|grosgrain|leather|cord>&bandTrim=<none|bow|feather|buckle>&bandColor=<hex>` (the **hat band designer** — a ribbon/strap/braided-cord band + a side trim on the fedora + sun-hat blocks; pure `avatar/hatBand` profile/braid/anchor math) ·
 `?garment=ski-mask&balaclavaFace=<full|eyes|three-hole|open-face>` (the **cloth-sim balaclava** — a conforming knit hood with REAL face cut-outs: `TubeSpec.cutouts` drops the quads + orphaned particles go dead, so you see through the eye/mouth holes; the picker is under Construction) ·
 `?closeup=head` (the Face anatomy camera — frames the head for headwear shots; `&headDist=<m>` tightens it) ·
 `?cuffHeight=<0..1>&slouch=<0..1>` (**beanie fit** — cuff roll depth + slouch length on any beanie) ·

@@ -27,6 +27,7 @@ import { getBodyPreset } from './avatar/bodyPresets'
 import { getKidsBlock } from './avatar/kidsSizes'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
 import { CROWN_STYLES, type CrownStyle } from './avatar/crown'
+import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from './avatar/hatBand'
 import { FaceRig, HAIRSTYLES, type Hairstyle } from './avatar/face'
 import { SIM_RESOLUTIONS, qualityToSubsteps, type SimResolution } from './cloth/simQuality'
 import { WIND_PRESET_NAMES, getWindPreset, gustWind } from './cloth/windPresets'
@@ -1121,6 +1122,15 @@ function initStudio(
     // ?crownShape= — the crown shape library (the fedora's blocked crease)
     const cs = params.get('crownShape')
     if (cs && (CROWN_STYLES as string[]).includes(cs)) accessories.setCrown(cs as CrownStyle)
+    // ?hatBand= & ?bandTrim= & ?bandColor= — the hat band designer
+    const bandPatch: Partial<HatBandParams> = {}
+    const hb = params.get('hatBand')
+    if (hb && (HAT_BAND_STYLES as string[]).includes(hb)) bandPatch.style = hb as HatBandStyle
+    const bt = params.get('bandTrim')
+    if (bt && (BAND_TRIMS as string[]).includes(bt)) bandPatch.trim = bt as BandTrim
+    const bc = params.get('bandColor')
+    if (bc) bandPatch.color = parseInt(bc.replace('#', ''), 16)
+    if (Object.keys(bandPatch).length) accessories.setHatBand(bandPatch)
   }
   const hairParam = params.get('hair')
   if (hairParam && (HAIRSTYLES as string[]).includes(hairParam)) faceRig.setHairstyle(hairParam as Hairstyle)
@@ -1875,6 +1885,7 @@ function initStudio(
     accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
     brim: { get: () => accessories.getBrim(), set: (p) => accessories.setBrim(p) },
     crown: { get: () => accessories.getCrown(), set: (s) => accessories.setCrown(s) },
+    hatBand: { get: () => accessories.getHatBand(), set: (p) => accessories.setHatBand(p) },
     hair: {
       getStyle: () => faceRig.getHairstyle(),
       setStyle: (s) => faceRig.setHairstyle(s),
