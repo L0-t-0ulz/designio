@@ -77,6 +77,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     sleeve: l.sleeve,
     sleeveShape: l.sleeveShape,
     faceStyle: l.faceStyle,
+    breath: l.breath,
     balaclavaWorn: l.balaclavaWorn,
     cuffHeight: l.cuffHeight,
     slouch: l.slouch,
@@ -153,6 +154,8 @@ export interface GarmentLayerData {
   sleeveShape?: SleeveShape
   /** Balaclava face opening (ski mask) — full · eyes · three-hole · open-face. */
   faceStyle?: import('../garments/schema').BalaclavaFace
+  /** Breathing preview — a cyclic exhale puffing the mask's mouth opening. */
+  breath?: boolean
   /** Balaclava worn state — down over the face or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
@@ -399,6 +402,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     sleeve: c.sleeve,
     sleeveShape: c.sleeveShape,
     faceStyle: c.faceStyle,
+    breath: c.breath,
     balaclavaWorn: c.balaclavaWorn,
     cuffHeight: c.cuffHeight,
     slouch: c.slouch,

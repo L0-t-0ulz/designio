@@ -41,6 +41,8 @@ export interface GarmentParams {
   sleeveShape?: SleeveShape
   /** Balaclava face-opening override (full · eyes · three-hole · open-face). */
   faceStyle?: import('../garments/schema').BalaclavaFace
+  /** Breathing preview — a cyclic exhale puffing the mask's mouth opening. */
+  breath?: boolean
   /** Balaclava worn state — down over the face (default) or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Scarf width multiplier, 0.5 (skinny) … 1.8 (blanket-wide). */
