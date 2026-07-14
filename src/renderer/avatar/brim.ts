@@ -22,7 +22,7 @@ const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.m
 /** Per-kind base geometry (unit head frame): where the brim leaves the crown wall,
  *  how far a width of 1 spreads it, and how tall a full droop runs. */
 const BASE: Partial<Record<AccessoryKind, { topR: number; spread: number; droopH: number }>> = {
-  hat: { topR: 0.7, spread: 0.62, droopH: 0.3 },
+  hat: { topR: 1.0, spread: 0.62, droopH: 0.3 },
   bucket: { topR: 1.04, spread: 0.46, droopH: 0.3 },
   sunhat: { topR: 1.02, spread: 1.33, droopH: 0.46 }
 }

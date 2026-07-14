@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import type { Capsule } from './colliders'
 import { brimProfile, DEFAULT_BRIM, type BrimParams } from './brim'
+import { crownDrop, DEFAULT_CROWN, type CrownStyle } from './crown'
 import { headFrame } from './face'
 
 /**
@@ -111,6 +112,7 @@ export class Accessories {
       this.buildGaiter()
     )
     for (const it of this.items) {
+      it.obj.name = it.kind
       it.obj.visible = false
       it.obj.traverse((o) => {
         o.castShadow = true
@@ -139,6 +141,45 @@ export class Accessories {
   }
   getBrim(): BrimParams {
     return { ...this.brim }
+  }
+
+  private crown: CrownStyle = DEFAULT_CROWN
+
+  /** The crown shape library — re-block the fedora's crown crease in place. */
+  setCrown(style: CrownStyle): void {
+    this.crown = style
+    const it = this.items.find((i) => i.kind === 'hat')
+    const holder = it?.obj.getObjectByName('crown-holder') as THREE.Group | undefined
+    if (!it || !holder) return
+    for (const child of [...holder.children]) {
+      ;(child as THREE.Mesh).geometry?.dispose()
+      holder.remove(child)
+    }
+    this.addCrownMesh(holder, holder.userData.mat as THREE.Material)
+  }
+  getCrown(): CrownStyle {
+    return this.crown
+  }
+
+  /** Build the blocked fedora crown — a tall dome with the current crease
+   *  pressed straight down into its top — into a holder group. */
+  private addCrownMesh(holder: THREE.Group, mat: THREE.Material): void {
+    const geo = new THREE.SphereGeometry(1, 48, 36, 0, TAU, 0, Math.PI * 0.53)
+    geo.scale(1.05, 1.42, 1.05) // the tall blocked felt
+    const pos = geo.attributes.position
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i)
+      const y = pos.getY(i)
+      const z = pos.getZ(i)
+      // creases live on the crown top — fade the press out down the wall
+      const blend = Math.max(0, Math.min(1, (y / 1.42 - 0.12) / 0.5))
+      const drop = crownDrop(this.crown, x / 1.05, z / 1.05)
+      pos.setY(i, y - drop * blend * blend * (3 - 2 * blend))
+    }
+    geo.computeVertexNormals()
+    const dome = new THREE.Mesh(geo, mat)
+    dome.position.y = HC
+    holder.add(dome)
   }
 
   /** Build the parametric brim cone (+ optional edge wire) into a holder group. */
@@ -221,22 +262,20 @@ export class Accessories {
   }
 
   private buildHat(): Item {
-    const brim = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.02, 32), FELT)
-    const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.68, 1, 32), FELT)
+    // the fedora — a blocked-felt crown (creased by the crown shape library)
+    // over the parametric brim (a snap-brim by default)
+    const crown = new THREE.Group()
+    crown.name = 'crown-holder'
+    crown.userData.mat = FELT
+    this.addCrownMesh(crown, FELT)
+    const holder = new THREE.Group()
+    holder.name = 'brim-holder'
+    holder.userData.mat = FELT
+    holder.userData.brimY = HC - 0.06 // the brim leaves the crown wall at the brow
+    this.addBrimMeshes('hat', holder, FELT)
     const obj = new THREE.Group()
-    obj.add(brim, crown)
-    return {
-      kind: 'hat',
-      obj,
-      place: (a) => {
-        const r = a.headR
-        obj.position.set(a.headTop.x, a.headTop.y - r * 0.45, a.headTop.z) // brim settles onto the head
-        brim.scale.set(r * 2.3, 1, r * 2.3)
-        const crownH = r * 1.5
-        crown.scale.set(r * 2.3, crownH, r * 2.3)
-        crown.position.y = crownH / 2
-      }
-    }
+    obj.add(crown, holder)
+    return this.headItem('hat', obj)
   }
 
   private buildBag(): Item {
