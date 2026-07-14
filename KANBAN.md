@@ -333,7 +333,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Straw weave material** — an open straw weave draft + dry sheen for sun hats
 - [ ] **Cowboy hat** — creased crown + upturned brim + band
 - [ ] **Top hat & bowler** — the formal blocked-felt pair
-- [ ] **Visor** — a brim + band with an open crown (ponytail-friendly)
+- [x] **Visor** — a brim + band with an open crown (ponytail-friendly): the `visor` accessory kind — an open sweatband cylinder at the brow wearing the cap's parametric bill (`setCapBill` loops the billed blocks, so curve/underbill shape both); pure-white fabric bloomed under the key light → toned grey-white; `?accessories=visor` — PR #326
 
 **Perfection — Scarves & neckwear**
 - [x] **Scarf dimension designer** — length · width · gauge with live re-sim: `scarfWidth` (0.5–1.8×) through `gradeParams` scales the panel width AND its sim lattice; Length drives the tails (labelled); gauge via the yarn/knit systems; `?scarfWidth=` — PR #316
