@@ -1108,6 +1108,16 @@ function initStudio(
   }
   const accParam = params.get('accessories')
   if (accParam) for (const k of accParam.split(',')) if ((ACCESSORY_KINDS as string[]).includes(k.trim())) accessories.setEnabled(k.trim() as AccessoryKind, true)
+  {
+    // ?brimWidth= & ?brimDroop= & ?brimWire=1 — the parametric brim designer
+    const bw = parseFloat(params.get('brimWidth') ?? '')
+    const bd = parseFloat(params.get('brimDroop') ?? '')
+    const patch: { width?: number; droop?: number; wire?: boolean } = {}
+    if (Number.isFinite(bw)) patch.width = bw
+    if (Number.isFinite(bd)) patch.droop = bd
+    if (params.get('brimWire') === '1') patch.wire = true
+    if (Object.keys(patch).length) accessories.setBrim(patch)
+  }
   const hairParam = params.get('hair')
   if (hairParam && (HAIRSTYLES as string[]).includes(hairParam)) faceRig.setHairstyle(hairParam as Hairstyle)
   const hairColorParam = params.get('hairColor')
@@ -1859,6 +1869,7 @@ function initStudio(
     slip: { get: () => slipLayerRef !== null, set: (on) => setSlip(on) },
     wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },
     accessories: { get: (k) => accessories.isEnabled(k), set: (k, on) => accessories.setEnabled(k, on) },
+    brim: { get: () => accessories.getBrim(), set: (p) => accessories.setBrim(p) },
     hair: {
       getStyle: () => faceRig.getHairstyle(),
       setStyle: (s) => faceRig.setHairstyle(s),

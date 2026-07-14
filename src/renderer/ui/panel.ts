@@ -311,6 +311,8 @@ export interface PanelOptions {
   }
   /** Toggle worn accessories (shoes / belt / hat / bag) on the avatar. */
   accessories?: { get: (kind: AccessoryKind) => boolean; set: (kind: AccessoryKind, on: boolean) => void }
+  /** The parametric brim designer (structured hats) — width · droop/flip · edge wire. */
+  brim?: { get: () => { width: number; droop: number; wire: boolean }; set: (p: Partial<{ width: number; droop: number; wire: boolean }>) => void }
   /** Hair + face customization on the avatar. */
   hair?: {
     getStyle: () => Hairstyle
@@ -1213,6 +1215,14 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     kidsRow,
     bellyS.row,
     ...(opts.accessories ? [el('div', 'dio-field-label', 'Accessories'), accRow] : []),
+    ...(opts.brim
+      ? [
+          el('div', 'dio-field-label', 'Brim designer (bucket · sun hat)'),
+          track(slider({ label: 'Brim width', min: 0.4, max: 2.2, step: 0.05, get: () => opts.brim!.get().width, set: (v) => opts.brim!.set({ width: v }) })),
+          track(slider({ label: 'Droop ↔ flip', min: -1, max: 1, step: 0.05, get: () => opts.brim!.get().droop, set: (v) => opts.brim!.set({ droop: v }) })),
+          track(toggle({ label: 'Wired edge', get: () => opts.brim!.get().wire, set: (v) => opts.brim!.set({ wire: v }) }))
+        ]
+      : []),
     ...hairFaceEls,
     ...skinControlEls,
     bodySlider('Height', 'height', 0.85, 1.15, (v) => `${Math.round(v * 175)} cm`).row,
