@@ -41,6 +41,8 @@ import { DRAFT_PRESETS, cloneDraft, draftKey, type WeaveDraft } from '../fabric/
 import { openWeaveDraftEditor } from './weaveDraftEditor'
 import { KNIT_PRESETS, cloneChart, chartKey, type KnitChart } from '../fabric/knitChart'
 import { openKnitChartEditor } from './knitChartEditor'
+import { COLOURWORK_PRESETS, cloneColourwork, colourworkKey, type ColourworkChart } from '../fabric/colourwork'
+import { openColourworkEditor } from './colourworkEditor'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { ClosureDesign } from '../studio/closureDesign'
@@ -258,6 +260,8 @@ export interface PanelOptions {
   weaveDraft?: { get: () => WeaveDraft | undefined; set: (d: WeaveDraft | undefined) => void }
   /** A custom knit stitch chart (knit/purl/cable cells) replacing the preset weave (optional). */
   knitChart?: { get: () => KnitChart | undefined; set: (c: KnitChart | undefined) => void }
+  /** Knit colourwork — a fair-isle jacquard or a placed intarsia block (optional). */
+  colourwork?: { get: () => ColourworkChart | undefined; set: (c: ColourworkChart | undefined) => void }
   /** Saved colour/fabric variants of the design, compared in a swatch grid (optional). */
   colorways?: {
     list: () => ColorwayItem[]
@@ -1318,6 +1322,34 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // Knit colourwork — preset chips + the yarn-painting modal.
+  function colourworkControls(cw: NonNullable<PanelOptions['colourwork']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const renderRow = (): void => {
+      row.replaceChildren()
+      const currentKey = cw.get() && colourworkKey(cw.get()!)
+      const choices: [string, ColourworkChart | undefined][] = [['None', undefined], ...COLOURWORK_PRESETS.map((p) => [p.name, p.chart] as [string, ColourworkChart])]
+      for (const [label, chart] of choices) {
+        const on = chart ? currentKey === colourworkKey(chart) : !currentKey
+        const b = el('button', 'dio-seg-btn' + (on ? ' on' : ''), label)
+        b.setAttribute('type', 'button')
+        b.addEventListener('click', () => {
+          cw.set(chart && cloneColourwork(chart))
+          renderRow()
+        })
+        row.append(b)
+      }
+      const custom = el('button', 'dio-seg-btn' + (currentKey && !COLOURWORK_PRESETS.some((p) => colourworkKey(p.chart) === currentKey) ? ' on' : ''), 'Custom…')
+      custom.setAttribute('type', 'button')
+      custom.addEventListener('click', () => openColourworkEditor(cw.get(), (c) => { cw.set(c); renderRow() }))
+      row.append(custom)
+    }
+    renderRow()
+    wrap.append(el('div', 'dio-field-label', 'Colourwork (fair-isle · intarsia)'), row)
+    return wrap
+  }
+
   // A faux-fur / shearling / fleece pile finish.
   const FUR_LABELS: Record<FurKind, string> = { shearling: 'Shearling', 'faux-fur': 'Faux fur', fleece: 'Fleece' }
   function furControls(fr: NonNullable<PanelOptions['fur']>): HTMLElement {
@@ -1653,6 +1685,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.fur) look.body.append(furControls(opts.fur))
   if (opts.weaveDraft) look.body.append(weaveDraftControls(opts.weaveDraft))
   if (opts.knitChart) look.body.append(knitChartControls(opts.knitChart))
+  if (opts.colourwork) look.body.append(colourworkControls(opts.colourwork))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.colorways) look.body.append(colorwaysControls(opts.colorways))
   if (opts.prints) look.body.append(printsControls(opts.prints))
