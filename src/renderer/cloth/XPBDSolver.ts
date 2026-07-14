@@ -89,7 +89,7 @@ export class XPBDSolver {
   params: FabricParams
 
   private constraints: Constraint[] = [] // rebound by cutSeam (functional openings)
-  private readonly lambda: Float32Array
+  private lambda: Float32Array // rebound when pinTogether grows the constraint set
   private pinned: Set<number>
   /** Pinned particles grouped by the body anchor they follow (a sleeve pins its
    *  shoulder ring to the arm + its cuff ring to the hand; most pieces have one group). */
@@ -491,6 +491,20 @@ export class XPBDSolver {
     }
     if (touched) this.wake()
     return touched
+  }
+
+  /**
+   * The **scarf pin / brooch**: sew two arbitrary particles together with one
+   * extra stitch constraint — a short, stiff link (10× the fabric's stretch
+   * stiffness) so the pinned points hold like a pinned brooch, not a soft
+   * spring. Grows the lambda buffer to match. Returns the constraint count
+   * (testable); no-op if either particle is dead.
+   */
+  pinTogether(i: number, j: number, rest = 0.004): number {
+    this.addConstraint(i, j, rest, this.params.stretchCompliance * 0.1, false)
+    this.lambda = new Float32Array(this.constraints.length)
+    this.wake()
+    return this.constraints.length
   }
 
   /**

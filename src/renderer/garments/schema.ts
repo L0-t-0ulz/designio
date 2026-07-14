@@ -46,6 +46,8 @@ export interface ConstructionCaps {
   beanieFit?: boolean
   /** Scarf fit — the width slider (scarfPanel garments; Length drives the tails). */
   scarfFit?: boolean
+  /** The scarf pin / brooch (an extra stitch constraint between the tails). */
+  scarfPin?: boolean
   /** Gaiter worn toggle — bunched at the neck vs pulled over the nose. */
   gaiterWorn?: boolean
   /** The convertible three-way picker (beanie · balaclava · gaiter). */

@@ -203,6 +203,8 @@ function initStudio(
     cuffHeight: l0.cuffHeight,
     slouch: l0.slouch,
     scarfWidth: l0.scarfWidth,
+    scarfPin: l0.scarfPin,
+    pinAt: l0.pinAt,
     gaiterWorn: l0.gaiterWorn,
     cuffPatch: l0.cuffPatch,
     pomScale: l0.pomScale,
@@ -366,6 +368,8 @@ function initStudio(
     garment.cuffHeight = l.data.cuffHeight
     garment.slouch = l.data.slouch
     garment.scarfWidth = l.data.scarfWidth
+    garment.scarfPin = l.data.scarfPin
+    garment.pinAt = l.data.pinAt
     garment.gaiterWorn = l.data.gaiterWorn
     garment.cuffPatch = l.data.cuffPatch
     garment.pomScale = l.data.pomScale
@@ -799,6 +803,8 @@ function initStudio(
     l.data.cuffHeight = garment.cuffHeight
     l.data.slouch = garment.slouch
     l.data.scarfWidth = garment.scarfWidth
+    l.data.scarfPin = garment.scarfPin
+    l.data.pinAt = garment.pinAt
     l.data.gaiterWorn = garment.gaiterWorn
     l.data.cuffPatch = garment.cuffPatch
     l.data.pomScale = garment.pomScale
@@ -2423,6 +2429,12 @@ if (skipStart) {
   if (entryParams.get('pomFur') === '1') cfg.pomFur = true
   const sw = parseFloat(entryParams.get('scarfWidth') ?? '')
   if (Number.isFinite(sw)) cfg.scarfWidth = Math.max(0.5, Math.min(1.8, sw))
+  if (entryParams.get('scarfPin')) cfg.scarfPin = true
+  const pa = parseFloat(entryParams.get('pinAt') ?? '')
+  if (Number.isFinite(pa)) {
+    cfg.scarfPin = true
+    cfg.pinAt = Math.max(0.02, Math.min(0.45, pa))
+  }
   const easeM = parseFloat(entryParams.get('ease') ?? '')
   if (Number.isFinite(easeM)) cfg.ease = Math.max(-0.03, Math.min(0.12, easeM))
   if (entryParams.get('breath') === '1') cfg.breath = true

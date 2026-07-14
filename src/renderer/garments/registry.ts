@@ -495,7 +495,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     // a narrow charmeuse ribbon tied loose at the throat, long draping tails
     pieces: [{ kind: 'scarfPanel', width: 0.085, wrapEase: 0.03, tailHi: 0.5, tailLo: 0.95 }],
-    supports: { scarfFit: true, length: true, ease: true, fringe: true },
+    supports: { scarfFit: true, length: true, ease: true, fringe: true, scarfPin: true },
     defaults: { length: 0.55, ease: 0.01, flare: 0 },
     defaultFabric: 'silk-charmeuse'
   },
@@ -632,7 +632,7 @@ export const GARMENTS: GarmentDefinition[] = [
     icon: 'top',
     // a wide knit panel draped once around the neck with the two ends hanging down the front
     pieces: [{ kind: 'scarfPanel', width: 0.28, wrapEase: 0.05, tailHi: 0.42, tailLo: 0.85 }],
-    supports: { scarfFit: true, length: true, ease: true, fringe: true },
+    supports: { scarfFit: true, length: true, ease: true, fringe: true, scarfPin: true },
     defaults: { length: 0.6, ease: 0.01 },
     defaultFabric: 'cable-knit'
   }

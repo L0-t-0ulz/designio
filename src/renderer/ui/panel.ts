@@ -95,6 +95,9 @@ export interface GarmentState {
   slouch?: number
   /** Scarf width multiplier (0.5…1.8). */
   scarfWidth?: number
+  /** Scarf pin / brooch + its position along the tails. */
+  scarfPin?: boolean
+  pinAt?: number
   /** Gaiter worn state — bunched at the neck or pulled over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Pom customizer (pom-pom beanie) — size · contrast colour · faux-fur pile. */
@@ -511,6 +514,11 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const scarfW = slider({ label: 'Scarf width', min: 0.5, max: 1.8, step: 0.05, format: (v) => `${Math.round(v * 100)}%`, get: () => garment.scarfWidth ?? 1, set: (v) => { garment.scarfWidth = v === 1 ? undefined : v; syncGarment(); opts.onGarmentEdit() } })
   const scarfBlock = el('div')
   scarfBlock.append(el('div', 'dio-field-label', 'Scarf fit (Length drives the tails)'), track(scarfW))
+  // the scarf pin / brooch: an extra stitch constraint sewing the tails together
+  const pinT = toggle({ label: 'Scarf pin (brooch)', get: () => !!garment.scarfPin, set: (v) => { garment.scarfPin = v || undefined; syncGarment(); opts.onGarmentEdit() } })
+  const pinAtS = slider({ label: 'Pin position', min: 0.02, max: 0.45, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => garment.pinAt ?? 0.12, set: (v) => { garment.pinAt = v; syncGarment(); opts.onGarmentEdit() } })
+  const pinBlock = el('div')
+  pinBlock.append(track(pinT), track(pinAtS))
 
   // gaiter worn toggle (bunched at the neck / pulled over the nose)
   const gaiterRow = el('div', 'dio-actions')
@@ -705,6 +713,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     convBlock.classList.toggle('dio-hidden', !def.supports.convertible)
     beanieFitBlock.classList.toggle('dio-hidden', !def.supports.beanieFit)
     scarfBlock.classList.toggle('dio-hidden', !def.supports.scarfFit)
+    pinBlock.classList.toggle('dio-hidden', !def.supports.scarfPin)
     gaiterBlock.classList.toggle('dio-hidden', !def.supports.gaiterWorn)
     pomBlock.classList.toggle('dio-hidden', !def.pom)
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
@@ -857,7 +866,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
 
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, convBlock, faceBlock, beanieFitBlock, scarfBlock, gaiterBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, convBlock, faceBlock, beanieFitBlock, scarfBlock, pinBlock, gaiterBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

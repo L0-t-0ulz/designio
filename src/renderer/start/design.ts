@@ -36,6 +36,8 @@ export interface DesignConfig {
   cuffHeight?: number
   slouch?: number
   scarfWidth?: number
+  scarfPin?: boolean
+  pinAt?: number
   gaiterWorn?: import('../garments/schema').GaiterWorn
   pomScale?: number
   pomColor?: number

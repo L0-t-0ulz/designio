@@ -51,6 +51,10 @@ export interface GarmentParams {
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Scarf width multiplier, 0.5 (skinny) … 1.8 (blanket-wide). */
   scarfWidth?: number
+  /** Scarf pin / brooch — one extra stitch constraint sewing the tails together. */
+  scarfPin?: boolean
+  /** Where the pin sits, 0.02 (at the tail ends) … 0.45 (up by the wrap). */
+  pinAt?: number
   /** Gaiter worn state — bunched at the neck (default) or pulled up over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Beanie cuff height, 0 (skull-cap edge) … 1 (deep double roll). */
