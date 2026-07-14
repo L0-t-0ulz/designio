@@ -36,6 +36,7 @@ import { button, colorField, el, section, slider, textField, toggle, type Refres
 import { patternSchematic } from './patternSchematic'
 import { DEFAULT_STITCH, SEAM_TYPES, THREAD_WEIGHTS, type StitchSpec } from '../garment/stitchTypes'
 import { physicalDefaults, clampPhysical, type PhysicalFabric } from '../fabric/physicalProps'
+import { drapeBench, benchSummary } from '../fabric/drapeBench'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { ClosureDesign } from '../studio/closureDesign'
@@ -1565,6 +1566,16 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   ]
   const physBlock = el('div')
   physBlock.append(el('div', 'dio-field-label', 'Physical fabric (real units)'), ...physRows.map((r) => track(r)), physReset)
+  // virtual drape bench — measure THIS fabric like real cloth (Cusick disc on
+  // the live solver + Peirce cantilever from its rigidity)
+  const benchOut = el('div', 'dio-field-label', '')
+  const benchBtn = button('🧪  Virtual drape test', () => {
+    benchOut.textContent = 'measuring…'
+    setTimeout(() => {
+      benchOut.textContent = benchSummary(drapeBench(opts.current))
+    }, 20)
+  })
+  physBlock.append(benchBtn, benchOut)
   look.body.append(physBlock)
 
   if (opts.textile) look.body.append(textileControls(opts.textile))
