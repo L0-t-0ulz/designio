@@ -7,6 +7,7 @@ import { billCurl, DEFAULT_CAP_BILL, type CapBillParams } from './capBill'
 import { panelSeamAzimuths, DEFAULT_CAP_PANELS, type CapPanelCount } from './capPanels'
 import { puffHeight, DEFAULT_PUFF_LOGO, type PuffLogoParams } from './puffLogo'
 import { COWBOY, cowboyBrimLift } from './cowboy'
+import { FORMAL, formalBrimLift } from './formalHats'
 import { headFrame } from './face'
 
 /**
@@ -19,8 +20,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'goggles' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'goggles', 'necklace', 'hoops']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'goggles' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'goggles', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -110,6 +111,8 @@ export class Accessories {
       this.buildCap(),
       this.buildVisor(),
       this.buildCowboy(),
+      this.buildTopHat(),
+      this.buildBowler(),
       this.buildBucket(),
       this.buildBalaclava(),
       this.buildGoggles(),
@@ -634,6 +637,66 @@ export class Accessories {
     return this.headItem('visor', obj)
   }
 
+  /** An annulus brim whose rim lifts per-azimuth (lift grows t² toward the edge). */
+  private rolledBrimGeometry(innerR: number, outerR: number, lift: (az: number) => number): THREE.BufferGeometry {
+    const NR = 10
+    const NA = 48
+    const pos: number[] = []
+    for (let i = 0; i <= NR; i++) {
+      for (let j = 0; j <= NA; j++) {
+        const t = i / NR
+        const az = (j / NA) * TAU
+        const r = innerR + t * (outerR - innerR)
+        pos.push(Math.sin(az) * r, lift(az) * t * t, Math.cos(az) * r)
+      }
+    }
+    const idx: number[] = []
+    for (let i = 0; i < NR; i++) {
+      for (let j = 0; j < NA; j++) {
+        const a = i * (NA + 1) + j
+        const b = a + NA + 1
+        idx.push(a, b, a + 1, b, b + 1, a + 1)
+      }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    geo.setIndex(idx)
+    geo.computeVertexNormals()
+    return geo
+  }
+
+  private buildTopHat(): Item {
+    const mat = felt(0x1d1d22) // near-black silk felt
+    const p = FORMAL.tophat
+    // the stovepipe: subtly flared, capped flat on top
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(p.crownR * p.flare, p.crownR, p.crownH, 36), mat)
+    crown.position.y = HC - 0.05 + p.crownH / 2
+    const brim = new THREE.Mesh(this.rolledBrimGeometry(p.brimInnerR, p.brimOuterR, (az) => formalBrimLift('tophat', az)), mat)
+    brim.position.y = HC - 0.05
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(p.crownR + 0.03, p.crownR + 0.03, 0.24, 36, 1, true), felt(0x35353d))
+    band.position.y = HC + 0.1
+    const obj = new THREE.Group()
+    obj.add(crown, brim, band)
+    return this.headItem('tophat', obj)
+  }
+
+  private buildBowler(): Item {
+    const mat = felt(0x26221f) // hard dark-brown felt
+    const p = FORMAL.bowler
+    const geo = new THREE.SphereGeometry(1, 36, 24, 0, TAU, 0, Math.PI * 0.52)
+    geo.scale(p.domeR, p.domeR * p.domeYScale, p.domeR)
+    const dome = new THREE.Mesh(geo, mat)
+    dome.position.y = HC + 0.02
+    const brim = new THREE.Mesh(this.rolledBrimGeometry(p.brimInnerR, p.brimOuterR, (az) => formalBrimLift('bowler', az)), mat)
+    brim.position.y = HC - 0.04
+    const band = new THREE.Mesh(new THREE.TorusGeometry(p.domeR + 0.02, 0.045, 8, 36), felt(0x141210))
+    band.rotation.x = Math.PI / 2
+    band.position.y = HC + 0.02
+    const obj = new THREE.Group()
+    obj.add(dome, brim, band)
+    return this.headItem('bowler', obj)
+  }
+
   private buildCowboy(): Item {
     const mat = felt(0x8a6a4a) // tan western felt
     // the cattleman crease: the centre-dent gutter pressed DEEP into a taller block
@@ -652,30 +715,7 @@ export class Accessories {
     const crown = new THREE.Mesh(geo, mat)
     crown.position.y = HC
     // the side-rolled brim — an annulus whose rim lifts by cowboyBrimLift(az)
-    const NR = 10
-    const NA = 48
-    const bpos: number[] = []
-    for (let i = 0; i <= NR; i++) {
-      for (let j = 0; j <= NA; j++) {
-        const t = i / NR
-        const az = (j / NA) * TAU
-        const r = COWBOY.brimInnerR + t * (COWBOY.brimOuterR - COWBOY.brimInnerR)
-        bpos.push(Math.sin(az) * r, cowboyBrimLift(az) * t * t, Math.cos(az) * r)
-      }
-    }
-    const bidx: number[] = []
-    for (let i = 0; i < NR; i++) {
-      for (let j = 0; j < NA; j++) {
-        const a = i * (NA + 1) + j
-        const b = a + NA + 1
-        bidx.push(a, b, a + 1, b, b + 1, a + 1)
-      }
-    }
-    const bgeo = new THREE.BufferGeometry()
-    bgeo.setAttribute('position', new THREE.Float32BufferAttribute(bpos, 3))
-    bgeo.setIndex(bidx)
-    bgeo.computeVertexNormals()
-    const brim = new THREE.Mesh(bgeo, mat)
+    const brim = new THREE.Mesh(this.rolledBrimGeometry(COWBOY.brimInnerR, COWBOY.brimOuterR, cowboyBrimLift), mat)
     brim.position.y = HC - 0.06
     // the leather band + buckle at the crown base
     const band = new THREE.Mesh(new THREE.TorusGeometry(1.07, 0.05, 8, 40), LEATHER)
