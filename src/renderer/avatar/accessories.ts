@@ -5,6 +5,7 @@ import { crownDrop, DEFAULT_CROWN, type CrownStyle } from './crown'
 import { bandProfile, braidY, trimAnchor, BAND_COLORS, DEFAULT_HAT_BAND, type HatBandParams } from './hatBand'
 import { billCurl, DEFAULT_CAP_BILL, type CapBillParams } from './capBill'
 import { panelSeamAzimuths, DEFAULT_CAP_PANELS, type CapPanelCount } from './capPanels'
+import { puffHeight, DEFAULT_PUFF_LOGO, type PuffLogoParams } from './puffLogo'
 import { headFrame } from './face'
 
 /**
@@ -521,6 +522,76 @@ export class Accessories {
     }
   }
 
+  private puff: PuffLogoParams = { ...DEFAULT_PUFF_LOGO }
+
+  /** 3D puff cap embroidery — re-stitch the front-panel mark in place. */
+  setPuffLogo(p: Partial<PuffLogoParams>): void {
+    this.puff = { ...this.puff, ...p }
+    const it = this.items.find((i) => i.kind === 'cap')
+    const holder = it?.obj.getObjectByName('puff-holder') as THREE.Group | undefined
+    if (!it || !holder) return
+    for (const child of [...holder.children]) {
+      const m = child as THREE.Mesh
+      m.geometry?.dispose()
+      ;(m.material as THREE.Material)?.dispose()
+      holder.remove(child)
+    }
+    this.addPuffMeshes(holder)
+  }
+  getPuffLogo(): PuffLogoParams {
+    return { ...this.puff }
+  }
+
+  /** Drape the puff mark's patch grid over the dome front and loft it along
+   *  the sphere normal by the pure height field. */
+  private addPuffMeshes(holder: THREE.Group): void {
+    if (this.puff.shape === 'none') return
+    const AZ = 0.42 // half-width of the front window (radians)
+    // the window sits on the UPPER front panel — the GLB forehead bulges past
+    // the dome radius at the brow (the ≥1.2×headR lesson) and pokes through a
+    // low patch base, so the mark stays above it
+    const TH0 = Math.PI * 0.32 // window top (polar angle from the crown)
+    const TH1 = Math.PI * 0.48 // window bottom, above the brow bulge
+    const NU = 28
+    const NV = 22
+    const pos: number[] = []
+    const col: number[] = []
+    // the flat window blends into the cap felt — only the lofted mark reads
+    // as thread (a solid bright window bloomed like the visor lesson)
+    const capCol = new THREE.Color(0x24304a)
+    const thread = new THREE.Color(this.puff.color)
+    const c = new THREE.Color()
+    for (let i = 0; i <= NV; i++) {
+      for (let j = 0; j <= NU; j++) {
+        const u = (j / NU) * 2 - 1
+        const v = 1 - (i / NV) * 2
+        const az = u * AZ
+        const th = TH0 + ((1 - v) / 2) * (TH1 - TH0)
+        const h = puffHeight(this.puff.shape, u, v)
+        const r = 1.046 + h * 0.11
+        pos.push(Math.sin(th) * Math.sin(az) * r, HC + Math.cos(th) * r, Math.sin(th) * Math.cos(az) * r)
+        c.copy(capCol).lerp(thread, Math.min(1, h * 2.2))
+        col.push(c.r, c.g, c.b)
+      }
+    }
+    const idx: number[] = []
+    for (let i = 0; i < NV; i++) {
+      for (let j = 0; j < NU; j++) {
+        const a = i * (NU + 1) + j
+        const b = a + NU + 1
+        idx.push(a, b, a + 1, b, b + 1, a + 1)
+      }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
+    geo.setIndex(idx)
+    geo.computeVertexNormals()
+    // embroidery thread reads soft next to the felt; the env response is damped —
+    // the concave dips otherwise catch the studio IBL as a bright pool
+    holder.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.78, metalness: 0, envMapIntensity: 0.35, side: THREE.DoubleSide })))
+  }
+
   private buildCap(): Item {
     const mat = felt(0x24304a)
     const dome = new THREE.Mesh(new THREE.SphereGeometry(1.04, 24, 18, 0, TAU, 0, Math.PI * 0.56), mat)
@@ -533,12 +604,15 @@ export class Accessories {
     seams.name = 'seam-holder'
     seams.userData.mat = mat
     this.addSeamMeshes(seams, mat)
+    const puff = new THREE.Group()
+    puff.name = 'puff-holder'
+    this.addPuffMeshes(puff)
     const btn = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), mat)
     btn.name = 'squatchee'
     btn.position.y = HC + 1.04
     btn.visible = this.bill.squatchee
     const obj = new THREE.Group()
-    obj.add(dome, holder, seams, btn)
+    obj.add(dome, holder, seams, puff, btn)
     return this.headItem('cap', obj)
   }
 

@@ -334,6 +334,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?hatBand=<none|grosgrain|leather|cord>&bandTrim=<none|bow|feather|buckle>&bandColor=<hex>` (the **hat band designer** — a ribbon/strap/braided-cord band + a side trim on the fedora + sun-hat blocks; pure `avatar/hatBand` profile/braid/anchor math) ·
 `?billCurve=<0..1>&underbill=<1|hex>&squatchee=0` (the **cap bill designer** — flat↔pre-curved visor curl (pure `avatar/capBill.billCurl`, a ~120° forward fan) · contrast underbill · the squatchee crown button; also re-bills the open-crown **visor**) ·
 `?capPanels=<5|6>` (the **cap construction picker** — 6-panel seams straight down centre-front, 5-panel keeps the clean camp-cap front; pure `avatar/capPanels.panelSeamAzimuths` meridians laid as seam ridges + twin topstitch) ·
+`?puffLogo=<dot|bar|peak|ring>&puffColor=<hex>` (**3D puff cap embroidery** — a raised puff-foam mark lofted off the cap's upper front panel; pure `avatar/puffLogo.puffHeight` window field, vertex-coloured so only the mark reads as thread) ·
 `?garment=ski-mask&balaclavaFace=<full|eyes|three-hole|open-face>` (the **cloth-sim balaclava** — a conforming knit hood with REAL face cut-outs: `TubeSpec.cutouts` drops the quads + orphaned particles go dead, so you see through the eye/mouth holes; the picker is under Construction) ·
 `?closeup=head` (the Face anatomy camera — frames the head for headwear shots; `&headDist=<m>` tightens it) ·
 `?cuffHeight=<0..1>&slouch=<0..1>` (**beanie fit** — cuff roll depth + slouch length on any beanie) ·
