@@ -80,6 +80,8 @@ export interface GarmentState {
   breath?: boolean
   /** Distressed mask — chewed/frayed cut-out edges. */
   distressed?: boolean
+  /** The convertible tube's worn state — balaclava · beanie · gaiter. */
+  convertibleWorn?: import('../garments/schema').ConvertibleWorn
   /** Balaclava worn state — down over the face or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
@@ -452,6 +454,17 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     wornRow.append(b)
   }
   const breathT = toggle({ label: 'Breathing preview', get: () => !!garment.breath, set: (v) => { garment.breath = v || undefined; syncGarment(); opts.onGarmentEdit() } })
+  // the convertible's three-way picker
+  const convRow = el('div', 'dio-actions')
+  const convBtns = new Map<string, HTMLButtonElement>()
+  for (const [label, w] of [['Balaclava', 'balaclava'], ['Beanie (rolled)', 'beanie'], ['Neck gaiter', 'gaiter']] as const) {
+    const b = button(label, () => { garment.convertibleWorn = w === 'balaclava' ? undefined : w; syncGarment(); opts.onGarmentEdit() }, (garment.convertibleWorn ?? 'balaclava') === w)
+    convBtns.set(w, b)
+    convRow.append(b)
+  }
+  const convBlock = el('div')
+  convBlock.append(el('div', 'dio-field-label', 'Convertible — worn as'), convRow)
+
   const distressT = toggle({ label: 'Distressed (frayed holes)', get: () => !!garment.distressed, set: (v) => { garment.distressed = v || undefined; syncGarment(); opts.onGarmentEdit() } })
   const faceBlock = el('div')
   faceBlock.append(el('div', 'dio-field-label', 'Face opening'), faceRow, el('div', 'dio-field-label', 'Worn'), wornRow, track(breathT), track(distressT))
@@ -669,6 +682,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     // the sleeve library shows only when the garment has sleeves selected
     sleeveShapeBlock.classList.toggle('dio-hidden', !def.supports.sleeve || garment.sleeve === 'none')
     faceBlock.classList.toggle('dio-hidden', !def.supports.faceStyle)
+    convBlock.classList.toggle('dio-hidden', !def.supports.convertible)
     beanieFitBlock.classList.toggle('dio-hidden', !def.supports.beanieFit)
     scarfBlock.classList.toggle('dio-hidden', !def.supports.scarfFit)
     gaiterBlock.classList.toggle('dio-hidden', !def.supports.gaiterWorn)
@@ -678,6 +692,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     for (const [w, node] of wornBtns) node.classList.toggle('primary', (garment.balaclavaWorn ?? 'down') === w)
     for (const [k, node] of patchBtns) node.classList.toggle('primary', (garment.cuffPatch ?? 'none') === k)
     for (const [w, node] of gaiterBtns) node.classList.toggle('primary', (garment.gaiterWorn ?? 'down') === w)
+    for (const [w, node] of convBtns) node.classList.toggle('primary', (garment.convertibleWorn ?? 'balaclava') === w)
     // the pocket library shows only when the Pocket detail is supported + on
     pocketBlock.classList.toggle('dio-hidden', !def.supports.pocket || !garment.pocket)
     for (const [ps, node] of pocketBtns) node.classList.toggle('primary', (garment.pocketStyle ?? 'patch') === ps)
@@ -822,7 +837,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
 
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, beanieFitBlock, scarfBlock, gaiterBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, convBlock, faceBlock, beanieFitBlock, scarfBlock, gaiterBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

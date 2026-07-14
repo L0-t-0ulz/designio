@@ -62,7 +62,7 @@ import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
 import { knitPreset, cloneChart } from './fabric/knitChart'
 import { colourworkPreset, cloneColourwork } from './fabric/colourwork'
-import { BALACLAVA_FACES, BALACLAVA_WORN, type BalaclavaFace, type BalaclavaWorn } from './garments/schema'
+import { BALACLAVA_FACES, BALACLAVA_WORN, CONVERTIBLE_WORN, type BalaclavaFace, type BalaclavaWorn, type ConvertibleWorn } from './garments/schema'
 import { yarnPreset } from './fabric/yarn'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
@@ -193,6 +193,7 @@ function initStudio(
     breath: l0.breath,
     distressed: l0.distressed,
     balaclavaWorn: l0.balaclavaWorn,
+    convertibleWorn: l0.convertibleWorn,
     cuffHeight: l0.cuffHeight,
     slouch: l0.slouch,
     scarfWidth: l0.scarfWidth,
@@ -355,6 +356,7 @@ function initStudio(
     garment.breath = l.data.breath
     garment.distressed = l.data.distressed
     garment.balaclavaWorn = l.data.balaclavaWorn
+    garment.convertibleWorn = l.data.convertibleWorn
     garment.cuffHeight = l.data.cuffHeight
     garment.slouch = l.data.slouch
     garment.scarfWidth = l.data.scarfWidth
@@ -787,6 +789,7 @@ function initStudio(
     l.data.breath = garment.breath
     l.data.distressed = garment.distressed
     l.data.balaclavaWorn = garment.balaclavaWorn
+    l.data.convertibleWorn = garment.convertibleWorn
     l.data.cuffHeight = garment.cuffHeight
     l.data.slouch = garment.slouch
     l.data.scarfWidth = garment.scarfWidth
@@ -2364,8 +2367,12 @@ if (skipStart) {
   if (entryParams.get('pomFur') === '1') cfg.pomFur = true
   const sw = parseFloat(entryParams.get('scarfWidth') ?? '')
   if (Number.isFinite(sw)) cfg.scarfWidth = Math.max(0.5, Math.min(1.8, sw))
+  const easeM = parseFloat(entryParams.get('ease') ?? '')
+  if (Number.isFinite(easeM)) cfg.ease = Math.max(-0.03, Math.min(0.12, easeM))
   if (entryParams.get('breath') === '1') cfg.breath = true
   if (entryParams.get('distressed') === '1') cfg.distressed = true
+  const cvw = entryParams.get('convertibleWorn')
+  if (cvw && (CONVERTIBLE_WORN as string[]).includes(cvw)) cfg.convertibleWorn = cvw as ConvertibleWorn
   const gw = entryParams.get('gaiterWorn')
   if (gw === 'up' || gw === 'down') cfg.gaiterWorn = gw
   const cpatch = entryParams.get('cuffPatch')

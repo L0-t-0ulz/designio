@@ -79,6 +79,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     faceStyle: l.faceStyle,
     breath: l.breath,
     distressed: l.distressed,
+    convertibleWorn: l.convertibleWorn,
     balaclavaWorn: l.balaclavaWorn,
     cuffHeight: l.cuffHeight,
     slouch: l.slouch,
@@ -159,6 +160,8 @@ export interface GarmentLayerData {
   breath?: boolean
   /** Distressed mask — chewed/frayed cut-out edges. */
   distressed?: boolean
+  /** The convertible tube's worn state — balaclava · beanie · gaiter. */
+  convertibleWorn?: import('../garments/schema').ConvertibleWorn
   /** Balaclava worn state — down over the face or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Beanie fit — cuff height + slouch depth (0…1 each). */
@@ -407,6 +410,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     faceStyle: c.faceStyle,
     breath: c.breath,
     distressed: c.distressed,
+    convertibleWorn: c.convertibleWorn,
     balaclavaWorn: c.balaclavaWorn,
     cuffHeight: c.cuffHeight,
     slouch: c.slouch,

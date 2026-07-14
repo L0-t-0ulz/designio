@@ -45,6 +45,8 @@ export interface GarmentParams {
   breath?: boolean
   /** Distressed mask — chewed/frayed cut-out edges (pair with ?pilling & ?wear). */
   distressed?: boolean
+  /** The convertible tube's worn state — balaclava (default) · beanie · gaiter. */
+  convertibleWorn?: import('../garments/schema').ConvertibleWorn
   /** Balaclava worn state — down over the face (default) or rolled up into a beanie. */
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   /** Scarf width multiplier, 0.5 (skinny) … 1.8 (blanket-wide). */

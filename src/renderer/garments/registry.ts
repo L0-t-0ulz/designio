@@ -524,6 +524,17 @@ export const GARMENTS: GarmentDefinition[] = [
     pom: true
   },
   {
+    id: 'convertible',
+    name: 'Convertible 3-way',
+    category: 'outerwear',
+    icon: 'top',
+    // one knit tube, three worn states: balaclava (down) · beanie (rolled) · neck gaiter
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.3, dropLo: 0.36, topScale: 0.13, botScale: 0.9, face: 'three-hole' }],
+    supports: { convertible: true, faceStyle: true, length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.004, flare: 0 },
+    defaultFabric: 'rib-knit'
+  },
+  {
     id: 'helmet-liner',
     name: 'Helmet liner',
     category: 'outerwear',

@@ -31,6 +31,7 @@ export interface DesignConfig {
   faceStyle?: import('../garments/schema').BalaclavaFace
   breath?: boolean
   distressed?: boolean
+  convertibleWorn?: import('../garments/schema').ConvertibleWorn
   balaclavaWorn?: import('../garments/schema').BalaclavaWorn
   cuffHeight?: number
   slouch?: number
