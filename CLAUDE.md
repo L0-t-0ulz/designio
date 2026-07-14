@@ -134,7 +134,14 @@ Renderer modules:
   crisp stitch blocks with alternate-course shading into the design-art albedo behind the prints — the
   colour layer composes with the knit chart / weave draft structure into a true jacquard; 5 presets
   (Fair Isle band · argyle · zigzag · heart · star) + a yarn-palette painting modal (`ui/colourworkEditor`);
-  per-layer, `.dio` + colorways; `?colourwork=<preset>`; unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
+  per-layer, `.dio` + colorways; `?colourwork=<preset>`; unit-tested), `yarn` (**yarn library** — the
+  yarn a fabric is spun from: **count** (tex) · **ply** · **twist**; pure `yarnHand` derives hand
+  multipliers (chunky = heavier/coarser/deeper relief · fine = light/dense · high twist = crisp + springy ·
+  soft single = limp fuzzy halo) and `yarnAdjustedFabric` applies them clamped, so the SAME preset fabric
+  in lace vs chunky yarn genuinely drapes + reads differently — every GarmentStack fabric resolution honours
+  the layer's yarn (physics + PBR); 7 presets (lace → chunky + single-ply/crepe spins) + count/ply/twist
+  sliders in the panel; `stack.setYarn` re-derives look + drape together; per-layer, `.dio` + colorways;
+  `?yarn=<preset>`; unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
   finish gradients so they don't 8-bit band; unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
   `paintTextile` tiles it across the albedo), `ombre` (**dip-dye / ombré gradient** — top-down · bottom-up ·
@@ -337,7 +344,9 @@ threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·
 `?knitChart=<stockinette|garter|rib-1x1|rib-2x2|seed|cable>` (a **knit stitch chart** — knit/purl/cable
 cells replacing the preset weave maps) ·
 `?colourwork=<fairisle|argyle|zigzag|heart|star>` (**intarsia / colourwork** — a fair-isle jacquard tiled
-allover or a placed intarsia chest block, painted into the albedo behind the prints) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
+allover or a placed intarsia chest block, painted into the albedo behind the prints) ·
+`?yarn=<lace|fingering|dk|worsted|chunky|single-ply|crepe>` (the **yarn** the fabric is spun from —
+count/ply/twist adjust the fabric's hand: drape + surface together) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
 `?quilt=<channel|diamond|box>` (a quilted-loft finish) ·
 `?lace=<chantilly|geometric|fishnet>` (a sheer alpha-cutout lace finish) ·

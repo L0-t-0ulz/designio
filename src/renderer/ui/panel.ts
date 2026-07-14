@@ -43,6 +43,7 @@ import { KNIT_PRESETS, cloneChart, chartKey, type KnitChart } from '../fabric/kn
 import { openKnitChartEditor } from './knitChartEditor'
 import { COLOURWORK_PRESETS, cloneColourwork, colourworkKey, type ColourworkChart } from '../fabric/colourwork'
 import { openColourworkEditor } from './colourworkEditor'
+import { YARN_PRESETS, DK_TEX, type YarnSpec } from '../fabric/yarn'
 import { DEFAULT_GRADE_RULES, SIZES, type GradeRules, type SizeLabel } from '../studio/document'
 import { HEM_SHAPES, type HemShape } from '../cloth/Garment'
 import type { ClosureDesign } from '../studio/closureDesign'
@@ -262,6 +263,8 @@ export interface PanelOptions {
   knitChart?: { get: () => KnitChart | undefined; set: (c: KnitChart | undefined) => void }
   /** Knit colourwork — a fair-isle jacquard or a placed intarsia block (optional). */
   colourwork?: { get: () => ColourworkChart | undefined; set: (c: ColourworkChart | undefined) => void }
+  /** The yarn the fabric is spun from — count · ply · twist adjust the hand (optional). */
+  yarn?: { get: () => YarnSpec | undefined; set: (y: YarnSpec | undefined) => void }
   /** Saved colour/fabric variants of the design, compared in a swatch grid (optional). */
   colorways?: {
     list: () => ColorwayItem[]
@@ -1350,6 +1353,44 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // The yarn the fabric is spun from — preset chips + count/ply/twist sliders.
+  function yarnControls(yn: NonNullable<PanelOptions['yarn']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const current = (): YarnSpec => yn.get() ?? { tex: DK_TEX, ply: 4, twist: 0.5 }
+    const sliders: Refreshable[] = [
+      slider({ label: 'Count (weight)', min: 10, max: 300, step: 5, format: (v) => `${v} tex`, get: () => current().tex, set: (v) => { yn.set({ ...current(), tex: v }); renderRow() } }),
+      slider({ label: 'Ply', min: 1, max: 8, step: 1, get: () => current().ply, set: (v) => { yn.set({ ...current(), ply: v }); renderRow() } }),
+      slider({ label: 'Twist', min: 0, max: 1, step: 0.05, get: () => current().twist, set: (v) => { yn.set({ ...current(), twist: v }); renderRow() } })
+    ]
+    const renderRow = (): void => {
+      row.replaceChildren()
+      const cur = yn.get()
+      const noneBtn = el('button', 'dio-seg-btn' + (!cur ? ' on' : ''), 'Fabric default')
+      noneBtn.setAttribute('type', 'button')
+      noneBtn.addEventListener('click', () => {
+        yn.set(undefined)
+        renderRow()
+        for (const s of sliders) s.refresh()
+      })
+      row.append(noneBtn)
+      for (const p of YARN_PRESETS) {
+        const on = !!cur && cur.tex === p.yarn.tex && cur.ply === p.yarn.ply && cur.twist === p.yarn.twist
+        const b = el('button', 'dio-seg-btn' + (on ? ' on' : ''), p.name)
+        b.setAttribute('type', 'button')
+        b.addEventListener('click', () => {
+          yn.set({ ...p.yarn })
+          renderRow()
+          for (const s of sliders) s.refresh()
+        })
+        row.append(b)
+      }
+    }
+    renderRow()
+    wrap.append(el('div', 'dio-field-label', 'Yarn (count · ply · twist)'), row, ...sliders.map((s) => track(s)))
+    return wrap
+  }
+
   // A faux-fur / shearling / fleece pile finish.
   const FUR_LABELS: Record<FurKind, string> = { shearling: 'Shearling', 'faux-fur': 'Faux fur', fleece: 'Fleece' }
   function furControls(fr: NonNullable<PanelOptions['fur']>): HTMLElement {
@@ -1686,6 +1727,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   if (opts.weaveDraft) look.body.append(weaveDraftControls(opts.weaveDraft))
   if (opts.knitChart) look.body.append(knitChartControls(opts.knitChart))
   if (opts.colourwork) look.body.append(colourworkControls(opts.colourwork))
+  if (opts.yarn) look.body.append(yarnControls(opts.yarn))
   if (opts.swatch) look.body.append(swatchControls(opts.swatch))
   if (opts.colorways) look.body.append(colorwaysControls(opts.colorways))
   if (opts.prints) look.body.append(printsControls(opts.prints))
