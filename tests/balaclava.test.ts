@@ -300,3 +300,35 @@ describe('scarf dimension designer', () => {
     expect(wide.ny).toBeGreaterThan(base.ny)
   })
 })
+
+describe('neck gaiter up/down', () => {
+  const spec = (worn?: 'down' | 'up') => {
+    const def = getGarment('gaiter')
+    const l = { ...DEFAULT_PARAMS, ...def.defaults, ...(worn === 'up' ? { gaiterWorn: 'up' as const } : {}) }
+    return garmentTubeSpecs(def, l, mann.measurements)[0]
+  }
+
+  it('down bunches at the neck; up rises over the chin toward the nose with a bridge grip', () => {
+    const down = spec()
+    const up = spec('up')
+    expect(down.topY).toBeLessThan(mann.measurements.headBaseY) // at the neck
+    expect(up.topY).toBeGreaterThan(mann.measurements.headBaseY) // over the chin/nose
+    expect(up.extraPins?.length).toBe(1)
+    expect(up.dome).toBeDefined()
+    expect(down.extraPins).toBeUndefined()
+  })
+
+  it('both states drape bounded on the body', () => {
+    for (const worn of [undefined, 'up'] as const) {
+      const build = buildTubeGarment(spec(worn))
+      const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+      solver.colliders = mann.colliders
+      solver.bodyCollider = mann.bodyCollider
+      for (let i = 0; i < 150; i++) solver.step(1 / 60)
+      let mx = 0
+      for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+      expect(Number.isFinite(mx), `worn=${worn}`).toBe(true)
+      expect(mx, `worn=${worn}`).toBeLessThan(3)
+    }
+  }, 30000)
+})

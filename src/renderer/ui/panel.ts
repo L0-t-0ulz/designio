@@ -83,6 +83,8 @@ export interface GarmentState {
   slouch?: number
   /** Scarf width multiplier (0.5…1.8). */
   scarfWidth?: number
+  /** Gaiter worn state — bunched at the neck or pulled over the nose. */
+  gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Pom customizer (pom-pom beanie) — size · contrast colour · faux-fur pile. */
   pomScale?: number
   pomColor?: number
@@ -471,6 +473,17 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const scarfBlock = el('div')
   scarfBlock.append(el('div', 'dio-field-label', 'Scarf fit (Length drives the tails)'), track(scarfW))
 
+  // gaiter worn toggle (bunched at the neck / pulled over the nose)
+  const gaiterRow = el('div', 'dio-actions')
+  const gaiterBtns = new Map<string, HTMLButtonElement>()
+  for (const [label, w] of [['At the neck', 'down'], ['Over the nose', 'up']] as const) {
+    const b = button(label, () => { garment.gaiterWorn = w === 'down' ? undefined : w; syncGarment(); opts.onGarmentEdit() }, (garment.gaiterWorn ?? 'down') === w)
+    gaiterBtns.set(w, b)
+    gaiterRow.append(b)
+  }
+  const gaiterBlock = el('div')
+  gaiterBlock.append(el('div', 'dio-field-label', 'Worn'), gaiterRow)
+
   const beanieFitBlock = el('div')
   beanieFitBlock.append(el('div', 'dio-field-label', 'Beanie fit'), track(cuffS), track(slouchS), el('div', 'dio-field-label', 'Knit gauge'), gaugeRow, el('div', 'dio-field-label', 'Band patch'), patchRow)
 
@@ -652,11 +665,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     faceBlock.classList.toggle('dio-hidden', !def.supports.faceStyle)
     beanieFitBlock.classList.toggle('dio-hidden', !def.supports.beanieFit)
     scarfBlock.classList.toggle('dio-hidden', !def.supports.scarfFit)
+    gaiterBlock.classList.toggle('dio-hidden', !def.supports.gaiterWorn)
     pomBlock.classList.toggle('dio-hidden', !def.pom)
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
     for (const [f, node] of faceBtns) node.classList.toggle('primary', (garment.faceStyle ?? 'three-hole') === f)
     for (const [w, node] of wornBtns) node.classList.toggle('primary', (garment.balaclavaWorn ?? 'down') === w)
     for (const [k, node] of patchBtns) node.classList.toggle('primary', (garment.cuffPatch ?? 'none') === k)
+    for (const [w, node] of gaiterBtns) node.classList.toggle('primary', (garment.gaiterWorn ?? 'down') === w)
     // the pocket library shows only when the Pocket detail is supported + on
     pocketBlock.classList.toggle('dio-hidden', !def.supports.pocket || !garment.pocket)
     for (const [ps, node] of pocketBtns) node.classList.toggle('primary', (garment.pocketStyle ?? 'patch') === ps)
@@ -801,7 +816,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
 
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, beanieFitBlock, scarfBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, beanieFitBlock, scarfBlock, gaiterBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
   syncGarment()
 
   // ---- pattern (sew) ----

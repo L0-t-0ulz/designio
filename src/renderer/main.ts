@@ -194,6 +194,7 @@ function initStudio(
     cuffHeight: l0.cuffHeight,
     slouch: l0.slouch,
     scarfWidth: l0.scarfWidth,
+    gaiterWorn: l0.gaiterWorn,
     cuffPatch: l0.cuffPatch,
     pomScale: l0.pomScale,
     pomColor: l0.pomColor,
@@ -353,6 +354,7 @@ function initStudio(
     garment.cuffHeight = l.data.cuffHeight
     garment.slouch = l.data.slouch
     garment.scarfWidth = l.data.scarfWidth
+    garment.gaiterWorn = l.data.gaiterWorn
     garment.cuffPatch = l.data.cuffPatch
     garment.pomScale = l.data.pomScale
     garment.pomColor = l.data.pomColor
@@ -782,6 +784,7 @@ function initStudio(
     l.data.cuffHeight = garment.cuffHeight
     l.data.slouch = garment.slouch
     l.data.scarfWidth = garment.scarfWidth
+    l.data.gaiterWorn = garment.gaiterWorn
     l.data.cuffPatch = garment.cuffPatch
     l.data.pomScale = garment.pomScale
     l.data.pomColor = garment.pomColor
@@ -2355,6 +2358,8 @@ if (skipStart) {
   if (entryParams.get('pomFur') === '1') cfg.pomFur = true
   const sw = parseFloat(entryParams.get('scarfWidth') ?? '')
   if (Number.isFinite(sw)) cfg.scarfWidth = Math.max(0.5, Math.min(1.8, sw))
+  const gw = entryParams.get('gaiterWorn')
+  if (gw === 'up' || gw === 'down') cfg.gaiterWorn = gw
   const cpatch = entryParams.get('cuffPatch')
   if (cpatch === 'leather' || cpatch === 'woven') cfg.cuffPatch = cpatch
   if (entryParams.get('cuff')) cfg.cuff = true

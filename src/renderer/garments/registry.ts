@@ -489,6 +489,17 @@ export const GARMENTS: GarmentDefinition[] = [
     visor: true
   },
   {
+    id: 'gaiter',
+    name: 'Neck gaiter',
+    category: 'outerwear',
+    icon: 'top',
+    // a thin stretch tube bunched at the neck; worn UP it pulls over the chin/nose
+    pieces: [{ kind: 'headTube', anchor: 'neck', riseHi: 0.02, dropHi: 0.15, dropLo: 0.19, topScale: 1.25, botScale: 1.7, gaiter: true }],
+    supports: { gaiterWorn: true, length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.004, flare: 0 },
+    defaultFabric: 'jersey-knit'
+  },
+  {
     id: 'headband',
     name: 'Twisted headband',
     category: 'outerwear',
