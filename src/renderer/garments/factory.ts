@@ -100,6 +100,7 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   const rBot = baseR * pc.botScale * (1 + 0.22 * cuff) + p.ease + p.flare
   const spec = piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
   spec.rings = Math.max(10, spec.rings) // a very short band (headband) still meshes finely enough to drape
+  if (p.hemShape && p.hemShape !== 'straight') spec.hemShape = p.hemShape // ear flaps · a bandana point
   if (pc.gaiter && p.gaiterWorn === 'up') {
     // pulled up over the chin + nose: the top edge rises to just under the eyes,
     // hugs the face (dome-clamped spawn + a nose-bridge grip pin)
@@ -108,7 +109,12 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
     spec.radiusTop = m.headR * 1.08 + p.ease
     spec.dome = { cy: m.crownY - m.headR, r: m.headR * 1.05 + p.ease }
     const span = Math.max(0.05, spec.topY - spec.bottomY)
-    spec.extraPins = [{ u: 0.25, v: 0.04 / span }] // grips the nose bridge, rides the head turn
+    // grip the nose bridge AND the nape: the top edge hangs between two anchors, so
+    // even a non-stretch cloth (a poplin bandana with a weighted front point) stays up
+    spec.extraPins = [
+      { u: 0.25, v: 0.04 / span },
+      { u: 0.75, v: 0.04 / span }
+    ]
     return spec
   }
   const face = pc.face && (p.faceStyle ?? pc.face)

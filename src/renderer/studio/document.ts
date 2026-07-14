@@ -486,6 +486,8 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     pocket: d.pocket,
     pocketStyle: d.pocketStyle,
     hem: d.hem,
+    hemShape: d.hemShape,
+    gaiterWorn: d.gaiterWorn,
     closure: d.closure,
     lined: d.lined,
     interfaced: d.interfaced,

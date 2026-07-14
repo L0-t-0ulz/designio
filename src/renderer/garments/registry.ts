@@ -489,6 +489,52 @@ export const GARMENTS: GarmentDefinition[] = [
     visor: true
   },
   {
+    id: 'skinny-scarf',
+    name: 'Skinny silk scarf',
+    category: 'outerwear',
+    icon: 'top',
+    // a narrow charmeuse ribbon tied loose at the throat, long draping tails
+    pieces: [{ kind: 'scarfPanel', width: 0.085, wrapEase: 0.03, tailHi: 0.5, tailLo: 0.95 }],
+    supports: { scarfFit: true, length: true, ease: true },
+    defaults: { length: 0.55, ease: 0.01, flare: 0 },
+    defaultFabric: 'silk-charmeuse'
+  },
+  {
+    id: 'bandana',
+    name: 'Bandana',
+    category: 'outerwear',
+    icon: 'top',
+    // the folded triangle tied over the nose (outlaw style) — gaiter mechanics worn
+    // up by default, with a single point hanging at centre-front
+    pieces: [{ kind: 'headTube', anchor: 'neck', riseHi: 0.02, dropHi: 0.14, dropLo: 0.17, topScale: 1.25, botScale: 1.6, gaiter: true }],
+    supports: { gaiterWorn: true, length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.004, flare: 0, gaiterWorn: 'up', hemShape: 'point-front' },
+    defaultFabric: 'cotton-poplin'
+  },
+  {
+    id: 'chullo',
+    name: 'Chullo',
+    category: 'outerwear',
+    icon: 'top',
+    // the Andean earflap beanie: a gathered crown + deep side flaps + a pom
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.28, dropLo: 0.33, topScale: 0.13, botScale: 1.26 }],
+    supports: { beanieFit: true, length: true, ease: true, flare: true },
+    defaults: { length: 0.55, ease: 0.004, flare: 0, hemShape: 'ear-flap' },
+    defaultFabric: 'cable-knit',
+    pom: true
+  },
+  {
+    id: 'helmet-liner',
+    name: 'Helmet liner',
+    category: 'outerwear',
+    icon: 'top',
+    // the low-profile balaclava: thin, snug, no cuff — fits under a helmet/hood
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.27, dropLo: 0.32, topScale: 0.12, botScale: 0.82, face: 'open-face' }],
+    supports: { faceStyle: true, length: true, ease: true },
+    defaults: { length: 0.5, ease: 0.001, flare: 0 },
+    defaultFabric: 'spandex'
+  },
+  {
     id: 'gaiter',
     name: 'Neck gaiter',
     category: 'outerwear',

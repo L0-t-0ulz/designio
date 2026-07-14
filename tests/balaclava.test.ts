@@ -313,7 +313,7 @@ describe('neck gaiter up/down', () => {
     const up = spec('up')
     expect(down.topY).toBeLessThan(mann.measurements.headBaseY) // at the neck
     expect(up.topY).toBeGreaterThan(mann.measurements.headBaseY) // over the chin/nose
-    expect(up.extraPins?.length).toBe(1)
+    expect(up.extraPins?.length).toBe(2) // nose bridge + nape grips
     expect(up.dome).toBeDefined()
     expect(down.extraPins).toBeUndefined()
   })
@@ -331,4 +331,50 @@ describe('neck gaiter up/down', () => {
       expect(mx, `worn=${worn}`).toBeLessThan(3)
     }
   }, 30000)
+})
+
+describe('headwear batch 3 (skinny scarf · bandana · chullo · helmet liner)', () => {
+  it('the skinny scarf is far narrower than the standard scarf, in silk', async () => {
+    const { scarfToSpec, garmentTubeSpecs: _g } = await import('../src/renderer/garments/factory')
+    const { gradeParams, defaultLayer } = await import('../src/renderer/studio/document')
+    const skinny = getGarment('skinny-scarf')
+    const std = getGarment('scarf')
+    const sp = skinny.pieces[0] as { kind: 'scarfPanel'; width: number; wrapEase: number; tailHi: number; tailLo: number }
+    const stp = std.pieces[0] as typeof sp
+    const a = scarfToSpec(sp, gradeParams(defaultLayer('skinny-scarf')), mann.measurements)
+    const b = scarfToSpec(stp, gradeParams(defaultLayer('scarf')), mann.measurements)
+    expect(a.width).toBeLessThan(b.width * 0.4)
+    expect(skinny.defaultFabric).toBe('silk-charmeuse')
+  })
+
+  it('the bandana defaults worn-up with a single centre-front point', async () => {
+    const { gradeParams, defaultLayer } = await import('../src/renderer/studio/document')
+    const l = defaultLayer('bandana')
+    expect(l.gaiterWorn).toBe('up')
+    const spec = garmentTubeSpecs(getGarment('bandana'), gradeParams(l), mann.measurements)[0]
+    expect(spec.topY).toBeGreaterThan(mann.measurements.headBaseY) // over the nose
+    expect(spec.hemShape).toBe('point-front')
+  })
+
+  it('point-front drops one point at centre-front; ear-flap drops flaps at the sides', async () => {
+    const { bottomEdge } = await import('../src/renderer/cloth/Garment')
+    const base = { rings: 12, radial: 44, topY: 1.7, bottomY: 1.5, radiusTop: 0.1, radiusBottom: 0.1 }
+    const point = { ...base, hemShape: 'point-front' as const }
+    const flap = { ...base, hemShape: 'ear-flap' as const }
+    const FRONT = Math.PI / 2
+    expect(bottomEdge(point, FRONT)).toBeLessThan(bottomEdge(point, FRONT + Math.PI) - 0.05) // front point, flat back
+    expect(bottomEdge(flap, 0)).toBeLessThan(bottomEdge(flap, FRONT) - 0.05) // side flaps, flat front
+    expect(bottomEdge(flap, Math.PI)).toBeLessThan(bottomEdge(flap, FRONT) - 0.05) // both sides
+  })
+
+  it('the chullo has ear flaps + a pom; the helmet liner is snugger than the ski mask', async () => {
+    const { gradeParams, defaultLayer } = await import('../src/renderer/studio/document')
+    const chullo = getGarment('chullo')
+    expect(chullo.pom).toBe(true)
+    expect(garmentTubeSpecs(chullo, gradeParams(defaultLayer('chullo')), mann.measurements)[0].hemShape).toBe('ear-flap')
+    const liner = garmentTubeSpecs(getGarment('helmet-liner'), gradeParams(defaultLayer('helmet-liner')), mann.measurements)[0]
+    const ski = garmentTubeSpecs(getGarment('ski-mask'), gradeParams(defaultLayer('ski-mask')), mann.measurements)[0]
+    expect(liner.radiusBottom).toBeLessThan(ski.radiusBottom)
+    expect(liner.cutouts?.length).toBe(1) // open-face
+  })
 })
