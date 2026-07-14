@@ -382,9 +382,13 @@ sun hat is woven from a real **straw basket draft** under a dry sheen.
 | ![The fedora with a teardrop crease and a wine grosgrain bow band](docs/hats-fedora.png) | ![The cowboy hat with its creased crown and side-rolled brim](docs/hats-cowboy.png) | ![The wide wired-brim straw sun hat](docs/hats-straw.png) |
 
 And three of them are **real cloth-sim catalog garments** that drape with physics — a **snood** (cowl), a
-knit **beanie** that hugs the crown, and a **scarf** wrapped once around the neck with hanging tails.
+knit **beanie** that hugs the crown, and a **scarf** wrapped once around the neck with hanging tails —
+now with optional **fringe**: every strand is a live verlet chain hanging from the tail hems, swinging
+with a walk and settling plumb.
 
-![A cloth-sim knit beanie draped on the head](docs/beanie-cloth.png)
+| Cloth-sim knit beanie | Scarf with verlet fringe |
+| --- | --- |
+| ![A cloth-sim knit beanie draped on the head](docs/beanie-cloth.png) | ![A knit scarf with real hanging fringe strands on its tails](docs/scarf-fringe.png) |
 
 ---
 
