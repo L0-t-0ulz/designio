@@ -61,6 +61,7 @@ import { parsePhysicalParams, physicalDefaults, physicalSummary } from './fabric
 import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
 import { knitPreset, cloneChart } from './fabric/knitChart'
+import { colourworkPreset, cloneColourwork } from './fabric/colourwork'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
@@ -874,12 +875,14 @@ function initStudio(
     showToast(line, 'info', 12000)
   }
   {
-    // ?weaveDraft=<preset> / ?knitChart=<preset> — a custom weave structure on the active garment
+    // ?weaveDraft= / ?knitChart= / ?colourwork= — custom weave structure + colour on the active garment
     const preset = draftPreset(params.get('weaveDraft') ?? '')
     const knit = knitPreset(params.get('knitChart') ?? '')
+    const cw = colourworkPreset(params.get('colourwork') ?? '')
     if (preset) stack.active.data.weaveDraft = cloneDraft(preset.draft)
     if (knit) stack.active.data.knitChart = cloneChart(knit.chart)
-    if (preset || knit) stack.applyLook(stack.active)
+    if (cw) stack.active.data.colourwork = cloneColourwork(cw.chart)
+    if (preset || knit || cw) stack.applyLook(stack.active)
   }
   if (params.get('internalShapes') === 'demo') {
     // internal shapes & notches: waist darts (real take-up) + a keyhole cut-out
@@ -2002,6 +2005,13 @@ function initStudio(
       set: (c) => {
         stack.active.data.knitChart = c
         if (c) stack.active.data.weaveDraft = undefined // one structure owns the surface
+        stack.applyLook(stack.active)
+      }
+    },
+    colourwork: {
+      get: () => stack.active.data.colourwork,
+      set: (c) => {
+        stack.active.data.colourwork = c // colour layer — composes with any structure
         stack.applyLook(stack.active)
       }
     },

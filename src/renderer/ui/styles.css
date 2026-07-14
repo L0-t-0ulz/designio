@@ -2083,3 +2083,34 @@ canvas {
   font-size: 9px;
   line-height: 1;
 }
+
+/* ---- colourwork palette ---- */
+.dio-cw-palette {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+.dio-cw-yarn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 3px;
+  border: 1px solid var(--dio-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dio-cw-yarn.on {
+  border-color: #7189c8;
+  background: rgba(91, 116, 184, 0.18);
+}
+.dio-cw-yarn input[type='color'] {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  cursor: pointer;
+}

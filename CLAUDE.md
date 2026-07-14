@@ -126,7 +126,15 @@ Renderer modules:
   leaning into a braid) baked into custom normal + roughness maps replacing the preset weave; 6 preset
   charts (stockinette · garter · 1×1/2×2 rib · seed · cable rope) + a cell-cycling editor modal with a
   live shaded preview (`ui/knitChartEditor`); mutually exclusive with the weave draft (one structure owns
-  the surface); per-layer, `.dio` + colorways; `?knitChart=<preset>`; unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
+  the surface); per-layer, `.dio` + colorways; `?knitChart=<preset>`; unit-tested), `colourwork`
+  (**intarsia / colourwork** — a knitter's colour chart (yarn-index cells over a 2–6 yarn palette, course 0
+  at the bottom) worked **fair-isle** (tiles the whole garment; yarn 1 = the ground) or **intarsia** (one
+  placed front-body chest block; yarn-1 cells transparent so the garment shows through); pure
+  `colourworkIndex` UV→yarn field (mirror-corrected so charts read as authored), `paintColourwork` bakes
+  crisp stitch blocks with alternate-course shading into the design-art albedo behind the prints — the
+  colour layer composes with the knit chart / weave draft structure into a true jacquard; 5 presets
+  (Fair Isle band · argyle · zigzag · heart · star) + a yarn-palette painting modal (`ui/colourworkEditor`);
+  per-layer, `.dio` + colorways; `?colourwork=<preset>`; unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
   finish gradients so they don't 8-bit band; unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
   `paintTextile` tiles it across the albedo), `ombre` (**dip-dye / ombré gradient** — top-down · bottom-up ·
@@ -327,7 +335,9 @@ into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed 
 procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone>` (a **weave draft** —
 threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·
 `?knitChart=<stockinette|garter|rib-1x1|rib-2x2|seed|cable>` (a **knit stitch chart** — knit/purl/cable
-cells replacing the preset weave maps) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
+cells replacing the preset weave maps) ·
+`?colourwork=<fairisle|argyle|zigzag|heart|star>` (**intarsia / colourwork** — a fair-isle jacquard tiled
+allover or a placed intarsia chest block, painted into the albedo behind the prints) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
 `?quilt=<channel|diamond|box>` (a quilted-loft finish) ·
 `?lace=<chantilly|geometric|fishnet>` (a sheer alpha-cutout lace finish) ·

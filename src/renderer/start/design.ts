@@ -5,6 +5,7 @@ import type { BodyType } from '../avatar/Mannequin'
 import type { SkinTone, Undertone } from '../avatar/skin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
 import { paintTextile, type TextilePattern } from '../fabric/textile'
+import { paintColourwork, type ColourworkChart } from '../fabric/colourwork'
 import { paintOmbre, type OmbreDirection } from '../fabric/ombre'
 import { paintWear, type WearKind } from '../fabric/wear'
 import type { SparkleKind } from '../fabric/sparkle'
@@ -189,6 +190,8 @@ export interface DesignArtInput {
   color: number
   prints: Print[]
   textile?: TextilePattern
+  /** Knit colourwork — a tiling fair-isle jacquard or a placed intarsia block. */
+  colourwork?: ColourworkChart
   ombre?: OmbreDirection
   wear?: WearKind
 }
@@ -196,8 +199,8 @@ export interface DesignArtInput {
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 
 /** Whether the design needs an albedo map — a print, a textile, an ombré, or a wear finish. */
-export function hasArt(c: { prints: Print[]; textile?: TextilePattern; ombre?: OmbreDirection; wear?: WearKind }): boolean {
-  return !!c.textile || !!c.ombre || !!c.wear || c.prints.some(printHasContent)
+export function hasArt(c: { prints: Print[]; textile?: TextilePattern; colourwork?: ColourworkChart; ombre?: OmbreDirection; wear?: WearKind }): boolean {
+  return !!c.textile || !!c.colourwork || !!c.ombre || !!c.wear || c.prints.some(printHasContent)
 }
 
 /** Whether any placed motif is raised (embroidery / appliqué) → needs the bump map. */
@@ -315,6 +318,7 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
     if (inp.ombre) paintOmbre(ctx, size, inp.color, inp.ombre) // dip-dye gradient over the flat base
     if (inp.wear) paintWear(ctx, size, inp.color, inp.wear) // distressed / washed / faded bleach
     if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color) // tiling pattern behind the prints
+    if (inp.colourwork) paintColourwork(ctx, size, inp.colourwork) // knit colourwork over the ground, behind the prints
     for (const p of inp.prints) {
       if (!printHasContent(p)) continue
       placeMotif(ctx, p, () => paintAlbedoMotif(ctx, p, size))
