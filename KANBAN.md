@@ -348,7 +348,7 @@ fit & physics 0/10 · materials & production 0/10)_
 - [x] **Cloth-sim scarf fringe** — real hanging fringe strands on the tail hems (not painted): every fringe strand is now a 4-point verlet chain (pure `stepStrand` — gravity + rope projection; settles plumb, follows a dragged top, byte-deterministic) driven by the live hem particles; pure `fringeEdgeIndices` hangs a scarf's fringe off the strip's END columns (the grid runs lengthwise) vs a skirt's bottom row; scarf + skinny-scarf gain `supports.fringe`, the existing `?fringe=1` lights up — PR #335
 - [ ] **Parisian knot sim** — fold-in-half + pull-through, pinned at the loop like the real knot
 - [ ] **Double-wrap states** — once-around vs doubled neck turns with stable self-collision
-- [ ] **Scarf pin / brooch** — pin two cloth points together where placed (an extra stitch constraint)
+- [x] **Scarf pin / brooch** — pin two cloth points together where placed (an extra stitch constraint): `XPBDSolver.pinTogether` (the first constraint-GROWING solver API — appends a short stiff stitch + rebinds lambda; headless-tested) sews the tails at the `pinAt` fraction (slider + `?scarfPin=1&pinAt=`), a metal brooch disc rides the pinned midpoint; params plumbed through all 8 mapping sites per the gradeParams lesson — PR #338
 - [ ] **Scarf tuck-into-coat** — tails tucked under a layered coat front (layer-aware pinning)
 - [ ] **Blanket-scarf shoulder drape** — the oversized square folded diagonally over the shoulders
 - [x] **Skinny silk scarf** — a narrow charmeuse ribbon tied loose at the throat: the `skinny-scarf` catalog garment (8.5 cm scarfPanel, silk charmeuse, long tails) — PR #317
