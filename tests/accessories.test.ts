@@ -202,6 +202,15 @@ describe('accessories — the fedora block (crown shapes + parametric brim)', ()
     expect(acc.getCapBill().curve).toBe(1)
   })
 
+  it('the 5/6-panel picker re-seams the cap crown in place', () => {
+    const acc = new Accessories()
+    const holder = acc.group.getObjectByName('cap')!.getObjectByName('seam-holder') as THREE.Group
+    expect(holder.children.length).toBe(6 * 3) // 6 seams, each a ridge + twin topstitch
+    acc.setCapPanels(5)
+    expect(holder.children.length).toBe(5 * 3)
+    expect(acc.getCapPanels()).toBe(5)
+  })
+
   it('the visor shares the parametric bill on an open crown', () => {
     const acc = new Accessories()
     acc.setEnabled('visor', true)

@@ -4,6 +4,7 @@ import { brimProfile, DEFAULT_BRIM, type BrimParams } from './brim'
 import { crownDrop, DEFAULT_CROWN, type CrownStyle } from './crown'
 import { bandProfile, braidY, trimAnchor, BAND_COLORS, DEFAULT_HAT_BAND, type HatBandParams } from './hatBand'
 import { billCurl, DEFAULT_CAP_BILL, type CapBillParams } from './capBill'
+import { panelSeamAzimuths, DEFAULT_CAP_PANELS, type CapPanelCount } from './capPanels'
 import { headFrame } from './face'
 
 /**
@@ -480,6 +481,46 @@ export class Accessories {
     }
   }
 
+  private panels: CapPanelCount = DEFAULT_CAP_PANELS
+
+  /** The 5-panel vs 6-panel construction — re-seam the cap crown in place. */
+  setCapPanels(n: CapPanelCount): void {
+    this.panels = n
+    const it = this.items.find((i) => i.kind === 'cap')
+    const holder = it?.obj.getObjectByName('seam-holder') as THREE.Group | undefined
+    if (!it || !holder) return
+    for (const child of [...holder.children]) {
+      ;(child as THREE.Mesh).geometry?.dispose()
+      holder.remove(child)
+    }
+    this.addSeamMeshes(holder, holder.userData.mat as THREE.Material)
+  }
+  getCapPanels(): CapPanelCount {
+    return this.panels
+  }
+
+  /** Lay a ridge + twin topstitch rows along each panel-seam meridian of the
+   *  cap dome (radius 1.04, cap θ ∈ [0, 0.56π], centred at HC). */
+  private addSeamMeshes(holder: THREE.Group, mat: THREE.Material): void {
+    const stitch = felt(0x161f33) // a shade darker — reads as thread
+    class SeamPath extends THREE.Curve<THREE.Vector3> {
+      constructor(
+        private readonly az: number,
+        private readonly r: number
+      ) {
+        super()
+      }
+      getPoint(t: number): THREE.Vector3 {
+        const th = 0.09 + t * (Math.PI * 0.56 - 0.13) // below the button → the dome base
+        return new THREE.Vector3(Math.sin(th) * Math.sin(this.az) * this.r, HC + Math.cos(th) * this.r, Math.sin(th) * Math.cos(this.az) * this.r)
+      }
+    }
+    for (const az of panelSeamAzimuths(this.panels)) {
+      holder.add(new THREE.Mesh(new THREE.TubeGeometry(new SeamPath(az, 1.045), 20, 0.014, 6, false), mat))
+      for (const side of [-0.035, 0.035]) holder.add(new THREE.Mesh(new THREE.TubeGeometry(new SeamPath(az + side, 1.042), 20, 0.006, 5, false), stitch))
+    }
+  }
+
   private buildCap(): Item {
     const mat = felt(0x24304a)
     const dome = new THREE.Mesh(new THREE.SphereGeometry(1.04, 24, 18, 0, TAU, 0, Math.PI * 0.56), mat)
@@ -488,12 +529,16 @@ export class Accessories {
     holder.name = 'bill-holder'
     holder.userData.mat = mat
     this.addBillMeshes(holder, mat)
+    const seams = new THREE.Group()
+    seams.name = 'seam-holder'
+    seams.userData.mat = mat
+    this.addSeamMeshes(seams, mat)
     const btn = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), mat)
     btn.name = 'squatchee'
     btn.position.y = HC + 1.04
     btn.visible = this.bill.squatchee
     const obj = new THREE.Group()
-    obj.add(dome, holder, btn)
+    obj.add(dome, holder, seams, btn)
     return this.headItem('cap', obj)
   }
 
