@@ -323,7 +323,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 
 **Perfection — Structured hats**
 - [x] **Parametric brim designer** — width · droop/flip curve · edge wire, for any hat block: pure `avatar/brim.brimProfile` (per-kind spreads, run-scaled droop so wide brims actually slope, negative droop = flipped up) + `Accessories.setBrim` rebuilding the bucket/sun-hat brims in place + a wired-edge torus; Avatar-panel sliders + `?brimWidth/brimDroop/brimWire` — PR #322 _(the fedora joins with the crown-shapes card)_
-- [ ] **Crown shape library** — teardrop · centre-dent · diamond · telescope (pork-pie) crown creases
+- [x] **Crown shape library** — teardrop · centre-dent · diamond · telescope (pork-pie) crown creases: pure `avatar/crown.crownDrop` plan-disc depth fields pressed straight down into a new blocked-felt fedora crown (fades before the wall; the fedora joins the unit head frame + parametric brim per the #322 note — `crown-holder`/`brim-holder` rebuilds); crown chips under the brim sliders + `?crownShape=` — PR #323
 - [ ] **Hat band designer** — grosgrain · leather · braided cord bands + bow/feather/buckle trims
 - [ ] **5-panel vs 6-panel cap** — real panel seams + crown topstitch, construction picker
 - [ ] **Cap bill designer** — flat↔pre-curved slider · contrast underbill · squatchee button
