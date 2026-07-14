@@ -184,9 +184,6 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Points-of-measure (POM) sheet** — a graded POM table (every spec across XS–XXL with ± tolerances) on the manufacturing pack + JSON; re-runs `garmentMetrics` per size through the app's girth grading, so girths step per size and lengths hold (the app grades girth only — honest to the geometry); pure `pomTable` unit-tested — PR #177
 - [x] **Grade-rule editor** — per-point grade increments (girth · length · sleeve, real cm per size step) so the size run grades like a real pattern, not a uniform girth scale; flows into 3D + 2D pattern + POM (`gradeRules` per layer) — PR #245
 
-**AI-assist** _(optional, later — not the focus; the core is the CLO3D/Browzwear CAD workflow above)_
-- [ ] **AI design assistant** — describe a garment in words → DesignIO builds the config (garment · fabric · colour · construction details)
-
 **Polish / tech-debt** _(found while building the above)_
 - [x] **Live print recolour** — recolouring a printed garment updates the print-canvas base immediately — PR #67
 - [x] **Trim the renderer bundle** — rollup `manualChunks` splits three (+ addons) into its own vendor chunk; the app chunk drops ~2.47 MB → ~0.44 MB — PR #167
@@ -718,7 +715,6 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 **Fit & made-to-measure**
 - [ ] **3D body-scan import** — bring in an OBJ/PLY scan as a custom avatar to fit onto
-- [ ] **Photo-to-avatar** — estimate a body shape from two photos (front + side)
 - [x] **Size recommendation** — live "Best fit for this body" hint from the graded POM's intended ease vs the avatar's real measurements (chest/waistband-weighted; `avatar/sizeRecommend`) — PR #265
 - [x] **Per-customer fit profile** — named measurement sets saved/applied in one click (`avatar/fitProfiles`, made-to-measure panel; the size recommendation follows the person) — PR #267 _(per-person saved fit maps later)_
 - [x] **Asymmetric fit** — the one-shoulder neckline (asymmetric `topEdge` feeding 3D + the pattern; `?neckline=` deep-link added) — PR #294
@@ -749,13 +745,6 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [x] **Line sheet / lookbook PDF** — a printable wholesale one-pager per design (hero · fabric/fibre · colourway swatches · size run · graded specs · landed cost + keystone pricing; File → Export line sheet) — PR #260 _(multi-design collection catalog later)_
 - [ ] **Public portfolio page** — a hosted gallery of your designs
 - [ ] **Tech-pack approval workflow** — submit → comment → approve, with a status trail
-
-**AI-assist & smart tools**
-- [ ] **AI silhouette generator** — a garment block from a text prompt
-- [ ] **AI colourway + print pairing** — palette/print suggestions from a mood image
-- [ ] **AI drape critique** — flag fit issues + suggest ease changes from the strain map
-- [ ] **AI fabric matcher** — pick the closest library fabric from a reference garment photo
-- [ ] **Auto-grade from samples** — learn a grade rule from two graded samples
 
 ---
 
