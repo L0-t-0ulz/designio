@@ -89,10 +89,15 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   const baseY = crown ? m.crownY : m.neckY // the measured skull top, or the neck base
   const baseR = crown ? m.headR : m.neckR
   const topY = baseY + (pc.riseHi ?? 0)
-  const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length
+  // beanie fit: slouch adds crown length (the gather auto-tunes smaller so the
+  // extra fabric drapes back instead of sliding off); a rolled cuff widens the
+  // band and shortens the drop (rolling up eats length)
+  const slouch = crown ? Math.max(0, Math.min(1, p.slouch ?? 0)) : 0
+  const cuff = crown ? Math.max(0, Math.min(1, p.cuffHeight ?? 0)) : 0
+  const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length + slouch * 0.1 - cuff * 0.045
   const bottomY = Math.max(m.chestY - 0.03, topY - drop) // never past the upper chest
-  const rTop = baseR * pc.topScale + p.ease
-  const rBot = baseR * pc.botScale + p.ease + p.flare
+  const rTop = baseR * pc.topScale * (1 - 0.3 * slouch) + p.ease
+  const rBot = baseR * pc.botScale * (1 + 0.22 * cuff) + p.ease + p.flare
   const spec = piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
   const face = pc.face && (p.faceStyle ?? pc.face)
   if (face) {

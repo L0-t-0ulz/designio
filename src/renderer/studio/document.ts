@@ -147,6 +147,9 @@ export interface GarmentLayerData {
   sleeveShape?: SleeveShape
   /** Balaclava face opening (ski mask) — full · eyes · three-hole · open-face. */
   faceStyle?: import('../garments/schema').BalaclavaFace
+  /** Beanie fit — cuff height + slouch depth (0…1 each). */
+  cuffHeight?: number
+  slouch?: number
   /** Manufacturing size (grades the girth). */
   size: SizeLabel
   /** Custom per-point grade increments (cm / size step); default = uniform girth grade. */
@@ -378,6 +381,8 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     sleeve: c.sleeve,
     sleeveShape: c.sleeveShape,
     faceStyle: c.faceStyle,
+    cuffHeight: c.cuffHeight,
+    slouch: c.slouch,
     size: c.size,
     collar: c.collar,
     collarStyle: c.collarStyle,
@@ -443,6 +448,8 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     sleeve: d.sleeve ?? 'short',
     sleeveShape: d.sleeveShape,
     faceStyle: d.faceStyle,
+    cuffHeight: d.cuffHeight,
+    slouch: d.slouch,
     size: 'M',
     collar: d.collar,
     collarStyle: d.collarStyle,

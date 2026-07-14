@@ -38,6 +38,8 @@ export interface ConstructionCaps {
   sleeve?: boolean
   /** Balaclava face-opening picker (full · eyes · three-hole · open-face). */
   faceStyle?: boolean
+  /** Beanie fit sliders — cuff height + slouch depth (crown headwear). */
+  beanieFit?: boolean
   length?: boolean
   ease?: boolean
   flare?: boolean

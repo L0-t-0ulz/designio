@@ -330,7 +330,8 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?buttons=<2..9>&buttonMm=<8..30>&buttonColor=<hex>&zipColor=<hex>` (the **closure designer** — button count/size/colour · zip tape colour) ·
 `?accessories=<shoes,belt,hat,bag,beanie,cap,bucket,balaclava,scarf,gaiter>` (worn accessories, incl. **headwear & neckwear** placed by the head/neck frame) ·
 `?garment=ski-mask&balaclavaFace=<full|eyes|three-hole|open-face>` (the **cloth-sim balaclava** — a conforming knit hood with REAL face cut-outs: `TubeSpec.cutouts` drops the quads + orphaned particles go dead, so you see through the eye/mouth holes; the picker is under Construction) ·
-`?closeup=head` (the Face anatomy camera — frames the head for headwear shots) ·
+`?closeup=head` (the Face anatomy camera — frames the head for headwear shots; `&headDist=<m>` tightens it) ·
+`?cuffHeight=<0..1>&slouch=<0..1>` (**beanie fit** — cuff roll depth + slouch length on any beanie) ·
 `?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
 `?undertone=<warm|neutral|cool>` (its undertone) ·
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face

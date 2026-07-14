@@ -76,6 +76,9 @@ export interface GarmentState {
   sleeveShape?: SleeveShape
   /** Balaclava face opening (shown when the garment supports it). */
   faceStyle?: BalaclavaFace
+  /** Beanie fit — cuff height + slouch depth (0…1 each). */
+  cuffHeight?: number
+  slouch?: number
   size: SizeLabel
   gradeRules?: GradeRules
   collar?: boolean
@@ -427,6 +430,12 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const faceBlock = el('div')
   faceBlock.append(el('div', 'dio-field-label', 'Face opening'), faceRow)
 
+  // beanie fit sliders (cuff roll + slouch; shown when the garment supports them)
+  const cuffS = slider({ label: 'Cuff roll', min: 0, max: 1, step: 0.05, get: () => garment.cuffHeight ?? 0, set: (v) => { garment.cuffHeight = v || undefined; syncGarment(); opts.onGarmentEdit() } })
+  const slouchS = slider({ label: 'Slouch', min: 0, max: 1, step: 0.05, get: () => garment.slouch ?? 0, set: (v) => { garment.slouch = v || undefined; syncGarment(); opts.onGarmentEdit() } })
+  const beanieFitBlock = el('div')
+  beanieFitBlock.append(el('div', 'dio-field-label', 'Beanie fit'), track(cuffS), track(slouchS))
+
   // frill picker (ruffles/flounces/godets; shown when the Ruffles detail is on)
   const frillLabels: Record<FrillStyle, string> = { ruffle: 'Ruffle', flounce: 'Flounce', godet: 'Godet' }
   const frillRow = el('div', 'dio-actions')
@@ -596,6 +605,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     // the sleeve library shows only when the garment has sleeves selected
     sleeveShapeBlock.classList.toggle('dio-hidden', !def.supports.sleeve || garment.sleeve === 'none')
     faceBlock.classList.toggle('dio-hidden', !def.supports.faceStyle)
+    beanieFitBlock.classList.toggle('dio-hidden', !def.supports.beanieFit)
     for (const [sh, node] of sleeveShapeBtns) node.classList.toggle('primary', (garment.sleeveShape ?? 'set-in') === sh)
     for (const [f, node] of faceBtns) node.classList.toggle('primary', (garment.faceStyle ?? 'three-hole') === f)
     // the pocket library shows only when the Pocket detail is supported + on
@@ -742,7 +752,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
 
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, faceBlock, beanieFitBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
   syncGarment()
 
   // ---- pattern (sew) ----
