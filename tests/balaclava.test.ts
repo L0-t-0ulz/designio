@@ -248,3 +248,20 @@ describe('cuff patch persistence', () => {
     expect(back.layers[0].cuffPatch).toBe('leather')
   })
 })
+
+describe('brimmed beanie', () => {
+  it('is a crown headTube with the visor flag, and drapes bounded', () => {
+    const def = getGarment('brimmed-beanie')
+    expect(def.visor).toBe(true)
+    const spec = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+    const build = buildTubeGarment(spec)
+    const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 150; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
+})

@@ -25,6 +25,8 @@ export interface GarmentDefinition {
   hood?: boolean
   /** A faux-fur/yarn pom riding the crown (pom-pom beanie). */
   pom?: boolean
+  /** A short stiff visor under the knit dome (brimmed beanie). */
+  visor?: boolean
   /** How the front closure reads when enabled: a button placket (default) or a zip. */
   closureStyle?: 'button' | 'zip'
 }

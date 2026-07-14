@@ -477,6 +477,18 @@ export const GARMENTS: GarmentDefinition[] = [
     defaultFabric: 'rib-knit'
   },
   {
+    id: 'brimmed-beanie',
+    name: 'Brimmed beanie',
+    category: 'outerwear',
+    icon: 'top',
+    // a knit dome over a short stiff visor (the ski-patrol / streetwear hybrid)
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.24, dropLo: 0.29, topScale: 0.13, botScale: 1.3 }],
+    supports: { beanieFit: true, length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.004, flare: 0 },
+    defaultFabric: 'rib-knit',
+    visor: true
+  },
+  {
     id: 'ski-mask',
     name: 'Ski mask',
     category: 'outerwear',

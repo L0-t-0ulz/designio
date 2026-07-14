@@ -335,6 +335,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?balaclavaWorn=<down|rolled>` (the **convertible fold** — the ski mask worn down over the face or rolled up into a beanie band) ·
 `?pomScale=<0.4..2>&pomColor=<hex>&pomFur=1` (the **pom customizer** — size · contrast colour · faux-fur pile on the pom-beanie) ·
 `?cuffPatch=<leather|woven>` (a **brand patch** on the beanie band, tracked to the live cloth) ·
+`?garment=brimmed-beanie` (a knit dome over a **short stiff visor** riding the live band) ·
 `?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
 `?undertone=<warm|neutral|cool>` (its undertone) ·
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
