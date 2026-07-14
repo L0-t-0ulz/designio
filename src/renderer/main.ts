@@ -62,6 +62,7 @@ import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
 import { knitPreset, cloneChart } from './fabric/knitChart'
 import { colourworkPreset, cloneColourwork } from './fabric/colourwork'
+import { yarnPreset } from './fabric/yarn'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
 import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
@@ -883,6 +884,8 @@ function initStudio(
     if (knit) stack.active.data.knitChart = cloneChart(knit.chart)
     if (cw) stack.active.data.colourwork = cloneColourwork(cw.chart)
     if (preset || knit || cw) stack.applyLook(stack.active)
+    const yp = yarnPreset(params.get('yarn') ?? '')
+    if (yp) stack.setYarn({ ...yp.yarn }) // ?yarn=<preset> — look + drape re-derive together
   }
   if (params.get('internalShapes') === 'demo') {
     // internal shapes & notches: waist darts (real take-up) + a keyhole cut-out
@@ -2014,6 +2017,10 @@ function initStudio(
         stack.active.data.colourwork = c // colour layer — composes with any structure
         stack.applyLook(stack.active)
       }
+    },
+    yarn: {
+      get: () => stack.active.data.yarn,
+      set: (y) => stack.setYarn(y) // re-derives the hand: look + drape together
     },
     colorways: {
       list: () =>

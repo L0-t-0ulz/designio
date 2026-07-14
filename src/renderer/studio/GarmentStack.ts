@@ -27,6 +27,7 @@ import { iridescentParams, makeIridescenceThicknessMap } from '../fabric/iridesc
 import { makeLaceAlphaMap } from '../fabric/lace'
 import { makeDraftNormalMap, makeDraftRoughnessMap, validateDraft } from '../fabric/weaveDraft'
 import { makeChartNormalMap, makeChartRoughnessMap, validateChart } from '../fabric/knitChart'
+import { yarnAdjustedFabric, type YarnSpec } from '../fabric/yarn'
 import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
@@ -238,7 +239,7 @@ export class GarmentStack {
   /** The fabric for a garment part (its override, or the body default). */
   private partFabric(l: StackLayer, part: 'sleeves' | 'legs'): Fabric {
     const pf = l.data.partFabrics?.[part]
-    return pf ? { ...getFabric(pf.fabricId), color: pf.color } : l.fabric
+    return pf ? yarnAdjustedFabric({ ...getFabric(pf.fabricId), color: pf.color }, l.data.yarn) : l.fabric
   }
 
   /** The fabric that drives a piece's cloth physics, by piece name (part override, or body). */
@@ -270,7 +271,7 @@ export class GarmentStack {
     if (!panel) return null
     const ov = l.data.partFabrics?.[panel]
     if (!ov) return null
-    return this.solverModifiers(l, name, fabricToSolverParams({ ...getFabric(ov.fabricId), color: ov.color }))
+    return this.solverModifiers(l, name, fabricToSolverParams(yarnAdjustedFabric({ ...getFabric(ov.fabricId), color: ov.color }, l.data.yarn)))
   }
 
   /** The current { fabricId, color } for a part (body/trim/sleeves/legs/back/legBack). */
@@ -291,7 +292,7 @@ export class GarmentStack {
     if (part === 'body') {
       l.data.fabricId = next.fabricId
       l.data.color = next.color
-      l.fabric = { ...getFabric(next.fabricId), color: next.color }
+      l.fabric = yarnAdjustedFabric({ ...getFabric(next.fabricId), color: next.color }, l.data.yarn)
     } else if (part === 'trim') {
       l.data.trim = true
       l.data.trimFabricId = next.fabricId
@@ -311,7 +312,7 @@ export class GarmentStack {
   /** The fabric for a back panel (its override, else the piece's front fabric). */
   private panelFabric(l: StackLayer, panel: 'back' | 'legBack' | 'sleeveBack'): Fabric {
     const ov = panel === 'back' ? l.data.partFabrics?.back : panel === 'legBack' ? l.data.partFabrics?.legBack : l.data.partFabrics?.sleeveBack
-    if (ov) return { ...getFabric(ov.fabricId), color: ov.color }
+    if (ov) return yarnAdjustedFabric({ ...getFabric(ov.fabricId), color: ov.color }, l.data.yarn)
     if (panel === 'back') return l.fabric
     return this.partFabric(l, panel === 'legBack' ? 'legs' : 'sleeves')
   }
@@ -342,7 +343,7 @@ export class GarmentStack {
     applyFabric(l.legBackMaterial, this.panelFabric(l, 'legBack'))
     applyFabric(l.sleeveBackMaterial, this.panelFabric(l, 'sleeveBack'))
     const trimFab: Fabric = l.data.trimFabricId
-      ? { ...getFabric(l.data.trimFabricId), color: l.data.trimColor ?? 0x1a1a22 }
+      ? yarnAdjustedFabric({ ...getFabric(l.data.trimFabricId), color: l.data.trimColor ?? 0x1a1a22 }, l.data.yarn)
       : { ...l.fabric, color: l.data.trimColor ?? 0x1a1a22 }
     applyFabric(l.trimMaterial, trimFab)
 
@@ -502,13 +503,22 @@ export class GarmentStack {
     ;(l.data.colorways ??= []).push(cw)
     return cw
   }
+  /** Set the active layer's yarn spec — re-derives the fabric's hand (look + drape). */
+  setYarn(y: YarnSpec | undefined): void {
+    const l = this.active
+    l.data.yarn = y
+    l.fabric = yarnAdjustedFabric({ ...getFabric(l.data.fabricId), color: l.data.color }, y)
+    this.applyLook(l)
+    l.controller.setFabricPhysics() // the hand changed → re-derive the drape
+  }
+
   /** Apply a saved colorway to the active layer — appearance + drape, not construction. */
   useColorway(id: string): void {
     const l = this.active
     const cw = l.data.colorways?.find((c) => c.id === id)
     if (!cw) return
     applyColorway(l.data, cw)
-    l.fabric = { ...getFabric(l.data.fabricId), color: l.data.color }
+    l.fabric = yarnAdjustedFabric({ ...getFabric(l.data.fabricId), color: l.data.color }, l.data.yarn)
     this.applyLook(l)
     this.buildDecor(l) // trim bands depend on trim
     l.controller.setFabricPhysics() // fabric / per-panel change → re-derive drape
@@ -1273,7 +1283,7 @@ export class GarmentStack {
   }
 
   addLayer(data: GarmentLayerData, makeActive = true): StackLayer {
-    const fabric: Fabric = { ...getFabric(data.fabricId), color: data.color }
+    const fabric: Fabric = yarnAdjustedFabric({ ...getFabric(data.fabricId), color: data.color }, data.yarn)
     const material = createFabricMaterial(fabric)
     const controller = new GarmentController(
       this.scene,
