@@ -47,7 +47,15 @@ Renderer modules:
   Softbox · Dramatic · High-key · Runway · Golden-hour: each an azimuth/elevation-described key + rims +
   hemi + exposure, positioned by the pure, unit-tested `lampPosition`) + **backdrop presets** (Studio grey ·
   White · Charcoal · Black · Blush · Sky cyclorama gradients, baked per-pixel with `bayerDither` so the sweep
-  doesn't 8-bit band; `black` hides the stage floor for a floating shot)), `Loop` (fixed-timestep).
+  doesn't 8-bit band; `black` hides the stage floor for a floating shot)), `Loop` (fixed-timestep),
+  `PathTracer` (**offline path-traced hero render** — a physically-based GI still via **three-gpu-pathtracer**:
+  `renderPathTraced` bakes the posed scene into a BVH + converges N accumulated samples for true global
+  illumination · soft shadows · accurate glossy sheen, a step up from the rasterised `renderStill`. Non-PBR
+  meshes (the `Reflector` floor · shadow-catcher) are hidden for the trace — only `MeshStandardMaterial`/
+  `MeshPhysicalMaterial` survive — and a `GradientEquirectTexture` studio dome drives the environment light
+  (the live PMREM env isn't an equirect the tracer can sample); the caller pauses the loop so the tracer owns
+  the canvas, then restores. `pathTracePlan` (pure — quality preset → sample/bounce/tile budget, width clamp,
+  progress fraction; unit-tested)).
 - `avatar/` — `Mannequin` (poseable **and** resizable capsule skeleton; capsules are the cloth
   colliders — plus **visual-only shaping metaballs** for bust/pecs, deltoids, chest/back depth, knees; it
   exposes `anchors()` = torso/hip world frames garments pin to, and drives the GLB), `BodyMesh` (smooth
@@ -384,7 +392,10 @@ count/ply/twist adjust the fabric's hand: drape + surface together) · `?sparkle
 `?fur=<shearling|faux-fur|fleece>` (a fuzzy pile finish) · `?prints=demo`
 (two body prints) · `?prints=parts` (a print on the body + sleeves + legs — each print sits on its own
 piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·
-`?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
+`?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) ·
+`?pathtrace=1` (+ `?ptQuality=<draft|high|ultra>`) (open the Render tab in **path-traced hero-render** mode
++ converge an offline GI still once the drape settles — the Render tab's ✦ Path traced toggle + quality
+selector do the same interactively) · `?body=mesh|glb` (GLB realistic avatar is the default; `mesh` forces the procedural body) ·
 `?drawnPanel=demo` (**draw-your-own panel** — sews the built-in demo sketch, a waisted scoop tank) ·
 `?arranged=demo` (**sewing lines & arrangement** — the four-panel colour-block bodice: panels placed at arrangement points, side seams eased) ·
 `?styleLines=demo` (**style lines** — the bodice front split by a princess curve, colour-blocked + re-sewn) ·
