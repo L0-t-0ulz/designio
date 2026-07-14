@@ -12,8 +12,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'necklace', 'hoops']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'goggles' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'goggles', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -103,6 +103,7 @@ export class Accessories {
       this.buildCap(),
       this.buildBucket(),
       this.buildBalaclava(),
+      this.buildGoggles(),
       this.buildNecklace(),
       this.buildHoops(),
       this.buildScarf(),
@@ -345,6 +346,28 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(shell, face)
     return this.headItem('balaclava', obj)
+  }
+
+  private buildGoggles(): Item {
+    // ski goggles: a mirrored lens band curved across the eyes (a sphere patch just
+    // proud of the face plane, z ≈ 1.18 like the balaclava's face oval) + a white
+    // frame shell behind it + the strap wrapping the head at eye level
+    const lens = new THREE.Mesh(
+      new THREE.SphereGeometry(1.18, 32, 12, Math.PI / 2 - 0.75, 1.5, 1.55, 0.5),
+      new THREE.MeshPhysicalMaterial({ color: 0x7fd4e8, metalness: 1, roughness: 0.08, envMapIntensity: 1.8 })
+    )
+    lens.position.y = 0.35
+    const shell = new THREE.Mesh(
+      new THREE.SphereGeometry(1.24, 32, 12, Math.PI / 2 - 0.9, 1.8, 1.5, 0.62),
+      new THREE.MeshStandardMaterial({ color: 0xf2f2f4, roughness: 0.55, side: THREE.DoubleSide })
+    )
+    shell.position.y = 0.35
+    const strap = new THREE.Mesh(new THREE.TorusGeometry(1.12, 0.06, 8, 32), new THREE.MeshStandardMaterial({ color: 0x22242c, roughness: 0.7 }))
+    strap.rotation.x = Math.PI / 2
+    strap.position.y = 0.09 // eye level
+    const obj = new THREE.Group()
+    obj.add(lens, shell, strap)
+    return this.headItem('goggles', obj)
   }
 
   private buildScarf(): Item {

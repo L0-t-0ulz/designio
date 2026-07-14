@@ -328,7 +328,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?kids=<toddler|child|tween|teen>` (a **kids' size block** — age-appropriate proportions, not a scaled-down adult) ·
 `?belly=<0..3>` (**maternity** — a trimester belly bump the garments drape over) ·
 `?buttons=<2..9>&buttonMm=<8..30>&buttonColor=<hex>&zipColor=<hex>` (the **closure designer** — button count/size/colour · zip tape colour) ·
-`?accessories=<shoes,belt,hat,bag,beanie,cap,bucket,balaclava,scarf,gaiter>` (worn accessories, incl. **headwear & neckwear** placed by the head/neck frame) ·
+`?accessories=<shoes,belt,hat,bag,beanie,cap,bucket,balaclava,scarf,gaiter,goggles>` (worn accessories, incl. **headwear & neckwear** placed by the head/neck frame) ·
 `?garment=ski-mask&balaclavaFace=<full|eyes|three-hole|open-face>` (the **cloth-sim balaclava** — a conforming knit hood with REAL face cut-outs: `TubeSpec.cutouts` drops the quads + orphaned particles go dead, so you see through the eye/mouth holes; the picker is under Construction) ·
 `?closeup=head` (the Face anatomy camera — frames the head for headwear shots; `&headDist=<m>` tightens it) ·
 `?cuffHeight=<0..1>&slouch=<0..1>` (**beanie fit** — cuff roll depth + slouch length on any beanie) ·
