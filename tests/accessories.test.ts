@@ -29,7 +29,7 @@ function baseBody(): Capsule[] {
 
 describe('accessories — body attach anchors', () => {
   it('exposes the accessory set incl. headwear & neckwear', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'goggles', 'necklace', 'hoops'])
+    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'goggles', 'necklace', 'hoops'])
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
@@ -98,7 +98,7 @@ describe('accessories — headwear / neckwear anchors', () => {
 describe('accessories — worn headwear/neckwear meshes ride the head/neck', () => {
   it('each new kind builds visible geometry positioned up around the head/neck', () => {
     const acc = new Accessories()
-    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'necklace', 'hoops'] as const
+    const kinds = ['beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'necklace', 'hoops'] as const
     for (const k of kinds) {
       acc.setEnabled(k, true)
       expect(acc.isEnabled(k)).toBe(true)
@@ -200,6 +200,21 @@ describe('accessories — the fedora block (crown shapes + parametric brim)', ()
     acc.setCapBill({ squatchee: false })
     expect(sq.visible).toBe(false)
     expect(acc.getCapBill().curve).toBe(1)
+  })
+
+  it('the visor shares the parametric bill on an open crown', () => {
+    const acc = new Accessories()
+    acc.setEnabled('visor', true)
+    acc.update(baseBody())
+    acc.group.updateMatrixWorld(true)
+    const visor = acc.group.getObjectByName('visor')!
+    const holder = visor.getObjectByName('bill-holder') as THREE.Group
+    expect(holder.children.length).toBe(1)
+    acc.setCapBill({ underbill: 0x5e7160 })
+    expect(holder.children.length).toBe(2) // the designer re-bills the visor too
+    // open crown: nothing above the band top (well below a dome's crown)
+    const box = new THREE.Box3().setFromObject(visor)
+    expect(box.max.y).toBeLessThan(1.66 + 0.1 * 0.6)
   })
 
   it('the fedora joins the parametric brim — width re-blocks its footprint', () => {
