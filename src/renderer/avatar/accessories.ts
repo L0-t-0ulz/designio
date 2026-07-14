@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import type { Capsule } from './colliders'
+import { brimProfile, DEFAULT_BRIM, type BrimParams } from './brim'
 import { headFrame } from './face'
 
 /**
@@ -116,6 +117,44 @@ export class Accessories {
         o.frustumCulled = false
       })
       this.group.add(it.obj)
+    }
+  }
+
+  private brim: BrimParams = { ...DEFAULT_BRIM }
+
+  /** The parametric brim designer — re-shape every brimmed hat's brim in place. */
+  setBrim(p: Partial<BrimParams>): void {
+    this.brim = { ...this.brim, ...p }
+    for (const kind of ['hat', 'bucket', 'sunhat'] as AccessoryKind[]) {
+      const it = this.items.find((i) => i.kind === kind)
+      const holder = it?.obj.getObjectByName('brim-holder') as THREE.Group | undefined
+      if (!it || !holder) continue
+      for (const child of [...holder.children]) {
+        ;(child as THREE.Mesh).geometry?.dispose()
+        holder.remove(child)
+      }
+      const mat = holder.userData.mat as THREE.Material
+      this.addBrimMeshes(kind, holder, mat)
+    }
+  }
+  getBrim(): BrimParams {
+    return { ...this.brim }
+  }
+
+  /** Build the parametric brim cone (+ optional edge wire) into a holder group. */
+  private addBrimMeshes(kind: AccessoryKind, holder: THREE.Group, mat: THREE.Material): void {
+    const prof = brimProfile(kind, this.brim)
+    if (!prof) return
+    const y0 = holder.userData.brimY as number
+    const cone = new THREE.Mesh(new THREE.CylinderGeometry(prof.topR, prof.botR, prof.h, 40, 1, true), mat)
+    cone.rotation.x = prof.up ? Math.PI : 0 // flipped: the cone runs upward
+    cone.position.y = y0 + (prof.up ? prof.h / 2 : -prof.h / 2)
+    holder.add(cone)
+    if (this.brim.wire) {
+      const wire = new THREE.Mesh(new THREE.TorusGeometry(prof.wireR, 0.035, 8, 40), mat)
+      wire.rotation.x = Math.PI / 2
+      wire.position.y = y0 + (prof.up ? prof.h : -prof.h)
+      holder.add(wire)
     }
   }
 
@@ -259,10 +298,13 @@ export class Accessories {
     const mat = felt(0x5c5f38)
     const dome = new THREE.Mesh(new THREE.SphereGeometry(1.02, 24, 16, 0, TAU, 0, Math.PI * 0.5), mat)
     dome.position.y = HC
-    const brim = new THREE.Mesh(new THREE.CylinderGeometry(1.04, 1.5, 0.26, 32, 1, true), mat)
-    brim.position.y = HC - 0.16 // flares down-and-out from the dome base
+    const holder = new THREE.Group()
+    holder.name = 'brim-holder'
+    holder.userData.mat = mat
+    holder.userData.brimY = HC - 0.03 // the brim leaves the dome base
+    this.addBrimMeshes('bucket', holder, mat)
     const obj = new THREE.Group()
-    obj.add(dome, brim)
+    obj.add(dome, holder)
     return this.headItem('bucket', obj)
   }
 
@@ -285,14 +327,17 @@ export class Accessories {
     const mat = felt(0xd9c08e) // straw
     const dome = new THREE.Mesh(new THREE.SphereGeometry(1.02, 24, 16, 0, TAU, 0, Math.PI * 0.5), mat)
     dome.position.y = HC
-    // the statement piece: a very wide brim that droops gently outward-down
-    const brim = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 2.35, 0.42, 40, 1, true), mat)
-    brim.position.y = HC - 0.24
+    // the statement piece: the parametric brim (a wide gentle droop by default)
+    const holder = new THREE.Group()
+    holder.name = 'brim-holder'
+    holder.userData.mat = mat
+    holder.userData.brimY = HC - 0.03
+    this.addBrimMeshes('sunhat', holder, mat)
     const band = new THREE.Mesh(new THREE.TorusGeometry(1.03, 0.06, 8, 32), felt(0x2b2b30))
     band.rotation.x = Math.PI / 2
     band.position.y = HC - 0.02
     const obj = new THREE.Group()
-    obj.add(dome, brim, band)
+    obj.add(dome, holder, band)
     return this.headItem('sunhat', obj)
   }
 
