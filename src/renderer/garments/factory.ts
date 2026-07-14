@@ -99,13 +99,21 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
     // a face style implies full-head coverage: belly the tube out at face height,
     // narrow to the neck, and spawn every ring ON the skull dome (never inside —
     // a deep-inside spawn resolves the face fabric to the wrong side of the head)
-    // clearances sized for the REALISTIC avatar too: the GLB's true skull + hair
-    // shell runs larger than the bone-fitted capsule radius, so ride well over it
+    // clearances that verified on the GLB: belly past the skull + hair shell,
+    // spawn clamped to the dome (never inside the head)
     spec.radiusWaist = baseR * 1.18 + p.ease
     spec.waistT = 0.34
     spec.dome = { cy: topY - m.headR, r: m.headR * 1.14 + p.ease }
     const cuts = balaclavaCutouts(face, topY, bottomY, m)
     if (cuts.length) spec.cutouts = cuts
+    // grip the nose bridge + chin (anchor pins) so the mask can't spin around the
+    // rotationally-symmetric head colliders — it turns/nods with the head instead
+    const span = Math.max(0.05, topY - bottomY)
+    const skull = Math.max(0.05, m.crownY - m.headBaseY)
+    spec.extraPins = [
+      { u: 0.25, v: (topY - (m.headBaseY + skull * 0.34)) / span }, // the bridge, between the eyes
+      { u: 0.25, v: (topY - (m.headBaseY - skull * 0.28)) / span } // the chin, under the mouth
+    ]
   }
   return spec
 }
@@ -119,8 +127,11 @@ export function balaclavaCutouts(face: BalaclavaFace, topY: number, bottomY: num
   if (face === 'full') return []
   const span = Math.max(0.05, topY - bottomY)
   const v = (y: number): number => Math.min(0.94, Math.max(0.06, (topY - y) / span))
-  const eyeY = topY - m.headR * 0.8 // the eye line, measured down from the crown
-  const mouthY = topY - m.headR * 1.65
+  // face lines as fractions of the TRUE skull span (crown → ear line), so they land
+  // on the real eyes/mouth of either body — headR-multiples missed the taller GLB head
+  const skull = Math.max(0.05, m.crownY - m.headBaseY)
+  const eyeY = m.headBaseY + skull * 0.28
+  const mouthY = m.headBaseY - skull * 0.06
   const eyeHalf = (m.headR * 0.18) / span // half-heights as v spans
   const mouthHalf = (m.headR * 0.16) / span
   const U = 0.25

@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import type { Capsule } from './colliders'
 import { BodyMesh, type BodyPart } from './BodyMesh'
-import { loadGlbBody, type GlbBody } from './GlbMannequin'
+import { loadGlbBody, measureGlbHead, type GlbBody, type GlbHead } from './GlbMannequin'
 import { makeSkinMaterial, applySkinLook, type SkinLook } from './skin'
 import { getPose, type PoseName } from './poses'
 import { applyPostureToColliders, bendPoint, postureAngles, type PostureName } from './posture'
@@ -22,6 +22,9 @@ export interface Measurements {
   /** The real skull top (m) — measured off the GLB skin on load; procedural = neckY + 2.7·headR.
    *  Crown headwear hangs from here, so it lands on the ACTUAL head of either body. */
   crownY: number
+  /** The skull base (the head joint / ear line) — with crownY it gives the true head
+   *  span, so face landmarks (eye/mouth lines) scale to the real head of either body. */
+  headBaseY: number
   neckY: number
   shoulderY: number
   chestY: number
@@ -78,7 +81,7 @@ function measurementsFor(type: BodyType): Measurements {
   const p = PROPORTIONS[type]
   return {
     chestR: p.chestR, waistR: p.waistR, hipR: p.hipR, thighR: p.thighR,
-    headR: p.headR, neckR: p.neckR, crownY: LANDMARKS.neckY + p.headR * 2.7,
+    headR: p.headR, neckR: p.neckR, crownY: LANDMARKS.neckY + p.headR * 2.7, headBaseY: LANDMARKS.neckY + p.headR * 0.7,
     hipHalfX: p.hipHalfX, shoulderHalfX: p.shoulderHalfX, ...LANDMARKS
   }
 }
@@ -246,6 +249,13 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   bones.push(bellyBone)
   colliders.push(bellyBone.collider)
 
+  // GLB face — one more appended capsule (index 14): the visual face (brow →
+  // chin, the nose) protrudes past the skull capsule, and GLB mode is capsule-
+  // only (no mesh BVH), so face-hugging headwear sank straight through it.
+  // Positioned by fitCollidersToGlb; radius 0 (inert) on the procedural body.
+  const faceCollider: Capsule = { a: new THREE.Vector3(), b: new THREE.Vector3(), radius: 0 }
+  colliders.push(faceCollider)
+
   const measurements: Measurements = { ...MEASUREMENTS }
   const bodyMesh = new BodyMesh(material)
   group.add(bodyMesh.object)
@@ -268,12 +278,14 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   let wantGlb = true
   let glb: GlbBody | null = null
   let onBodyChange: (() => void) | null = null // notified when the body swaps (GLB ↔ procedural)
+  let glbHead: GlbHead | null = null // measured skull/nose (bind pose) — aims the head/face colliders
   loadGlbBody(
     material,
     (b) => {
       glb = b
       group.add(b.model)
       b.fit(body.height, body.build)
+      if (b.bones.head) glbHead = measureGlbHead(b.model, b.bones.head) // the REAL skull/nose, off the skin
       applyBodyMode() // fits colliders + crownY, then rebuilds garments onto them
     },
     () => {
@@ -311,8 +323,9 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     { rA: () => measurements.thighR, rB: () => measurements.thighR * 0.68 }, // thigh
     { rA: () => measurements.thighR * 0.68, rB: () => 0.048 * body.build, cap: 'foot' } // shin
   ]
-  // mirror arms + legs, then the belly (visual radius = its collider radius)
-  const fullSpec = [...partSpec, ...partSpec.slice(5), { rA: () => bellyBone.radius, rB: () => bellyBone.radius }]
+  // mirror arms + legs, then the belly (visual radius = its collider radius),
+  // then the GLB face blob — collider-only, no visual metaball (radius 0 here)
+  const fullSpec = [...partSpec, ...partSpec.slice(5), { rA: () => bellyBone.radius, rB: () => bellyBone.radius }, { rA: () => 0, rB: () => 0 }]
   const parts: BodyPart[] = colliders.map((c, i) => ({
     a: c.a,
     b: c.b,
@@ -428,6 +441,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     measurements.shoulderHalfX = p.shoulderHalfX * b
     measurements.neckY = LANDMARKS.neckY * h
     measurements.crownY = LANDMARKS.neckY * h + measurements.headR * 2.7 // ≈ the visual crown
+    measurements.headBaseY = LANDMARKS.neckY * h + measurements.headR * 0.7 // ≈ the ear line
     measurements.shoulderY = LANDMARKS.shoulderY * h
     measurements.chestY = LANDMARKS.chestY * h
     measurements.waistY = LANDMARKS.waistY * h
@@ -508,11 +522,34 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     if (b.neck && b.head) {
       b.neck.getWorldPosition(wp)
       b.head.getWorldPosition(wp2)
+      // the skull capsule: the #309 proportions (visually validated on the GLB) —
+      // the bind-pose mesh measurement under-reports the posed crown, so the
+      // measured head drives only the FACE blob below
       const r = colliders[0].radius
       wp.subVectors(wp2, wp).normalize() // the skull's up axis
       colliders[0].a.copy(wp2)
       colliders[0].b.copy(wp2).addScaledVector(wp, 1.15 * r)
-      measurements.crownY = colliders[0].b.y + r // the real skull top — crown headwear hangs from here
+      measurements.crownY = colliders[0].b.y + r // the skull top — crown headwear hangs from here
+      measurements.headBaseY = wp2.y // the head joint = the skull base / ear line
+      // the face blob — aimed at the MEASURED nose tip, rotated with the live head
+      // bone, sized so its surface touches the nose (cloth rests on the real face)
+      if (glbHead) {
+        b.head.getWorldQuaternion(faceQuat).multiply(glbHead.bindQuatInv)
+        faceScratch.copy(glbHead.nose).applyQuaternion(faceQuat) // nose offset, current pose
+        const noseOut = Math.hypot(faceScratch.x, faceScratch.z)
+        const fr = Math.max(0.02, 0.5 * noseOut)
+        const ox = (faceScratch.x / (noseOut || 1)) * (noseOut - fr)
+        const oz = (faceScratch.z / (noseOut || 1)) * (noseOut - fr)
+        faceCollider.radius = fr
+        faceCollider.a.set(wp2.x + ox, wp2.y + (glbHead.skullH || r) * 0.55, wp2.z + oz)
+        faceCollider.b.set(wp2.x + ox, wp2.y - 0.25 * r, wp2.z + oz)
+      } else {
+        faceCollider.radius = 0.42 * r
+        faceCollider.a.copy(wp2).addScaledVector(wp, 0.62 * r)
+        faceCollider.a.z += 0.62 * r
+        faceCollider.b.copy(wp2).addScaledVector(wp, -0.28 * r)
+        faceCollider.b.z += 0.55 * r
+      }
     }
     setCap(3, b.lArm, b.rArm) // shoulder line
     setCap(4, b.lUpLeg, b.rUpLeg) // hip line
@@ -538,6 +575,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   // Body anchors garments pin to. GLB → chest/hips bones (move with the animation);
   // procedural → static frames at the chest/hip landmarks (the torso doesn't animate).
   const anchorScratch = new THREE.Vector3()
+  const faceQuat = new THREE.Quaternion()
+  const faceScratch = new THREE.Vector3()
   const headMat = new THREE.Matrix4()
   const torsoMat = new THREE.Matrix4()
   const hipMat = new THREE.Matrix4()
@@ -724,6 +763,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     applyVisibility()
     syncBodyBVH(false) // GLB → invalidate (no metaball surface); metaball → rebuild
     if (useGlb) fitCollidersToGlb() // colliders + crownY must be real before garments rebuild on them
+    else faceCollider.radius = 0 // the procedural head IS its capsule + mesh — no face blob
     onBodyChange?.() // the body swapped (e.g. async GLB load) → garments re-drape + re-pin to it
   }
   /** Switch between the realistic GLB (static) and the animatable metaball body. */

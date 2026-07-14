@@ -37,6 +37,69 @@ export interface GlbBody {
   freezePose: (clip: 'idle' | 'walk', phase: number) => void
 }
 
+/**
+ * Measured GLB head geometry (bind pose, world space at load): the true skull
+ * height, lateral half-width, and the nose tip offset from the head joint —
+ * so the head/face colliders match the ACTUAL head instead of guessed
+ * headR-multiples. `bindQuatInv` lets per-frame fits rotate the stored nose
+ * offset with the animated head bone.
+ */
+export interface GlbHead {
+  /** Skull height above the head joint (m). */
+  skullH: number
+  /** Max lateral (|x|) half-width of the head (m). */
+  lateralR: number
+  /** Nose-tip offset from the head joint (bind pose, world axes). */
+  nose: THREE.Vector3
+  /** Inverse of the head bone's bind world rotation (to re-aim the nose per frame). */
+  bindQuatInv: THREE.Quaternion
+}
+
+/** Sample the skin above the head joint (every 3rd vertex) for the real head shape. Pure-ish (no scene writes). */
+export function measureGlbHead(model: THREE.Object3D, head: THREE.Object3D): GlbHead | null {
+  const hp = new THREE.Vector3()
+  head.updateWorldMatrix(true, false)
+  head.getWorldPosition(hp)
+  const v = new THREE.Vector3()
+  let top = hp.y
+  let lateral = 0
+  const nose = new THREE.Vector3()
+  let noseD = 0
+  model.updateWorldMatrix(true, true)
+  model.traverse((o) => {
+    const mesh = o as THREE.SkinnedMesh
+    if (!mesh.isMesh) return
+    if (mesh.isSkinnedMesh) mesh.skeleton.update() // boneMatrices only refresh on render — force them fresh
+    const posAttr = mesh.geometry.getAttribute('position')
+    if (!posAttr) return
+    for (let i = 0; i < posAttr.count; i += 3) {
+      // skinned meshes: bind-space geometry ≠ world (the Mixamo unit trap) — run
+      // the vertex through the live skeleton, then the mesh's world matrix
+      if (mesh.isSkinnedMesh) mesh.applyBoneTransform(i, v.fromBufferAttribute(posAttr, i))
+      else v.fromBufferAttribute(posAttr, i)
+      v.applyMatrix4(mesh.matrixWorld)
+      if (v.y < hp.y - 0.01) continue
+      if (v.y > top) top = v.y
+      const dx = v.x - hp.x
+      const dz = v.z - hp.z
+      if (Math.abs(dx) > lateral) lateral = Math.abs(dx)
+      // the nose: the farthest-forward point in the lower half of the head
+      const d = Math.hypot(dx, dz)
+      if (dz > 0 && d > noseD && v.y < hp.y + 0.1) {
+        noseD = d
+        nose.set(dx, v.y - hp.y, dz)
+      }
+    }
+  })
+  if (top <= hp.y + 0.02 || noseD === 0) return null
+  return {
+    skullH: top - hp.y,
+    lateralR: Math.max(0.07, Math.min(0.14, lateral)),
+    nose,
+    bindQuatInv: head.getWorldQuaternion(new THREE.Quaternion()).invert()
+  }
+}
+
 /** Classify a bone by name (strips a `mixorig:`-style prefix; side-agnostic segments are centred). */
 function boneKey(name: string): keyof GlbBones | undefined {
   const n = name.toLowerCase().replace(/^.*:/, '')

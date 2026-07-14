@@ -24,8 +24,9 @@ app.whenReady().then(async () => {
   // Forward renderer console lines (verification scripts read [capture-log] output).
   win.webContents.on('console-message', (...args) => {
     // Electron ≤31: (event, level, message, …); ≥32: (event, { message, … })
-    const msg = typeof args[1] === 'object' && args[1] !== null ? args[1].message : args[2]
-    if (typeof msg === 'string' && msg.includes('[capture-log]')) console.log(msg)
+    const d = typeof args[1] === 'object' && args[1] !== null ? args[1] : { level: args[1], message: args[2] }
+    const msg = d.message
+    if (typeof msg === 'string' && (msg.includes('[capture-log]') || d.level === 'error' || d.level === 3)) console.log('[renderer]', msg)
   })
   // Fresh state per capture — no autosave "Recover?" banner or sticky toggles in snapshots.
   await win.webContents.session.clearStorageData({ storages: ['localstorage'] })

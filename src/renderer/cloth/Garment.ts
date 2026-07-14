@@ -85,6 +85,9 @@ export interface TubeSpec {
    *  is kept outside this sphere's cross-section, so the tube spawns ON the skull
    *  dome instead of inside it (a deep-inside spawn resolves to the wrong side). */
   dome?: { cy: number; r: number }
+  /** Extra anchor pins at (u, v) tube fractions — a balaclava grips the nose
+   *  bridge + chin so it can't spin around the rotationally-symmetric head. */
+  extraPins?: Array<{ u: number; v: number }>
 }
 
 /** A sphere's cross-section radius at height `y` (0 outside the sphere). Pure. */
@@ -384,6 +387,13 @@ export function buildTubeGarment(spec: TubeSpec): TubeBuild {
   const cut = cutoutCells(spec.cutouts, spec.radial, spec.rings)
   const build = finishTube(positions, spec.radial, spec.rings, ringT, spec.openFront, cut.size ? cut : undefined)
   if (cut.size) build.cutRims = cutoutRims(spec.cutouts, spec.radial, spec.rings)
+  for (const pin of spec.extraPins ?? []) {
+    const ix = ((Math.round(pin.u * spec.radial) % spec.radial) + spec.radial) % spec.radial
+    let iy = 0
+    for (let k = 1; k < spec.rings; k++) if (Math.abs(ringT[k] - pin.v) < Math.abs(ringT[iy] - pin.v)) iy = k
+    const idx = iy * spec.radial + ix
+    if (!build.pinnedTop.includes(idx)) build.pinnedTop.push(idx)
+  }
   return build
 }
 
