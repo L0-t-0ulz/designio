@@ -9,6 +9,7 @@ import { puffHeight, DEFAULT_PUFF_LOGO, type PuffLogoParams } from './puffLogo'
 import { COWBOY, cowboyBrimLift } from './cowboy'
 import { FORMAL, formalBrimLift } from './formalHats'
 import { BOONIE, boonieBrimLift, CHIN_CORD, type BoonieSnap } from './boonie'
+import { BAKERBOY, goreLobe } from './bakerboy'
 import { headFrame } from './face'
 
 /**
@@ -21,8 +22,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'goggles' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'goggles', 'necklace', 'hoops']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -115,6 +116,7 @@ export class Accessories {
       this.buildTopHat(),
       this.buildBowler(),
       this.buildBoonie(),
+      this.buildBakerBoy(),
       this.buildBucket(),
       this.buildBalaclava(),
       this.buildGoggles(),
@@ -421,10 +423,10 @@ export class Accessories {
 
   private bill: CapBillParams = { ...DEFAULT_CAP_BILL }
 
-  /** The cap bill designer — re-shape every billed block (cap · visor) in place. */
+  /** The cap bill designer — re-shape every billed block (cap · visor · baker boy) in place. */
   setCapBill(p: Partial<CapBillParams>): void {
     this.bill = { ...this.bill, ...p }
-    for (const kind of ['cap', 'visor'] as AccessoryKind[]) {
+    for (const kind of ['cap', 'visor', 'bakerboy'] as AccessoryKind[]) {
       const it = this.items.find((i) => i.kind === kind)
       const holder = it?.obj.getObjectByName('bill-holder') as THREE.Group | undefined
       if (!it || !holder) continue
@@ -689,6 +691,36 @@ export class Accessories {
     const brim = new THREE.Mesh(this.rolledBrimGeometry(BOONIE.brimInnerR, BOONIE.brimOuterR, (az) => boonieBrimLift(az, this.boonieSnap)), mat)
     brim.position.y = HC - 0.02
     holder.add(brim)
+  }
+
+  private buildBakerBoy(): Item {
+    const mat = felt(0x4a3f33) // brown tweed
+    // the puffed 8-gore crown: a wide low dome whose rim scallops per panel
+    const geo = new THREE.SphereGeometry(1, 64, 24, 0, TAU, 0, Math.PI * 0.58)
+    const pos = geo.attributes.position
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i)
+      const z = pos.getZ(i)
+      // lobes are strongest at the equator (ring = sinθ) and vanish at the button
+      const s = 1 + BAKERBOY.puff * goreLobe(Math.atan2(x, z)) * Math.hypot(x, z)
+      pos.setX(i, x * s)
+      pos.setZ(i, z * s)
+    }
+    geo.scale(BAKERBOY.crownR, BAKERBOY.crownR * BAKERBOY.crownYScale, BAKERBOY.crownR)
+    geo.computeVertexNormals()
+    const crown = new THREE.Mesh(geo, mat)
+    crown.position.y = HC + 0.28 // the puff overhangs the fitted band below
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.07, 0.28, 32, 1, true), mat)
+    band.position.y = HC + 0.02
+    const btn = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), mat)
+    btn.position.y = HC + 0.28 + BAKERBOY.crownR * BAKERBOY.crownYScale
+    const holder = new THREE.Group()
+    holder.name = 'bill-holder'
+    holder.userData.mat = mat
+    this.addBillMeshes(holder, mat)
+    const obj = new THREE.Group()
+    obj.add(crown, band, btn, holder)
+    return this.headItem('bakerboy', obj)
   }
 
   private buildBoonie(): Item {
