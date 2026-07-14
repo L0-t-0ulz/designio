@@ -10,6 +10,8 @@ import { COWBOY, cowboyBrimLift } from './cowboy'
 import { FORMAL, formalBrimLift } from './formalHats'
 import { BOONIE, boonieBrimLift, CHIN_CORD, type BoonieSnap } from './boonie'
 import { BAKERBOY, goreLobe } from './bakerboy'
+import { strawRecipe } from './straw'
+import { makeDraftNormalMap, makeDraftRoughnessMap } from '../fabric/weaveDraft'
 import { headFrame } from './face'
 
 /**
@@ -847,8 +849,35 @@ export class Accessories {
     return this.headItem('beret', obj)
   }
 
+  /** The dry plaited-straw material — the basket draft baked to weave maps. */
+  private strawMaterial(): THREE.MeshPhysicalMaterial {
+    const r = strawRecipe()
+    const mat = new THREE.MeshPhysicalMaterial({
+      color: r.color,
+      roughness: r.roughness,
+      metalness: 0,
+      sheen: r.sheen,
+      sheenColor: r.sheenColor,
+      sheenRoughness: r.sheenRoughness,
+      side: THREE.DoubleSide
+    })
+    // the weave bake needs a canvas — headless vitest (node env) has none,
+    // so tests get the plain dry-sheen material and the app gets the plait
+    if (typeof document !== 'undefined') {
+      const tile = (t: THREE.Texture): THREE.Texture => {
+        t.wrapS = t.wrapT = THREE.RepeatWrapping
+        t.repeat.set(r.repeats, r.repeats)
+        return t
+      }
+      mat.normalMap = tile(makeDraftNormalMap(r.draft, r.normalStrength))
+      mat.roughnessMap = tile(makeDraftRoughnessMap(r.draft))
+      mat.normalScale.set(r.normalStrength, r.normalStrength) // the stack's idiom — relief lives here
+    }
+    return mat
+  }
+
   private buildSunHat(): Item {
-    const mat = felt(0xd9c08e) // straw
+    const mat = this.strawMaterial() // plaited straw, not felt
     const dome = new THREE.Mesh(new THREE.SphereGeometry(1.02, 24, 16, 0, TAU, 0, Math.PI * 0.5), mat)
     dome.position.y = HC
     // the statement piece: the parametric brim (a wide gentle droop by default)
