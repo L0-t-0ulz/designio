@@ -489,6 +489,19 @@ export const GARMENTS: GarmentDefinition[] = [
     visor: true
   },
   {
+    id: 'headband',
+    name: 'Twisted headband',
+    category: 'outerwear',
+    icon: 'top',
+    // a knit ear-warmer band around the forehead (open crown) with a front twist;
+    // negative rise drops the band's top edge from the crown to mid-forehead
+    pieces: [{ kind: 'headTube', anchor: 'crown', riseHi: -0.06, dropHi: 0.07, dropLo: 0.085, topScale: 1.2, botScale: 1.24 }],
+    supports: { ease: true, flare: true, length: true },
+    defaults: { length: 0.5, ease: 0.003, flare: 0 },
+    defaultFabric: 'rib-knit',
+    twist: true
+  },
+  {
     id: 'ski-mask',
     name: 'Ski mask',
     category: 'outerwear',

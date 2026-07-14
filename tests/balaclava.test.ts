@@ -265,3 +265,24 @@ describe('brimmed beanie', () => {
     expect(mx).toBeLessThan(3)
   }, 20000)
 })
+
+describe('twisted headband', () => {
+  it('is an open-crown band at the forehead (not a dome), and drapes bounded', () => {
+    const def = getGarment('headband')
+    expect(def.twist).toBe(true)
+    const spec = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+    expect(spec.topY).toBeLessThan(mann.measurements.crownY - 0.05) // sits below the crown
+    expect(spec.topY - spec.bottomY).toBeGreaterThan(0.05) // a real band, not a strip
+    expect(spec.topY - spec.bottomY).toBeLessThan(0.12)
+    expect(spec.radiusTop).toBeGreaterThan(mann.measurements.headR) // wraps the head, no gathered dome
+    const build = buildTubeGarment(spec)
+    const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 150; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
+})

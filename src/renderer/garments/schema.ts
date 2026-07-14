@@ -27,6 +27,8 @@ export interface GarmentDefinition {
   pom?: boolean
   /** A short stiff visor under the knit dome (brimmed beanie). */
   visor?: boolean
+  /** A crossed-knit twist at the band front (twisted headband). */
+  twist?: boolean
   /** How the front closure reads when enabled: a button placket (default) or a zip. */
   closureStyle?: 'button' | 'zip'
 }

@@ -42,7 +42,7 @@ If you are unsure whether something is allowed, **ask first.**
 - [At a glance](#at-a-glance)
 - [The homepage & "Design your piece"](#the-homepage--design-your-piece)
 - [The professional studio — every panel](#the-professional-studio--every-panel)
-- [The garment catalog — 45 garments](#the-garment-catalog--45-garments)
+- [The garment catalog — 46 garments](#the-garment-catalog--46-garments)
 - [Construction detail](#construction-detail)
 - [The fabric library — 29 fabrics](#the-fabric-library--29-fabrics)
 - [Surface design & fabric finishes](#surface-design--fabric-finishes)
@@ -157,7 +157,7 @@ once automatically and is always re-openable from **Help → Take the tour**.
 
 ---
 
-## The garment catalog — 45 garments
+## The garment catalog — 46 garments
 
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
 pieces), so breadth comes from data, not bespoke code. **Adding a garment is a data change, not new code.**

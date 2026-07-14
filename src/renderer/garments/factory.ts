@@ -99,6 +99,7 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   const rTop = baseR * pc.topScale * (1 + 0.3 * slouch) + p.ease // the slouchy variant's proven gather (0.13 → ~0.17)
   const rBot = baseR * pc.botScale * (1 + 0.22 * cuff) + p.ease + p.flare
   const spec = piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
+  spec.rings = Math.max(10, spec.rings) // a very short band (headband) still meshes finely enough to drape
   const face = pc.face && (p.faceStyle ?? pc.face)
   if (face && p.balaclavaWorn === 'rolled') {
     // the convertible fold: worn ROLLED UP as a beanie — the face/neck half is
