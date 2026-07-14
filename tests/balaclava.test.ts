@@ -129,9 +129,10 @@ describe('the ski-mask garment', () => {
     expect(open).toBeLessThan(eyes) // the open face drops the most
   })
 
-  it('bellies past the head radius at face height so it spawns off the face', () => {
+  it('bellies past the head radius at face height so it spawns off the face', async () => {
+    const { radiusAt } = await import('../src/renderer/cloth/Garment')
     const spec = skiMaskSpec()
-    expect(spec.radiusWaist).toBeGreaterThan(mann.measurements.headR)
+    expect(radiusAt(spec, 0.34)).toBeGreaterThan(mann.measurements.headR) // the face-belly stop
   })
 
   it('drapes finite + bounded on the body with its holes cut (dead particles pinned)', () => {
@@ -418,4 +419,62 @@ describe('breath-warp + the two-layer balaclava', () => {
     expect(liner.radiusBottom).toBeLessThan(mask.radiusBottom)
     expect(liner.radiusWaist ?? 0).toBeLessThanOrEqual(mask.radiusWaist ?? Infinity)
   })
+})
+
+describe('chin/jaw shaping + the distressed mask', () => {
+  it('radiusStops: piecewise profile matches its endpoints and every stop', async () => {
+    const { radiusAt } = await import('../src/renderer/cloth/Garment')
+    const spec = { rings: 20, radial: 44, topY: 1.76, bottomY: 1.43, radiusTop: 0.02, radiusBottom: 0.09, radiusStops: [{ t: 0.34, r: 0.12 }, { t: 0.62, r: 0.07 }] }
+    expect(radiusAt(spec, 0)).toBeCloseTo(0.02, 10)
+    expect(radiusAt(spec, 0.34)).toBeCloseTo(0.12, 10)
+    expect(radiusAt(spec, 0.62)).toBeCloseTo(0.07, 10)
+    expect(radiusAt(spec, 1)).toBeCloseTo(0.09, 10)
+    expect(radiusAt(spec, 0.48)).toBeGreaterThan(0.07) // between stops, between values
+    expect(radiusAt(spec, 0.48)).toBeLessThan(0.12)
+  })
+
+  it('the mask nips under the jaw — tighter than both the face belly and the hem', async () => {
+    const { radiusAt } = await import('../src/renderer/cloth/Garment')
+    const spec = skiMaskSpec('three-hole')
+    const belly = radiusAt(spec, 0.34)
+    const jaw = radiusAt(spec, 0.62)
+    expect(jaw).toBeLessThan(belly * 0.7)
+    expect(jaw).toBeLessThan(radiusAt(spec, 1))
+  })
+
+  it('frayedCells is deterministic, a superset, and only grows along the rim', async () => {
+    const { cutoutCells, frayedCells } = await import('../src/renderer/cloth/Garment')
+    const cells = cutoutCells([{ u0: 0.2, u1: 0.5, v0: 0.3, v1: 0.6 }], 20, 21)
+    const a = frayedCells(cells, 20, 21)
+    const b = frayedCells(cells, 20, 21)
+    expect([...a].sort()).toEqual([...b].sort()) // no RNG
+    for (const c of cells) expect(a.has(c)).toBe(true) // superset
+    expect(a.size).toBeGreaterThan(cells.size) // it chewed something
+    expect(a.size).toBeLessThan(cells.size * 3) // bounded growth
+    for (const c of a) {
+      if (cells.has(c)) continue
+      const cx = c % 20
+      const cy = Math.floor(c / 20)
+      const touchesCut = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => cells.has((cy + dy) * 20 + ((cx + dx + 20) % 20)))
+      expect(touchesCut, `cell ${c} not rim-adjacent`).toBe(true)
+    }
+  })
+
+  it('a distressed mask drops more quads, skips the binding, and still drapes bounded', () => {
+    const def = getGarment('ski-mask')
+    const neat = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+    const torn = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults, distressed: true }, mann.measurements)[0]
+    const nb = buildTubeGarment(neat)
+    const tb = buildTubeGarment(torn)
+    expect(tb.geometry.getIndex()!.count).toBeLessThan(nb.geometry.getIndex()!.count)
+    expect(tb.cutRims).toBeUndefined() // raw chewed holes — no neat binding
+    const solver = new XPBDSolver(tb.nx, tb.ny, tb.positions, FABRICS.cotton, { pinned: tb.pinnedTop, wrapX: true, dead: deadFromCells(tb.cutCells!, tb.nx, tb.ny) })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 150; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let k = 0; k < tb.positions.length; k++) mx = Math.max(mx, Math.abs(tb.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
 })

@@ -191,6 +191,7 @@ function initStudio(
     sleeveShape: l0.sleeveShape,
     faceStyle: l0.faceStyle,
     breath: l0.breath,
+    distressed: l0.distressed,
     balaclavaWorn: l0.balaclavaWorn,
     cuffHeight: l0.cuffHeight,
     slouch: l0.slouch,
@@ -352,6 +353,7 @@ function initStudio(
     garment.sleeveShape = l.data.sleeveShape
     garment.faceStyle = l.data.faceStyle
     garment.breath = l.data.breath
+    garment.distressed = l.data.distressed
     garment.balaclavaWorn = l.data.balaclavaWorn
     garment.cuffHeight = l.data.cuffHeight
     garment.slouch = l.data.slouch
@@ -783,6 +785,7 @@ function initStudio(
     l.data.sleeveShape = garment.sleeveShape
     l.data.faceStyle = garment.faceStyle
     l.data.breath = garment.breath
+    l.data.distressed = garment.distressed
     l.data.balaclavaWorn = garment.balaclavaWorn
     l.data.cuffHeight = garment.cuffHeight
     l.data.slouch = garment.slouch
@@ -2362,6 +2365,7 @@ if (skipStart) {
   const sw = parseFloat(entryParams.get('scarfWidth') ?? '')
   if (Number.isFinite(sw)) cfg.scarfWidth = Math.max(0.5, Math.min(1.8, sw))
   if (entryParams.get('breath') === '1') cfg.breath = true
+  if (entryParams.get('distressed') === '1') cfg.distressed = true
   const gw = entryParams.get('gaiterWorn')
   if (gw === 'up' || gw === 'down') cfg.gaiterWorn = gw
   const cpatch = entryParams.get('cuffPatch')
