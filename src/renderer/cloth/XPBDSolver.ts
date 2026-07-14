@@ -476,6 +476,24 @@ export class XPBDSolver {
   }
 
   /**
+   * Stiffen every constraint whose two ends both sit in `nodes` — the physics
+   * half of an **opening binding**: the ribbed elastic edge around a cut hole
+   * runs much stiffer than the surrounding knit, so the opening holds its
+   * shape. Returns how many constraints it touched (testable).
+   */
+  stiffenAmong(nodes: ReadonlySet<number>, factor: number): number {
+    let touched = 0
+    for (const c of this.constraints) {
+      if (nodes.has(c.i) && nodes.has(c.j)) {
+        c.compliance *= factor
+        touched++
+      }
+    }
+    if (touched) this.wake()
+    return touched
+  }
+
+  /**
    * Unsew the tube along the boundary between columns `col` and `col+1` (a
    * **functional opening** — an open placket/zip): every constraint whose two
    * particles sit either side of that boundary is removed, so the two front edges
