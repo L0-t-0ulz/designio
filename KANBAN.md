@@ -5,12 +5,17 @@ _Ship rule: one feature per branch → green CI (Node 20/22) → merge to `main`
 
 Legend: ✅ done · 🔄 in progress · 📋 backlog
 
-_Latest sweep — 2026-07-12: **PRs #244–#277 shipped (48 cards)** — the fit-analysis trio (pressure map ·
-grade rules · size recommendation · ease-by-zone · fit profiles), functional openings + cloth tearing,
-activewear + fabric + headwear catalog growth (38 garments · 29 fabrics), the capture suite (contact
-sheet · 360° viewer · ghost mannequin · social/blur/slow-mo recordings · focus pull), the production
-paperwork loop (line sheet · QC sheet · sample order · factory JSON+DXF-AAMA · size set · supplier BOM ·
-sustainability), storm wind, walk styles, posture presets, keyboard-shortcut editor + a bug sweep._
+_Latest sweep — 2026-07-14: **the headwear perfection tier is at 36 of 72 cards (PRs #309–#333)** —
+the **ski mask & balaclava group (10/10)** and the **structured hats group (12/12)** are ✅ COMPLETE
+(crown shapes · hat bands · cap bill/panels/puff embroidery · cowboy · top hat & bowler · boonie ·
+baker boy · visor · straw weave, all on the parametric brim keystone), beanies at 9/10 (crown-decrease
+swirl deferred). Suite 883. **GitHub Actions is billing-blocked** (Settings → Billing) — every PR since
+#315 merged on local verification, and a full **manual containerized CI run** (Node 20/22 check matrix +
+the SwiftShader golden job in Docker) came back green at #329's HEAD._
+
+_Earlier sweep — 2026-07-12: PRs #244–#277 (48 cards) — the fit-analysis trio, functional openings +
+tearing, activewear/fabric/headwear catalog growth, the capture suite, the production paperwork loop,
+storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 
 ---
 
@@ -118,7 +123,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 
 ## 🔄 In progress
 
-- _(nothing right now — pick the next card from the backlog)_
+- 🔄 **README re-capture** — all ~55 doc shots re-rendered post-hats-group (fedora/cap/sunhat drifted) + a new structured-hat-studio section (3 shots) — rendering now, lands as a docs PR
 
 ---
 
@@ -295,9 +300,11 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Headwear colourways + presets** — colour / pattern each piece; per-type quick-look presets
 - [ ] **Headwear in the Library + runway line-up + projects** — category, icons, and inclusion in the collection shot
 
-**Perfection tier** _(queued 2026-07-13 — go deep on every head/neck piece: 72 cards)_
+**Perfection tier** _(queued 2026-07-13 — go deep on every head/neck piece: 72 cards — **36 done**:
+✅ ski mask & balaclava 10/10 · beanies 9/10 · ✅ structured hats 12/12 · scarves 3/12 · wraps 2/8 ·
+fit & physics 0/10 · materials & production 0/10)_
 
-**Perfection — Ski mask & balaclava**
+**Perfection — Ski mask & balaclava** ✅ _(complete — 10/10)_
 - [x] **Balaclava opening styles** — full · eyes-only · three-hole · open-face cut-out variants as data (`balaclavaCutouts`, sized from the head radius, measured down from the crown); `faceStyle` GarmentParams → panel picker (gated on `supports.faceStyle`) → `?balaclavaFace=` deep-link, mirroring sleeveShape; per-style quad-drop ordering unit-tested — PR #309 _(full-face-zip deferred to the closure designer)_
 - [x] **Balaclava convertible fold** — roll it up into a beanie / down over the face — two worn states on one piece: `balaclavaWorn` ('down' · 'rolled') re-specs the face-style headTube when rolled (short crown drop + snug fat doubled band; holes + grip pins ride inside the roll); 'Worn' toggle beside the Face-opening picker; `?balaclavaWorn=`. Also fixed the **gradeParams gap**: faceStyle/cuffHeight/slouch never reached the actual build mapping (panel + deep-links silently ignored) — all four param sets re-verified visually — PR #313
 - [x] **Face-opening binding** — a ribbed elastic edge around the eye/mouth holes so the cut-outs read finished, not raw. Pure `cutoutRims` walks the closed node loop around each hole (never touching dead particles); `garment/HoleBinding` traces a drape-following trim-coloured cord along each rim per frame (the piping idiom); `XPBDSolver.stiffenAmong` runs the rim constraints ×0.2 compliance so a bound opening HOLDS its shape. Also shipped the fit foundations the card surfaced: `TubeSpec.extraPins` (the mask grips the nose bridge + chin — no more spinning on rotationally-symmetric colliders), a **GLB face collider** aimed/sized from the measured nose (`measureGlbHead` via `applyBoneTransform` — face fabric no longer sinks through the nose), `Measurements.headBaseY` true-skull face landmarks, and the **anatomy-bookmark FRONT azimuth fix** (was π/2 = the SIDE since it shipped; `?closeup=head&headDist=` now frames true face-on) — PR #310
@@ -309,7 +316,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Helmet-liner balaclava** — a low-profile thin snug variant (no cuff) that fits under a helmet/hood: the `helmet-liner` garment (snug open-face headTube, spandex) — PR #317
 - [x] **Ski goggles accessory** — strap + mirrored lens riding the balaclava/head frame: `AccessoryKind 'goggles'` — a mirrored sphere-patch lens band + white frame shell + strap torus at eye level, placed by the unit head frame (verified worn OVER the cloth ski mask); `?accessories=goggles` — PR #318
 
-**Perfection — Beanies & knit caps**
+**Perfection — Beanies & knit caps** _(9/10 — crown-decrease swirl deferred: needs a non-tiling polar crown texture)_
 - [x] **Cuff height slider** — skull-cap → single roll → deep double roll, one beanie, live re-sim: `cuffHeight` (0…1) widens the band +22% and eats drop length in `headTubeToSpec`; 'Beanie fit' slider gated on `supports.beanieFit` (all 5 beanies); `?cuffHeight=` — PR #312
 - [x] **Slouch depth control** — crown length slider from fitted to full slouch; the gather auto-tunes so it stays on: `slouch` (0…1) adds up to +10 cm crown length while the gather tightens (−30%) per the #276 lesson; spec math + extremes-stability unit-tested; `?slouch=` — PR #312
 - [x] **Pom customizer** — pom size · fluff · contrast colour · faux-fur pom (drives the fur finish): `pomScale` (0.4…2, bigger sits higher) · `pomColor` (contrast, defaults to the garment) · `pomFur` (fur-finish pile normal + sheen) on LayerData, read by `buildPom` decor; 'Pom-pom' panel block gated on `def.pom`; `?pomScale=&pomColor=&pomFur=1` — PR #314
@@ -321,7 +328,7 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [x] **Beanie negative-ease heatmap** — show the stretch-band pressure of a snug knit on the head: `?ease=` deep-link (the slider already reached −3 cm); crown pieces now survive compression (ease floored −1.2 cm, the band compresses but never the gather, compressed spawns dome-clamped — neutral drape verified unregressed); snug band + `?pressure=1` reads the contact heatmap — PR #321
 - [x] **Convertible three-way** — one knit piece worn as beanie · balaclava · neck gaiter (three states): the `convertible` garment — `convertibleWorn` routes to the group's spec branches (face · rolled · a neck state); 3-seg picker + `?convertibleWorn=` — PR #321
 
-**Perfection — Structured hats**
+**Perfection — Structured hats** ✅ _(complete — 12/12)_
 - [x] **Parametric brim designer** — width · droop/flip curve · edge wire, for any hat block: pure `avatar/brim.brimProfile` (per-kind spreads, run-scaled droop so wide brims actually slope, negative droop = flipped up) + `Accessories.setBrim` rebuilding the bucket/sun-hat brims in place + a wired-edge torus; Avatar-panel sliders + `?brimWidth/brimDroop/brimWire` — PR #322 _(the fedora joins with the crown-shapes card)_
 - [x] **Crown shape library** — teardrop · centre-dent · diamond · telescope (pork-pie) crown creases: pure `avatar/crown.crownDrop` plan-disc depth fields pressed straight down into a new blocked-felt fedora crown (fades before the wall; the fedora joins the unit head frame + parametric brim per the #322 note — `crown-holder`/`brim-holder` rebuilds); crown chips under the brim sliders + `?crownShape=` — PR #323
 - [x] **Hat band designer** — grosgrain · leather · braided cord bands + bow/feather/buckle trims: pure `avatar/hatBand` (band profiles + a two-strand `braidY` that genuinely crosses around the crown + millinery `trimAnchor` side placement, per-style classic colours); `Accessories.setHatBand` rebuilds `band-holder`s on the fedora + sun hat in place (the sun hat's fixed torus band became the default grosgrain); band + trim chips under the crown shapes + `?hatBand=/bandTrim=/bandColor=` — PR #324
