@@ -170,7 +170,11 @@ function initStudio(
   const stack = new GarmentStack(viewport.scene, mannequin.colliders, mannequin.measurements, mannequin.bodyCollider, () => mannequin.anchors())
   // When the body swaps (the async GLB avatar arrives, or the toggle), re-drape every
   // garment so its pins re-bind to the new body's anchors instead of the old one's.
-  mannequin.setOnBodyChange(() => stack.redrapeAll())
+  // Body swap (async GLB load / toggle): REBUILD, don't just redrape — a redrape
+  // refills each piece from its build-time spec, which was measured on the OLD
+  // body; the swapped body's landmarks (especially the head) sit elsewhere, so
+  // crown headwear refilled at the stale crown and slid to the neck.
+  mannequin.setOnBodyChange(() => stack.rebuildAll())
   let patternCtl: PatternController | null = null
 
   // Panel edit buffers — always mirror the ACTIVE layer.
@@ -2166,6 +2170,42 @@ function initStudio(
     viewport.camera.position.set(0.12, 1.16, 0.62)
     viewport.controls.target.set(0, 1.08, 0.12)
     viewport.controls.update()
+  }
+  if (params.get('debugHead')) {
+    console.log('[capture-log] debugHead armed')
+    window.setTimeout(() => {
+      try {
+      const m = mannequin.measurements
+      const c0 = mannequin.colliders[0]
+      const head = mannequin.anchors().head.elements
+      const piece = stack.active.controller.getPieces()[0]
+      const pos = piece ? (piece.mesh.geometry.getAttribute('position').array as Float32Array) : null
+      let minY = Infinity
+      let maxY = -Infinity
+      let cy = 0
+      const n = pos ? pos.length / 3 : 0
+      if (pos) {
+        for (let k = 0; k < n; k++) {
+          const y = pos[k * 3 + 1]
+          minY = Math.min(minY, y)
+          maxY = Math.max(maxY, y)
+          cy += y
+        }
+      }
+      console.log('[capture-log]', JSON.stringify({
+        neckY: m.neckY, headR: m.headR,
+        cap0: { ax: c0.a.x, ay: c0.a.y, az: c0.a.z, by: c0.b.y, bz: c0.b.z, r: c0.radius },
+        headAnchorY: head[13], headAnchorZ: head[14],
+        pieceY: pos ? { minY, maxY, cy: cy / n } : null
+      }))
+      } catch (err) {
+        console.log('[capture-log] debugHead failed:', String(err))
+      }
+    }, 8000)
+  }
+  if (params.get('closeup') === 'head') {
+    // the Face anatomy shot — frames the head for headwear verification
+    viewport.setCameraPose(anatomyShots(mannequin.measurements)[0].pose)
   }
   if (params.get('tour') === '1') window.setTimeout(() => startTour(), 500) // force the tour (verify/share)
   if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)

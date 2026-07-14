@@ -86,7 +86,7 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
  */
 export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measurements): TubeSpec {
   const crown = pc.anchor === 'crown'
-  const baseY = crown ? m.neckY + m.headR * 2.7 : m.neckY // ≈ the visual crown, or the neck base
+  const baseY = crown ? m.crownY : m.neckY // the measured skull top, or the neck base
   const baseR = crown ? m.headR : m.neckR
   const topY = baseY + (pc.riseHi ?? 0)
   const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length
@@ -96,10 +96,14 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   const spec = piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
   const face = pc.face && (p.faceStyle ?? pc.face)
   if (face) {
-    // a face style implies full-head coverage: belly the tube out at face height so
-    // it spawns just off the face (not inside the head) and narrows to the neck
-    spec.radiusWaist = baseR * 1.06 + p.ease
+    // a face style implies full-head coverage: belly the tube out at face height,
+    // narrow to the neck, and spawn every ring ON the skull dome (never inside —
+    // a deep-inside spawn resolves the face fabric to the wrong side of the head)
+    // clearances sized for the REALISTIC avatar too: the GLB's true skull + hair
+    // shell runs larger than the bone-fitted capsule radius, so ride well over it
+    spec.radiusWaist = baseR * 1.18 + p.ease
     spec.waistT = 0.34
+    spec.dome = { cy: topY - m.headR, r: m.headR * 1.14 + p.ease }
     const cuts = balaclavaCutouts(face, topY, bottomY, m)
     if (cuts.length) spec.cutouts = cuts
   }
@@ -115,8 +119,8 @@ export function balaclavaCutouts(face: BalaclavaFace, topY: number, bottomY: num
   if (face === 'full') return []
   const span = Math.max(0.05, topY - bottomY)
   const v = (y: number): number => Math.min(0.94, Math.max(0.06, (topY - y) / span))
-  const eyeY = m.neckY + m.headR * 1.9 // the eye line up the head
-  const mouthY = m.neckY + m.headR * 1.05
+  const eyeY = topY - m.headR * 0.8 // the eye line, measured down from the crown
+  const mouthY = topY - m.headR * 1.65
   const eyeHalf = (m.headR * 0.18) / span // half-heights as v spans
   const mouthHalf = (m.headR * 0.16) / span
   const U = 0.25

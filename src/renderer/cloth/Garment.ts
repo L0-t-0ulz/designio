@@ -81,6 +81,16 @@ export interface TubeSpec {
   /** Cut-out openings (a balaclava's eye/mouth holes): quads inside are dropped and
    *  fully-orphaned particles go dead, so the holes are real — you see through them. */
   cutouts?: TubeCutout[]
+  /** Spawn-shape clamp for full-head pieces (a balaclava): every ring's rest radius
+   *  is kept outside this sphere's cross-section, so the tube spawns ON the skull
+   *  dome instead of inside it (a deep-inside spawn resolves to the wrong side). */
+  dome?: { cy: number; r: number }
+}
+
+/** A sphere's cross-section radius at height `y` (0 outside the sphere). Pure. */
+export function domeCross(dome: { cy: number; r: number }, y: number): number {
+  const d = dome.r * dome.r - (y - dome.cy) * (y - dome.cy)
+  return d > 0 ? Math.sqrt(d) : 0
 }
 
 /** A rectangular opening in tube-fraction space — `u` around the tube (0…1,
@@ -279,6 +289,7 @@ export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[
       if (spec.crease) r *= 1 + 0.07 * creaseWave(a) // pressed fore/aft trouser crease
       const top = topEdge(spec, a) // per-column top so the neckline is shaped
       const y = top + (bottomEdge(spec, a) - top) * t // per-column hem (high-low · shirttail · handkerchief)
+      if (spec.dome) r = Math.max(r, domeCross(spec.dome, y) + 0.004) // spawn on/off the skull, never inside
       const k = (iy * radial + ix) * 3
       positions[k] = cx + Math.cos(a) * r
       positions[k + 1] = y
