@@ -298,6 +298,94 @@ sustainability), storm wind, walk styles, posture presets, keyboard-shortcut edi
 - [ ] **Headwear colourways + presets** — colour / pattern each piece; per-type quick-look presets
 - [ ] **Headwear in the Library + runway line-up + projects** — category, icons, and inclusion in the collection shot
 
+**Perfection tier** _(queued 2026-07-13 — go deep on every head/neck piece: 72 cards)_
+
+**Perfection — Ski mask & balaclava**
+- [ ] **Balaclava opening styles** — eyes-only · three-hole · open-face · full-face-zip face cut-out variants on the cloth-sim shell
+- [ ] **Balaclava convertible fold** — roll it up into a beanie / down over the face — two worn states on one piece
+- [ ] **Face-opening binding** — a ribbed elastic edge around the eye/mouth holes so the cut-outs read finished, not raw
+- [ ] **Balaclava chin & jaw shaping** — under-jaw darts so the shell hugs the jawline instead of tenting
+- [ ] **Two-layer balaclava** — an inner liner + outer shell simulated as layered cloth that slide on each other
+- [ ] **Balaclava breath-warp** — a subtle cyclic wind source at the mouth hole so the fabric visibly breathes
+- [ ] **Ski-mask jacquard presets** — skull · flame · frostbite colourwork charts mapped to the face tube
+- [ ] **Distressed ski mask** — frayed hole edges + pilling concentrated on the high-wear zones
+- [ ] **Helmet-liner balaclava** — a low-profile thin snug variant (no cuff) that fits under a helmet/hood
+- [ ] **Ski goggles accessory** — strap + mirrored lens riding the balaclava/head frame
+
+**Perfection — Beanies & knit caps**
+- [ ] **Cuff height slider** — skull-cap → single roll → deep double roll, one beanie, live re-sim
+- [ ] **Slouch depth control** — crown length slider from fitted to full slouch; the gather auto-tunes so it stays on
+- [ ] **Pom customizer** — pom size · fluff · contrast colour · faux-fur pom (drives the fur finish)
+- [ ] **Chullo** — ear flaps + braided tie cords + an alpaca colourwork band
+- [ ] **Crown decrease swirl** — the real spiral-decrease shading at a beanie crown, knit-chart driven
+- [ ] **Beanie gauge presets** — fine machine knit → hand-knit super-chunky, driven by the yarn library
+- [ ] **Cuff patch & label** — leather patch · woven label · flag embroidery placement on the cuff
+- [ ] **Brimmed beanie** — a short stiff visor under the knit dome
+- [ ] **Beanie negative-ease heatmap** — show the stretch-band pressure of a snug knit on the head
+- [ ] **Convertible three-way** — one knit piece worn as beanie · balaclava · neck gaiter (three states)
+
+**Perfection — Structured hats**
+- [ ] **Parametric brim designer** — width · droop/flip curve · edge wire, for any hat block
+- [ ] **Crown shape library** — teardrop · centre-dent · diamond · telescope (pork-pie) crown creases
+- [ ] **Hat band designer** — grosgrain · leather · braided cord bands + bow/feather/buckle trims
+- [ ] **5-panel vs 6-panel cap** — real panel seams + crown topstitch, construction picker
+- [ ] **Cap bill designer** — flat↔pre-curved slider · contrast underbill · squatchee button
+- [ ] **3D puff cap embroidery** — a raised puff-embroidered logo bump on the front panels
+- [ ] **Boonie hat** — chin cord + snap-up brim sides
+- [ ] **Baker boy volume** — the 8-panel puffed crown over the flat-cap base
+- [ ] **Straw weave material** — an open straw weave draft + dry sheen for sun hats
+- [ ] **Cowboy hat** — creased crown + upturned brim + band
+- [ ] **Top hat & bowler** — the formal blocked-felt pair
+- [ ] **Visor** — a brim + band with an open crown (ponytail-friendly)
+
+**Perfection — Scarves & neckwear**
+- [ ] **Scarf dimension designer** — length · width · gauge with live re-sim
+- [ ] **Cloth-sim scarf fringe** — real hanging fringe strands on the tail hems (not painted)
+- [ ] **Parisian knot sim** — fold-in-half + pull-through, pinned at the loop like the real knot
+- [ ] **Double-wrap states** — once-around vs doubled neck turns with stable self-collision
+- [ ] **Scarf pin / brooch** — pin two cloth points together where placed (an extra stitch constraint)
+- [ ] **Scarf tuck-into-coat** — tails tucked under a layered coat front (layer-aware pinning)
+- [ ] **Blanket-scarf shoulder drape** — the oversized square folded diagonally over the shoulders
+- [ ] **Skinny silk scarf** — a narrow charmeuse ribbon tied loose at the throat
+- [ ] **Tartan sett designer** — a real sett (thread-count stripes) driving the scarf plaid
+- [ ] **Scarf gift-fold render** — a flat folded product shot for the line sheet
+- [ ] **Gaiter up/down states** — bunched at the neck vs pulled over the nose — two rest states
+- [ ] **Cowl-to-hood hybrid** — a snood that pulls up over the crown and drapes back down
+
+**Perfection — Head scarves & wraps**
+- [ ] **Hijab style set** — shayla · al-amira · turban-wrap variants over the under-cap
+- [ ] **Hijab under-cap** — a snug jersey cap layer the wrap drapes over
+- [ ] **Turban wrap count** — visible wrap layers + the front twist knot
+- [ ] **Durag** — skull wrap + long tie tails + the back flap draping the neck
+- [ ] **Bandana face-cover state** — the folded triangle tied over the nose
+- [ ] **Satin-lined bonnet** — elastic edge ruche + the satin interior sheen
+- [ ] **Twisted headband** — a knit ear-warmer band with the front twist
+- [ ] **Pre-tied wrap presets** — one-click wrap styles with the knot geometry baked in
+
+**Perfection — Fit & physics**
+- [ ] **Head-size grading** — headwear grades from the head-circumference measurement (XS–XL run)
+- [ ] **Brow pressure map** — the contact-pressure heatmap scoped to a hat's brow band
+- [ ] **Elastic band physics** — a real stretch-band constraint ring holding gaiters/bonnets/visors on
+- [ ] **Storm keep-on test** — a headless test that every headwear piece stays anchored in storm wind
+- [ ] **Hair-volume aware fit** — crown volume adapts over afro/bob/long hair via hair colliders
+- [ ] **Ear clearance** — ear stand-off in the head colliders so cuffs and bands don't clip ears
+- [ ] **Headwear-over-headwear** — hood over cap · beanie over balaclava — deterministic layering order
+- [ ] **Chin-strap physics** — a cord under the chin that actually holds a sun hat in wind
+- [ ] **Glasses + headwear** — a sunglasses accessory coexisting with beanies/hats (temple clearance)
+- [ ] **Head-turn stress captures** — all headwear golden-captured across turn/nod extremes
+
+**Perfection — Materials & production**
+- [ ] **Waxed rain hat** — waterproof shell sheen + water-bead normal detail
+- [ ] **Fleece lining reveal** — a visible contrast lining at rolled cuffs + folded brims
+- [ ] **Melton & boiled wool** — dense felted presets tuned for structured headwear
+- [ ] **Corduroy cap fabric** — wale-scaled cord for dad hats
+- [ ] **Party headwear finishes** — sequins/beading tuned for small-panel headwear
+- [ ] **Reflective piping** — retroreflective trim on winter headwear that lights toward the camera
+- [ ] **Headwear pattern suite** — gore crowns · brims · bands unwrapped to SVG/DXF per style
+- [ ] **Headwear cost sheet** — small-panel yield + trims (pom · wire · sweatband) in the cost rollup
+- [ ] **Headwear size-run line-up** — one hat rendered across the head-size run into a single PNG
+- [ ] **Headwear care labels** — knit/felt/straw-specific care lines in the manufacturing pack
+
 ---
 
 ## 🔬 Refinements & polish _(deepen what's already shipped — each is a small, self-contained card)_
