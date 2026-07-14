@@ -39,6 +39,7 @@ export interface DesignConfig {
   scarfPin?: boolean
   pinAt?: number
   scarfKnot?: boolean
+  scarfDouble?: boolean
   gaiterWorn?: import('../garments/schema').GaiterWorn
   pomScale?: number
   pomColor?: number

@@ -100,6 +100,8 @@ export interface GarmentState {
   pinAt?: number
   /** Worn in the Parisian knot. */
   scarfKnot?: boolean
+  /** Worn double-wrapped — two spiral turns around the neck. */
+  scarfDouble?: boolean
   /** Gaiter worn state — bunched at the neck or pulled over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Pom customizer (pom-pom beanie) — size · contrast colour · faux-fur pile. */
@@ -518,10 +520,11 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   scarfBlock.append(el('div', 'dio-field-label', 'Scarf fit (Length drives the tails)'), track(scarfW))
   // the scarf pin / brooch: an extra stitch constraint sewing the tails together
   const knotT = toggle({ label: 'Parisian knot', get: () => !!garment.scarfKnot, set: (v) => { garment.scarfKnot = v || undefined; syncGarment(); opts.onGarmentEdit() } })
+  const doubleT = toggle({ label: 'Double wrap', get: () => !!garment.scarfDouble, set: (v) => { garment.scarfDouble = v || undefined; syncGarment(); opts.onGarmentEdit() } })
   const pinT = toggle({ label: 'Scarf pin (brooch)', get: () => !!garment.scarfPin, set: (v) => { garment.scarfPin = v || undefined; syncGarment(); opts.onGarmentEdit() } })
   const pinAtS = slider({ label: 'Pin position', min: 0.02, max: 0.45, step: 0.01, format: (v) => `${Math.round(v * 100)}%`, get: () => garment.pinAt ?? 0.12, set: (v) => { garment.pinAt = v; syncGarment(); opts.onGarmentEdit() } })
   const pinBlock = el('div')
-  pinBlock.append(track(knotT), track(pinT), track(pinAtS))
+  pinBlock.append(track(knotT), track(doubleT), track(pinT), track(pinAtS))
 
   // gaiter worn toggle (bunched at the neck / pulled over the nose)
   const gaiterRow = el('div', 'dio-actions')
