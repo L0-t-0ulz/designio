@@ -190,6 +190,8 @@ function initStudio(
     sleeve: l0.sleeve,
     sleeveShape: l0.sleeveShape,
     faceStyle: l0.faceStyle,
+    cuffHeight: l0.cuffHeight,
+    slouch: l0.slouch,
     size: l0.size,
     gradeRules: l0.gradeRules,
     collar: l0.collar,
@@ -341,6 +343,8 @@ function initStudio(
     garment.sleeve = l.data.sleeve
     garment.sleeveShape = l.data.sleeveShape
     garment.faceStyle = l.data.faceStyle
+    garment.cuffHeight = l.data.cuffHeight
+    garment.slouch = l.data.slouch
     garment.size = l.data.size
     garment.gradeRules = l.data.gradeRules
     garment.collar = l.data.collar
@@ -762,6 +766,8 @@ function initStudio(
     l.data.sleeve = garment.sleeve
     l.data.sleeveShape = garment.sleeveShape
     l.data.faceStyle = garment.faceStyle
+    l.data.cuffHeight = garment.cuffHeight
+    l.data.slouch = garment.slouch
     l.data.size = garment.size
     l.data.gradeRules = garment.gradeRules
     l.data.collar = garment.collar
@@ -2316,6 +2322,10 @@ if (skipStart) {
   if (ss && (SLEEVE_SHAPES as string[]).includes(ss)) cfg.sleeveShape = ss as SleeveShape
   const balFace = entryParams.get('balaclavaFace')
   if (balFace && (BALACLAVA_FACES as string[]).includes(balFace)) cfg.faceStyle = balFace as BalaclavaFace
+  const cuffH = parseFloat(entryParams.get('cuffHeight') ?? '')
+  if (Number.isFinite(cuffH)) cfg.cuffHeight = Math.max(0, Math.min(1, cuffH))
+  const slch = parseFloat(entryParams.get('slouch') ?? '')
+  if (Number.isFinite(slch)) cfg.slouch = Math.max(0, Math.min(1, slch))
   if (entryParams.get('cuff')) cfg.cuff = true
   if (entryParams.get('pleats')) cfg.pleats = true
   const pl = entryParams.get('pleatStyle')

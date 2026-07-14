@@ -29,6 +29,8 @@ export interface DesignConfig {
   sleeve: SleeveStyle
   sleeveShape?: SleeveShape
   faceStyle?: import('../garments/schema').BalaclavaFace
+  cuffHeight?: number
+  slouch?: number
   /** Manufacturing size (grades the garment girth). */
   size: SizeLabel
   /** Construction detail (optional). */

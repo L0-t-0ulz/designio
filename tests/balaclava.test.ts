@@ -156,3 +156,40 @@ describe('the ski-mask garment', () => {
     expect(full).toBeGreaterThan(three)
   })
 })
+
+describe('beanie fit (cuff roll + slouch)', () => {
+  const spec = (over: Record<string, number>) => {
+    const def = getGarment('beanie')
+    return garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults, ...over }, mann.measurements)[0]
+  }
+
+  it('slouch adds crown length and shrinks the gather so it stays on', () => {
+    const base = spec({})
+    const slouched = spec({ slouch: 1 })
+    expect(slouched.bottomY).toBeLessThan(base.bottomY) // longer drop
+    expect(slouched.radiusTop).toBeLessThan(base.radiusTop) // tighter gather
+  })
+
+  it('a rolled cuff widens the band and eats drop length', () => {
+    const base = spec({})
+    const cuffed = spec({ cuffHeight: 1 })
+    expect(cuffed.radiusBottom).toBeGreaterThan(base.radiusBottom)
+    expect(cuffed.bottomY).toBeGreaterThan(base.bottomY) // rolling up shortens
+  })
+
+  it('defaults unchanged when the params are absent, and a slouched beanie still drapes bounded', () => {
+    const def = getGarment('beanie')
+    const a = spec({})
+    const b = garmentTubeSpecs(def, { ...DEFAULT_PARAMS, ...def.defaults }, mann.measurements)[0]
+    expect(a.radiusTop).toBe(b.radiusTop)
+    const build = buildTubeGarment(spec({ slouch: 1, cuffHeight: 1 }))
+    const solver = new XPBDSolver(build.nx, build.ny, build.positions, FABRICS.cotton, { pinned: build.pinnedTop, wrapX: true })
+    solver.colliders = mann.colliders
+    solver.bodyCollider = mann.bodyCollider
+    for (let i = 0; i < 150; i++) solver.step(1 / 60)
+    let mx = 0
+    for (let k = 0; k < build.positions.length; k++) mx = Math.max(mx, Math.abs(build.positions[k]))
+    expect(Number.isFinite(mx)).toBe(true)
+    expect(mx).toBeLessThan(3)
+  }, 20000)
+})
