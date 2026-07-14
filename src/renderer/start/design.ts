@@ -35,6 +35,7 @@ export interface DesignConfig {
   pomScale?: number
   pomColor?: number
   pomFur?: boolean
+  cuffPatch?: 'leather' | 'woven'
   /** Manufacturing size (grades the garment girth). */
   size: SizeLabel
   /** Construction detail (optional). */

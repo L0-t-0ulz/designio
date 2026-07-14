@@ -160,6 +160,8 @@ export interface GarmentLayerData {
   pomScale?: number
   pomColor?: number
   pomFur?: boolean
+  /** A brand patch on the beanie band — leather patch or woven label. */
+  cuffPatch?: 'leather' | 'woven'
   /** Manufacturing size (grades the girth). */
   size: SizeLabel
   /** Custom per-point grade increments (cm / size step); default = uniform girth grade. */
@@ -397,6 +399,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     pomScale: c.pomScale,
     pomColor: c.pomColor,
     pomFur: c.pomFur,
+    cuffPatch: c.cuffPatch,
     size: c.size,
     collar: c.collar,
     collarStyle: c.collarStyle,
