@@ -5,6 +5,8 @@ import { getGarment } from '../src/renderer/garments/registry'
 import { BALACLAVA_FACES, type BalaclavaFace } from '../src/renderer/garments/schema'
 import { DEFAULT_PARAMS } from '../src/renderer/garment/templates'
 import { buildMannequin } from '../src/renderer/avatar/Mannequin'
+import { docFromConfig, serializeDoc, parseDoc } from '../src/renderer/studio/document'
+import { defaultConfig } from '../src/renderer/start/design'
 import { XPBDSolver } from '../src/renderer/cloth/XPBDSolver'
 import { FABRICS } from '../src/renderer/cloth/fabricPresets'
 
@@ -223,4 +225,17 @@ describe('balaclava convertible fold', () => {
     expect(Number.isFinite(mx)).toBe(true)
     expect(mx).toBeLessThan(3)
   }, 20000)
+})
+
+describe('pom customizer persistence', () => {
+  it('pomScale / pomColor / pomFur survive a .dio round trip', () => {
+    const doc = docFromConfig(defaultConfig())
+    doc.layers[0].pomScale = 1.6
+    doc.layers[0].pomColor = 0xffffff
+    doc.layers[0].pomFur = true
+    const back = parseDoc(serializeDoc(doc))
+    expect(back.layers[0].pomScale).toBe(1.6)
+    expect(back.layers[0].pomColor).toBe(0xffffff)
+    expect(back.layers[0].pomFur).toBe(true)
+  })
 })
