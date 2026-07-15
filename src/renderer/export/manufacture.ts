@@ -85,20 +85,37 @@ function easeSection(m: GarmentMetrics): string {
         </table>`
 }
 
-/** Graded points-of-measure table across the size run; full width, omitted when empty. */
+/** Graded points-of-measure table across the size run + head-sizing for headwear; omitted when empty. */
 function pomSection(pom?: PomSheet): string {
-  if (!pom || !pom.rows.length) return ''
-  const head = pom.sizes.map((s) => `<th>${esc(s)}</th>`).join('')
-  const rows = pom.rows
-    .map(
-      (r) =>
-        `<tr><td>${esc(r.label)}</td>${pom.sizes.map((s) => `<td>${(r.bySize[s] ?? 0).toFixed(1)}</td>`).join('')}<td>±${r.tolCm.toFixed(1)}</td></tr>`
-    )
-    .join('')
-  return `<h3>Graded spec — points of measure (cm)</h3>
+  if (!pom || (!pom.rows.length && !pom.head)) return ''
+  let out = ''
+  if (pom.rows.length) {
+    const sizeHdr = pom.sizes.map((s) => `<th>${esc(s)}</th>`).join('')
+    const rows = pom.rows
+      .map(
+        (r) =>
+          `<tr><td>${esc(r.label)}</td>${pom.sizes.map((s) => `<td>${(r.bySize[s] ?? 0).toFixed(1)}</td>`).join('')}<td>±${r.tolCm.toFixed(1)}</td></tr>`
+      )
+      .join('')
+    out += `<h3>Graded spec — points of measure (cm)</h3>
     <table class="pom">
-      <thead><tr><th>Point of measure</th>${head}<th>Tol</th></tr></thead>
+      <thead><tr><th>Point of measure</th>${sizeHdr}<th>Tol</th></tr></thead>
       <tbody>${rows}</tbody>
+    </table>`
+  }
+  out += headSizingSection(pom.head)
+  return out
+}
+
+/** Head-circumference sizing (headwear) — the fitted circ + hat size run. */
+function headSizingSection(h?: PomSheet['head']): string {
+  if (!h) return ''
+  const cells = h.run.map((s) => `<th${s.label === h.size ? ' style="background:#eee7ff"' : ''}>${esc(s.label)}</th>`).join('')
+  const spans = h.run.map((s) => `<td>${s.minCm.toFixed(1)}–${s.maxCm.toFixed(1)}</td>`).join('')
+  return `<h3>Head sizing <span style="font-weight:400;opacity:.6">(fitted: ${h.circCm.toFixed(1)} cm → size ${esc(h.size)})</span></h3>
+    <table class="pom">
+      <thead><tr><th>Hat size</th>${cells}</tr></thead>
+      <tbody><tr><td>Head circ (cm)</td>${spans}</tr></tbody>
     </table>`
 }
 

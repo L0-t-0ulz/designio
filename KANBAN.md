@@ -286,7 +286,7 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Reflective / hi-vis + embellished** — reflective knit, sequins, beading on headwear
 
 **Fit, patterns & production**
-- [ ] **Head-circumference sizing** — measure head circ + a hat size run (XS–XL / cm) + grading
+- [x] **Head-circumference sizing** — measure head circ + a hat size run (XS–XL / cm) + grading: pure `export/headSizing` — `headCircumferenceCm` derives the girth from the head collider radius (a head is a slight oval, ~3 % over a true circle), `hatSizeFor` maps it to the standard `HAT_SIZE_RUN` (XS 53–54.5 … XXL 62–64 cm, clamped to the ends); `pomTable` attaches it for headwear garments (any `headTube` piece), and the manufacturing pack renders a **Head sizing** section (fitted circ → size, with the graded run highlighting the fitted band); pure math unit-tested
 - [ ] **Beanie flat pattern** — gore panels / a knit tube + crown, on the 2D pane + DXF
 - [ ] **6-panel cap pattern** — the 6 crown panels + bill + sweatband
 - [ ] **Bucket-hat pattern** — crown + side band + brim ring
@@ -368,7 +368,7 @@ fit & physics 0/10 · materials & production 0/10)_
 - [ ] **Pre-tied wrap presets** — one-click wrap styles with the knot geometry baked in
 
 **Perfection — Fit & physics**
-- [ ] **Head-size grading** — headwear grades from the head-circumference measurement (XS–XL run)
+- [x] **Head-size grading** — headwear grades from the head-circumference measurement (XS–XL run): covered by the head-circumference sizing work — `export/headSizing.HAT_SIZE_RUN` is the graded XS→XXL run (cm bands), derived from the fitted head circ and rendered in the manufacturing pack's Head-sizing table with the fitted band highlighted
 - [ ] **Brow pressure map** — the contact-pressure heatmap scoped to a hat's brow band
 - [ ] **Elastic band physics** — a real stretch-band constraint ring holding gaiters/bonnets/visors on
 - [ ] **Storm keep-on test** — a headless test that every headwear piece stays anchored in storm wind

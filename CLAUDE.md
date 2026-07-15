@@ -292,8 +292,10 @@ Renderer modules:
   overhead → cost/unit) + `estimateLabourMinutes`, with `estimatedFabricPrice` from the fabric library;
   + a **pricing calculator** — pure `priceFromCost` prices wholesale to hit a target gross margin
   (`cost / (1 − margin)`) + suggested retail off a keystone multiple, with margin/markup back-out;
-  unit-tested), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM + a
-  **cost sheet** + a **pricing** block (wholesale · margin · suggested retail) + care & content + embedded flat patterns for the whole outfit), `tiledPrint` (**tiled
+  unit-tested), `headSizing` (**head-circumference sizing** for headwear: pure `headCircumferenceCm`
+  (head girth from the head collider radius) + `hatSizeFor` → the `HAT_SIZE_RUN` (XS…XXL / cm); `pomTable`
+  attaches it for any garment with a `headTube` piece; unit-tested), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM + a
+  **cost sheet** + a **pricing** block (wholesale · margin · suggested retail) + a **head-sizing** table (headwear) + care & content + embedded flat patterns for the whole outfit), `tiledPrint` (**tiled
   print-to-scale**: pure `tilePlan` splits the pattern's mm layout into overlapping A4/Letter tiles;
   `tiledPatternHTML` renders a print-CSS doc — an assembly map + one to-scale (mm) page per tile with corner
   registration crosshairs + R·C labels, so a home sewer prints at 100% and tapes it together (File → Print
