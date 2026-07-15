@@ -51,6 +51,8 @@ export interface Fabric {
   transmission: number
   /** Metallic response for lamé / foil / sequin-base cloth, 0 (dielectric) … 1. */
   metalness?: number
+  /** Clearcoat — a glossy lacquer layer for patent / coated / wet-look cloth, 0 (none) … 1. */
+  clearcoat?: number
   /** Real perforation holes (athletic mesh / eyelet) — an alpha-cutout you see through. */
   perforated?: boolean
 }
@@ -214,6 +216,7 @@ export const FABRIC_LIBRARY: Fabric[] = [
 
   // ---- specialty ----
   { id: 'leather', name: 'Leather', family: 'specialty', gsm: 340, stretch: 0.02, bendiness: 0.22, friction: 0.6, color: 0x5a3826, roughness: 0.5, sheen: 0.4, sheenRoughness: 0.5, weave: 'plain', weaveScale: 90, normalStrength: 0.35, anisotropy: 0, transmission: 0 },
+  { id: 'patent', name: 'Patent leather', family: 'specialty', gsm: 400, stretch: 0.02, bendiness: 0.18, friction: 0.42, color: 0x161418, roughness: 0.22, sheen: 0.2, sheenRoughness: 0.35, weave: 'plain', weaveScale: 200, normalStrength: 0.14, anisotropy: 0.1, transmission: 0, clearcoat: 1 },
   { id: 'suede', name: 'Suede', family: 'specialty', nap: true, gsm: 300, stretch: 0.03, bendiness: 0.3, friction: 0.66, color: 0x7a5a3e, roughness: 0.88, sheen: 0.3, sheenRoughness: 0.7, weave: 'plain', weaveScale: 90, normalStrength: 0.3, anisotropy: 0.1, transmission: 0 },
   { id: 'velvet', name: 'Velvet', family: 'specialty', nap: true, gsm: 300, stretch: 0.15, bendiness: 0.55, friction: 0.6, color: 0x4a2b53, roughness: 0.6, sheen: 0.95, sheenRoughness: 0.35, weave: 'satin', weaveScale: 120, normalStrength: 0.45, anisotropy: 0.3, transmission: 0 },
   { id: 'tulle', name: 'Tulle (sheer)', family: 'specialty', gsm: 40, stretch: 0.2, bendiness: 0.6, friction: 0.3, color: 0xefe6f2, roughness: 0.4, sheen: 0.6, sheenRoughness: 0.4, weave: 'knit', weaveScale: 260, normalStrength: 0.2, anisotropy: 0, transmission: 0.6 },
