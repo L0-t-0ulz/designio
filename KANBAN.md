@@ -1017,6 +1017,16 @@ _The moonshots that make this a next-generation design tool. Each is deep + spec
 - [ ] **Weave-scale-aware Toksvig floor** — the specular-AA roughness lift is a flat `0.14·strength`; scale it by the on-screen weave frequency so fine weaves at distance don't shimmer while coarse ones keep their relief
 - [ ] **Nap-direction shading for pile weaves** — corduroy / velvet / velour pile should brighten/darken with pile direction under the key light (up-nap vs down-nap), driven off the wale/pile axis so brushing the surface visibly shifts its tone
 
+## 🐞 Rendering bugs — found in the fabric/garment audit (2026-07-15)
+
+- [x] **Satin beading** — a hard binding-dip grid across all satin-weave fabrics; made float-dominant — PR #359
+- [x] **Corduroy diagonal (not vertical)** — was a twill; gave it a real vertical-cord weave — PR #360
+- [x] **Sewn-panel body friction** — `ClothWorld.solveBody` never damped tangential slide; now mirrors `XPBDSolver` (grippy clings, satin slides) — PR #357
+- [x] **Camo/plaid tile seam** — non-periodic `textileValue` left a hard edge; made seam-continuous — PR #357
+- [ ] **Long-sleeve drape on the procedural body (HIGH)** — a long sleeve juts out ~45° instead of hanging down the (A-posed) arm; asymmetric + unstable. Diagnosis: on the **non-rigged** body `anchors()` sets `foreL/foreR = copy(armL/armR)` — the "forearm" anchor is actually at the *shoulder*, so a long sleeve pins only at the shoulder ring and swings free (the forearm pin in `bindPinsToBody` is gated behind `a.rigged`). Adding a real forearm anchor (from the forearm capsule, indices 6/10) + ungating the pin **binds** the mid-ring (verified, dist 6.5 cm) but does **not** fully fix the visual — the lifted shoulder cap (the armhole-gap fix `a.y += 0.7·armR`) + a wide sleeve on a thin arm + the pin dropping when the sleeve drifts past the 15 cm guard all interact. Needs: a real forearm anchor **and** a stable mid/cuff bind that can't drop, and likely a tamer cap lift. Golden-safe (the golden dress is short-sleeve; the 15 cm guard skips it).
+- [ ] **Shoulder-cap fabric puff** — the armhole-gap cap lift (`a.y += 0.7·armR`, inboard `0.55·armR`) leaves excess fabric at the sleeve head that puffs up/out over a thin arm; wants a smoother cap easing so the overlap closes the gap without bunching
+- [ ] **Waffle/fleece surface reads flat** — the waffle grid barely shows and fleece reads as a technical net at range; both want stronger, softer relief (waffle: deeper cells; fleece: a fuzzier matte pile hint on the base fabric, not only the `?fur=fleece` finish)
+
 ---
 
 _Update this board as things ship — check the box + note the PR._
