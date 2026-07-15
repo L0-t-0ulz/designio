@@ -11,6 +11,7 @@ import { rafCoalesce } from './core/coalesce'
 import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOverlay'
 import { openGlossary } from './ui/glossaryOverlay'
 import { openLessons } from './ui/lessonsOverlay'
+import { registerPlugin, loadedPlugins, setPluginHost } from './plugins'
 import { KEY_ACTIONS, actionFor, keymap, type KeyAction } from './ui/keymap'
 import { startTour, closeTour, tourOpen, hasSeenTour } from './ui/onboardingTour'
 import { buildStatusBar, type StatusHandles } from './shell/statusBar'
@@ -2564,6 +2565,14 @@ function openProjects(): void {
 }
 
 // ---- entry: homepage, unless a snapshot deep-link jumps straight in -----
+// Plugin API — expose the registry globally + install the host so plugins can add
+// fabrics; a plugin that registers before or after boot is applied immediately.
+;(globalThis as { designio?: unknown }).designio = { registerPlugin, loadedPlugins }
+setPluginHost({
+  addFabric: (f) => { if (!FABRIC_LIBRARY.some((x) => x.id === f.id)) FABRIC_LIBRARY.push(f) },
+  addNamedColor: () => {},
+  addTextileAlias: () => {}
+})
 const entryParams = new URLSearchParams(location.search)
 const skipStart =
   entryParams.has('garment') ||
