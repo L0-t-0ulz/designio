@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { costRollup, estimateLabourMinutes } from '../src/renderer/export/cost'
+import { costRollup, estimateLabourMinutes, priceFromCost } from '../src/renderer/export/cost'
 import { estimatedFabricPrice, getFabric } from '../src/renderer/fabric/FabricLibrary'
 
 describe('estimateLabourMinutes', () => {
@@ -27,6 +27,43 @@ describe('costRollup', () => {
     const neg = costRollup({ fabricM: -5, pricePerM: 10, threadM: -1, labourMin: -1, labourRate: 20 })
     expect(neg.fabric).toBe(0)
     expect(neg.total).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('priceFromCost (pricing calculator)', () => {
+  it('prices wholesale to hit the target margin, retail off the keystone multiple', () => {
+    const p = priceFromCost({ cost: 10, marginPct: 0.5, retailMultiple: 2.2 })
+    expect(p.wholesale).toBeCloseTo(20, 2) // 10 / (1 − 0.5)
+    expect(p.retail).toBeCloseTo(44, 2) // 20 × 2.2
+    expect(p.marginUsd).toBeCloseTo(10, 2)
+    expect(p.marginPct).toBeCloseTo(0.5, 3) // realised margin matches the target
+    expect(p.markupPct).toBeCloseTo(1.0, 3) // 100 % markup over cost
+  })
+
+  it('defaults to a 50 % margin + 2.2× retail', () => {
+    const p = priceFromCost({ cost: 25 })
+    expect(p.wholesale).toBeCloseTo(50, 2)
+    expect(p.retail).toBeCloseTo(110, 2)
+  })
+
+  it('a higher margin raises the wholesale + realised margin', () => {
+    const lo = priceFromCost({ cost: 10, marginPct: 0.4 })
+    const hi = priceFromCost({ cost: 10, marginPct: 0.6 })
+    expect(hi.wholesale).toBeGreaterThan(lo.wholesale)
+    expect(hi.marginPct).toBeGreaterThan(lo.marginPct)
+  })
+
+  it('clamps the margin below 100 % and the retail multiple to ≥ 1', () => {
+    const p = priceFromCost({ cost: 10, marginPct: 1.5, retailMultiple: 0.2 })
+    expect(p.wholesale).toBeCloseTo(200, 2) // margin clamped to 0.95 → 10 / 0.05
+    expect(p.retail).toBeGreaterThanOrEqual(p.wholesale) // multiple clamped to ≥ 1
+  })
+
+  it('handles a zero cost without dividing by zero', () => {
+    const p = priceFromCost({ cost: 0 })
+    expect(p.wholesale).toBe(0)
+    expect(p.retail).toBe(0)
+    expect(p.markupPct).toBe(0)
   })
 })
 

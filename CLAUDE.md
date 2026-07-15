@@ -288,8 +288,10 @@ Renderer modules:
   content % + laundering lines from a fabric's family/stretch — unit-tested; folded into the manufacturing
   pack), `cost` (**landed cost sheet**: pure `costRollup` (fabric yield × price + thread + trims + labour +
   overhead → cost/unit) + `estimateLabourMinutes`, with `estimatedFabricPrice` from the fabric library;
+  + a **pricing calculator** — pure `priceFromCost` prices wholesale to hit a target gross margin
+  (`cost / (1 − margin)`) + suggested retail off a keystone multiple, with margin/markup back-out;
   unit-tested), `manufacture` (**manufacturing pack**: printable HTML/JSON — spec sheet + fabric BOM + a
-  **cost sheet** + care & content + embedded flat patterns for the whole outfit), `tiledPrint` (**tiled
+  **cost sheet** + a **pricing** block (wholesale · margin · suggested retail) + care & content + embedded flat patterns for the whole outfit), `tiledPrint` (**tiled
   print-to-scale**: pure `tilePlan` splits the pattern's mm layout into overlapping A4/Letter tiles;
   `tiledPatternHTML` renders a print-CSS doc — an assembly map + one to-scale (mm) page per tile with corner
   registration crosshairs + R·C labels, so a home sewer prints at 100% and tapes it together (File → Print
