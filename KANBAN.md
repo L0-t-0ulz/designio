@@ -466,10 +466,10 @@ fit & physics 0/10 · materials & production 0/10)_
 
 **Pattern & production** _(refine PRs #39 · #41 · #114 · #169)_
 - [x] **Tiled print-to-scale PDF** — File → "Print pattern — tiled A4": the pattern tiles across A4/Letter pages at 1:1 with an assembly map + registration crosshairs + R·C labels for taping; pure `tilePlan` + `tiledPatternHTML` (print-CSS, mm viewBox per tile), unit-tested — PR #237
-- [ ] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern
+- [x] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern — already shipped: `garmentPattern.panelsToSVG` draws each panel's **grainline** (a line with arrowheads at both ends, from `PatternPanel.grain`), the **piece name** label, and the **cut-count** ("cut N · W × H mm"), plus a legend ("arrow = grainline · ○ = notch") _(drift check-off; the "on fold" fabric-fold notation is the one remaining nicety)_
 - [ ] **Marker / nesting layout** — auto-arrange panels to minimise fabric on the DXF/SVG
 - [x] **Per-edge seam allowance** — the cut line now offsets each edge by its own allowance (deep folded hem · shallow neckline/waist · base seam), classified by edge geometry; pure `offsetPolygonPerEdge` (variable-width offset via offset-line intersection) + `seamAllowancePerEdge` + `cutLine`, unit-tested — PR #236
-- [ ] **Full size-run export** — the graded pattern XS–XXL in one file
+- [x] **Full size-run export** — the graded pattern XS–XXL in one file — already shipped: File → **Export size set — graded patterns XS-XXL (ZIP)** (`main.ts` `case 'size-set'` writes `size-set.zip` with a graded pattern per size) _(drift check-off)_
 - [ ] **Drape the imported pattern onto the body** — the deferred half of PR #169
 - [ ] **Tech-pack: colourway pages + a notions/trims BOM** (thread, zips, buttons)
 
@@ -559,7 +559,7 @@ fit & physics 0/10 · materials & production 0/10)_
 **Performance & architecture**
 - [ ] **WASM solver hot loop** — compile the XPBD substep (integrate + constraint projection) to WASM for a 2–4× main-thread win over the JS loop; behaviour guarded by the solver tests
 - [ ] **Constraint graph colouring** — greedy-colour the constraint graph into independent batches (prereq for Jacobi / Worker / GPU parallelism); pure `colorGraph` unit-tested (no two same-colour constraints share a particle)
-- [ ] **Deterministic snapshot mode** — freeze wall-clock time + seed any RNG (turntable phase, surprise-me hues) so a deep-link renders bit-identically — unblocks the golden-image tests; test a bit-identical repeat
+- [x] **Deterministic snapshot mode** — freeze wall-clock time + seed any RNG (turntable phase, surprise-me hues) so a deep-link renders bit-identically — unblocks the golden-image tests; test a bit-identical repeat — already shipped: `?freezeAt=<simSeconds>` stops the loop at an exact frame-rate-independent sim step (`main.ts`) + `window.__drapeSettled()`, driving `scripts/golden.cjs` and the golden-image CI job (which does a bit-identical repeat compare) _(drift check-off)_
 - [ ] **Geometry lifecycle audit** — dispose geometries/materials/textures on garment rebuild + layer delete, with a `dispose()` on `GarmentController`; test no orphaned GPU resources across a build→delete loop
 - [ ] **Fixed-timestep accumulator** — decouple sim `dt` from the render frame rate with an accumulator + state interpolation in `core/Loop`, so drape is identical at 30/60/144 Hz; pure `accumulate` unit-tested
 
