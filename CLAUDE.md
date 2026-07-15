@@ -395,6 +395,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?ease=<-0.03..0.12>` (base looseness in metres — negative = **compression fit**; pair with `?pressure=1` on a snug beanie for the negative-ease band heatmap) ·
 `?distressed=1` (the **distressed mask** — deterministically chewed/frayed cut-out edges, no binding; pair with `?pilling=&wear=` for the full aged look) ·
 `?garment=helmet-liner&layers=ski-mask` (the **two-layer balaclava** — the liner + shell simulate as layered cloth, kept apart by the inter-garment repulsion) ·
+`?garment=<hijab|khimar>` (the **hijab style set** — cloth-sim head coverings framing the face (open-face cut-out) and draping onto the shoulders: the fitted al-amira `hijab` vs the longer cape-like `khimar` to mid-torso) ·
 `?garment=<skinny-scarf|bandana|chullo|helmet-liner>` (more cloth-sim headwear: a charmeuse ribbon scarf · the outlaw bandana (worn up, one `point-front` hem point) · the Andean ear-flap chullo (`ear-flap` hem + pom) · the under-helmet liner (snug open-face)) ·
 `?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
 `?undertone=<warm|neutral|cool>` (its undertone) ·

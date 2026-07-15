@@ -466,6 +466,28 @@ export const GARMENTS: GarmentDefinition[] = [
     defaultFabric: 'cable-knit'
   },
   {
+    id: 'hijab',
+    name: 'Hijab (al-amira)',
+    category: 'outerwear',
+    icon: 'top',
+    // a fitted head cover framing the face (open-face cut-out), draping softly onto the shoulders
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.28, dropLo: 0.52, topScale: 0.4, botScale: 2.0, face: 'open-face' }],
+    supports: { length: true, ease: true, flare: true },
+    defaults: { length: 0.6, ease: 0.02, flare: 0.02 },
+    defaultFabric: 'crepe'
+  },
+  {
+    id: 'khimar',
+    name: 'Khimar',
+    category: 'outerwear',
+    icon: 'top',
+    // a longer flowing veil framing the face and caping over the shoulders to mid-torso
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.3, dropLo: 0.82, topScale: 0.4, botScale: 2.6, face: 'open-face' }],
+    supports: { length: true, ease: true, flare: true },
+    defaults: { length: 0.75, ease: 0.03, flare: 0.03 },
+    defaultFabric: 'chiffon'
+  },
+  {
     id: 'beanie',
     name: 'Beanie',
     category: 'outerwear',
