@@ -399,7 +399,7 @@ fit & physics 0/10 · materials & production 0/10)_
 - [ ] **Headwear pattern suite** — gore crowns · brims · bands unwrapped to SVG/DXF per style
 - [ ] **Headwear cost sheet** — small-panel yield + trims (pom · wire · sweatband) in the cost rollup
 - [ ] **Headwear size-run line-up** — one hat rendered across the head-size run into a single PNG
-- [ ] **Headwear care labels** — knit/felt/straw-specific care lines in the manufacturing pack
+- [x] **Headwear care labels** — headwear is *blocked* to a shape, so its care is shaping-aware: pure `headwearMaterial` classifies a fabric (knit · felt · straw · coated), `headwearCareLines` gives the extra lines, and `careLabel(fabric, {headwear})` builds a coherent label — a knit beanie keeps its fibre wash line but reshapes damp + dries flat (never tumble/hang), a felted/boiled-wool hat is steamed + spot-cleaned (never washed), a leather/coated cap wipes clean. Wired into the manufacturing pack + line sheet via the same `headTube` predicate the head-sizing POM uses. Also fixed melton/worsted/boiled wool mislabelling as cotton → **wool**. Unit-tested; body-garment labels unchanged — PR #376
 
 ---
 

@@ -1590,17 +1590,18 @@ function initStudio(
       hex: '#' + hex.toString(16).padStart(6, '0'),
       label: colorRefLabel(hex)
     }))
+    const sheetCare = careLabel(l.fabric, { headwear: def.pieces.some((p) => p.kind === 'headTube') })
     const html = lineSheetHTML({
       name: def.name,
       styleRef: projectName || 'Untitled',
       hero: viewport.renderStill(900),
       fabricName: l.fabric.name,
-      fibre: careLabel(l.fabric).fibre,
+      fibre: sheetCare.fibre,
       sizes: [...SIZES],
       colourways,
       specs: metrics.rows.slice(0, 6).map((r) => ({ label: r.label, cm: r.cm })),
       landedCost: cost.total,
-      care: careLabel(l.fabric).care
+      care: sheetCare.care
     })
     const bytes = new TextEncoder().encode(html)
     const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'line-sheet'
@@ -1694,6 +1695,9 @@ function initStudio(
       body: { ...bodySize },
       layers: stack.layers.map((l) => {
         const def = getGarment(l.data.garmentType)
+        // headwear is blocked to a shape, so its care label is shaping-aware (same
+        // headTube predicate the head-sizing POM uses)
+        const label = careLabel(l.fabric, { headwear: def.pieces.some((p) => p.kind === 'headTube') })
         const parts: { part: string; fabric: string }[] = []
         if (l.data.partFabrics?.sleeves) parts.push({ part: 'sleeves', fabric: getFabric(l.data.partFabrics.sleeves.fabricId).name })
         if (l.data.partFabrics?.legs) parts.push({ part: 'legs', fabric: getFabric(l.data.partFabrics.legs.fabricId).name })
@@ -1714,8 +1718,8 @@ function initStudio(
           seam: l.data.seam ?? (l.data.stitch ? SEAM_TYPES[l.data.stitch.seamType].allowanceMm : 10),
           stitch: l.data.stitch ? { summary: stitchSummary(l.data.stitch), spec: l.data.stitch } : undefined,
           physical: l.data.physicalFabric ? physicalSummary(l.data.physicalFabric) : undefined,
-          fibre: careLabel(l.fabric).fibre,
-          care: careLabel(l.fabric).care,
+          fibre: label.fibre,
+          care: label.care,
           careSymbols: careSymbols(careInstructions(l.fabric)),
           metrics,
           pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders),
