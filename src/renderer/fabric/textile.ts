@@ -26,8 +26,11 @@ export function textileValue(pattern: TextilePattern, u: number, v: number): num
       return dx * dx + dy * dy < 0.05 ? 1 : 0
     }
     case 'plaid': {
-      const band = (x: number): number => (x < 0.08 || (x > 0.46 && x < 0.54) ? 1 : 0)
-      const thin = (x: number): number => ((x > 0.2 && x < 0.24) || (x > 0.72 && x < 0.76) ? 1 : 0)
+      // The thick band straddles the tile seam symmetrically (x<0.04 || x>0.96) so it
+      // reads as one continuous stripe across repeats — no seam. The centre + thin bands
+      // sit inside the tile, mirror-placed, so they repeat cleanly too.
+      const band = (x: number): number => (x < 0.04 || x > 0.96 || (x > 0.46 && x < 0.54) ? 1 : 0)
+      const thin = (x: number): number => ((x > 0.22 && x < 0.26) || (x > 0.74 && x < 0.78) ? 1 : 0)
       const bu = band(u)
       const bv = band(v)
       if (bu && bv) return 1
@@ -36,8 +39,11 @@ export function textileValue(pattern: TextilePattern, u: number, v: number): num
       return 0
     }
     default: {
-      // camo — irregular tonal patches (3 tones)
-      const n = Math.sin(u * 7.0) + Math.cos(v * 6.3) + Math.sin((u + v) * 5.5)
+      // camo — irregular tonal patches (3 tones). Angular frequencies are integer
+      // multiples of 2π so the field is exactly periodic in u and v → the motif tiles
+      // seamlessly (the old non-integer frequencies left a hard discontinuity at the seam).
+      const TAU = Math.PI * 2
+      const n = Math.sin(u * TAU * 2) + Math.cos(v * TAU * 2) + Math.sin((u + v) * TAU * 3)
       return n > 0.6 ? 1 : n > -0.4 ? 0.5 : 0
     }
   }

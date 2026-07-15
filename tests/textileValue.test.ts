@@ -24,6 +24,25 @@ describe('textileValue — repeating textile pattern tones', () => {
     }
   })
 
+  it('camo/plaid tile without a hard seam — the tone stays continuous across the tile edge', () => {
+    // The floor-wrap makes textileValue periodic by construction; the real question is
+    // whether the underlying field is *continuous* at the seam (field(1⁻) === field(0⁺)).
+    // A non-periodic field (the old camo used non-integer sin frequencies) jumps here and
+    // shows a visible tile edge. Sample both seams: a seamless motif matches at ~every row.
+    for (const p of ['camo', 'plaid'] as TextilePattern[]) {
+      let uMatch = 0
+      let vMatch = 0
+      const N = 200
+      for (let i = 0; i < N; i++) {
+        const t = (i + 0.5) / N
+        if (textileValue(p, 0.9995, t) === textileValue(p, 0.0005, t)) uMatch++ // vertical seam
+        if (textileValue(p, t, 0.9995) === textileValue(p, t, 0.0005)) vMatch++ // horizontal seam
+      }
+      expect(uMatch).toBeGreaterThan(N * 0.95)
+      expect(vMatch).toBeGreaterThan(N * 0.95)
+    }
+  })
+
   it('stripe splits the tile into a base half and a contrast half', () => {
     expect(textileValue('stripe', 0.25, 0.5)).toBe(0)
     expect(textileValue('stripe', 0.75, 0.5)).toBe(1)
