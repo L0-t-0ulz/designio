@@ -55,6 +55,7 @@ export interface MenuActions {
   onResetLayout: () => void
   onShortcuts: () => void
   onTour: () => void
+  onGlossary: () => void
   onAbout: () => void
 }
 
@@ -210,6 +211,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
   menu('Help', [
     { label: 'Take the tour', run: a.onTour },
     { label: 'Keyboard shortcuts (?)', run: a.onShortcuts },
+    { label: 'Term glossary', run: a.onGlossary },
     { sep: true },
     { label: 'About DesignIO', run: a.onAbout }
   ])
