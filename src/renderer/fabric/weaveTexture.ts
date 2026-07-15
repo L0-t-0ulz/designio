@@ -59,9 +59,14 @@ export function weaveHeight(weave: WeaveType, u: number, v: number, threads: num
       return wale * (0.3 + 0.7 * warpRidge)
     }
     case 'waffle': {
-      // thermal waffle — a square grid of raised walls around deep square cells
-      const wall = Math.max(bump(tu) < 0.45 ? 1 : 0, bump(tv) < 0.45 ? 1 : 0)
-      return wall === 1 ? 0.9 : 0.15 + 0.2 * (warpRidge + weftRidge) * 0.5
+      // Thermal waffle — a chunky honeycomb: raised walls form a grid around deep square
+      // cells, each cell spanning a 2×2 block of threads so the relief actually reads at
+      // garment scale (the old per-thread cells were too fine + shallow to show). Proud
+      // wall over a deep, gently-domed cell floor.
+      const su = ((cu & 1) + tu) / 2 // 0..1 across a 2-thread-wide waffle cell
+      const sv = ((cv & 1) + tv) / 2
+      const onWall = su < 0.18 || su > 0.82 || sv < 0.18 || sv > 0.82
+      return onWall ? 0.92 : 0.04 + 0.2 * bump(su) * bump(sv)
     }
     case 'corduroy': {
       // Vertical cut-pile cords (wales) — rounded plush ridges running top-to-bottom

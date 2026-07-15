@@ -22,6 +22,7 @@ const shots = [
   ['docs/bvh-dress.png', 7000, 'garment=dress&fabric=satin&start=0'],
   ['docs/puffer.png', 6500, 'garment=coat&fabric=canvas&quilt=diamond&start=0'],
   ['docs/closeup.png', 6000, 'garment=top&fabric=satin&closeup=1&start=0'],
+  ['docs/waffle-knit.png', 4500, 'garment=top&fabric=waffle-knit&closeup=1&start=0'],
   ['docs/pattern.png', 6000, 'mode=pattern&fabric=cotton-poplin&start=0'],
   ['docs/pattern-2d.png', 4000, 'garment=dress&fabric=satin&start=0&view=pattern'],
   ['docs/detail.png', 6000, 'garment=long-sleeve&fabric=oxford&start=0&collar=1&cuff=1&dart=1&pocket=1'],
