@@ -63,6 +63,15 @@ export function weaveHeight(weave: WeaveType, u: number, v: number, threads: num
       const wall = Math.max(bump(tu) < 0.45 ? 1 : 0, bump(tv) < 0.45 ? 1 : 0)
       return wall === 1 ? 0.9 : 0.15 + 0.2 * (warpRidge + weftRidge) * 0.5
     }
+    case 'corduroy': {
+      // Vertical cut-pile cords (wales) — rounded plush ridges running top-to-bottom
+      // with a deep narrow valley between each, the defining look of corduroy. The cord
+      // profile depends only on the across-wale coordinate (tu) and is constant up the
+      // wale (tv), so the ridges read as continuous vertical cords, NOT a diagonal twill.
+      // A flatter-topped bump (pow<1) gives the cord its rounded, pile-topped crown.
+      const cord = Math.pow(warpRidge, 0.6)
+      return 0.12 + 0.88 * cord
+    }
     case 'cable': {
       // cable knit — fat twisted columns every 4 wales that cross over each other
       const col = ((cu % 4) + 4) % 4

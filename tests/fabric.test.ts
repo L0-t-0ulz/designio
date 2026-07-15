@@ -145,6 +145,29 @@ describe('weave texture math', () => {
     expect(lo).toBeGreaterThan(0.6) // even the binding point stays well off the floor
     expect(hi - lo).toBeLessThan(0.35) // shallow contrast → smooth, not a beaded dot grid
   })
+
+  it('corduroy runs as continuous vertical cords (wales), not a diagonal twill', () => {
+    const threads = 16
+    // A cord's profile depends only on the across-wale coordinate; it runs unbroken up
+    // the wale — so the same u at different heights (v) must give the same height. That
+    // vertical continuity is what makes it read as a cord instead of a diagonal weave.
+    for (const u of [0.02, 0.2, 0.37, 0.55, 0.8]) {
+      const a = weaveHeight('corduroy', u, 0.1, threads)
+      expect(weaveHeight('corduroy', u, 0.6, threads)).toBeCloseTo(a, 6)
+      expect(weaveHeight('corduroy', u, 0.95, threads)).toBeCloseTo(a, 6)
+    }
+    // Across the wale there IS strong relief — a proud rounded crown over a deep valley.
+    // Sweep exactly one wale (u·threads: 0→1) so we sample the crown and the valley.
+    let hi = -Infinity
+    let lo = Infinity
+    for (let i = 0; i <= 100; i++) {
+      const h = weaveHeight('corduroy', i / 100 / threads, 0.3, threads)
+      if (h > hi) hi = h
+      if (h < lo) lo = h
+    }
+    expect(hi).toBeGreaterThan(0.8) // cord crown sits proud
+    expect(lo).toBeLessThan(0.2) // deep valley between cords
+  })
 })
 
 describe('weaveRoughness (procedural roughness map)', () => {
