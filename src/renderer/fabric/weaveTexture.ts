@@ -37,9 +37,13 @@ export function weaveHeight(weave: WeaveType, u: number, v: number, threads: num
       return warpOnTop ? 0.35 + 0.65 * warpRidge : weftRidge * 0.7
     }
     case 'satin': {
-      // long, mostly-flat floats with a widely spaced binding point
+      // Long, mostly-flat warp floats with a widely spaced binding point. The floats
+      // dominate (that's what makes satin smooth + lustrous); the binding dips only
+      // shallowly so it reads as a faint, near-flat surface rather than a grid of hard
+      // dots. A deep binding dip (the old `weftRidge*0.5` against a 0.9 float) baked a
+      // ~1.0-contrast dimple every 5th cell → a visible beaded polka-dot grid at range.
       const bindingPoint = (((cu * 3 + cv * 1) % 5) + 5) % 5 === 0
-      return bindingPoint ? weftRidge * 0.5 : 0.9 + 0.1 * warpRidge
+      return bindingPoint ? 0.74 + 0.08 * weftRidge : 0.95 + 0.05 * warpRidge
     }
     case 'knit': {
       // interlocking loops — smooth waves, offset every other row
