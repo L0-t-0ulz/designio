@@ -67,11 +67,65 @@ export function textileTiles(baseTiles: number, scale = 1): number {
 }
 
 /**
+ * **Repeat layout** — how a base tile is stepped into the repeat: a straight grid
+ * (`full-drop`), alternate columns dropped half a tile (`half-drop` — the classic
+ * wallpaper/textile stagger), alternate rows shifted half (`half-brick`), or
+ * alternate cells mirrored (`mirror` — a book-match that hides the tile seam).
+ */
+export type RepeatMode = 'full-drop' | 'half-drop' | 'half-brick' | 'mirror'
+export const REPEAT_MODES: RepeatMode[] = ['full-drop', 'half-drop', 'half-brick', 'mirror']
+
+/** The base-tile offset (in tile units) + mirror flags for cell (cx, cy) under a repeat mode. Pure. */
+export function repeatCell(mode: RepeatMode, cx: number, cy: number): { ox: number; oy: number; flipX: boolean; flipY: boolean } {
+  const oddCol = (((cx % 2) + 2) % 2) === 1
+  const oddRow = (((cy % 2) + 2) % 2) === 1
+  switch (mode) {
+    case 'half-drop':
+      return { ox: 0, oy: oddCol ? 0.5 : 0, flipX: false, flipY: false }
+    case 'half-brick':
+      return { ox: oddRow ? 0.5 : 0, oy: 0, flipX: false, flipY: false }
+    case 'mirror':
+      return { ox: 0, oy: 0, flipX: oddCol, flipY: oddRow }
+    default:
+      return { ox: 0, oy: 0, flipX: false, flipY: false }
+  }
+}
+
+/** The seamless super-tile size (in base tiles per side) for a repeat mode. Pure. */
+export function repeatSuperTiles(mode: RepeatMode): number {
+  return mode === 'full-drop' ? 1 : 2
+}
+
+/** Compose a base tile into a seamless super-tile for a repeat mode (renderer). */
+function buildSuperTile(base: HTMLCanvasElement, mode: RepeatMode): HTMLCanvasElement {
+  const TS = base.width
+  const n = repeatSuperTiles(mode)
+  const sup = document.createElement('canvas')
+  sup.width = sup.height = n * TS
+  const s = sup.getContext('2d')!
+  // draw a covering grid with an extra ring so the offset/mirrored edges wrap seamlessly
+  for (let cy = -1; cy <= n; cy++) {
+    for (let cx = -1; cx <= n; cx++) {
+      const { ox, oy, flipX, flipY } = repeatCell(mode, cx, cy)
+      s.save()
+      s.translate((cx + ox) * TS, (cy + oy) * TS)
+      if (flipX || flipY) {
+        s.translate(flipX ? TS : 0, flipY ? TS : 0)
+        s.scale(flipX ? -1 : 1, flipY ? -1 : 1)
+      }
+      s.drawImage(base, 0, 0)
+      s.restore()
+    }
+  }
+  return sup
+}
+
+/**
  * Paint a seamless repeating textile pattern across a 2D canvas (renderer only) —
  * bakes one repeat tile from `textileValue` then tiles it, at a user `scale`
  * (motif size) + `rotation` (degrees) applied to the repeat.
  */
-export function paintTextile(ctx: CanvasRenderingContext2D, size: number, pattern: TextilePattern, base: number, tiles = 10, scale = 1, rotation = 0): void {
+export function paintTextile(ctx: CanvasRenderingContext2D, size: number, pattern: TextilePattern, base: number, tiles = 10, scale = 1, rotation = 0, repeat: RepeatMode = 'full-drop'): void {
   const TS = Math.max(24, Math.round(size / textileTiles(tiles, scale)))
   const tile = document.createElement('canvas')
   tile.width = tile.height = TS
@@ -92,7 +146,10 @@ export function paintTextile(ctx: CanvasRenderingContext2D, size: number, patter
     }
   }
   tctx.putImageData(img, 0, 0)
-  const fill = ctx.createPattern(tile, 'repeat')!
+  // apply the repeat layout (half-drop stagger · half-brick · mirror book-match) by
+  // composing the base tile into a seamless super-tile; full-drop uses the base tile
+  const unit = repeat === 'full-drop' ? tile : buildSuperTile(tile, repeat)
+  const fill = ctx.createPattern(unit, 'repeat')!
   if (rotation && typeof DOMMatrix !== 'undefined' && fill.setTransform) {
     fill.setTransform(new DOMMatrix().rotate(rotation)) // rotate the whole repeat (stripes/plaids on the bias)
   }
