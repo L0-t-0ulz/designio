@@ -830,4 +830,82 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 ---
 
+## 🧵 Detailed backlog — batch added 2026-07-15
+
+_A fresh, specific pass across every lane. Each is a concrete, self-contained build, not a theme._
+
+### Garment silhouettes & types
+- [ ] **Wrap dress with a functional tie** — a self-belt threaded through a side-seam waist slit, an adjustable wrap depth (overlap %) + a hidden inner waist snap so it doesn't gape
+- [ ] **Trench coat** — double-breasted with a storm flap + gun flap, a belt through D-ring loops, sleeve strap tabs, and a back kick-vent that opens on the walk
+- [ ] **Tailored blazer** — a notched lapel with a real roll line, a chest welt, functional 4-button surgeon's cuffs, and a lined back double vent
+- [ ] **Box-pleat tennis skirt** — knife-crisp all-round box pleats over a sewn-in short liner (the liner its own never-rendered collide layer)
+- [ ] **Bomber jacket** — ribbed knit collar/cuff/hem bands, a two-way separating zip, a zip-guard placket, and a sleeve utility pocket
+- [ ] **Bias-cut cowl slip dress** — a draped cowl at the front neck **and** the back, on adjustable spaghetti straps that actually take the weight
+- [ ] **True circle skirt** — a full-circle draft that settles into deep, even radial waves instead of gathered folds
+- [ ] **Dungarees / overalls** — a bib front on adjustable buckle straps with functional side-button openings at the waist
+- [ ] **Cape / ruana with arm slits** — a shoulder-draped cape with real armhole slits + an optional attached hood
+- [ ] **Structured corset top** — external boning channels, back lacing that visibly cinches the waist, and a hook-and-eye busk front
+
+### Construction techniques
+- [ ] **Bound buttonholes** — welt-lipped buttonholes on a coat placket (a finished rectangle, not a slit dash)
+- [ ] **Godet inserts** — triangular flare panels sewn into vertical seams for a fluted mermaid hem (real take-up in 3D + the panels on the flat pattern)
+- [ ] **Pin-tucks** — parallel rows of narrow stitched tucks down a bodice front or shirt yoke, each eating a sliver of width
+- [ ] **Shirt sleeve placket** — a proper tower placket + a buttoned cuff tab (vs. the current continuous-bound placket)
+- [ ] **Horsehair-braid hem** — a stiffened bridal/gown hem that holds a standing bell shape instead of collapsing
+- [ ] **Waist stay** — an inner grosgrain ribbon anchoring a fitted bodice at the true waist so it doesn't ride up
+- [ ] **Piped seam on any panel edge** — a corded contrast pipe available on *any* chosen seam, not just neckline/hem
+- [ ] **Smocked panel** — a honeycomb-gathered smocked chest or cuff panel with real fabric take-up
+- [ ] **Hem-finish picker** — blind-hem vs. fell-stitch vs. rolled-hem vs. raw-edge, each reading differently on the 3D hem + the tech pack
+- [ ] **Collar roll & stand** — a real under-collar stand that rolls a shirt/coat collar over the band (a fold ridge, not a flat flap)
+
+### Fabrics & surface
+- [ ] **Woven library expansion** — chambray · gabardine · ponte · scuba · melton · shirting oxford, each with correct gsm/drape/sheen
+- [ ] **Sequin fabric** — per-sequin facets that flip colour with the viewing angle (a scatter normal + a metal recipe)
+- [ ] **Waxed cotton** — a matte-waxy sheen with sharp fold-memory creasing at the bends
+- [ ] **Patent / coated leather** — a high-clearcoat wet shine over a fine crackle normal
+- [ ] **Bouclé tweed** — a looped-nub surface normal (the Chanel-jacket hand) + a fleck yarn
+- [ ] **Devoré (burnout) velvet** — a semi-sheer motif etched into the pile (alpha cut where the pile is burned away)
+- [ ] **Broderie anglaise** — punched eyelet holes on a scalloped edge with a satin-stitched rim
+- [ ] **Ripstop nylon** — the reinforcing grid weave + a technical low-roughness sheen
+- [ ] **Neoprene** — a spongy bonded-double-knit thickness with visible bonded-edge (raw, no hem) seams
+- [ ] **Foil-pleat lamé** — a directional metallic highlight that runs along permanent pressed pleats
+
+### Avatar, fit & pose
+- [ ] **Seated pose** — a sitting stance to fit-check a skirt/trouser rise + where the hem sits at the knee
+- [ ] **Heeled stance** — a heel-height slider that tilts the foot, straightens the leg, and lifts the back hem
+- [ ] **Expressive poses** — arms-crossed · hands-on-hips · one-hand-in-pocket lookbook stances
+- [ ] **Asymmetric-shoulder toggle** — one dropped shoulder (a real-body quirk) to test how a garment hangs off-square
+- [ ] **Soft-belly male torso** — a rounder mid-section shape beyond the athletic V-taper
+- [ ] **More hairstyles + hairline slider** — braids · high bun · ponytail · locs, with an adjustable hairline
+- [ ] **Nail / manicure colour** on the hands for a fully-styled beauty shot
+- [ ] **Eyewear accessory** — glasses/sunglasses placed on the head frame, riding the animated head
+- [ ] **Sock + shoe stack height** so trousers break correctly over the chosen footwear
+- [ ] **Editable studio floor material** — marble · seamless paper · parquet under the figure for the product shot
+
+### Physics & simulation
+- [ ] **Wind direction dial** — a heading + gust-frequency control on top of the preset strengths
+- [ ] **Knit ladder / run** — a dropped stitch that runs down a jersey in a visible column under tension
+- [ ] **Pocket-contents weight** — a phone-shaped mass that sags a patch pocket + pulls the fabric
+- [ ] **Static cling** — a weak attraction between a lining and its shell so a slip clings to a skirt
+- [ ] **Fitting pins** — tack a garment point to the body during a fit session (a designer's clamp), released on export
+- [ ] **Elastic shirring** — a real elastic thread that gathers a waistband/cuff into even ruching
+- [ ] **Live separating zip** — part a functional zip on the body (jacket open at the chest) and see it gap
+- [ ] **Knit relaxation** — a jersey that bags slightly at elbows/knees/seat over settle time
+- [ ] **Symmetry-lock drape** — mirror the settled left/right drape for a perfectly even product still
+- [ ] **Undergarment collision proxy** — a thin support layer so a knit tee reads over real underwear, not a bare torso
+
+### Render, export & workflow
+- [ ] **Portrait rim + hair light rig** — a two-light headshot toggle for headwear/beauty shots
+- [ ] **Exploded construction view** — panels floated apart in place with seam callouts (a build diagram)
+- [ ] **Contact-shadow strength slider** on the studio floor (from off → a deep grounded shadow)
+- [ ] **A/B version compare** — a wipe slider between two saved design snapshots in the viewport
+- [ ] **Per-colourway fabric consumption** in the cost sheet — yield × price broken out by colour
+- [ ] **Marker nap-lock** — a one-way/nap-direction constraint + panel flip/rotate when nesting napped fabrics
+- [ ] **Collection tech-pack** — batch every layer/look in the project into one printable PDF
+- [ ] **Editorial grade** — a film-grain + halation post toggle for a moody campaign render
+- [ ] **Stitch-density heatmap** — a view of SPI / thread build-up across all the seams
+- [ ] **Drape-coefficient badge on each swatch** — surface the drape-bench % on the fabric library tiles
+
+---
+
 _Update this board as things ship — check the box + note the PR._
