@@ -146,6 +146,25 @@ describe('weave texture math', () => {
     expect(hi - lo).toBeLessThan(0.35) // shallow contrast → smooth, not a beaded dot grid
   })
 
+  it('waffle has a proud wall over a deep cell (chunky thermal relief reads at scale)', () => {
+    const threads = 16
+    let hi = -Infinity
+    let lo = Infinity
+    for (let i = 0; i < 96; i++) {
+      const u = (i + 0.5) / 96
+      for (let j = 0; j < 96; j++) {
+        const h = weaveHeight('waffle', u, (j + 0.5) / 96, threads)
+        expect(h).toBeGreaterThanOrEqual(0)
+        expect(h).toBeLessThanOrEqual(1)
+        if (h > hi) hi = h
+        if (h < lo) lo = h
+      }
+    }
+    expect(hi).toBeGreaterThan(0.85) // the honeycomb wall stands proud
+    expect(lo).toBeLessThan(0.15) // the cell floor sits deep
+    expect(hi - lo).toBeGreaterThan(0.6) // strong relief — not a flat, washed-out grid
+  })
+
   it('corduroy runs as continuous vertical cords (wales), not a diagonal twill', () => {
     const threads = 16
     // A cord's profile depends only on the across-wale coordinate; it runs unbroken up
