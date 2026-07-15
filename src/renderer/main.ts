@@ -211,6 +211,7 @@ function initStudio(
     scarfKnot: l0.scarfKnot,
     scarfDouble: l0.scarfDouble,
     gaiterWorn: l0.gaiterWorn,
+    snoodWorn: l0.snoodWorn,
     cuffPatch: l0.cuffPatch,
     pomScale: l0.pomScale,
     pomColor: l0.pomColor,
@@ -378,6 +379,7 @@ function initStudio(
     garment.scarfKnot = l.data.scarfKnot
     garment.scarfDouble = l.data.scarfDouble
     garment.gaiterWorn = l.data.gaiterWorn
+    garment.snoodWorn = l.data.snoodWorn
     garment.cuffPatch = l.data.cuffPatch
     garment.pomScale = l.data.pomScale
     garment.pomColor = l.data.pomColor
@@ -815,6 +817,7 @@ function initStudio(
     l.data.scarfKnot = garment.scarfKnot
     l.data.scarfDouble = garment.scarfDouble
     l.data.gaiterWorn = garment.gaiterWorn
+    l.data.snoodWorn = garment.snoodWorn
     l.data.cuffPatch = garment.cuffPatch
     l.data.pomScale = garment.pomScale
     l.data.pomColor = garment.pomColor
@@ -2488,6 +2491,8 @@ if (skipStart) {
   if (cvw && (CONVERTIBLE_WORN as string[]).includes(cvw)) cfg.convertibleWorn = cvw as ConvertibleWorn
   const gw = entryParams.get('gaiterWorn')
   if (gw === 'up' || gw === 'down') cfg.gaiterWorn = gw
+  const sw2 = entryParams.get('snoodWorn')
+  if (sw2 === 'hood' || sw2 === 'cowl') cfg.snoodWorn = sw2
   const cpatch = entryParams.get('cuffPatch')
   if (cpatch === 'leather' || cpatch === 'woven') cfg.cuffPatch = cpatch
   if (entryParams.get('cuff')) cfg.cuff = true

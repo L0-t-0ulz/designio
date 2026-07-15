@@ -90,6 +90,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     scarfKnot: l.scarfKnot,
     scarfDouble: l.scarfDouble,
     gaiterWorn: l.gaiterWorn,
+    snoodWorn: l.snoodWorn,
     collar: l.collar,
     collarStyle: l.collarStyle,
     cuff: l.cuff,
@@ -183,6 +184,8 @@ export interface GarmentLayerData {
   scarfDouble?: boolean
   /** Gaiter worn state — bunched at the neck or pulled over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
+  /** Cowl-to-hood worn state — around the neck or pulled up over the crown. */
+  snoodWorn?: import('../garments/schema').SnoodWorn
   /** Pom customizer (pom-pom beanie) — size scale · contrast colour · faux-fur pile. */
   pomScale?: number
   pomColor?: number
@@ -436,6 +439,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     scarfKnot: c.scarfKnot,
     scarfDouble: c.scarfDouble,
     gaiterWorn: c.gaiterWorn,
+    snoodWorn: c.snoodWorn,
     pomScale: c.pomScale,
     pomColor: c.pomColor,
     pomFur: c.pomFur,
@@ -521,6 +525,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     hem: d.hem,
     hemShape: d.hemShape,
     gaiterWorn: d.gaiterWorn,
+    snoodWorn: d.snoodWorn,
     closure: d.closure,
     lined: d.lined,
     interfaced: d.interfaced,
