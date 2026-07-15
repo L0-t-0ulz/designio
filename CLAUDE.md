@@ -250,7 +250,12 @@ Renderer modules:
   `lineup` (**runway line-up** — a collection shot of the garment across N colourways rendered side by
   side into one PNG; pure `lineupCells`/`lineupHues` are unit-tested, `main` snapshots per colourway +
   composites (the body/cloth sim is a singleton, so it composites snapshots rather than surgically
-  offsetting colliders); File → Export runway line-up).
+  offsetting colliders); File → Export runway line-up),
+  `giftFold` (**scarf gift-fold render** — a flat, neatly-folded product shot for a line sheet: pure
+  `giftFoldLayout` places a portrait folded body + a turned-down underside corner + a wrapped belly band +
+  a contact shadow (unit-tested); `renderGiftFold` composites the active garment's **live fabric albedo**
+  (the design-art map — so a tartan/print shows) into the shapes, or its base colour; File → Export scarf
+  gift-fold + `?giftFold=1`).
 - `pattern/` — `pattern` (`buildSewnTop`), `PatternController` (sew → drape), `drawnPanel`
   (**draw-your-own panel** — pure math from a sketched 2D outline to a sewn garment: `mirrorOutline`/
   `resampleOutline`/`panelGrid` mask a lattice inside the outline, `classifyBoundary` splits its edge into

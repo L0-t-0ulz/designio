@@ -41,6 +41,7 @@ export interface MenuActions {
   onTogglePress: () => void
   onClearMeasure: () => void
   onRunwayLineup: () => void
+  onScarfGiftFold: () => void
   onContactSheet: () => void
   onSizeRunStrip: () => void
   onViewer360: () => void
@@ -156,6 +157,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Record turntable — motion blur', run: a.onRecordTurntableBlur },
     { label: 'Record slow-motion clip (0.25×, 6 s)', run: a.onRecordSlowMo },
     { label: 'Export runway line-up (PNG)', run: a.onRunwayLineup },
+    { label: 'Export scarf gift-fold (PNG)', run: a.onScarfGiftFold },
     { label: 'Export contact sheet — multi-angle (PNG)', run: a.onContactSheet },
     { label: 'Export size-run strip — XS→XXL (PNG)', run: a.onSizeRunStrip },
     { label: 'Export 360° viewer (HTML)', run: a.onViewer360 },
