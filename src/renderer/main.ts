@@ -130,6 +130,7 @@ import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restore
 import { portfolioHtml } from './export/portfolio'
 import { configuratorHtml } from './export/configurator'
 import { tryOnWidgetHtml } from './export/tryOn'
+import { separationsHTML } from './export/separations'
 import { openVersionHistory } from './ui/versionHistory'
 import { diffDocs } from './studio/diffDoc'
 import { shareUrl, shareTokenFrom, decodeShare } from './studio/shareLink'
@@ -1404,6 +1405,15 @@ function initStudio(
         const inp: ListingInput = { name: projectName !== 'Untitled' ? projectName : def.name, fabricName: l.fabric.name, fibre: label.fibre, colours, sizes: [...SIZES], priceUsd: priceFromCost({ cost: cost.total }).retail, careLines: label.care }
         await saveFile('configurator.html', new TextEncoder().encode(configuratorHtml(inp, { shareUrl: shareUrl(currentDoc(), location.href) })), [{ name: 'HTML', extensions: ['html'] }])
         statusHandles?.setSelection('Made-to-order configurator exported')
+        break
+      }
+      case 'separations': {
+        // screen-print colour separations — one registered screen per print
+        const l = stack.active
+        const def = getGarment(l.data.garmentType)
+        const name = projectName !== 'Untitled' ? projectName : def.name
+        await saveFile('print-separations.html', new TextEncoder().encode(separationsHTML(l.prints, name)), [{ name: 'HTML', extensions: ['html'] }])
+        statusHandles?.setSelection(`Print separations — ${l.prints.length} screen(s)`)
         break
       }
       case 'tryon-widget': {
