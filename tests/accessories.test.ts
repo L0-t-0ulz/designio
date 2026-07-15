@@ -29,7 +29,7 @@ function baseBody(): Capsule[] {
 
 describe('accessories — body attach anchors', () => {
   it('exposes the accessory set incl. headwear & neckwear', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'necklace', 'hoops'])
+    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'necklace', 'hoops'])
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
@@ -129,6 +129,37 @@ describe('accessories — worn headwear/neckwear meshes ride the head/neck', () 
     const hoops = solo('hoops')
     expect(hoops.max.x).toBeGreaterThan(0.07) // out at the ears (head radius ≈ 0.09)
     expect(hoops.min.x).toBeLessThan(-0.07)
+  })
+})
+
+describe('accessories — sunglasses coexist with headwear', () => {
+  it('sunglasses build oval lenses at eye level, on the face front', () => {
+    const acc = new Accessories()
+    acc.setEnabled('sunglasses', true)
+    acc.update(baseBody())
+    acc.group.updateMatrixWorld(true)
+    const g = acc.group.getObjectByName('sunglasses')!
+    expect(g.visible).toBe(true)
+    const box = new THREE.Box3().setFromObject(g)
+    // at the head, not the feet; below the crown (eye level ≈ 1.6, crown ≈ 1.66)
+    expect(box.max.y).toBeGreaterThan(1.4)
+    expect(box.max.y).toBeLessThan(1.66)
+    expect(box.max.z).toBeGreaterThan(0.05) // proud of the face (+z front)
+    expect(box.min.x).toBeLessThan(0) // spans both eyes
+    expect(box.max.x).toBeGreaterThan(0)
+  })
+
+  it('glasses + a hat wear together — both render, hat above, glasses at the eyes', () => {
+    const acc = new Accessories()
+    acc.setEnabled('sunglasses', true)
+    acc.setEnabled('cap', true)
+    acc.update(baseBody())
+    acc.group.updateMatrixWorld(true)
+    const visible = acc.group.children.filter((o) => o.visible)
+    expect(visible.length).toBe(2) // they coexist, not mutually exclusive
+    const glasses = new THREE.Box3().setFromObject(acc.group.getObjectByName('sunglasses')!)
+    const cap = new THREE.Box3().setFromObject(acc.group.getObjectByName('cap')!)
+    expect(cap.max.y).toBeGreaterThan(glasses.max.y) // the cap crowns above the shades
   })
 })
 

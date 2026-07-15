@@ -24,8 +24,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'necklace', 'hoops']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -122,6 +122,7 @@ export class Accessories {
       this.buildBucket(),
       this.buildBalaclava(),
       this.buildGoggles(),
+      this.buildSunglasses(),
       this.buildNecklace(),
       this.buildHoops(),
       this.buildScarf(),
@@ -968,6 +969,40 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(lens, shell, strap)
     return this.headItem('goggles', obj)
+  }
+
+  private buildSunglasses(): Item {
+    // wayfarer-ish shades that ride the face frame (so they coexist with any hat):
+    // two dark tinted oval lenses at eye level, thin metal frames + bridge, and a
+    // temple arm down each side of the head. Authored in the unit head frame
+    // (face plane z ≈ 1.18, eyes just below centre) like the goggles.
+    const glass = new THREE.MeshPhysicalMaterial({ color: 0x121216, metalness: 0.1, roughness: 0.08, transmission: 0.18, ior: 1.5, envMapIntensity: 1.5 })
+    const frame = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.45, metalness: 0.6 })
+    const obj = new THREE.Group()
+    // origin is the crown; eyes sit ~0.6 head-radii below it, on the face front (+z)
+    const eyeY = -0.6
+    const eyeZ = 0.92
+    for (const sx of [-1, 1]) {
+      const cx = sx * 0.42
+      // lens: a flattened sphere → a slightly convex oval facing forward
+      const lens = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 14), glass)
+      lens.scale.set(1.15, 0.82, 0.32)
+      lens.position.set(cx, eyeY, eyeZ)
+      // rim around the lens
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.03, 8, 28), frame)
+      rim.scale.set(1.15, 0.82, 1)
+      rim.position.set(cx, eyeY, eyeZ + 0.02)
+      // temple arm: a thin bar from the outer lens edge back along the head side
+      const temple = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.03), frame)
+      temple.position.set(sx * 0.8, eyeY + 0.06, eyeZ - 0.5)
+      temple.rotation.y = sx * 0.7 // splay back toward the ears
+      obj.add(lens, rim, temple)
+    }
+    // bridge over the nose
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.04, 0.04), frame)
+    bridge.position.set(0, eyeY + 0.06, eyeZ + 0.01)
+    obj.add(bridge)
+    return this.headItem('sunglasses', obj)
   }
 
   private buildScarf(): Item {
