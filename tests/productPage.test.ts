@@ -24,8 +24,9 @@ describe('storefront product page export', () => {
 
   it('renders a swatch per colour and a button per size', () => {
     const html = productPageHtml(inp)
-    expect((html.match(/class="sw/g) || []).length).toBe(2)
-    expect((html.match(/class="size/g) || []).length).toBe(3)
+    // match the button classes ("sw"/"sw on", "size"/"size on") — not the "swatches"/"sizes" containers
+    expect((html.match(/class="sw[" ]/g) || []).length).toBe(2)
+    expect((html.match(/class="size[" ]/g) || []).length).toBe(3)
     expect(html).toContain('#e8c4c0')
     expect(html).toContain('>XS<')
   })
@@ -44,7 +45,7 @@ describe('storefront product page export', () => {
 
   it('defaults to one swatch + one size for an empty design', () => {
     const html = productPageHtml({ ...inp, colours: [], sizes: [] })
-    expect((html.match(/class="sw/g) || []).length).toBe(1)
+    expect((html.match(/class="sw[" ]/g) || []).length).toBe(1)
     expect(html).toContain('One size')
   })
 })
