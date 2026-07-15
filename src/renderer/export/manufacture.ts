@@ -10,7 +10,7 @@ import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
 import { threadMetres } from './thread'
 import { SEAM_TYPES, stitchLengthMm, threadMetresFor } from '../garment/stitchTypes'
-import type { CostBreakdown } from './cost'
+import { priceFromCost, type CostBreakdown } from './cost'
 import { careSymbolsSVG, type CareSymbol } from './careSymbols'
 import type { Footprint, MaterialPassport } from './sustainability'
 import { escapeHtml as esc } from './html'
@@ -122,6 +122,21 @@ function costSection(c?: CostBreakdown): string {
             <tr><td>Labour</td><td colspan="2">${usd(c.labour)}</td></tr>
             <tr><td>Overhead / waste</td><td colspan="2">${usd(c.overhead)}</td></tr>
             <tr><td><strong>Landed cost / unit</strong></td><td colspan="2"><strong>${usd(c.total)} ${c.currency}</strong></td></tr>
+          </tbody>
+        </table>
+        ${pricingSection(c)}`
+}
+
+/** Suggested wholesale + retail pricing from the landed cost at a 50 % target margin. */
+function pricingSection(c: CostBreakdown): string {
+  const usd = (v: number): string => `$${v.toFixed(2)}`
+  const p = priceFromCost({ cost: c.total })
+  return `<h3>Pricing <span style="font-weight:400;opacity:.6">(50 % margin · keystone retail)</span></h3>
+        <table>
+          <tbody>
+            <tr><td>Wholesale / unit</td><td colspan="2">${usd(p.wholesale)} ${p.currency}</td></tr>
+            <tr><td>Gross margin</td><td colspan="2">${usd(p.marginUsd)} (${Math.round(p.marginPct * 100)} %)</td></tr>
+            <tr><td><strong>Suggested retail</strong></td><td colspan="2"><strong>${usd(p.retail)} ${p.currency}</strong></td></tr>
           </tbody>
         </table>`
 }

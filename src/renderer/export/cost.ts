@@ -58,3 +58,54 @@ export function costRollup(inp: CostInputs): CostBreakdown {
   const overhead = round(sub * (inp.overheadPct ?? 0.15))
   return { fabric, thread, trims, labour, overhead, total: round(sub + overhead), currency: 'USD' }
 }
+
+// ---- pricing calculator: landed cost → margin → suggested wholesale + retail ----
+
+export interface PriceInputs {
+  /** Landed cost per unit, USD (typically `costRollup(...).total`). */
+  cost: number
+  /** Target gross margin on the wholesale price (0…0.95; default 0.5 = 50 %). */
+  marginPct?: number
+  /** Retail multiple over wholesale (keystone doubling = 2.0; default 2.2). */
+  retailMultiple?: number
+}
+
+export interface PriceBreakdown {
+  cost: number
+  /** Wholesale price = cost / (1 − margin). */
+  wholesale: number
+  /** Suggested retail = wholesale × the retail multiple. */
+  retail: number
+  /** Realised gross margin on the wholesale price (should match the target). */
+  marginPct: number
+  /** Gross profit per unit at wholesale (wholesale − cost), USD. */
+  marginUsd: number
+  /** Markup over cost = (wholesale − cost) / cost. */
+  markupPct: number
+  currency: 'USD'
+}
+
+/**
+ * Suggested **wholesale + retail** pricing from a landed cost and a target gross
+ * margin. Wholesale is priced to hit the margin (`cost / (1 − margin)`); retail
+ * applies the retail multiple (keystone ≈ 2×). Pure + unit-tested.
+ */
+export function priceFromCost(inp: PriceInputs): PriceBreakdown {
+  const round = (v: number): number => Math.round(v * 100) / 100
+  const round3 = (v: number): number => Math.round(v * 1000) / 1000
+  const cost = Math.max(0, inp.cost)
+  const margin = Math.max(0, Math.min(0.95, inp.marginPct ?? 0.5))
+  const mult = Math.max(1, inp.retailMultiple ?? 2.2)
+  const wholesale = round(cost / (1 - margin))
+  const retail = round(wholesale * mult)
+  const marginUsd = round(wholesale - cost)
+  return {
+    cost: round(cost),
+    wholesale,
+    retail,
+    marginPct: wholesale > 0 ? round3(marginUsd / wholesale) : 0,
+    marginUsd,
+    markupPct: cost > 0 ? round3(marginUsd / cost) : 0,
+    currency: 'USD'
+  }
+}
