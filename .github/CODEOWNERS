@@ -1,0 +1,4 @@
+# Code owner for the whole repo = the org admin.
+# Paired with the org "CI-gated main" ruleset (require code-owner review),
+# this makes every merge into the default branch require admin approval.
+* @ZayanKhan-12
