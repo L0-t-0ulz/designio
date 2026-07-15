@@ -48,6 +48,7 @@ const shots = [
   ['docs/hats-straw.png', 5000, 'garment=top&fabric=jersey-knit&accessories=sunhat&brimWidth=1.5&brimDroop=0.55&brimWire=1&bandTrim=bow&closeup=head&headDist=1.05&start=0'],
   // Surface finishes
   ['docs/textile-plaid.png', 6000, 'garment=dress&fabric=wool-flannel&textile=plaid&start=0'],
+  ['docs/tartan.png', 6000, 'garment=dress&fabric=wool-flannel&tartan=royal-stewart&start=0'],
   ['docs/ombre.png', 6500, 'garment=gown&fabric=chiffon&ombre=top-down&start=0'],
   ['docs/wear.png', 6000, 'garment=top&fabric=denim&wear=acid-wash&start=0'],
   ['docs/wet.png', 6000, 'garment=dress&fabric=cotton-poplin&wet=1&start=0'],
@@ -61,6 +62,10 @@ const shots = [
   ['docs/beanie-custom.png', 11000, 'garment=pom-beanie&pomScale=1.6&pomFur=1&pomColor=f2efe6&cuffPatch=woven&closeup=head&headDist=0.5&start=0'],
   ['docs/gaiter-headband.png', 11000, 'garment=chullo&closeup=head&headDist=0.5&start=0'],
   ['docs/scarf-fringe.png', 9000, 'garment=scarf&fringe=1&start=0'],
+  // Scarf worn-states + the cowl-to-hood
+  ['docs/scarf-blanket.png', 9000, 'garment=scarf&fabric=wool-flannel&scarfBlanket=1&start=0'],
+  ['docs/scarf-double.png', 9000, 'garment=scarf&fabric=wool-flannel&scarfDouble=1&closeup=head&headDist=0.95&start=0'],
+  ['docs/cowl-hood.png', 9000, 'garment=snood&fabric=cable-knit&snoodWorn=hood&closeup=head&headDist=1.1&start=0'],
   // The weave & knit design studio
   ['docs/weave-draft.png', 6000, 'garment=dress&fabric=cotton-poplin&closeup=1&weaveDraft=herringbone&start=0'],
   ['docs/colourwork.png', 6000, 'garment=top&fabric=jersey-knit&knitChart=stockinette&colourwork=fairisle&start=0'],
@@ -75,6 +80,7 @@ const shots = [
   ['docs/wrinkles.png', 6000, 'garment=dress&fabric=linen&wrinkles=1&start=0'],
   // Motion & shots
   ['docs/render-tab.png', 5000, 'garment=gown&fabric=satin&light=runway&view=render&start=0'],
+  ['docs/path-traced.png', 90000, 'garment=gown&fabric=satin&light=runway&pathtrace=1&ptQuality=high&freezeAt=2.5&start=0'], // the offline GI trace needs ~60s to converge
   ['docs/wind.png', 3500, 'garment=dress&fabric=chiffon&wind=runway&anim=idle&start=0']
 ]
 
