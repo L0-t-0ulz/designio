@@ -14,6 +14,7 @@ import { priceFromCost, type CostBreakdown } from './cost'
 import { careSymbolsSVG, type CareSymbol } from './careSymbols'
 import type { Footprint, MaterialPassport } from './sustainability'
 import { escapeHtml as esc } from './html'
+import { approvalBadgeHtml } from './approval'
 
 export interface ManufactureLayer {
   name: string
@@ -56,6 +57,8 @@ export interface ManufactureLayer {
 
 export interface ManufactureBundle {
   title: string
+  /** Sign-off status shown as a badge in the header (optional). */
+  approval?: import('./approval').ApprovalRecord
   body: { bodyType: string; height: number; build: number; bust: number; waist: number; hips: number }
   layers: ManufactureLayer[]
 }
@@ -268,7 +271,7 @@ export function manufactureHTML(b: ManufactureBundle): string {
 </style></head>
 <body>
   <h1>${esc(b.title)}</h1>
-  <p class="sub">Manufacturing pack · ${b.layers.length} garment${b.layers.length === 1 ? '' : 's'} · DesignIO</p>
+  <p class="sub">Manufacturing pack · ${b.layers.length} garment${b.layers.length === 1 ? '' : 's'} · DesignIO${b.approval ? ' · ' + approvalBadgeHtml(b.approval) : ''}</p>
   <h3>Fit block (mannequin)</h3>
   <table><tbody>
     <tr><td>Figure</td><td>${esc(body.bodyType)}</td><td>Height</td><td>${(body.height * 100).toFixed(0)}%</td></tr>

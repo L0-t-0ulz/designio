@@ -93,6 +93,7 @@ import { nestMarker } from './export/marker'
 import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost } from './export/cost'
 import { shopifyCsv, type ListingInput } from './export/listing'
 import { productPageHtml } from './export/productPage'
+import { APPROVAL_STATUSES, type ApprovalStatus } from './export/approval'
 import { circularScore, fibreGroup, garmentFootprint, longevityCare, materialPassport } from './export/sustainability'
 import { supplierFor } from './export/suppliers'
 import { factoryPackJSON } from './export/factoryPack'
@@ -1736,8 +1737,10 @@ function initStudio(
     return body ? drapedGirths(body, mannequin.measurements) : []
   }
   function manufactureBundle(): ManufactureBundle {
+    const appr = entryParams.get('approval')
     return {
       title: 'DesignIO outfit',
+      approval: appr && (APPROVAL_STATUSES as string[]).includes(appr) ? { status: appr as ApprovalStatus, by: entryParams.get('approvedBy') ?? undefined, at: Date.now() } : undefined,
       body: { ...bodySize },
       layers: stack.layers.map((l) => {
         const def = getGarment(l.data.garmentType)
