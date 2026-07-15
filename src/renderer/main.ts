@@ -121,6 +121,7 @@ import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restoreSnapshot, deleteSnapshot, listProjects } from './studio/projectStore'
 import { portfolioHtml } from './export/portfolio'
 import { openVersionHistory } from './ui/versionHistory'
+import { diffDocs } from './studio/diffDoc'
 import { listBookmarks, saveBookmark, deleteBookmark } from './studio/cameraBookmarks'
 import { openCameraBookmarks } from './ui/cameraBookmarksPanel'
 import { writeAutosave, readAutosave, clearAutosave, shouldOfferRestore, describeAge } from './studio/autosave'
@@ -564,7 +565,11 @@ function initStudio(
         applyDoc(doc)
         showToast('Restored version', 'success')
       },
-      onDelete: (snapId) => deleteSnapshot(pid, snapId)
+      onDelete: (snapId) => deleteSnapshot(pid, snapId),
+      onCompare: (snapId) => {
+        const doc = restoreSnapshot(pid, snapId) // returns the snapshot doc (no side effects)
+        return doc ? diffDocs(doc, currentDoc()) : []
+      }
     })
   }
   // Autosave the working doc to localStorage (crash recovery). Best-effort + cheap.

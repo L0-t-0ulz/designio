@@ -14,6 +14,8 @@ export interface VersionHistoryOpts {
   onSaveVersion: () => void
   onRestore: (id: string) => void
   onDelete: (id: string) => void
+  /** Diff a snapshot against the working design → human-readable change lines. */
+  onCompare?: (id: string) => string[]
 }
 
 let overlay: HTMLElement | null = null
@@ -87,6 +89,27 @@ export function openVersionHistory(opts: VersionHistoryOpts, now = Date.now()): 
         li.remove()
       })
       li.append(meta, restore, del)
+      if (opts.onCompare) {
+        const cmp = document.createElement('button')
+        cmp.className = 'dio-btn'
+        cmp.textContent = 'Compare'
+        const diff = document.createElement('ul')
+        diff.className = 'dio-history-diff'
+        cmp.addEventListener('click', () => {
+          if (diff.childElementCount) {
+            diff.replaceChildren()
+            return
+          }
+          const lines = opts.onCompare!(it.id)
+          for (const line of lines.length ? lines : ['No changes vs the current design']) {
+            const d = document.createElement('li')
+            d.textContent = line
+            diff.appendChild(d)
+          }
+        })
+        li.append(cmp)
+        li.appendChild(diff)
+      }
       list.appendChild(li)
     }
     card.appendChild(list)
