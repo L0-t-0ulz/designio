@@ -42,6 +42,7 @@ import { newKeyframeId, sampleTimeline, type Keyframe } from './studio/timeline'
 import { MeasureTool, type MeasureMode } from './studio/MeasureTool'
 import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPattern } from './export/patternImport'
 import { lineupCells, lineupHues } from './studio/lineup'
+import { renderGiftFold } from './studio/giftFold'
 import { contactGrid, contactViews } from './studio/contactSheet'
 import { sizeRunPlan } from './studio/sizeRunStrip'
 import { anatomyShots } from './studio/anatomyShots'
@@ -1222,6 +1223,19 @@ function initStudio(
     })()
   }
 
+  // ---- scarf gift-fold deep-link (`?giftFold=1`) ----
+  // Once the drape settles, compose the flat folded product shot + overlay it.
+  if (params.get('giftFold') === '1') {
+    void (async () => {
+      const settled = (window as unknown as { __drapeSettled?: () => boolean }).__drapeSettled
+      for (let i = 0; i < 600 && !(settled?.() ?? true); i++) await new Promise((r) => setTimeout(r, 50))
+      const img = document.createElement('img')
+      img.src = giftFoldDataUrl()
+      img.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;object-fit:contain;z-index:99999;background:#1a1a1e'
+      document.body.appendChild(img)
+    })()
+  }
+
   // ---- autosave + crash recovery ----
   // Snapshot the working doc to localStorage every 15s + on close (best-effort),
   // so a crash / accidental close doesn't lose work. Replace any prior studio's
@@ -1399,6 +1413,41 @@ function initStudio(
     const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'lineup'
     await saveFile(`${safe}-lineup.png`, bytes, [{ name: 'PNG image', extensions: ['png'] }])
     statusHandles?.setSelection(`Runway line-up — ${colors.length} looks`)
+  }
+
+  // Scarf gift-fold — a flat folded product shot for a line sheet (the active
+  // garment's live fabric albedo composited into the fold, or its base colour).
+  function giftFoldDataUrl(): string {
+    const l = stack.active
+    let albedo: CanvasImageSource | null = null
+    for (const mesh of l.controller.getMeshes()) {
+      const mats = Array.isArray((mesh as THREE.Mesh).material) ? ((mesh as THREE.Mesh).material as THREE.Material[]) : [(mesh as THREE.Mesh).material]
+      for (const mat of mats) {
+        const map = (mat as THREE.MeshStandardMaterial | undefined)?.map
+        if (map?.image) {
+          albedo = map.image as CanvasImageSource
+          break
+        }
+      }
+      if (albedo) break
+    }
+    const W = 1000
+    const H = 1400
+    const canvas = document.createElement('canvas')
+    canvas.width = W
+    canvas.height = H
+    const ctx = canvas.getContext('2d')!
+    renderGiftFold(ctx, W, H, { color: l.data.color, albedo })
+    return canvas.toDataURL('image/png')
+  }
+  async function exportScarfGiftFold(): Promise<void> {
+    const b64 = giftFoldDataUrl().split(',')[1] ?? ''
+    const bin = atob(b64)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'scarf'
+    await saveFile(`${safe}-giftfold.png`, bytes, [{ name: 'PNG image', extensions: ['png'] }])
+    statusHandles?.setSelection('Gift-fold product shot')
   }
 
   // Size-run strip — the garment worn at every size XS→XXL, side by side (the
@@ -1800,6 +1849,7 @@ function initStudio(
         })
     },
     onRunwayLineup: () => void exportRunwayLineup().catch((err) => showToast('Line-up failed: ' + (err as Error).message, 'error')),
+    onScarfGiftFold: () => void exportScarfGiftFold().catch((err) => showToast('Gift-fold failed: ' + (err as Error).message, 'error')),
     onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
     onSizeRunStrip: () => void exportSizeRunStrip().catch((err) => showToast('Size-run strip failed: ' + (err as Error).message, 'error')),
     onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),
