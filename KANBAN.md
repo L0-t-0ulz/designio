@@ -254,10 +254,10 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Cap closure** — snapback / strapback / fitted band at the back
 - [ ] **Trucker cap** — a foam front + a mesh back panel
 - [ ] **Bucket hat controls** — brim-width + crown-height; reversible option
-- [ ] **Fedora / trilby** — a pinched crown crease + a grosgrain hat band
+- [x] **Fedora / trilby** — a pinched crown crease + a grosgrain hat band — already shipped: the fedora accessory carries the **crown-shape library** (`avatar/crown` — dome/teardrop/centre-dent/diamond/telescope creases, `?crownShape=`) + the **hat-band designer** (`avatar/hatBand` — grosgrain/leather/cord + trim, `?hatBand=grosgrain`) _(drift check-off)_
 - [x] **Wide-brim sun hat** — a straw dome + wide drooping brim + band (`?accessories=sunhat`) — PR #277
 - [x] **Beret** — a wine felt disc pulled to one side + stalk, riding the head frame (`?accessories=beret`) — PR #277
-- [ ] **Flat cap / newsboy** — a panelled crown + a short stiff front brim
+- [x] **Flat cap / newsboy** — a panelled crown + a short stiff front brim — already shipped: `?accessories=bakerboy` (`avatar/bakerboy`) — the 8-gore puffed/panelled crown over a fitted band, wearing the cap's parametric bill (short front brim) _(drift check-off)_
 
 **Scarves & neckwear**
 - [x] **Rectangular scarf** — length / width params + fringe ends — already shipped: the cloth-sim `scarf` is a rectangular panel with a **width** multiplier (`scarfWidth` — the dimension designer), **length** driving the tails, and `?fringe=1` hanging real verlet strands off the tail ends _(drift check-off)_
@@ -282,7 +282,7 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Faux-fur trim** — pom-poms, trapper flaps, brim fur (reuse the `fur` finish)
 - [ ] **Felt / wool-melton** — a dense matte felt with a subtle nap for structured hats
 - [ ] **Silk / satin** — a drapey lustrous finish for neck scarves
-- [ ] **Brim stiffener** — a buckram / wire brim so a sun-hat / fedora brim holds its shape
+- [x] **Brim stiffener** — a buckram / wire brim so a sun-hat / fedora brim holds its shape — already shipped: `?brimWire=1` (`avatar/brim` — a crisp rolled/wired rim at the brim's lip) on the fedora + bucket + sun-hat blocks, part of the parametric brim designer (width · droop · wire) _(drift check-off)_
 - [ ] **Reflective / hi-vis + embellished** — reflective knit, sequins, beading on headwear
 
 **Fit, patterns & production**
