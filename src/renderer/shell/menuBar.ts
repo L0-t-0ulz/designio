@@ -9,6 +9,7 @@ export interface MenuActions {
   onSaveVersion: () => void
   onVersionHistory: () => void
   onExportDio: () => void
+  onTemplates: () => void
   onShareLink: () => void
   onOpenProject: () => void
   onImportPattern: () => void
@@ -137,6 +138,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
   menu('File', [
     { label: 'New design…', run: a.onNew },
     { label: 'Your projects…', run: a.onProjects },
+    { label: 'Templates…', run: a.onTemplates },
     { sep: true },
     { label: 'Save project', run: a.onSaveProject },
     { label: 'Save version (snapshot)', run: a.onSaveVersion },

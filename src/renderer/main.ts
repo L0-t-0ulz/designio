@@ -12,6 +12,8 @@ import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOv
 import { openGlossary } from './ui/glossaryOverlay'
 import { openLessons } from './ui/lessonsOverlay'
 import { openChallenges } from './ui/challengesOverlay'
+import { openTemplates } from './ui/templatesOverlay'
+import { applyTemplateToLayer } from './ui/templates'
 import { registerPlugin, loadedPlugins, setPluginHost } from './plugins'
 import { KEY_ACTIONS, actionFor, keymap, type KeyAction } from './ui/keymap'
 import { startTour, closeTour, tourOpen, hasSeenTour } from './ui/onboardingTour'
@@ -1909,6 +1911,7 @@ function initStudio(
     onSaveVersion: saveVersion,
     onVersionHistory: openHistory,
     onExportDio: () => void exportDio().catch(exportError),
+    onTemplates: () => openTemplates((tpl) => { const doc = currentDoc(); applyTemplateToLayer(doc.layers[doc.activeIndex] ?? doc.layers[0], tpl); pushUndo(); applyDoc(doc); showToast('Applied “' + tpl.name + '”', 'success') }),
     onShareLink: () => {
       const url = shareUrl(currentDoc(), location.href)
       void navigator.clipboard?.writeText(url).then(() => showToast('Share link copied to clipboard', 'success')).catch(() => showToast('Copy failed — link: ' + url, 'error'))
@@ -2531,6 +2534,7 @@ function initStudio(
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
   if (params.get('lessons') === '1') window.setTimeout(() => openLessons(), 500) // open pattern-making lessons
   if (params.get('challenges') === '1') window.setTimeout(() => openChallenges(), 500) // open community challenges
+  if (params.get('templates') === '1') window.setTimeout(() => openTemplates(), 500) // open the template gallery
   {
     const shareTok = shareTokenFrom(location.hash) ?? shareTokenFrom(location.search)
     if (shareTok) { try { applyDoc(decodeShare(shareTok)) } catch { /* corrupt/old share token — ignore */ } }
