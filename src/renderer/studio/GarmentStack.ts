@@ -22,6 +22,7 @@ import { pocketPlacements } from '../garments/decor'
 import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type DesignArtInput, type Print, type PrintPart } from '../start/design'
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
+import { reflectiveTrimLook } from '../fabric/reflective'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { iridescentParams, makeIridescenceThicknessMap } from '../fabric/iridescent'
 import { makeLaceAlphaMap } from '../fabric/lace'
@@ -348,6 +349,20 @@ export class GarmentStack {
       ? yarnAdjustedFabric({ ...getFabric(l.data.trimFabricId), color: l.data.trimColor ?? 0x1a1a22 }, l.data.yarn)
       : { ...l.fabric, color: l.data.trimColor ?? 0x1a1a22 }
     applyFabric(l.trimMaterial, trimFab)
+    // Retroreflective piping — the trim reads as bright hi-vis reflective tape: the
+    // trim colour lifted toward white for a self-lit glow over a low, room-catching
+    // roughness. Opt-in; reset to a matte non-emissive trim when off.
+    if (l.data.reflectiveTrim) {
+      const look = reflectiveTrimLook()
+      l.trimMaterial.emissive = new THREE.Color(l.data.trimColor ?? 0xdfe6ee).lerp(new THREE.Color(0xffffff), look.emissiveLift)
+      l.trimMaterial.emissiveIntensity = look.emissiveIntensity
+      l.trimMaterial.roughness = look.roughness
+      l.trimMaterial.metalness = look.metalness
+      l.trimMaterial.envMapIntensity = look.envMapIntensity
+    } else {
+      l.trimMaterial.emissiveIntensity = 0 // no glow when off (applyFabric set the matte look)
+    }
+    l.trimMaterial.needsUpdate = true
 
     // Per-part albedo: prints (and the textile pattern) render on the piece they're
     // placed on — the body, the sleeves, or the legs — each with its own base colour.
@@ -595,9 +610,11 @@ export class GarmentStack {
 
     if (l.data.pocket) this.buildPocket(l, pocketMat)
 
-    // contrast-trim bands at the hem + neckline (thin rings in the trim material)
-    if (trimOn) {
-      const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
+    // contrast-trim bands (thin rings in the trim material): a body garment gets them
+    // at the hem + neckline; headwear has no body tube, so reflective piping rings the
+    // hat's band edge instead. `reflectiveTrim` alone is enough to draw the piping.
+    if (trimOn || l.data.reflectiveTrim) {
+      const specs = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders)
       const band = (radius: number, y: number): void => {
         const geo = new THREE.TorusGeometry(Math.max(0.03, radius + 0.006), 0.014, 8, 48)
         const ring = new THREE.Mesh(geo, l.trimMaterial)
@@ -606,10 +623,13 @@ export class GarmentStack {
         ring.castShadow = true
         l.decor.add(ring)
       }
+      const spec = specs.body[0]
       if (spec) {
         band(spec.radiusBottom, spec.bottomY) // hem band
         if (spec.neckline) band(spec.radiusTop * 0.62, (spec.shoulderY ?? spec.topY) - 0.04) // neck band
       }
+      const head = specs.head[0]
+      if (head) band(head.radiusBottom, head.bottomY) // headwear piping — rings the band/brim edge
     }
 
     if (l.data.closure && !l.data.closureOpen) this.buildClosure(l) // worn open → no fastened placket; the seam itself gaps
