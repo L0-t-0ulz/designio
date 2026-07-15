@@ -620,7 +620,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   pocketBlock.append(el('div', 'dio-field-label', 'Pocket style'), pocketRow)
 
   // collar / lapel picker (shown when the Collar detail is on)
-  const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel' }
+  const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel', peak: 'Peak lapel', shawl: 'Shawl collar' }
   const collarRow = el('div', 'dio-actions')
   collarRow.style.flexWrap = 'wrap'
   const collarBtns = new Map<CollarStyle, HTMLButtonElement>()

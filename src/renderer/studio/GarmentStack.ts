@@ -983,8 +983,10 @@ export class GarmentStack {
     } else if (style === 'peterpan') {
       add(new THREE.RingGeometry(neckR * 1.02, neckR * 1.95, 44, 1), neckY - 0.005, -Math.PI / 2 + 0.28) // flat, front dips
     } else {
-      // notch: fold-back lapels down the V front + a small back stand
-      this.buildLapels(l, neckY, mat)
+      // lapel family: fold-back lapels down the V front + a small back stand.
+      // notch (stepped gorge) · peak (points swept up) · shawl (smooth rounded roll)
+      const lapelStyle = style === 'peak' ? 'peak' : style === 'shawl' ? 'shawl' : 'notch'
+      this.buildLapels(l, neckY, mat, lapelStyle)
       add(new THREE.CylinderGeometry(neckR * 1.02, neckR * 1.04, 0.03, 40, 1, true, Math.PI * 0.72, Math.PI * 1.56), neckY + 0.015) // back-only stand
     }
   }
@@ -1073,25 +1075,49 @@ export class GarmentStack {
     }
   }
 
-  /** Two flat fold-back lapels forming a V/notch down the chest (jacket front). */
-  private buildLapels(l: StackLayer, neckY: number, mat: THREE.Material): void {
+  /**
+   * Fold-back lapels down the chest (jacket front) in the three classic gorge
+   * shapes: **notch** (a stepped gorge — the top-outer point dips, leaving the
+   * notch between collar and lapel), **peak** (the point sweeps up past the
+   * neckline — a formal peaked lapel), and **shawl** (a smooth rounded roll with
+   * no notch, an extra rounded top vertex). Non-sim, proud of the draped front.
+   */
+  private buildLapels(l: StackLayer, neckY: number, mat: THREE.Material, style: 'notch' | 'peak' | 'shawl' = 'notch'): void {
     const m = this.measurements
     const fz = m.chestR + 0.014 // sit proud of the draped jacket front
-    for (const s of [-1, 1]) {
-      const p = [
-        s * 0.02, neckY + 0.02, fz, // top inner (near centre-front neck)
-        s * m.chestR * 0.95, neckY - 0.01, fz - 0.012, // top outer (shoulder side)
-        s * m.chestR * 0.72, m.chestY, fz, // bottom outer
-        s * 0.03, m.chestY + 0.04, fz + 0.008 // bottom inner (toward centre front)
-      ]
+    // fan-triangulate a convex outline (vertex 0 as the hub)
+    const poly = (pts: number[]): void => {
       const geo = new THREE.BufferGeometry()
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3))
-      geo.setIndex([0, 1, 2, 0, 2, 3])
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3))
+      const n = pts.length / 3
+      const idx: number[] = []
+      for (let i = 1; i < n - 1; i++) idx.push(0, i, i + 1)
+      geo.setIndex(idx)
       geo.computeVertexNormals()
       const lapel = new THREE.Mesh(geo, mat)
       lapel.castShadow = true
       lapel.receiveShadow = true
       l.decor.add(lapel)
+    }
+    for (const s of [-1, 1]) {
+      if (style === 'shawl') {
+        // smooth rounded roll — an extra top-mid vertex bulges up, no stepped notch
+        poly([
+          s * 0.02, neckY + 0.03, fz, // top inner (at the neck)
+          s * m.chestR * 0.52, neckY + 0.05, fz - 0.006, // top mid — rolls up, rounded
+          s * m.chestR * 0.9, neckY - 0.02, fz - 0.014, // top outer (shoulder side)
+          s * m.chestR * 0.72, m.chestY, fz, // bottom outer
+          s * 0.03, m.chestY + 0.04, fz + 0.008 // bottom inner
+        ])
+      } else {
+        const peak = style === 'peak'
+        poly([
+          s * 0.02, neckY + 0.02, fz, // top inner (near centre-front neck)
+          s * m.chestR * (peak ? 1.02 : 0.95), peak ? neckY + 0.055 : neckY - 0.01, fz - 0.012, // top outer — the peak spikes up
+          s * m.chestR * 0.72, m.chestY, fz, // bottom outer
+          s * 0.03, m.chestY + 0.04, fz + 0.008 // bottom inner
+        ])
+      }
     }
   }
 
