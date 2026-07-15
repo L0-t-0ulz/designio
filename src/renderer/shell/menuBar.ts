@@ -179,7 +179,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('product-page', 'Export storefront product page (HTML)'),
     ex('portfolio', 'Export portfolio page (HTML)'),
     ex('configurator', 'Export made-to-order configurator (HTML)'),
-    ex('tryon-widget', 'Export virtual try-on widget (HTML)')
+    ex('tryon-widget', 'Export virtual try-on widget (HTML)'),
+    ex('separations', 'Export print separations + registration (HTML)')
   ])
   menu('Edit', [
     { label: 'Undo', run: a.onUndo, enabled: a.canUndo },
