@@ -28,6 +28,8 @@ export interface ManufactureLayer {
   parts?: { part: string; fabric: string }[]
   /** Contrast trim fabric/colour, if any. */
   trim?: string
+  /** Metal hardware trims (rivets / eyelets / snaps) as BOM lines. */
+  hardware?: import('../garments/hardware').HardwareBOMLine[]
   /** Seam allowance (mm). */
   seam?: number
   /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
@@ -198,6 +200,7 @@ function layerSection(l: ManufactureLayer): string {
             <tr><td>Colour</td><td colspan="2"><span class="dot" style="background:${hex(l.color)}"></span>${l.colorRef ? esc(l.colorRef) : hex(l.color)}</td></tr>
             ${(l.parts ?? []).map((p) => `<tr><td>Fabric (${esc(p.part)})</td><td colspan="2">${esc(p.fabric)}</td></tr>`).join('')}
             ${l.trim ? `<tr><td>Trim</td><td colspan="2">${esc(l.trim)}</td></tr>` : ''}
+            ${(l.hardware ?? []).map((h) => `<tr><td>Hardware</td><td colspan="2">${esc(h.label)}</td></tr>`).join('')}
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
             ${l.stitch ? `<tr><td>Seams &amp; stitching</td><td colspan="2">${esc(l.stitch.summary)}</td></tr>` : ''}
             ${l.physical ? `<tr><td>Fabric spec (measured)</td><td colspan="2">${esc(l.physical)}</td></tr>` : ''}
