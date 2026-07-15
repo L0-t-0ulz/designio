@@ -172,6 +172,7 @@ export class ClothWorld {
     const bc = this.bodyCollider!
     const skin = this.bodySkin
     const out = this._bodyOut
+    const keep = 1 - this.params.friction // grippy fabric grips the body; slippery slides
     for (let k = 0; k < count; k++) {
       if (im[k] === 0) continue
       const i = k * 3
@@ -192,11 +193,13 @@ export class ClothWorld {
         ny /= l
         nz /= l
         const vn = vel[i] * nx + vel[i + 1] * ny + vel[i + 2] * nz
-        if (vn < 0) {
-          vel[i] -= vn * nx
-          vel[i + 1] -= vn * ny
-          vel[i + 2] -= vn * nz
-        }
+        // cancel the inward normal component, keep any outward, and damp the
+        // tangential slide by the fabric's friction (matches XPBDSolver.solveBody —
+        // a grippy knit clings to the true mesh surface while satin slides)
+        const vnOut = vn > 0 ? vn : 0
+        vel[i] = (vel[i] - vn * nx) * keep + vnOut * nx
+        vel[i + 1] = (vel[i + 1] - vn * ny) * keep + vnOut * ny
+        vel[i + 2] = (vel[i + 2] - vn * nz) * keep + vnOut * nz
       }
     }
   }

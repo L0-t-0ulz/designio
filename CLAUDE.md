@@ -95,7 +95,9 @@ Renderer modules:
   particle repulsion** run by `GarmentStack.step` after the solvers — keeps every visible garment particle
   a thickness apart, skipping same-piece grid-adjacent pairs, so layered garments push off each other +
   a garment doesn't pass through itself), `ClothWorld` (general particle+constraint solver
-  for sewn panels; seams are stitch constraints), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
+  for sewn panels; seams are stitch constraints; its `solveBody` damps the tangential slide by
+  the fabric's **friction** (`keep = 1 − friction`; cancels inward normal, keeps outward) exactly
+  like `XPBDSolver.solveBody`, so sewn panels cling/slide like tube garments), `Garment` (tube builder; `topEdge`/`radiusAt` shaping
   reused by the 2D pattern; `tubeRingT`/`axisTubeRingT` place the rings via `adaptiveMesh`), `adaptiveMesh`
   (**adaptive remeshing** — pure `adaptiveRingT` spreads a tube's fixed ring budget **non-uniformly**,
   packing rings where the silhouette *bends* (waist cinch · flare onset · puff-sleeve bell · neckline) and
@@ -155,7 +157,9 @@ Renderer modules:
   sliders in the panel; `stack.setYarn` re-derives look + drape together; per-layer, `.dio` + colorways;
   `?yarn=<preset>`; unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
   finish gradients so they don't 8-bit band; unit-tested), `textile` (repeating textile
-  **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
+  **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested
+  (**seam-continuous** — camo uses integer-frequency sines and plaid's thick band straddles the tile
+  edge, so the motif tiles with no visible seam) +
   `paintTextile` tiles it across the albedo, at a user **motif scale** (pure `textileTiles` maps scale →
   repeat count, 0.25…4×) + **rotation** (the repeat put on the bias via `CanvasPattern.setTransform`)),
   `tartan` (**tartan sett designer** — a real sett
