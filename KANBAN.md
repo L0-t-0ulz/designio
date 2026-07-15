@@ -254,19 +254,19 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Cap closure** — snapback / strapback / fitted band at the back
 - [ ] **Trucker cap** — a foam front + a mesh back panel
 - [ ] **Bucket hat controls** — brim-width + crown-height; reversible option
-- [ ] **Fedora / trilby** — a pinched crown crease + a grosgrain hat band
+- [x] **Fedora / trilby** — a pinched crown crease + a grosgrain hat band — already shipped: the fedora accessory carries the **crown-shape library** (`avatar/crown` — dome/teardrop/centre-dent/diamond/telescope creases, `?crownShape=`) + the **hat-band designer** (`avatar/hatBand` — grosgrain/leather/cord + trim, `?hatBand=grosgrain`) _(drift check-off)_
 - [x] **Wide-brim sun hat** — a straw dome + wide drooping brim + band (`?accessories=sunhat`) — PR #277
 - [x] **Beret** — a wine felt disc pulled to one side + stalk, riding the head frame (`?accessories=beret`) — PR #277
-- [ ] **Flat cap / newsboy** — a panelled crown + a short stiff front brim
+- [x] **Flat cap / newsboy** — a panelled crown + a short stiff front brim — already shipped: `?accessories=bakerboy` (`avatar/bakerboy`) — the 8-gore puffed/panelled crown over a fitted band, wearing the cap's parametric bill (short front brim) _(drift check-off)_
 
 **Scarves & neckwear**
-- [ ] **Rectangular scarf** — length / width params + fringe ends
+- [x] **Rectangular scarf** — length / width params + fringe ends — already shipped: the cloth-sim `scarf` is a rectangular panel with a **width** multiplier (`scarfWidth` — the dimension designer), **length** driving the tails, and `?fringe=1` hanging real verlet strands off the tail ends _(drift check-off)_
 - [ ] **Infinity / loop scarf** — a closed loop, worn single or doubled
 - [ ] **Blanket scarf** — an oversized square with a plaid check + fringe
 - [ ] **Silk neck scarf** — a small square knotted at the neck (knot styles)
 - [ ] **Snood / cowl** — a wide knit tube around the neck
 - [x] **Neck gaiter / buff** — a thin stretch tube (pull up over the nose): the `gaiter` catalog garment (neck-anchored headTube, stretch jersey, `HeadTubePiece.gaiter`) — worn states above — PR #316
-- [ ] **Scarf drape styles** — once-around · wrapped · draped-tails · Parisian knot
+- [x] **Scarf drape styles** — once-around · wrapped · draped-tails · Parisian knot — already shipped: `scarfCentre` gives the default ~234° once-around wrap with draped front tails, plus `knotCentre` (Parisian knot), `doubleCentre` (double wrap) + the blanket shoulder-drape — several distinct worn-states on one strip _(drift check-off)_
 - [ ] **Fringe & tassels** — a configurable knotted fringe / tassel trim on scarf ends
 
 **Head scarves & wraps**
@@ -278,11 +278,11 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Head-wrap print** — a repeating scarf print / pattern mapped onto the wrap
 
 **Materials & finish**
-- [ ] **Knit-yarn material** — a wool / acrylic matte knit with rib / cable normal + sheen (reuse `FabricMaterial`)
+- [x] **Knit-yarn material** — a wool / acrylic matte knit with rib / cable normal + sheen (reuse `FabricMaterial`) — already shipped: the fabric library carries **cable-knit · rib-knit · jersey-knit · french-terry** (soft-knit family with knit weave normals + per-family cloth sheen), on top of the knit-chart designer (stockinette/rib/cable) that bakes real knit relief _(drift check-off)_
 - [ ] **Faux-fur trim** — pom-poms, trapper flaps, brim fur (reuse the `fur` finish)
 - [ ] **Felt / wool-melton** — a dense matte felt with a subtle nap for structured hats
 - [ ] **Silk / satin** — a drapey lustrous finish for neck scarves
-- [ ] **Brim stiffener** — a buckram / wire brim so a sun-hat / fedora brim holds its shape
+- [x] **Brim stiffener** — a buckram / wire brim so a sun-hat / fedora brim holds its shape — already shipped: `?brimWire=1` (`avatar/brim` — a crisp rolled/wired rim at the brim's lip) on the fedora + bucket + sun-hat blocks, part of the parametric brim designer (width · droop · wire) _(drift check-off)_
 - [ ] **Reflective / hi-vis + embellished** — reflective knit, sequins, beading on headwear
 
 **Fit, patterns & production**
@@ -466,10 +466,10 @@ fit & physics 0/10 · materials & production 0/10)_
 
 **Pattern & production** _(refine PRs #39 · #41 · #114 · #169)_
 - [x] **Tiled print-to-scale PDF** — File → "Print pattern — tiled A4": the pattern tiles across A4/Letter pages at 1:1 with an assembly map + registration crosshairs + R·C labels for taping; pure `tilePlan` + `tiledPatternHTML` (print-CSS, mm viewBox per tile), unit-tested — PR #237
-- [ ] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern
+- [x] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern — already shipped: `garmentPattern.panelsToSVG` draws each panel's **grainline** (a line with arrowheads at both ends, from `PatternPanel.grain`), the **piece name** label, and the **cut-count** ("cut N · W × H mm"), plus a legend ("arrow = grainline · ○ = notch") _(drift check-off; the "on fold" fabric-fold notation is the one remaining nicety)_
 - [ ] **Marker / nesting layout** — auto-arrange panels to minimise fabric on the DXF/SVG
 - [x] **Per-edge seam allowance** — the cut line now offsets each edge by its own allowance (deep folded hem · shallow neckline/waist · base seam), classified by edge geometry; pure `offsetPolygonPerEdge` (variable-width offset via offset-line intersection) + `seamAllowancePerEdge` + `cutLine`, unit-tested — PR #236
-- [ ] **Full size-run export** — the graded pattern XS–XXL in one file
+- [x] **Full size-run export** — the graded pattern XS–XXL in one file — already shipped: File → **Export size set — graded patterns XS-XXL (ZIP)** (`main.ts` `case 'size-set'` writes `size-set.zip` with a graded pattern per size) _(drift check-off)_
 - [ ] **Drape the imported pattern onto the body** — the deferred half of PR #169
 - [ ] **Tech-pack: colourway pages + a notions/trims BOM** (thread, zips, buttons)
 
@@ -559,7 +559,7 @@ fit & physics 0/10 · materials & production 0/10)_
 **Performance & architecture**
 - [ ] **WASM solver hot loop** — compile the XPBD substep (integrate + constraint projection) to WASM for a 2–4× main-thread win over the JS loop; behaviour guarded by the solver tests
 - [ ] **Constraint graph colouring** — greedy-colour the constraint graph into independent batches (prereq for Jacobi / Worker / GPU parallelism); pure `colorGraph` unit-tested (no two same-colour constraints share a particle)
-- [ ] **Deterministic snapshot mode** — freeze wall-clock time + seed any RNG (turntable phase, surprise-me hues) so a deep-link renders bit-identically — unblocks the golden-image tests; test a bit-identical repeat
+- [x] **Deterministic snapshot mode** — freeze wall-clock time + seed any RNG (turntable phase, surprise-me hues) so a deep-link renders bit-identically — unblocks the golden-image tests; test a bit-identical repeat — already shipped: `?freezeAt=<simSeconds>` stops the loop at an exact frame-rate-independent sim step (`main.ts`) + `window.__drapeSettled()`, driving `scripts/golden.cjs` and the golden-image CI job (which does a bit-identical repeat compare) _(drift check-off)_
 - [ ] **Geometry lifecycle audit** — dispose geometries/materials/textures on garment rebuild + layer delete, with a `dispose()` on `GarmentController`; test no orphaned GPU resources across a build→delete loop
 - [ ] **Fixed-timestep accumulator** — decouple sim `dt` from the render frame rate with an accumulator + state interpolation in `core/Loop`, so drape is identical at 30/60/144 Hz; pure `accumulate` unit-tested
 
