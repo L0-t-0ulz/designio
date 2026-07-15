@@ -421,7 +421,7 @@ fit & physics 0/10 · materials & production 0/10)_
 **Materials & finish controls** _(refine PRs #108 · #110 · #116 · #118 · #120 · #158 · #159 · #160 · #163 · #164)_
 - [x] **Per-fabric environment reflectivity** — pure `envIntensityForFabric` sets `MeshPhysicalMaterial.envMapIntensity` from the surface: a smooth silk/satin/leather catches the studio IBL and glistens, a matte cotton/wool/canvas barely reflects — completes the roughness-map + sheen + anisotropy material realism; unit-tested — PR #231
 - [ ] **Ombré: pick the dip colour + a diagonal direction** — not just a derived tone / vertical-radial only
-- [ ] **Textile pattern scale + rotation + grainline align** — resize/rotate stripes & plaids to the cut
+- [x] **Textile pattern scale + rotation** — resize/rotate stripes & plaids: pure `textileTiles` maps a **motif scale** (0.25…4×; >1 = bigger, fewer repeats) to the tile count, and `paintTextile` rotates the whole repeat via `CanvasPattern.setTransform` (stripes/plaids on the bias); per-layer `textileScale`/`textileRotation` threaded through the finish wiring, **Motif scale** + **Motif angle** sliders under the textile picker, `.dio` + colorways, `?textileScale=&textileRotation=`; `textileTiles` unit-tested; verified (4× stripe = wide bands, plaid at 45°). _(grainline-align to the cut piece deferred as a separate follow-up.)_
 - [ ] **Textile: pick both tones** — choose the pattern's two colours instead of deriving from the base
 - [ ] **Lace as a trim band** — apply lace to just the hem/yoke, not the whole garment; + a motif-scale slider
 - [ ] **Fur pile length + comb direction** — sliders; + fur as a collar/cuff/hem trim only
