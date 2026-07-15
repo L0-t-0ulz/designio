@@ -2659,6 +2659,13 @@ if (skipStart) {
     cfg.reflectiveTrim = true
     cfg.trim = true // reflective piping rides the contrast trim bands
   }
+  if (entryParams.get('thermo')) {
+    cfg.thermo = true
+    const tw = entryParams.get('thermoWarm')
+    if (tw) cfg.thermoWarm = parseInt(tw, 16)
+    const tt = entryParams.get('thermoTemp')
+    if (tt) cfg.thermoTemp = Math.max(0, Math.min(1, parseFloat(tt)))
+  }
   const sf = entryParams.get('sleeveFabric')
   if (sf) (cfg.partFabrics ??= {}).sleeves = { fabricId: sf, color: getFabric(sf).color }
   const lf = entryParams.get('legFabric')
