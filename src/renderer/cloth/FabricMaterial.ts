@@ -3,6 +3,7 @@ import { type Fabric, sheenRecipeFromFabric, anisotropyAngleForFabric, envIntens
 import { makeWeaveNormalMap, makeWeaveRoughnessMap, toksvigRoughness } from '../fabric/weaveTexture'
 import { makePerfAlphaMap } from '../fabric/perforate'
 import { isVelvet, VELVET_FLOOR } from '../fabric/velvet'
+import { makeFurNormalMap, furParams } from '../fabric/fur'
 
 interface VelvetUniforms {
   uVelvet: { value: number }
@@ -77,6 +78,23 @@ export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): vo
   const roughnessMap = makeWeaveRoughnessMap(fabric.weave)
   roughnessMap.repeat.set(repeat, repeat)
   mat.roughnessMap = roughnessMap
+
+  // Napped KNITS (fleece) read as a soft, dense fuzz — not the crisp diagonal net the
+  // shared 'knit' weave gives. Swap in the soft fleece pile normal + a very matte,
+  // faintly-sheened surface so the base fabric reads fuzzy (the ?fur=fleece finish can
+  // still layer a stronger pile on top). Napped WOVENS (velvet/suede/corduroy) keep their
+  // own weave — this path is knits only, so it doesn't touch any golden-scene fabric.
+  if (fabric.nap && fabric.family === 'knit') {
+    const fp = furParams('fleece')
+    const furMap = makeFurNormalMap('fleece')
+    furMap.repeat.set(fp.repeat, fp.repeat)
+    mat.normalMap = furMap
+    mat.normalScale.set(fp.normalStrength, fp.normalStrength)
+    mat.roughnessMap = null // uniform matte fuzz, no yarn-crown gloss variation
+    mat.roughness = fp.roughness
+    mat.sheen = fp.sheen
+    mat.sheenRoughness = fp.sheenRoughness
+  }
 
   // Toggle the velvet lobe on only for true napped velvet/velour (live uniform, no recompile).
   const velvet = mat.userData.velvet as VelvetUniforms | undefined
