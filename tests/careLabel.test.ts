@@ -81,6 +81,7 @@ describe('headwear care labels', () => {
     expect(headwearMaterial(getFabric('rib-knit'))).toBe('knit')
     expect(headwearMaterial(getFabric('cable-knit'))).toBe('knit')
     expect(headwearMaterial(getFabric('leather'))).toBe('coated')
+    expect(headwearMaterial(getFabric('waxed-cotton'))).toBe('coated') // a waxed rain hat wipes clean + re-proofs
     // straw isn't a library fabric yet, but the classifier is future-proof
     expect(headwearMaterial({ ...getFabric('linen'), id: 'straw' })).toBe('straw')
   })
