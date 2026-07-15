@@ -2655,6 +2655,10 @@ if (skipStart) {
   if (entryParams.get('trim')) cfg.trim = true
   const tc = entryParams.get('trimColor')
   if (tc) cfg.trimColor = parseInt(tc, 16)
+  if (entryParams.get('reflectiveTrim')) {
+    cfg.reflectiveTrim = true
+    cfg.trim = true // reflective piping rides the contrast trim bands
+  }
   const sf = entryParams.get('sleeveFabric')
   if (sf) (cfg.partFabrics ??= {}).sleeves = { fabricId: sf, color: getFabric(sf).color }
   const lf = entryParams.get('legFabric')

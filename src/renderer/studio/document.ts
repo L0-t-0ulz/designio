@@ -259,6 +259,8 @@ export interface GarmentLayerData {
   trim?: boolean
   trimColor?: number
   trimFabricId?: string
+  /** Retroreflective piping — the trim reads as bright hi-vis reflective tape. */
+  reflectiveTrim?: boolean
   /** Per-part / per-panel fabric overrides (Body front uses the default fabricId/color below). */
   partFabrics?: PartFabrics
   fabricId: string
@@ -302,6 +304,7 @@ export interface Colorway {
   trim?: boolean
   trimColor?: number
   trimFabricId?: string
+  reflectiveTrim?: boolean
   partFabrics?: PartFabrics
   textile?: TextilePattern
   textileScale?: number
@@ -344,6 +347,7 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     trim: l.trim,
     trimColor: l.trimColor,
     trimFabricId: l.trimFabricId,
+    reflectiveTrim: l.reflectiveTrim,
     partFabrics: clonePartFabrics(l.partFabrics),
     textile: l.textile,
     textileScale: l.textileScale,
@@ -370,6 +374,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.trim = cw.trim
   l.trimColor = cw.trimColor
   l.trimFabricId = cw.trimFabricId
+  l.reflectiveTrim = cw.reflectiveTrim
   l.partFabrics = clonePartFabrics(cw.partFabrics)
   l.textile = cw.textile
   l.textileScale = cw.textileScale
@@ -493,6 +498,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     trim: c.trim,
     trimColor: c.trimColor,
     trimFabricId: c.trimFabricId,
+    reflectiveTrim: c.reflectiveTrim,
     partFabrics: c.partFabrics ? { ...c.partFabrics } : undefined,
     fabricId: c.fabricId,
     color: c.color,
