@@ -68,7 +68,7 @@ import { LACE_PATTERNS, type LacePattern } from '../fabric/lace'
 import { FUR_KINDS, type FurKind } from '../fabric/fur'
 import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
 import { harmonies } from '../fabric/harmony'
-import type { PrintPart, PrintStyle } from '../start/design'
+import { PRINT_BLENDS, type PrintPart, type PrintStyle, type PrintBlend } from '../start/design'
 
 export interface GarmentState {
   type: GarmentType
@@ -207,6 +207,8 @@ export interface PrintPatch {
   color?: number
   part?: PrintPart
   style?: PrintStyle
+  opacity?: number
+  blend?: PrintBlend
 }
 /** Manage the garment's placed prints (multiple logos + text) from the studio. */
 export interface PrintControls {
@@ -1855,8 +1857,21 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         slider({ label: 'Across (X)', min: 0, max: 1, step: 0.01, get: () => p.get(id)?.x ?? 0.5, set: (v) => p.update(id, { x: v }) }).row,
         slider({ label: 'Down (Y)', min: 0, max: 1, step: 0.01, get: () => p.get(id)?.y ?? 0.5, set: (v) => p.update(id, { y: v }) }).row,
         slider({ label: 'Size', min: 0.05, max: 0.9, step: 0.01, get: () => p.get(id)?.scale ?? 0.4, set: (v) => p.update(id, { scale: v }) }).row,
-        slider({ label: 'Rotation', min: -180, max: 180, step: 1, format: (v) => `${v | 0}°`, get: () => p.get(id)?.rotation ?? 0, set: (v) => p.update(id, { rotation: v }) }).row
+        slider({ label: 'Rotation', min: -180, max: 180, step: 1, format: (v) => `${v | 0}°`, get: () => p.get(id)?.rotation ?? 0, set: (v) => p.update(id, { rotation: v }) }).row,
+        slider({ label: 'Opacity', min: 0, max: 1, step: 0.05, format: (v) => `${Math.round(v * 100)}%`, get: () => p.get(id)?.opacity ?? 1, set: (v) => p.update(id, { opacity: v === 1 ? undefined : v }) }).row
       )
+      // Blend onto the fabric (appliqué patches stay opaque, so it's flat/embroidery only).
+      if ((p.get(id)?.style ?? 'flat') !== 'applique') {
+        const cur = p.get(id)?.blend ?? 'normal'
+        const row = el('div', 'dio-seg dio-seg-wrap')
+        for (const b of PRINT_BLENDS) {
+          const btn = el('button', 'dio-seg-btn' + (cur === b ? ' on' : ''), b.charAt(0).toUpperCase() + b.slice(1))
+          btn.setAttribute('type', 'button')
+          btn.addEventListener('click', () => { p.update(id, { blend: b === 'normal' ? undefined : b }); renderEditor() })
+          row.append(btn)
+        }
+        editor.append(el('div', 'dio-field-label', 'Blend'), row)
+      }
       if (d.kind === 'text') {
         editor.append(
           textField({ label: 'Text', maxLength: 24, get: () => p.get(id)?.text ?? '', set: (v) => p.update(id, { text: v }) }).row,
