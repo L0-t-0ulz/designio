@@ -77,6 +77,15 @@ export function weaveHeight(weave: WeaveType, u: number, v: number, threads: num
       const cord = Math.pow(warpRidge, 0.6)
       return 0.12 + 0.88 * cord
     }
+    case 'leather': {
+      // Smooth supple hide (leather / suede) — a fine, shallow pebbled grain, NOT a woven
+      // crosshatch. A rounded pebble per thread cell + a large soft undulation across the
+      // tile give a subtle natural grain that reads smooth. Low amplitude so it's mostly
+      // flat; both terms use integer thread/tile frequencies so the grain tiles seamlessly.
+      const pebble = warpRidge * weftRidge // rounded grain bump per thread cell (0 at edges)
+      const coarse = 0.5 + 0.5 * Math.sin(u * Math.PI * 6 + Math.cos(v * Math.PI * 4)) // large soft hide undulation
+      return 0.55 + 0.16 * pebble + 0.14 * coarse
+    }
     case 'cable': {
       // cable knit — fat twisted columns every 4 wales that cross over each other
       const col = ((cu % 4) + 4) % 4

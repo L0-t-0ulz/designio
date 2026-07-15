@@ -1,6 +1,6 @@
 import type { FabricParams } from '../cloth/fabricPresets'
 
-export type WeaveType = 'plain' | 'twill' | 'satin' | 'knit' | 'rib' | 'waffle' | 'cable' | 'corduroy'
+export type WeaveType = 'plain' | 'twill' | 'satin' | 'knit' | 'rib' | 'waffle' | 'cable' | 'corduroy' | 'leather'
 
 /** Fabric family — groups the gallery and hints at behaviour (crisp → fluid → stretchy). */
 export type FabricFamily = 'woven' | 'silk' | 'knit' | 'specialty'
@@ -215,9 +215,9 @@ export const FABRIC_LIBRARY: Fabric[] = [
   { id: 'cable-knit', name: 'Cable knit', family: 'knit', gsm: 400, stretch: 0.55, bendiness: 0.52, friction: 0.58, color: 0xd8cbb0, roughness: 0.92, sheen: 0.4, sheenRoughness: 0.55, weave: 'cable', weaveScale: 55, normalStrength: 0.9, anisotropy: 0, transmission: 0 },
 
   // ---- specialty ----
-  { id: 'leather', name: 'Leather', family: 'specialty', gsm: 340, stretch: 0.02, bendiness: 0.22, friction: 0.6, color: 0x5a3826, roughness: 0.5, sheen: 0.4, sheenRoughness: 0.5, weave: 'plain', weaveScale: 90, normalStrength: 0.35, anisotropy: 0, transmission: 0 },
+  { id: 'leather', name: 'Leather', family: 'specialty', gsm: 340, stretch: 0.02, bendiness: 0.22, friction: 0.6, color: 0x5a3826, roughness: 0.5, sheen: 0.4, sheenRoughness: 0.5, weave: 'leather', weaveScale: 90, normalStrength: 0.35, anisotropy: 0, transmission: 0 },
   { id: 'patent', name: 'Patent leather', family: 'specialty', gsm: 400, stretch: 0.02, bendiness: 0.18, friction: 0.42, color: 0x161418, roughness: 0.22, sheen: 0.2, sheenRoughness: 0.35, weave: 'plain', weaveScale: 200, normalStrength: 0.14, anisotropy: 0.1, transmission: 0, clearcoat: 1 },
-  { id: 'suede', name: 'Suede', family: 'specialty', nap: true, gsm: 300, stretch: 0.03, bendiness: 0.3, friction: 0.66, color: 0x7a5a3e, roughness: 0.88, sheen: 0.3, sheenRoughness: 0.7, weave: 'plain', weaveScale: 90, normalStrength: 0.3, anisotropy: 0.1, transmission: 0 },
+  { id: 'suede', name: 'Suede', family: 'specialty', nap: true, gsm: 300, stretch: 0.03, bendiness: 0.3, friction: 0.66, color: 0x7a5a3e, roughness: 0.88, sheen: 0.3, sheenRoughness: 0.7, weave: 'leather', weaveScale: 90, normalStrength: 0.3, anisotropy: 0.1, transmission: 0 },
   { id: 'velvet', name: 'Velvet', family: 'specialty', nap: true, gsm: 300, stretch: 0.15, bendiness: 0.55, friction: 0.6, color: 0x4a2b53, roughness: 0.6, sheen: 0.95, sheenRoughness: 0.35, weave: 'satin', weaveScale: 120, normalStrength: 0.45, anisotropy: 0.3, transmission: 0 },
   { id: 'tulle', name: 'Tulle (sheer)', family: 'specialty', gsm: 40, stretch: 0.2, bendiness: 0.6, friction: 0.3, color: 0xefe6f2, roughness: 0.4, sheen: 0.6, sheenRoughness: 0.4, weave: 'knit', weaveScale: 260, normalStrength: 0.2, anisotropy: 0, transmission: 0.6 },
   { id: 'spandex', name: 'Spandex', family: 'specialty', gsm: 200, stretch: 0.95, bendiness: 0.75, friction: 0.45, color: 0x2b2b33, roughness: 0.4, sheen: 0.75, sheenRoughness: 0.4, weave: 'knit', weaveScale: 150, normalStrength: 0.4, anisotropy: 0.2, transmission: 0 },
