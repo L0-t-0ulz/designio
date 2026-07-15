@@ -200,13 +200,13 @@ export class GarmentStack {
     // an intarsia block is PLACED on the front body — other parts have their own UV
     // space and would repeat it (a fair-isle tiles everywhere by design)
     const colourwork = l.data.colourwork && (part === 'body' || l.data.colourwork.mode === 'fairisle') ? l.data.colourwork : undefined
-    return { color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile, tartan: l.data.tartan, colourwork, ombre: l.data.ombre, wear: l.data.wear }
+    return { color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile, textileScale: l.data.textileScale, textileRotation: l.data.textileRotation, tartan: l.data.tartan, colourwork, ombre: l.data.ombre, wear: l.data.wear }
   }
   /** The albedo input for a back panel — its own colour + the owning part's prints. */
   private artInputForBack(l: StackLayer, panel: 'back' | 'legBack' | 'sleeveBack'): DesignArtInput {
     const part: PrintPart = panel === 'back' ? 'body' : panel === 'legBack' ? 'legs' : 'sleeves'
     const colourwork = l.data.colourwork && (part === 'body' || l.data.colourwork.mode === 'fairisle') ? l.data.colourwork : undefined
-    return { color: this.panelFabric(l, panel).color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile, tartan: l.data.tartan, colourwork, ombre: l.data.ombre, wear: l.data.wear }
+    return { color: this.panelFabric(l, panel).color, prints: l.prints.filter((p) => (p.part ?? 'body') === part), textile: l.data.textile, textileScale: l.data.textileScale, textileRotation: l.data.textileRotation, tartan: l.data.tartan, colourwork, ombre: l.data.ombre, wear: l.data.wear }
   }
   /** Whether the live garment actually has pieces for a part (skip building unused maps). */
   private hasPart(l: StackLayer, part: 'sleeves' | 'legs'): boolean {

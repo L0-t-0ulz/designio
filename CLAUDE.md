@@ -153,7 +153,9 @@ Renderer modules:
   `?yarn=<preset>`; unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
   finish gradients so they don't 8-bit band; unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
-  `paintTextile` tiles it across the albedo), `tartan` (**tartan sett designer** — a real sett
+  `paintTextile` tiles it across the albedo, at a user **motif scale** (pure `textileTiles` maps scale →
+  repeat count, 0.25…4×) + **rotation** (the repeat put on the bias via `CanvasPattern.setTransform`)),
+  `tartan` (**tartan sett designer** — a real sett
   (thread-count coloured stripes) woven in **2/2 twill**: pure `expandSett` mirrors a *reflective* sett
   about its two pivot threads into the symmetric repeat, `tartanColorAt` picks the warp/weft colour on the
   twill diagonal so equal crossings read solid + unequal ones hatch half-and-half; 6 preset setts
@@ -391,7 +393,7 @@ features — brows/eyes/lips) ·
 exports a PNG **with alpha**) · `?neckline=<scoop|crew|v|one-shoulder|strapless>` (**one-shoulder** = the asymmetric-fit neckline — `topEdge` breaks mirror symmetry; the flat pattern follows) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
-the garment, behind the prints) · `?tartan=<black-watch|royal-stewart|hunting|dress-blue|camel-check|grey>`
+the garment, behind the prints; `?textileScale=<0.25..4>&textileRotation=<deg>` resize + rotate the motif) · `?tartan=<black-watch|royal-stewart|hunting|dress-blue|camel-check|grey>`
 (a real tartan sett — thread-count stripes woven in 2/2 twill) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
 into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
 `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a

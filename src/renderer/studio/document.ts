@@ -266,6 +266,8 @@ export interface GarmentLayerData {
   /** Placed prints (logos + text); uploaded PNGs are runtime-only (image dropped on save). */
   prints?: PrintSpec[]
   textile?: TextilePattern
+  textileScale?: number
+  textileRotation?: number
   tartan?: TartanKind
   ombre?: OmbreDirection
   wear?: WearKind
@@ -302,6 +304,8 @@ export interface Colorway {
   trimFabricId?: string
   partFabrics?: PartFabrics
   textile?: TextilePattern
+  textileScale?: number
+  textileRotation?: number
   tartan?: TartanKind
   ombre?: OmbreDirection
   wear?: WearKind
@@ -342,6 +346,8 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     trimFabricId: l.trimFabricId,
     partFabrics: clonePartFabrics(l.partFabrics),
     textile: l.textile,
+    textileScale: l.textileScale,
+    textileRotation: l.textileRotation,
     tartan: l.tartan,
     ombre: l.ombre,
     wear: l.wear,
@@ -366,6 +372,8 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.trimFabricId = cw.trimFabricId
   l.partFabrics = clonePartFabrics(cw.partFabrics)
   l.textile = cw.textile
+  l.textileScale = cw.textileScale
+  l.textileRotation = cw.textileRotation
   l.tartan = cw.tartan
   l.ombre = cw.ombre
   l.wear = cw.wear
@@ -490,6 +498,8 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     color: c.color,
     prints: c.prints.map(printToSpec),
     textile: c.textile,
+    textileScale: c.textileScale,
+    textileRotation: c.textileRotation,
     tartan: c.tartan,
     ombre: c.ombre,
     wear: c.wear,
@@ -548,6 +558,8 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     color: 0xc85a54,
     prints: [],
     textile: undefined,
+    textileScale: undefined,
+    textileRotation: undefined,
     tartan: undefined,
     ombre: undefined,
     wear: undefined,
@@ -594,6 +606,8 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     partFabrics: clonePartFabrics(l.partFabrics),
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined,
     textile: l.textile,
+    textileScale: l.textileScale,
+    textileRotation: l.textileRotation,
     tartan: l.tartan,
     ombre: l.ombre,
     wear: l.wear,
