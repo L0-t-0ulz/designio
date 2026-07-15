@@ -105,7 +105,10 @@ Renderer modules:
   `normals` (**angle-weighted vertex normals** — pure `angleWeightedNormals`/`computeAngleWeightedNormals`
   weight each face by its interior angle (Max) instead of area, so the adaptive remesh's uneven triangle
   sizes don't skew the shading; a drop-in for `computeVertexNormals` on the garment pieces, unit-tested),
-  `ClothMesh`, `FabricMaterial`, `fabricPresets` (`FabricParams`), `diagnostics` (**pure solver diagnostics**
+  `ClothMesh`, `FabricMaterial` (the PBR fabric material — sheen · weave normal/roughness · anisotropy ·
+  transmission; + a **velvet retroreflective lobe** (`fabric/velvet` — pure `velvetFacingFactor` darkens the
+  diffuse facing the camera, bright grazing rim; injected via `onBeforeCompile`, gated by a `uVelvet` uniform
+  so non-velvet is a bit-identical identity — only napped velvet/velour turns it on)), `fabricPresets` (`FabricParams`), `diagnostics` (**pure solver diagnostics**
   — `cflNumber` (Courant/tunnelling check), `stiffnessRatio`/`substepsForStiffness` (a preset's numerical
   stiffness vs the timestep); unit-tested, + solver-validation tests: rest-state settle · golden-drape
   determinism · momentum conservation), `windPresets`
