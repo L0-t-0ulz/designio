@@ -1004,6 +1004,19 @@ _The moonshots that make this a next-generation design tool. Each is deep + spec
 - [ ] **Pre-shrink / relax pass** — a one-click relax that lets the fabric settle to its true relaxed dimensions (release seam tension + take-up) before measuring, so the production spec reflects the relaxed garment not the stretched mesh
 - [ ] **Stretch-recovery memory** — a knit that's been stretched over a curve keeps a little bagging (a plastic strain term) so ribbing at a cuff/hem reads worked-in rather than pristine
 
+## 🧶 Weave & knit structure — batch added 2026-07-15 _(deeper procedural weave/knit micro-surface work — surfaced by a fabric-rendering audit; each self-contained + unit-testable)_
+
+- [x] **Satin reads smooth, not beaded** — the satin weave's deep every-5th-cell binding dip baked a polka-dot grid across satin / charmeuse / velvet / lamé / sequin; made it float-dominant so it reads as the smooth lustrous float it is — PR #359
+- [x] **Corduroy has vertical cords** — corduroy was weave `'twill'` (a diagonal); gave it a dedicated vertical-wale weave with rounded pile-topped cords over deep valleys — PR #360
+- [ ] **Proper jersey-knit face** — the shared `'knit'` weave reads as a diagonal net; author a true single-jersey face (vertical columns of V-stitches / wales + subtle horizontal courses) so jersey / terry / ponte / scuba / spandex read as knit-face, not mesh
+- [ ] **Per-fabric wale/thread density** — the weave bakes at a fixed 16 threads/tile; drive the thread count from the fabric so a fine poplin, a wide-wale cord, and a chunky rib each get their true scale instead of a uniform grid
+- [ ] **Wide-wale vs pincord corduroy** — a wale-width control on corduroy (pincord · standard · wide-wale · jumbo) that sets cords-per-inch + cord roundness, with the pile direction driving the anisotropic sheen
+- [ ] **Purl / reverse-stockinette knit face** — a reverse-jersey (purl-side-out) weave — squat horizontal bumps instead of vertical wales — so a garment can show its purl face (curled hems, purl-side design blocks)
+- [ ] **Terry & bouclé loop pile** — a looped-pile micro-surface (French-terry loops, bouclé nubs) baked as a stochastic bump so towelling / bouclé reads loopy rather than flat knit
+- [ ] **Herringbone & houndstooth woven structure** — true broken-twill herringbone + a houndstooth interlacement as weave heightfields (not just a printed textile), so the structure catches light like woven cloth
+- [ ] **Weave-scale-aware Toksvig floor** — the specular-AA roughness lift is a flat `0.14·strength`; scale it by the on-screen weave frequency so fine weaves at distance don't shimmer while coarse ones keep their relief
+- [ ] **Nap-direction shading for pile weaves** — corduroy / velvet / velour pile should brighten/darken with pile direction under the key light (up-nap vs down-nap), driven off the wale/pile axis so brushing the surface visibly shifts its tone
+
 ---
 
 _Update this board as things ship — check the box + note the PR._
