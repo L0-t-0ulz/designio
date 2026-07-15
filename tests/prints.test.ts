@@ -9,6 +9,8 @@ import {
   printIsRaised,
   anyRaised,
   hasArt,
+  foilTone,
+  PRINT_STYLES,
   type Print
 } from '../src/renderer/start/design'
 import { docFromConfig, serializeDoc, parseDoc } from '../src/renderer/studio/document'
@@ -92,6 +94,23 @@ describe('placed prints (multiple logos + text)', () => {
     expect(printIsRaised(newTextPrint('X'))).toBe(false)
     expect(printIsRaised({ ...newTextPrint('X'), style: 'embroidery' })).toBe(true)
     expect(printIsRaised({ ...newTextPrint('X'), style: 'applique' })).toBe(true)
+  })
+
+  it('puff / discharge / foil print finishes: puff is raised, the others are flat', () => {
+    expect(PRINT_STYLES).toContain('puff')
+    expect(PRINT_STYLES).toContain('discharge')
+    expect(PRINT_STYLES).toContain('foil')
+    expect(printIsRaised({ ...newTextPrint('X'), style: 'puff' })).toBe(true) // a chunky high-loft
+    expect(printIsRaised({ ...newTextPrint('X'), style: 'discharge' })).toBe(false) // bleach, no relief
+    expect(printIsRaised({ ...newTextPrint('X'), style: 'foil' })).toBe(false) // flat transfer
+  })
+
+  it('foilTone lifts a print colour toward a bright metallic sheen', () => {
+    const lum = (c: number): number => 0.2126 * ((c >> 16) & 255) + 0.7152 * ((c >> 8) & 255) + 0.0722 * (c & 255)
+    for (const base of [0xd4af37, 0x8a1538, 0x0d2b1a, 0x101014]) {
+      expect(lum(foilTone(base))).toBeGreaterThan(lum(base)) // always brighter (a metallic lift)
+      expect(lum(foilTone(base))).toBeGreaterThan(150) // reads as light metal even from a dark base
+    }
   })
 
   it('anyRaised: true only when a *content-bearing* motif is embroidery/appliqué', () => {

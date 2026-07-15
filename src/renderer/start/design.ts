@@ -141,9 +141,23 @@ export interface DesignConfig {
 export type PrintPart = 'body' | 'sleeves' | 'legs'
 
 /** How a placed motif is finished: a flat graphic, raised **embroidery** (stitched
- * thread relief), or an **appliqué** patch (a raised panel with a stitched border).
- * The raised styles paint a bump map so they catch the light. */
-export type PrintStyle = 'flat' | 'embroidery' | 'applique'
+ * thread relief), an **appliqué** patch (a raised panel with a stitched border), a
+ * **puff** print (a chunky rounded high-loft rubber print), a **discharge** print
+ * (bleaches the fabric to a pale tone where it prints), or a **foil** print (a
+ * bright metallic transfer). The raised styles (embroidery · appliqué · puff) paint
+ * a bump map so they catch the light. */
+export type PrintStyle = 'flat' | 'embroidery' | 'applique' | 'puff' | 'discharge' | 'foil'
+export const PRINT_STYLES: PrintStyle[] = ['flat', 'embroidery', 'applique', 'puff', 'discharge', 'foil']
+
+/** The bright metallic transfer tone for a foil print — the print's hue lifted toward
+ *  a light metallic sheen. Pure so it's unit-tested. */
+export function foilTone(color: number): number {
+  const c = new THREE.Color(color)
+  const hsl = { h: 0, s: 0, l: 0 }
+  c.getHSL(hsl)
+  // keep the hue vivid (foil gold reads gold) but lift it bright + reflective
+  return new THREE.Color().setHSL(hsl.h, Math.min(1, hsl.s * 0.5 + 0.32), Math.max(0.62, hsl.l * 0.5 + 0.4)).getHex()
+}
 
 /** How a print blends onto the fabric beneath it — opaque, multiplied (tints into the
  *  weave, like a screen print), or screened (lightens). */
@@ -200,7 +214,7 @@ export function newTextPrint(text = ''): Print {
   return { id: newPrintId(), kind: 'text', image: null, text, color: 0x1a1a22, x: 0.25, y: 0.5, scale: 0.5, rotation: 0, part: 'body', style: 'flat' }
 }
 /** Whether a motif is raised (embroidery / appliqué) → contributes to the bump relief. */
-export const printIsRaised = (p: Print): boolean => p.style === 'embroidery' || p.style === 'applique'
+export const printIsRaised = (p: Print): boolean => p.style === 'embroidery' || p.style === 'applique' || p.style === 'puff'
 export const printHasContent = (p: Print): boolean => (p.kind === 'image' ? p.image != null : p.text.trim().length > 0)
 export function printToSpec(p: Print): PrintSpec {
   const { image: _drop, ...spec } = p
@@ -307,7 +321,14 @@ function paintAlbedoMotif(ctx: CanvasRenderingContext2D, p: Print, size: number)
     drawMotifShape(ctx, p, size, shade(p.color, p.kind === 'text' ? 0.4 : 0)) // motif on the patch
     return
   }
-  drawMotifShape(ctx, p, size, hex(p.color)) // flat / embroidery graphic
+  if (p.style === 'discharge') {
+    // discharge print bleaches the dye where it prints — screen a pale tone onto the fabric
+    ctx.globalCompositeOperation = 'screen'
+    drawMotifShape(ctx, p, size, shade(p.color, 0.55)) // a pale, washed-out motif
+    return
+  }
+  // foil = a bright metallic transfer tone; flat / embroidery / puff draw the plain graphic
+  drawMotifShape(ctx, p, size, p.style === 'foil' ? hex(foilTone(p.color)) : hex(p.color))
 }
 
 /** Draw a motif's silhouette (text glyphs / image) in one bump tone, centred at the
@@ -347,6 +368,13 @@ function paintRaisedBump(b: CanvasRenderingContext2D, p: Print, size: number): v
     b.stroke()
     b.setLineDash([])
     drawMotifShape(b, p, size, '#ffffff') // the motif sits proud on the patch
+  } else if (p.style === 'puff') {
+    // puff print: a chunky, rounded high-loft — the motif full-white (max height) with a
+    // soft blur so it domes like a rubber puff instead of reading as flat thread
+    const hadFilter = typeof b.filter === 'string'
+    if (hadFilter) b.filter = `blur(${Math.max(2, s * 0.03)}px)`
+    drawMotifShape(b, p, size, '#ffffff')
+    if (hadFilter) b.filter = 'none'
   } else {
     // embroidery: raised threads (the motif proud of the cloth, edges catch the light)
     drawMotifShape(b, p, size, '#e6e6e6')

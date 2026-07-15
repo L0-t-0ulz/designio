@@ -2532,6 +2532,15 @@ if (skipStart) {
   if (entryParams.get('prints') === 'applique') {
     cfg.prints.push({ ...newTextPrint('STAR'), x: 0.25, y: 0.36, scale: 0.5, color: 0xd94f6a, style: 'applique' })
   }
+  if (entryParams.get('prints') === 'puff') {
+    cfg.prints.push({ ...newTextPrint('PUFF'), x: 0.25, y: 0.36, scale: 0.6, color: 0xffffff, style: 'puff' })
+  }
+  if (entryParams.get('prints') === 'discharge') {
+    cfg.prints.push({ ...newTextPrint('FADE'), x: 0.25, y: 0.36, scale: 0.6, color: 0x101014, style: 'discharge' })
+  }
+  if (entryParams.get('prints') === 'foil') {
+    cfg.prints.push({ ...newTextPrint('GOLD'), x: 0.25, y: 0.36, scale: 0.6, color: 0xd4af37, style: 'foil' })
+  }
   if (entryParams.get('prints') === 'blend') {
     // a translucent multiply print (tints into the weave) beside a 60%-opacity one
     cfg.prints.push({ ...newTextPrint('FADED'), x: 0.25, y: 0.34, scale: 0.55, color: 0x101014, blend: 'multiply' })
