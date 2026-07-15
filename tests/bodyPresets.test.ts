@@ -8,7 +8,7 @@ const GIRTH: [number, number] = [0.78, 1.3]
 
 describe('body-shape presets', () => {
   it('exposes a diverse set beyond the two runway figures', () => {
-    expect(BODY_PRESET_NAMES).toEqual(['runway', 'curvy', 'plus', 'athletic', 'petite', 'tall'])
+    expect(BODY_PRESET_NAMES).toEqual(['runway', 'curvy', 'plus', 'athletic', 'petite', 'tall', 'unisex'])
   })
 
   it('every preset stays inside the sliders valid range (→ valid colliders)', () => {
@@ -39,6 +39,11 @@ describe('body-shape presets', () => {
     expect(getBodyPreset('plus')!.shape.build).toBeGreaterThan(getBodyPreset('runway')!.shape.build)
     // curvy nips the waist and widens the hips
     expect(getBodyPreset('curvy')!.shape.waist).toBeLessThan(getBodyPreset('curvy')!.shape.hips)
+    // unisex is a straighter, less-gendered block: a flatter chest + a less-nipped
+    // (straighter) waist than the curvy figure
+    const uni = getBodyPreset('unisex')!.shape
+    expect(uni.bust).toBeLessThan(getBodyPreset('curvy')!.shape.bust)
+    expect(uni.waist).toBeGreaterThan(uni.hips) // waist not nipped in below the hips — a rectangle
   })
 
   it('runway is the neutral 1.0 body', () => {

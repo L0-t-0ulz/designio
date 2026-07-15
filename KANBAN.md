@@ -773,7 +773,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [x] **Maternity fit** — an expandable belly panel + a drape that adjusts through trimesters (`avatar/maternity` — one capsule = collider AND visual metaball at index 13; trimester slider, `?belly=0..3`) — PR #296
 - [ ] **Adaptive wear** — seated-fit patterns, magnetic closures, one-hand fastenings
 - [ ] **Petite / tall / plus auto-proportioning** — re-grade the whole catalog per body archetype
-- [ ] **Unisex / gender-neutral blocks** — a shared block that fits across bodies
+- [x] **Unisex / gender-neutral blocks** — a **`unisex`** body-shape preset: a straighter, less-gendered silhouette (flatter chest · a less-nipped/straighter waist · narrower hips) so the same design reads unisex, applied on top of either figure like the other presets. Additive `BODY_PRESETS` entry (auto-flows to the preset picker + `?bodyPreset=unisex`); in-range so colliders stay valid. Unit-tested (flatter chest + straighter waist than curvy · in slider range · distinct) + visually confirmed the straighter block — PR #TBD
 
 **Footwear & bags**
 - [ ] **Shoe last + upper designer** — sneaker / heel / boot uppers over a parametric last

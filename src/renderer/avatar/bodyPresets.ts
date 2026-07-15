@@ -21,7 +21,10 @@ export const BODY_PRESETS: BodyPreset[] = [
   { name: 'plus', label: 'Plus', shape: { height: 1, build: 1.2, bust: 1.18, waist: 1.24, hips: 1.18 } },
   { name: 'athletic', label: 'Athletic', shape: { height: 1.03, build: 1.1, bust: 0.98, waist: 0.9, hips: 0.95 } },
   { name: 'petite', label: 'Petite', shape: { height: 0.88, build: 0.94, bust: 0.94, waist: 0.92, hips: 0.94 } },
-  { name: 'tall', label: 'Tall', shape: { height: 1.13, build: 0.97, bust: 0.98, waist: 0.94, hips: 0.98 } }
+  { name: 'tall', label: 'Tall', shape: { height: 1.13, build: 0.97, bust: 0.98, waist: 0.94, hips: 0.98 } },
+  // a gender-neutral block — a straighter, less-gendered silhouette: flatter chest,
+  // a less-nipped (straighter) waist and narrower hips, so the same design reads unisex
+  { name: 'unisex', label: 'Unisex', shape: { height: 1.05, build: 1.02, bust: 0.96, waist: 1.06, hips: 0.97 } }
 ]
 
 export const BODY_PRESET_NAMES: string[] = BODY_PRESETS.map((p) => p.name)
