@@ -23,6 +23,7 @@ import { buildDesignArt, hasArt, anyRaised, printFromSpec, type DesignArt, type 
 import { buildSwatchTextures, disposeSwatch, type SwatchTextures } from '../fabric/swatch'
 import { sparkleParams, makeSparkleNormalMap } from '../fabric/sparkle'
 import { reflectiveTrimLook } from '../fabric/reflective'
+import { thermochromicColor, thermoDefaultWarm } from '../fabric/thermochromic'
 import { quiltParams, makeQuiltNormalMap } from '../fabric/quilt'
 import { iridescentParams, makeIridescenceThicknessMap } from '../fabric/iridescent'
 import { makeLaceAlphaMap } from '../fabric/lace'
@@ -495,6 +496,17 @@ export class GarmentStack {
         m.clearcoatRoughness = 0.12
         m.sheen = Math.min(1, m.sheen * 0.5)
         m.color.multiplyScalar(0.78)
+        m.needsUpdate = true
+      }
+    }
+    // Thermochromic preview — a heat-reactive dye: as the preview temperature rises the
+    // garment shifts from its cold colour toward the warm-activated colour (default: a
+    // pale fade). At temp 0 nothing changes, so the cold state + per-part colours stand.
+    if (l.data.thermo && (l.data.thermoTemp ?? 0) > 0) {
+      const temp = l.data.thermoTemp ?? 0
+      for (const m of [l.material, l.sleeveMaterial, l.legMaterial, l.backMaterial, l.legBackMaterial, l.sleeveBackMaterial]) {
+        const warm = l.data.thermoWarm ?? thermoDefaultWarm(m.color.getHex())
+        m.color.setHex(thermochromicColor(m.color.getHex(), warm, temp))
         m.needsUpdate = true
       }
     }

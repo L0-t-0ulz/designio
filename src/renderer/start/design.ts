@@ -93,6 +93,9 @@ export interface DesignConfig {
   trimColor?: number
   trimFabricId?: string
   reflectiveTrim?: boolean
+  thermo?: boolean
+  thermoWarm?: number
+  thermoTemp?: number
   partFabrics?: PartFabrics
   /** Mannequin figure — female or male (slim model proportions). */
   bodyType: BodyType

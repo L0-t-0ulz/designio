@@ -261,6 +261,10 @@ export interface GarmentLayerData {
   trimFabricId?: string
   /** Retroreflective piping — the trim reads as bright hi-vis reflective tape. */
   reflectiveTrim?: boolean
+  /** Thermochromic (heat-reactive) dye preview — the base shifts to `thermoWarm` as `thermoTemp` (0…1) rises. */
+  thermo?: boolean
+  thermoWarm?: number
+  thermoTemp?: number
   /** Per-part / per-panel fabric overrides (Body front uses the default fabricId/color below). */
   partFabrics?: PartFabrics
   fabricId: string
@@ -305,6 +309,9 @@ export interface Colorway {
   trimColor?: number
   trimFabricId?: string
   reflectiveTrim?: boolean
+  thermo?: boolean
+  thermoWarm?: number
+  thermoTemp?: number
   partFabrics?: PartFabrics
   textile?: TextilePattern
   textileScale?: number
@@ -348,6 +355,9 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     trimColor: l.trimColor,
     trimFabricId: l.trimFabricId,
     reflectiveTrim: l.reflectiveTrim,
+    thermo: l.thermo,
+    thermoWarm: l.thermoWarm,
+    thermoTemp: l.thermoTemp,
     partFabrics: clonePartFabrics(l.partFabrics),
     textile: l.textile,
     textileScale: l.textileScale,
@@ -375,6 +385,9 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.trimColor = cw.trimColor
   l.trimFabricId = cw.trimFabricId
   l.reflectiveTrim = cw.reflectiveTrim
+  l.thermo = cw.thermo
+  l.thermoWarm = cw.thermoWarm
+  l.thermoTemp = cw.thermoTemp
   l.partFabrics = clonePartFabrics(cw.partFabrics)
   l.textile = cw.textile
   l.textileScale = cw.textileScale
@@ -499,6 +512,9 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     trimColor: c.trimColor,
     trimFabricId: c.trimFabricId,
     reflectiveTrim: c.reflectiveTrim,
+    thermo: c.thermo,
+    thermoWarm: c.thermoWarm,
+    thermoTemp: c.thermoTemp,
     partFabrics: c.partFabrics ? { ...c.partFabrics } : undefined,
     fabricId: c.fabricId,
     color: c.color,
