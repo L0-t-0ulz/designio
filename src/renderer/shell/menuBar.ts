@@ -173,7 +173,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('size-set', 'Export size set — graded patterns XS-XXL (ZIP)'),
     ex('listing', 'Export e-commerce listing (Shopify CSV)'),
     ex('product-page', 'Export storefront product page (HTML)'),
-    ex('portfolio', 'Export portfolio page (HTML)')
+    ex('portfolio', 'Export portfolio page (HTML)'),
+    ex('configurator', 'Export made-to-order configurator (HTML)')
   ])
   menu('Edit', [
     { label: 'Undo', run: a.onUndo, enabled: a.canUndo },

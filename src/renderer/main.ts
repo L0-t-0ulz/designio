@@ -121,6 +121,7 @@ import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
 import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restoreSnapshot, deleteSnapshot, listProjects } from './studio/projectStore'
 import { portfolioHtml } from './export/portfolio'
+import { configuratorHtml } from './export/configurator'
 import { openVersionHistory } from './ui/versionHistory'
 import { diffDocs } from './studio/diffDoc'
 import { shareUrl, shareTokenFrom, decodeShare } from './studio/shareLink'
@@ -1381,6 +1382,20 @@ function initStudio(
         const brand = projectName !== 'Untitled' ? projectName : 'Portfolio'
         await saveFile('portfolio.html', new TextEncoder().encode(portfolioHtml(brand, items)), [{ name: 'HTML', extensions: ['html'] }])
         statusHandles?.setSelection(`Portfolio — ${items.length} design(s)`)
+        break
+      }
+      case 'configurator': {
+        // a customer-facing made-to-order configurator (live colour/size + order link)
+        const l = stack.active
+        const def = getGarment(l.data.garmentType)
+        const metrics = activeMetrics(l)
+        const cost = costRollup({ fabricM: metrics.fabricM2 / 1.4, pricePerM: estimatedFabricPrice(l.fabric), threadM: threadMetres(metrics.seamCm), labourMin: estimateLabourMinutes(metrics.seamCm), labourRate: 15 })
+        const cw = stack.colorways()
+        const colours = (cw.length ? cw.map((c) => c.color) : [l.data.color]).map((hex) => ({ label: colorRefLabel(hex).replace(/^TR-\d+\s*/, '') || 'Colour', hex: '#' + hex.toString(16).padStart(6, '0') }))
+        const label = careLabel(l.fabric)
+        const inp: ListingInput = { name: projectName !== 'Untitled' ? projectName : def.name, fabricName: l.fabric.name, fibre: label.fibre, colours, sizes: [...SIZES], priceUsd: priceFromCost({ cost: cost.total }).retail, careLines: label.care }
+        await saveFile('configurator.html', new TextEncoder().encode(configuratorHtml(inp, { shareUrl: shareUrl(currentDoc(), location.href) })), [{ name: 'HTML', extensions: ['html'] }])
+        statusHandles?.setSelection('Made-to-order configurator exported')
         break
       }
       case 'size-set': {
