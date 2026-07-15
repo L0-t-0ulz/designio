@@ -42,9 +42,9 @@ If you are unsure whether something is allowed, **ask first.**
 - [At a glance](#at-a-glance)
 - [The homepage & "Design your piece"](#the-homepage--design-your-piece)
 - [The professional studio — every panel](#the-professional-studio--every-panel)
-- [The garment catalog — 52 garments](#the-garment-catalog--52-garments)
+- [The garment catalog — 55 garments](#the-garment-catalog--55-garments)
 - [Construction detail](#construction-detail)
-- [The fabric library — 35 fabrics](#the-fabric-library--35-fabrics)
+- [The fabric library — 39 fabrics](#the-fabric-library--39-fabrics)
 - [Surface design & fabric finishes](#surface-design--fabric-finishes)
 - [Per-part & per-panel fabric](#per-part--per-panel-fabric)
 - [Prints, logos & text](#prints-logos--text)
@@ -73,11 +73,11 @@ If you are unsure whether something is allowed, **ask first.**
 
 | What | DesignIO |
 | --- | --- |
-| **Garments** | 31 data-driven garments across tops · bottoms · dresses · one-pieces · outerwear · headwear |
-| **Fabrics** | 35 real fabrics with physical **and** visual properties that drive both drape and look |
+| **Garments** | 55 data-driven garments across tops · bottoms · dresses · one-pieces · outerwear · headwear |
+| **Fabrics** | 39 real fabrics with physical **and** visual properties that drive both drape and look |
 | **Body** | imported photoreal GLB avatar (default) or a sculpted metaball body — female/male, fully shapeable |
 | **Simulation** | XPBD cloth · mesh-accurate BVH body collision · cloth self/inter-collision · 4D motion · trapped-air puffer loft |
-| **Surface** | textiles · ombré · distressing · sequins · iridescence · quilting · lace · faux-fur · wet look · photo→PBR swatch |
+| **Surface** | textiles · ombré · distressing · sequins · iridescence · quilting · lace · faux-fur · wet look · thermochromic · reflective piping · photo→PBR swatch |
 | **Customize** | skin tones · hair · face · body presets · lookbook poses · accessories · headwear & neckwear |
 | **Studio** | dockable CAD shell · 3D + 2D pattern + Render tabs · lighting & backdrop presets · fit / stress / pressure maps |
 | **Output** | glTF · OBJ · USDZ (AR) · SVG/DXF pattern · tech-pack · manufacturing pack · PNG stills · WebM clips |
@@ -118,8 +118,8 @@ empty clipboard, last garment).
 
 | Tab | What's in it |
 | --- | --- |
-| **Garments** | the full 43-garment catalog, grouped by category, each a one-click add |
-| **Fabrics** | all 35 fabrics — **filter** by family · weight · stretch, combined with the text search |
+| **Garments** | the full 55-garment catalog, grouped by category, each a one-click add |
+| **Fabrics** | all 39 fabrics — **filter** by family · weight · stretch, combined with the text search |
 | **Avatars** | body type, presets and the mannequin options |
 | **Presets** | curated looks to start from |
 
@@ -159,18 +159,18 @@ once automatically and is always re-openable from **Help → Take the tour**.
 
 ---
 
-## The garment catalog — 52 garments
+## The garment catalog — 55 garments
 
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
 pieces), so breadth comes from data, not bespoke code. **Adding a garment is a data change, not new code.**
 Grouped by category:
 
-- **Tops** (9) — t-shirt, tank, crop top, long-sleeve, polo, tube top, tunic, blouse, hoodie (with a real draped hood)
-- **Bottoms** (10) — A-line / pencil / maxi skirt, trousers, shorts, wide-leg, cargo, slim trousers, joggers, leggings
+- **Tops** (12) — t-shirt, tank, crop top, long-sleeve, polo, tube top, sports bra, tunic, blouse, dress shirt, hoodie (with a real draped hood), waistcoat
+- **Bottoms** (12) — A-line / pencil / maxi skirt, trousers, shorts, wide-leg, cargo, slim trousers, joggers, leggings, high-waist leggings, suit trousers
 - **Dresses** (4) — dress, sheath, slip, gown
-- **One-pieces** (1) — jumpsuit
-- **Outerwear** (4) — blazer, coat, cardigan, bomber
-- **Headwear & neckwear** (3) — a cloth-sim snood (cowl), beanie, and wrapped scarf that drape on the head/neck
+- **One-pieces** (2) — jumpsuit, swimsuit
+- **Outerwear** (6) — blazer, coat, suit jacket, overcoat, cardigan, bomber
+- **Headwear & neckwear** (19) — cloth-sim head/neck pieces that really drape: snood (cowl→hood) · beanie (cuffed · slouchy · fisherman · pom-pom · brimmed) · balaclava / ski mask · convertible 3-way · helmet liner · **durag** (with a nape flap) · **satin bonnet** · **hijab under-cap** · chullo · bandana · twisted headband · neck gaiter · scarf (+ skinny silk)
 
 The construction panel is **schema-driven**: each garment shows only the controls it supports —
 **neckline** (scoop / crew / V / strapless), **sleeves** (short / long) with a **sleeve library** of shapes
@@ -210,7 +210,7 @@ gold topstitch guide inset from each panel's sew line.
 
 ---
 
-## The fabric library — 35 fabrics
+## The fabric library — 39 fabrics
 
 Every fabric carries **physical** properties (weight, stretch, bendiness, friction) that drive the
 **drape**, and **visual** properties (weave, sheen, anisotropy, sheerness, roughness) that drive the
@@ -219,10 +219,10 @@ Every fabric carries **physical** properties (weight, stretch, bendiness, fricti
 by the fabric's real thickness), so hems, necklines and openings read solid instead of paper-thin — a heavy
 wool coat sits visibly thicker than a light poplin.
 
-- **Wovens** (9) — poplin, oxford, chino twill, denim, canvas, corduroy, linen, wool flannel, tweed
+- **Wovens** (16) — poplin, oxford, chino twill, denim, canvas, waxed cotton, corduroy, cap corduroy, linen, wool flannel, tweed, chambray, gabardine, worsted wool, melton, boiled wool
 - **Silks & smooth** (5) — charmeuse, satin, crepe, organza, chiffon
-- **Knits** (7) — jersey, rib, waffle, French terry, fleece, cable knit, athletic mesh (real perforated cutout)
-- **Specialty** (8) — leather, suede, velvet, tulle, spandex, lamé (metallic), neoprene (scuba), sequin base
+- **Knits** (9) — ponte, scuba, jersey, rib, waffle, French terry, fleece, cable knit, athletic mesh (real perforated cutout)
+- **Specialty** (9) — leather, patent, suede, velvet, tulle, spandex, lamé (metallic), neoprene (scuba), sequin base
 
 | A velvet dress — each fabric drives look **and** drape | Macro close-up of satin — procedural weave + sheen |
 | --- | --- |
@@ -467,6 +467,8 @@ sleeve, and separate collar / cuff / pocket pieces, all with grainlines and per-
 | ![A trouser flat pattern — tapered leg-front / leg-back panels with grainlines + seam allowance](docs/pattern-trouser.png) | ![A long-sleeve bodice flat pattern — front/back with darts, a shaped sleeve, and collar / cuff / pocket pieces](docs/pattern-detail.png) |
 | --- | --- |
 
+**Headwear unwraps too** — a cloth-sim hat's head tube becomes real millinery panels: a **gored crown** (a symmetric wedge whose height is the true slant length, cut ×6), a **band** strip, and a **brim** crescent for a visored style (a neck cowl unwraps front/back like a body tube) — all exported to SVG/DXF alongside the rest of the outfit.
+
 **2D and 3D are one design — edit either way.** The quick-edit toolbar floats over **both** views (size ·
 neckline · sleeve · length · width · hem), driving the same garment, so you can design entirely in 2D *or*
 3D and the other updates live. You can **import a flat pattern** (DXF, round-tripping the export) back into
@@ -584,6 +586,11 @@ When you're ready, **Export for manufacturing** — one printable pack (HTML + J
 (realistic fabric yield + efficiency), and the **embedded flat pattern** — everything a maker needs to cut
 and sew it.
 
+For **headwear** the pack adapts: a **head-circumference size run** (XS–XXL hat sizes from the head
+collider), **shaping-aware care** (a felted/boiled-wool hat is steamed & reshaped, never washed; a knit
+beanie dries flat, never tumbled), and a **small-panel cost sheet** with hat notions (pom · sweatband ·
+brim wire) and a small-panel fabric yield.
+
 ---
 
 ## Export everything
@@ -664,9 +671,9 @@ src/
                 (default realistic avatar) · skin · measure · poses · bodyPresets · accessories · face · colliders
     cloth/      XPBDSolver · ClothCollision (self/inter) · ClothWorld (sewn panels) · Garment · adaptiveMesh
                 · FabricMaterial · fabricPresets · windPresets · simQuality
-    fabric/     FabricLibrary (35 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
+    fabric/     FabricLibrary (39 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
                 · iridescent · quilt · lace · fur · namedColors · heatmap · wrinkle
-    garments/   schema (GarmentDefinition) · registry (the 43-garment catalog, as data) · factory · decor
+    garments/   schema (GarmentDefinition) · registry (the 55-garment catalog, as data) · factory · decor
     garment/    GarmentController (one garment's multi-piece sim, body-anchored) · templates
     studio/     GarmentStack (the live layer stack) · document (.dio, undo, colorways) · projectStore
                 · autosave · timeline + TimelinePlayer · turntable · measure + MeasureTool · lineup
@@ -692,7 +699,7 @@ or a supported detail is a data change, not new code.**
 
 ## Roadmap
 
-**Shipped:** data-driven garment schema + factory · 43-garment catalog (tops · bottoms · dresses ·
+**Shipped:** data-driven garment schema + factory · 55-garment catalog (tops · bottoms · dresses ·
 one-piece · outerwear · **cloth-sim headwear/neckwear**) with a category picker + schema-driven construction
 UI · 29-fabric library by family · **fabric thickness** (two-sided garments with a lining shell) · full
 **construction detail** (collar/cuff/pleats/darts/pockets/hem/closure + lining/interfacing/waistband/…) +
