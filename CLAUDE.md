@@ -124,8 +124,12 @@ Renderer modules:
   knit · velvet nap) to sheen + tint + sheenRoughness, + `anisotropyAngleForFabric` streaks a satin/silk's
   anisotropic highlight along the warp (V grain), + `envIntensityForFabric` sets `envMapIntensity` from
   roughness so smooth silks catch the studio IBL and matte cotton doesn't; unit-tested),
-  `weaveTexture` (procedural weave **normal + roughness** maps — yarn crowns glossier, valleys matte via the
-  pure `weaveRoughness` field baked into a cached `roughnessMap`; **specular-AA** `toksvigRoughness` lifts the
+  `weaveTexture` (procedural weave **normal + roughness** maps from a per-weave `weaveHeight` field — yarn crowns
+  glossier, valleys matte via the pure `weaveRoughness` field baked into a cached `roughnessMap`; weave types:
+  plain · twill · **satin** (float-dominant — long high floats with a *shallow* binding dip, so it reads as the
+  smooth lustrous float it is, not a beaded every-5th-cell dot grid) · knit · rib · waffle · cable · **corduroy**
+  (vertical cut-pile **cords/wales** — the height depends only on the across-wale coordinate so the ridges run
+  continuously top-to-bottom, not a diagonal); **specular-AA** `toksvigRoughness` lifts the
   base roughness by the weave's normal strength so strong weaves don't shimmer at distance; pure math
   unit-tested), `weaveDraft` (**weave draft designer** — author the interlacement like a weaver:
   threading · tie-up · treadling → the pure `drawdown` grid + wrapped float lengths → a
