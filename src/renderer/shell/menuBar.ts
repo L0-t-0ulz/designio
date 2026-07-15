@@ -9,6 +9,7 @@ export interface MenuActions {
   onSaveVersion: () => void
   onVersionHistory: () => void
   onExportDio: () => void
+  onShareLink: () => void
   onOpenProject: () => void
   onImportPattern: () => void
   onExport: (fmt: ExportFormat) => void
@@ -139,6 +140,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Save version (snapshot)', run: a.onSaveVersion },
     { label: 'Version history…', run: a.onVersionHistory },
     { label: 'Export project (.dio)', run: a.onExportDio },
+    { label: 'Copy share link', run: a.onShareLink },
     { label: 'Open project (.dio)…', run: a.onOpenProject },
     { label: 'Import pattern (.dxf)…', run: a.onImportPattern },
     { sep: true },

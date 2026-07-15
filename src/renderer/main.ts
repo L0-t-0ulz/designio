@@ -123,6 +123,7 @@ import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restore
 import { portfolioHtml } from './export/portfolio'
 import { openVersionHistory } from './ui/versionHistory'
 import { diffDocs } from './studio/diffDoc'
+import { shareUrl, shareTokenFrom, decodeShare } from './studio/shareLink'
 import { listBookmarks, saveBookmark, deleteBookmark } from './studio/cameraBookmarks'
 import { openCameraBookmarks } from './ui/cameraBookmarksPanel'
 import { writeAutosave, readAutosave, clearAutosave, shouldOfferRestore, describeAge } from './studio/autosave'
@@ -1890,6 +1891,10 @@ function initStudio(
     onSaveVersion: saveVersion,
     onVersionHistory: openHistory,
     onExportDio: () => void exportDio().catch(exportError),
+    onShareLink: () => {
+      const url = shareUrl(currentDoc(), location.href)
+      void navigator.clipboard?.writeText(url).then(() => showToast('Share link copied to clipboard', 'success')).catch(() => showToast('Copy failed — link: ' + url, 'error'))
+    },
     onOpenProject: () => void openProject(),
     onImportPattern: () => void importPattern(),
     onExport: (fmt) => void doExport(fmt).catch(exportError),
@@ -2504,6 +2509,10 @@ function initStudio(
   if (params.get('tour') === '1') window.setTimeout(() => startTour(), 500) // force the tour (verify/share)
   if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
+  {
+    const shareTok = shareTokenFrom(location.hash) ?? shareTokenFrom(location.search)
+    if (shareTok) { try { applyDoc(decodeShare(shareTok)) } catch { /* corrupt/old share token — ignore */ } }
+  }
 
   // First-run onboarding — a one-time guided tour on organic entry (never on a
   // snapshot deep-link, so captures/tests are untouched). Delayed so the shell
