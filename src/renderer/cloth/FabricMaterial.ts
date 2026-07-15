@@ -2,6 +2,12 @@ import * as THREE from 'three'
 import { type Fabric, sheenRecipeFromFabric, anisotropyAngleForFabric, envIntensityForFabric } from '../fabric/FabricLibrary'
 import { makeWeaveNormalMap, makeWeaveRoughnessMap, toksvigRoughness } from '../fabric/weaveTexture'
 import { makePerfAlphaMap } from '../fabric/perforate'
+import { isVelvet, VELVET_FLOOR } from '../fabric/velvet'
+
+interface VelvetUniforms {
+  uVelvet: { value: number }
+  uVelvetFloor: { value: number }
+}
 
 /**
  * A physically-based fabric material driven by a `Fabric`: sheen for the soft
@@ -15,6 +21,22 @@ export function createFabricMaterial(fabric: Fabric): THREE.MeshPhysicalMaterial
     flatShading: false,
     envMapIntensity: 1.1
   })
+  // Velvet retroreflective term: darken the diffuse facing the camera (|N·V|→1), leaving
+  // the grazing rim + sheen bright — the velvet look. Gated by `uVelvet` (0 = `mix(...,0)`
+  // = an exact ×1.0 identity), so every non-velvet fabric renders bit-for-bit as before.
+  const velvet: VelvetUniforms = { uVelvet: { value: 0 }, uVelvetFloor: { value: VELVET_FLOOR } }
+  mat.userData.velvet = velvet
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uVelvet = velvet.uVelvet
+    shader.uniforms.uVelvetFloor = velvet.uVelvetFloor
+    shader.fragmentShader = ('uniform float uVelvet;\nuniform float uVelvetFloor;\n' + shader.fragmentShader).replace(
+      '#include <lights_physical_fragment>',
+      `float vNdotV = abs(dot(normal, normalize(vViewPosition)));
+      float velvetFac = 1.0 - (1.0 - uVelvetFloor) * vNdotV * vNdotV; // mirrors velvetFacingFactor
+      diffuseColor.rgb *= mix(1.0, velvetFac, uVelvet);
+      #include <lights_physical_fragment>`
+    )
+  }
   applyFabric(mat, fabric)
   return mat
 }
@@ -51,6 +73,10 @@ export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): vo
   const roughnessMap = makeWeaveRoughnessMap(fabric.weave)
   roughnessMap.repeat.set(repeat, repeat)
   mat.roughnessMap = roughnessMap
+
+  // Toggle the velvet lobe on only for true napped velvet/velour (live uniform, no recompile).
+  const velvet = mat.userData.velvet as VelvetUniforms | undefined
+  if (velvet) velvet.uVelvet.value = isVelvet(fabric) ? 1 : 0
 
   mat.needsUpdate = true
 }

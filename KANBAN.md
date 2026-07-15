@@ -254,19 +254,19 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Cap closure** — snapback / strapback / fitted band at the back
 - [ ] **Trucker cap** — a foam front + a mesh back panel
 - [ ] **Bucket hat controls** — brim-width + crown-height; reversible option
-- [ ] **Fedora / trilby** — a pinched crown crease + a grosgrain hat band
+- [x] **Fedora / trilby** — a pinched crown crease + a grosgrain hat band — already shipped: the fedora accessory carries the **crown-shape library** (`avatar/crown` — dome/teardrop/centre-dent/diamond/telescope creases, `?crownShape=`) + the **hat-band designer** (`avatar/hatBand` — grosgrain/leather/cord + trim, `?hatBand=grosgrain`) _(drift check-off)_
 - [x] **Wide-brim sun hat** — a straw dome + wide drooping brim + band (`?accessories=sunhat`) — PR #277
 - [x] **Beret** — a wine felt disc pulled to one side + stalk, riding the head frame (`?accessories=beret`) — PR #277
-- [ ] **Flat cap / newsboy** — a panelled crown + a short stiff front brim
+- [x] **Flat cap / newsboy** — a panelled crown + a short stiff front brim — already shipped: `?accessories=bakerboy` (`avatar/bakerboy`) — the 8-gore puffed/panelled crown over a fitted band, wearing the cap's parametric bill (short front brim) _(drift check-off)_
 
 **Scarves & neckwear**
-- [ ] **Rectangular scarf** — length / width params + fringe ends
+- [x] **Rectangular scarf** — length / width params + fringe ends — already shipped: the cloth-sim `scarf` is a rectangular panel with a **width** multiplier (`scarfWidth` — the dimension designer), **length** driving the tails, and `?fringe=1` hanging real verlet strands off the tail ends _(drift check-off)_
 - [ ] **Infinity / loop scarf** — a closed loop, worn single or doubled
 - [ ] **Blanket scarf** — an oversized square with a plaid check + fringe
 - [ ] **Silk neck scarf** — a small square knotted at the neck (knot styles)
 - [ ] **Snood / cowl** — a wide knit tube around the neck
 - [x] **Neck gaiter / buff** — a thin stretch tube (pull up over the nose): the `gaiter` catalog garment (neck-anchored headTube, stretch jersey, `HeadTubePiece.gaiter`) — worn states above — PR #316
-- [ ] **Scarf drape styles** — once-around · wrapped · draped-tails · Parisian knot
+- [x] **Scarf drape styles** — once-around · wrapped · draped-tails · Parisian knot — already shipped: `scarfCentre` gives the default ~234° once-around wrap with draped front tails, plus `knotCentre` (Parisian knot), `doubleCentre` (double wrap) + the blanket shoulder-drape — several distinct worn-states on one strip _(drift check-off)_
 - [ ] **Fringe & tassels** — a configurable knotted fringe / tassel trim on scarf ends
 
 **Head scarves & wraps**
@@ -278,11 +278,11 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Head-wrap print** — a repeating scarf print / pattern mapped onto the wrap
 
 **Materials & finish**
-- [ ] **Knit-yarn material** — a wool / acrylic matte knit with rib / cable normal + sheen (reuse `FabricMaterial`)
+- [x] **Knit-yarn material** — a wool / acrylic matte knit with rib / cable normal + sheen (reuse `FabricMaterial`) — already shipped: the fabric library carries **cable-knit · rib-knit · jersey-knit · french-terry** (soft-knit family with knit weave normals + per-family cloth sheen), on top of the knit-chart designer (stockinette/rib/cable) that bakes real knit relief _(drift check-off)_
 - [ ] **Faux-fur trim** — pom-poms, trapper flaps, brim fur (reuse the `fur` finish)
 - [ ] **Felt / wool-melton** — a dense matte felt with a subtle nap for structured hats
 - [ ] **Silk / satin** — a drapey lustrous finish for neck scarves
-- [ ] **Brim stiffener** — a buckram / wire brim so a sun-hat / fedora brim holds its shape
+- [x] **Brim stiffener** — a buckram / wire brim so a sun-hat / fedora brim holds its shape — already shipped: `?brimWire=1` (`avatar/brim` — a crisp rolled/wired rim at the brim's lip) on the fedora + bucket + sun-hat blocks, part of the parametric brim designer (width · droop · wire) _(drift check-off)_
 - [ ] **Reflective / hi-vis + embellished** — reflective knit, sequins, beading on headwear
 
 **Fit, patterns & production**
@@ -466,10 +466,10 @@ fit & physics 0/10 · materials & production 0/10)_
 
 **Pattern & production** _(refine PRs #39 · #41 · #114 · #169)_
 - [x] **Tiled print-to-scale PDF** — File → "Print pattern — tiled A4": the pattern tiles across A4/Letter pages at 1:1 with an assembly map + registration crosshairs + R·C labels for taping; pure `tilePlan` + `tiledPatternHTML` (print-CSS, mm viewBox per tile), unit-tested — PR #237
-- [ ] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern
+- [x] **Grainline arrows + piece labels + cut-count** ("cut 2 / on fold") on the flat pattern — already shipped: `garmentPattern.panelsToSVG` draws each panel's **grainline** (a line with arrowheads at both ends, from `PatternPanel.grain`), the **piece name** label, and the **cut-count** ("cut N · W × H mm"), plus a legend ("arrow = grainline · ○ = notch") _(drift check-off; the "on fold" fabric-fold notation is the one remaining nicety)_
 - [ ] **Marker / nesting layout** — auto-arrange panels to minimise fabric on the DXF/SVG
 - [x] **Per-edge seam allowance** — the cut line now offsets each edge by its own allowance (deep folded hem · shallow neckline/waist · base seam), classified by edge geometry; pure `offsetPolygonPerEdge` (variable-width offset via offset-line intersection) + `seamAllowancePerEdge` + `cutLine`, unit-tested — PR #236
-- [ ] **Full size-run export** — the graded pattern XS–XXL in one file
+- [x] **Full size-run export** — the graded pattern XS–XXL in one file — already shipped: File → **Export size set — graded patterns XS-XXL (ZIP)** (`main.ts` `case 'size-set'` writes `size-set.zip` with a graded pattern per size) _(drift check-off)_
 - [ ] **Drape the imported pattern onto the body** — the deferred half of PR #169
 - [ ] **Tech-pack: colourway pages + a notions/trims BOM** (thread, zips, buttons)
 
@@ -559,7 +559,7 @@ fit & physics 0/10 · materials & production 0/10)_
 **Performance & architecture**
 - [ ] **WASM solver hot loop** — compile the XPBD substep (integrate + constraint projection) to WASM for a 2–4× main-thread win over the JS loop; behaviour guarded by the solver tests
 - [ ] **Constraint graph colouring** — greedy-colour the constraint graph into independent batches (prereq for Jacobi / Worker / GPU parallelism); pure `colorGraph` unit-tested (no two same-colour constraints share a particle)
-- [ ] **Deterministic snapshot mode** — freeze wall-clock time + seed any RNG (turntable phase, surprise-me hues) so a deep-link renders bit-identically — unblocks the golden-image tests; test a bit-identical repeat
+- [x] **Deterministic snapshot mode** — freeze wall-clock time + seed any RNG (turntable phase, surprise-me hues) so a deep-link renders bit-identically — unblocks the golden-image tests; test a bit-identical repeat — already shipped: `?freezeAt=<simSeconds>` stops the loop at an exact frame-rate-independent sim step (`main.ts`) + `window.__drapeSettled()`, driving `scripts/golden.cjs` and the golden-image CI job (which does a bit-identical repeat compare) _(drift check-off)_
 - [ ] **Geometry lifecycle audit** — dispose geometries/materials/textures on garment rebuild + layer delete, with a `dispose()` on `GarmentController`; test no orphaned GPU resources across a build→delete loop
 - [ ] **Fixed-timestep accumulator** — decouple sim `dt` from the render frame rate with an accumulator + state interpolation in `core/Loop`, so drape is identical at 30/60/144 Hz; pure `accumulate` unit-tested
 
@@ -630,7 +630,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 
 **Cloth BRDF & shading** _(refine `cloth/FabricMaterial` via `onBeforeCompile`)_
 - [ ] **Estévez–Kulla sheen BRDF** — swap three.js's ad-hoc sheen lobe for the energy-conserving Imageworks cloth sheen (inverted-GGX + albedo-scaling LUT); snapshot-verify velvet/satin rim
-- [ ] **Ashikhmin–Shirley velvet lobe** — a dedicated retroreflective velvet BRDF (bright grazing rim, dark facing) for true velvet/velour; pure lobe-eval unit-tested against reference angles
+- [x] **Ashikhmin–Shirley velvet lobe** — a dedicated retroreflective velvet BRDF (bright grazing rim, dark facing) for true velvet/velour; pure lobe-eval unit-tested against reference angles: `fabric/velvet` — pure `velvetFacingFactor(|N·V|)` darkens the diffuse facing the camera (light sinks into the upright pile) to a floor while the grazing rim + sheen stay bright, injected into `FabricMaterial`'s fragment shader via `onBeforeCompile` and **gated by a `uVelvet` uniform** so non-velvet fabrics stay a bit-identical `×1.0` identity (zero golden-image impact); only true napped velvet/velour (`isVelvet` — nap + high sheen) turns it on; pure factor unit-tested, visually verified velvet vs. a satin control _(a physically-motivated retroreflective approximation, not the full A–S microfacet integral)_
 - [x] **Weave-steered anisotropic highlight** — anisotropic fabrics (satin/charmeuse/velvet) now set `anisotropyRotation` a quarter-turn to the **warp** (the vertical V grain) so the elongated GGX highlight streaks *down* the garment instead of across it; pure `anisotropyAngleForFabric` unit-tested (a per-texel tangent-direction map that bends over folds is the follow-up) — PR #221
 - [ ] **Dual-lobe fuzz + specular** — a tight base specular plus a broad fuzz lobe with energy compensation so cotton/wool read matte-fuzzy, not plastic; pure energy-split unit-tested
 - [x] **Procedural iridescence thickness map** — `iridescenceThicknessMap` is now baked from a swirling `iridescentThickness` field so holographic/oil-slick shifts *flow* across the panel (oil-on-water bands) instead of one flat thickness; pure thickness-field unit-tested — PR #222
@@ -827,6 +827,84 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Mobile companion** — view + present a design on a phone/tablet
 - [ ] **Real-time collaboration** — multiple editors, live cursors, presence
 - [ ] **Design version control** — branch / merge a design like code
+
+---
+
+## 🧵 Detailed backlog — batch added 2026-07-15
+
+_A fresh, specific pass across every lane. Each is a concrete, self-contained build, not a theme._
+
+### Garment silhouettes & types
+- [ ] **Wrap dress with a functional tie** — a self-belt threaded through a side-seam waist slit, an adjustable wrap depth (overlap %) + a hidden inner waist snap so it doesn't gape
+- [ ] **Trench coat** — double-breasted with a storm flap + gun flap, a belt through D-ring loops, sleeve strap tabs, and a back kick-vent that opens on the walk
+- [ ] **Tailored blazer** — a notched lapel with a real roll line, a chest welt, functional 4-button surgeon's cuffs, and a lined back double vent
+- [ ] **Box-pleat tennis skirt** — knife-crisp all-round box pleats over a sewn-in short liner (the liner its own never-rendered collide layer)
+- [ ] **Bomber jacket** — ribbed knit collar/cuff/hem bands, a two-way separating zip, a zip-guard placket, and a sleeve utility pocket
+- [ ] **Bias-cut cowl slip dress** — a draped cowl at the front neck **and** the back, on adjustable spaghetti straps that actually take the weight
+- [ ] **True circle skirt** — a full-circle draft that settles into deep, even radial waves instead of gathered folds
+- [ ] **Dungarees / overalls** — a bib front on adjustable buckle straps with functional side-button openings at the waist
+- [ ] **Cape / ruana with arm slits** — a shoulder-draped cape with real armhole slits + an optional attached hood
+- [ ] **Structured corset top** — external boning channels, back lacing that visibly cinches the waist, and a hook-and-eye busk front
+
+### Construction techniques
+- [ ] **Bound buttonholes** — welt-lipped buttonholes on a coat placket (a finished rectangle, not a slit dash)
+- [ ] **Godet inserts** — triangular flare panels sewn into vertical seams for a fluted mermaid hem (real take-up in 3D + the panels on the flat pattern)
+- [ ] **Pin-tucks** — parallel rows of narrow stitched tucks down a bodice front or shirt yoke, each eating a sliver of width
+- [ ] **Shirt sleeve placket** — a proper tower placket + a buttoned cuff tab (vs. the current continuous-bound placket)
+- [ ] **Horsehair-braid hem** — a stiffened bridal/gown hem that holds a standing bell shape instead of collapsing
+- [ ] **Waist stay** — an inner grosgrain ribbon anchoring a fitted bodice at the true waist so it doesn't ride up
+- [ ] **Piped seam on any panel edge** — a corded contrast pipe available on *any* chosen seam, not just neckline/hem
+- [ ] **Smocked panel** — a honeycomb-gathered smocked chest or cuff panel with real fabric take-up
+- [ ] **Hem-finish picker** — blind-hem vs. fell-stitch vs. rolled-hem vs. raw-edge, each reading differently on the 3D hem + the tech pack
+- [ ] **Collar roll & stand** — a real under-collar stand that rolls a shirt/coat collar over the band (a fold ridge, not a flat flap)
+
+### Fabrics & surface
+- [ ] **Woven library expansion** — chambray · gabardine · ponte · scuba · melton · shirting oxford, each with correct gsm/drape/sheen
+- [ ] **Sequin fabric** — per-sequin facets that flip colour with the viewing angle (a scatter normal + a metal recipe)
+- [ ] **Waxed cotton** — a matte-waxy sheen with sharp fold-memory creasing at the bends
+- [ ] **Patent / coated leather** — a high-clearcoat wet shine over a fine crackle normal
+- [ ] **Bouclé tweed** — a looped-nub surface normal (the Chanel-jacket hand) + a fleck yarn
+- [ ] **Devoré (burnout) velvet** — a semi-sheer motif etched into the pile (alpha cut where the pile is burned away)
+- [ ] **Broderie anglaise** — punched eyelet holes on a scalloped edge with a satin-stitched rim
+- [ ] **Ripstop nylon** — the reinforcing grid weave + a technical low-roughness sheen
+- [ ] **Neoprene** — a spongy bonded-double-knit thickness with visible bonded-edge (raw, no hem) seams
+- [ ] **Foil-pleat lamé** — a directional metallic highlight that runs along permanent pressed pleats
+
+### Avatar, fit & pose
+- [ ] **Seated pose** — a sitting stance to fit-check a skirt/trouser rise + where the hem sits at the knee
+- [ ] **Heeled stance** — a heel-height slider that tilts the foot, straightens the leg, and lifts the back hem
+- [ ] **Expressive poses** — arms-crossed · hands-on-hips · one-hand-in-pocket lookbook stances
+- [ ] **Asymmetric-shoulder toggle** — one dropped shoulder (a real-body quirk) to test how a garment hangs off-square
+- [ ] **Soft-belly male torso** — a rounder mid-section shape beyond the athletic V-taper
+- [ ] **More hairstyles + hairline slider** — braids · high bun · ponytail · locs, with an adjustable hairline
+- [ ] **Nail / manicure colour** on the hands for a fully-styled beauty shot
+- [ ] **Eyewear accessory** — glasses/sunglasses placed on the head frame, riding the animated head
+- [ ] **Sock + shoe stack height** so trousers break correctly over the chosen footwear
+- [ ] **Editable studio floor material** — marble · seamless paper · parquet under the figure for the product shot
+
+### Physics & simulation
+- [ ] **Wind direction dial** — a heading + gust-frequency control on top of the preset strengths
+- [ ] **Knit ladder / run** — a dropped stitch that runs down a jersey in a visible column under tension
+- [ ] **Pocket-contents weight** — a phone-shaped mass that sags a patch pocket + pulls the fabric
+- [ ] **Static cling** — a weak attraction between a lining and its shell so a slip clings to a skirt
+- [ ] **Fitting pins** — tack a garment point to the body during a fit session (a designer's clamp), released on export
+- [ ] **Elastic shirring** — a real elastic thread that gathers a waistband/cuff into even ruching
+- [ ] **Live separating zip** — part a functional zip on the body (jacket open at the chest) and see it gap
+- [ ] **Knit relaxation** — a jersey that bags slightly at elbows/knees/seat over settle time
+- [ ] **Symmetry-lock drape** — mirror the settled left/right drape for a perfectly even product still
+- [ ] **Undergarment collision proxy** — a thin support layer so a knit tee reads over real underwear, not a bare torso
+
+### Render, export & workflow
+- [ ] **Portrait rim + hair light rig** — a two-light headshot toggle for headwear/beauty shots
+- [ ] **Exploded construction view** — panels floated apart in place with seam callouts (a build diagram)
+- [ ] **Contact-shadow strength slider** on the studio floor (from off → a deep grounded shadow)
+- [ ] **A/B version compare** — a wipe slider between two saved design snapshots in the viewport
+- [ ] **Per-colourway fabric consumption** in the cost sheet — yield × price broken out by colour
+- [ ] **Marker nap-lock** — a one-way/nap-direction constraint + panel flip/rotate when nesting napped fabrics
+- [ ] **Collection tech-pack** — batch every layer/look in the project into one printable PDF
+- [ ] **Editorial grade** — a film-grain + halation post toggle for a moody campaign render
+- [ ] **Stitch-density heatmap** — a view of SPI / thread build-up across all the seams
+- [ ] **Drape-coefficient badge on each swatch** — surface the drape-bench % on the fabric library tiles
 
 ---
 
