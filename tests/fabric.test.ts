@@ -133,6 +133,19 @@ describe('FABRIC_LIBRARY', () => {
     expect(cap.weaveScale).toBeLessThan(cord.weaveScale)
     expect(cap.anisotropy).toBeGreaterThan(0) // the pile still streaks the sheen
   })
+
+  it('waxed cotton is a coated rain shell — a partial clearcoat over a stiff cotton', () => {
+    const wax = getFabric('waxed-cotton')
+    const canvas = getFabric('canvas')
+    expect(wax.id).toBe('waxed-cotton')
+    expect(wax.family).toBe('woven')
+    expect(wax.clearcoat ?? 0).toBeGreaterThan(0) // the waxed sheen
+    expect(wax.clearcoat!).toBeLessThan(getFabric('patent').clearcoat!) // a semi-gloss, not patent's mirror lacquer
+    expect(wax.roughness).toBeLessThan(canvas.roughness) // waxing smooths a raw cotton canvas
+    expect(wax.bendiness).toBeLessThan(0.3) // stiff, water-repellent shell
+    // plain cotton stays a pure dielectric (no clearcoat) — waxing is the only difference
+    expect(canvas.clearcoat ?? 0).toBe(0)
+  })
 })
 
 describe('weave texture math', () => {

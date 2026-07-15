@@ -187,6 +187,10 @@ export const FABRIC_LIBRARY: Fabric[] = [
   { id: 'chino-twill', name: 'Chino twill', family: 'woven', gsm: 260, stretch: 0.05, bendiness: 0.26, friction: 0.55, color: 0xbfa878, roughness: 0.83, sheen: 0.45, sheenRoughness: 0.6, weave: 'twill', weaveScale: 170, normalStrength: 0.7, anisotropy: 0.05, transmission: 0 },
   { id: 'denim', name: 'Denim', family: 'woven', gsm: 380, stretch: 0.02, bendiness: 0.14, friction: 0.55, color: 0x3b5b82, roughness: 0.85, sheen: 0.35, sheenRoughness: 0.7, weave: 'twill', weaveScale: 180, normalStrength: 0.72, anisotropy: 0.1, transmission: 0 },
   { id: 'canvas', name: 'Cotton canvas', family: 'woven', gsm: 340, stretch: 0.02, bendiness: 0.16, friction: 0.6, color: 0xc3b58c, roughness: 0.92, sheen: 0.25, sheenRoughness: 0.75, weave: 'plain', weaveScale: 120, normalStrength: 0.75, anisotropy: 0, transmission: 0 },
+  // waxed cotton (Barbour-style rain shell) — a heavy plain-weave cotton paraffin-waxed for
+  // rain: stiff, water-repellent, with a *partial* clearcoat (a low waxed semi-gloss, not
+  // patent's mirror lacquer) over a still-cottony roughness, in a dark waxed olive.
+  { id: 'waxed-cotton', name: 'Waxed cotton', family: 'woven', gsm: 350, stretch: 0.02, bendiness: 0.2, friction: 0.5, color: 0x3f3a2e, roughness: 0.55, sheen: 0.5, sheenRoughness: 0.5, weave: 'plain', weaveScale: 150, normalStrength: 0.45, anisotropy: 0.05, transmission: 0, clearcoat: 0.4 },
   { id: 'corduroy', name: 'Corduroy', family: 'woven', nap: true, gsm: 320, stretch: 0.06, bendiness: 0.3, friction: 0.62, color: 0x8a5a3c, roughness: 0.88, sheen: 0.5, sheenRoughness: 0.55, weave: 'corduroy', weaveScale: 70, normalStrength: 0.85, anisotropy: 0.15, transmission: 0 },
   // a dad-hat cord: a lighter mid-wale cotton corduroy scaled for a cap's small panels —
   // fewer, chunkier wales (lower weaveScale) so the cord still reads at hat framing instead
