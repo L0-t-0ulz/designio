@@ -52,11 +52,21 @@ function contrastOf(base: number): THREE.Color {
 }
 
 /**
- * Paint a seamless repeating textile pattern across a 2D canvas (renderer only) —
- * bakes one repeat tile from `textileValue` then tiles it `tiles×tiles`.
+ * Repeat count for a base tiling at a user scale — `scale` > 1 enlarges the motif
+ * (fewer, bigger repeats), < 1 shrinks it (more repeats). Clamped 0.25…4. Pure.
  */
-export function paintTextile(ctx: CanvasRenderingContext2D, size: number, pattern: TextilePattern, base: number, tiles = 10): void {
-  const TS = Math.max(24, Math.round(size / tiles))
+export function textileTiles(baseTiles: number, scale = 1): number {
+  const s = Math.max(0.25, Math.min(4, scale || 1))
+  return Math.max(1, Math.round(baseTiles / s))
+}
+
+/**
+ * Paint a seamless repeating textile pattern across a 2D canvas (renderer only) —
+ * bakes one repeat tile from `textileValue` then tiles it, at a user `scale`
+ * (motif size) + `rotation` (degrees) applied to the repeat.
+ */
+export function paintTextile(ctx: CanvasRenderingContext2D, size: number, pattern: TextilePattern, base: number, tiles = 10, scale = 1, rotation = 0): void {
+  const TS = Math.max(24, Math.round(size / textileTiles(tiles, scale)))
   const tile = document.createElement('canvas')
   tile.width = tile.height = TS
   const tctx = tile.getContext('2d')!
@@ -77,6 +87,9 @@ export function paintTextile(ctx: CanvasRenderingContext2D, size: number, patter
   }
   tctx.putImageData(img, 0, 0)
   const fill = ctx.createPattern(tile, 'repeat')!
+  if (rotation && typeof DOMMatrix !== 'undefined' && fill.setTransform) {
+    fill.setTransform(new DOMMatrix().rotate(rotation)) // rotate the whole repeat (stripes/plaids on the bias)
+  }
   ctx.fillStyle = fill
   ctx.fillRect(0, 0, size, size)
 }

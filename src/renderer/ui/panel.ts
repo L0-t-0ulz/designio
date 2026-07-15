@@ -280,7 +280,12 @@ export interface PanelOptions {
   /** Add / adjust a printed graphic (PNG) + text on the garment (optional). */
   prints?: PrintControls
   /** The repeating textile pattern tiled across the whole garment (optional). */
-  textile?: { get: () => TextilePattern | undefined; set: (t: TextilePattern | undefined) => void }
+  textile?: {
+    get: () => TextilePattern | undefined
+    set: (t: TextilePattern | undefined) => void
+    scale?: { get: () => number; set: (v: number) => void }
+    rotation?: { get: () => number; set: (v: number) => void }
+  }
   /** A real tartan sett woven across the garment (optional). */
   tartan?: { get: () => TartanKind | undefined; set: (t: TartanKind | undefined) => void }
   /** Open the real-scale repeat preview for the current textile. */
@@ -1381,6 +1386,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       wrap.append(el('div', 'dio-field-label', 'Textile pattern'), row, prev)
     } else {
       wrap.append(el('div', 'dio-field-label', 'Textile pattern'), row)
+    }
+    // Motif scale + rotation (apply when a pattern is set).
+    if (t.scale) {
+      wrap.append(slider({ label: 'Motif scale', min: 0.25, max: 4, step: 0.05, format: (v) => `${v.toFixed(2)}×`, get: () => t.scale!.get(), set: (v) => { t.scale!.set(v); opts.onGarmentEdit() } }).row)
+    }
+    if (t.rotation) {
+      wrap.append(slider({ label: 'Motif angle', min: 0, max: 180, step: 5, format: (v) => `${v | 0}°`, get: () => t.rotation!.get(), set: (v) => { t.rotation!.set(v); opts.onGarmentEdit() } }).row)
     }
     return wrap
   }

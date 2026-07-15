@@ -2137,6 +2137,20 @@ function initStudio(
       set: (t) => {
         stack.active.data.textile = t
         stack.refreshDesign(stack.active)
+      },
+      scale: {
+        get: () => stack.active.data.textileScale ?? 1,
+        set: (v) => {
+          stack.active.data.textileScale = v === 1 ? undefined : v
+          scheduleRefreshDesign()
+        }
+      },
+      rotation: {
+        get: () => stack.active.data.textileRotation ?? 0,
+        set: (v) => {
+          stack.active.data.textileRotation = v === 0 ? undefined : v
+          scheduleRefreshDesign()
+        }
       }
     },
     tartan: {
@@ -2599,6 +2613,10 @@ if (skipStart) {
   if (entryParams.get('princess')) cfg.princess = true
   const tx = entryParams.get('textile')
   if (tx && (TEXTILE_PATTERNS as string[]).includes(tx)) cfg.textile = tx as TextilePattern
+  const txScale = parseFloat(entryParams.get('textileScale') ?? '')
+  if (Number.isFinite(txScale)) cfg.textileScale = Math.max(0.25, Math.min(4, txScale))
+  const txRot = parseFloat(entryParams.get('textileRotation') ?? '')
+  if (Number.isFinite(txRot)) cfg.textileRotation = txRot
   const tar = entryParams.get('tartan')
   if (tar && (TARTAN_KINDS as string[]).includes(tar)) cfg.tartan = tar as TartanKind
   const omb = entryParams.get('ombre')

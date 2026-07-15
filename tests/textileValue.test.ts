@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { textileValue, TEXTILE_PATTERNS, type TextilePattern } from '../src/renderer/fabric/textile'
+import { textileValue, textileTiles, TEXTILE_PATTERNS, type TextilePattern } from '../src/renderer/fabric/textile'
 
 describe('textileValue — repeating textile pattern tones', () => {
   it('every pattern stays in the [0,1] tonal range', () => {
@@ -62,5 +62,25 @@ describe('textileValue — repeating textile pattern tones', () => {
   it('exposes exactly the advertised pattern set', () => {
     const expected: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo']
     expect([...TEXTILE_PATTERNS].sort()).toEqual([...expected].sort())
+  })
+})
+
+describe('textileTiles — motif scale → repeat count', () => {
+  it('scale 1 keeps the base tile count', () => {
+    expect(textileTiles(10, 1)).toBe(10)
+  })
+  it('a larger scale enlarges the motif (fewer repeats); smaller shrinks it (more)', () => {
+    expect(textileTiles(10, 2)).toBe(5) // bigger motif
+    expect(textileTiles(10, 0.5)).toBe(20) // smaller motif
+    expect(textileTiles(10, 4)).toBeLessThan(textileTiles(10, 1))
+  })
+  it('clamps scale to 0.25…4 and never drops below one repeat', () => {
+    expect(textileTiles(10, 100)).toBe(textileTiles(10, 4)) // clamped high
+    expect(textileTiles(10, 0.001)).toBe(textileTiles(10, 0.25)) // clamped low
+    expect(textileTiles(1, 4)).toBeGreaterThanOrEqual(1)
+  })
+  it('treats a zero/NaN scale as 1', () => {
+    expect(textileTiles(10, 0)).toBe(10)
+    expect(textileTiles(10, NaN)).toBe(10)
   })
 })
