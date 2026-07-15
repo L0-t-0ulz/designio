@@ -64,6 +64,8 @@ import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, P
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import { HEM_SHAPES, type HemShape, type NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
+import { pocketPlacements } from './garments/decor'
+import { hardwarePlacements, hardwareBOM } from './garments/hardware'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
 import { openSketchPad, sketchPadOpen, closeSketchPad } from './pattern/SketchPad'
@@ -1792,6 +1794,23 @@ function initStudio(
         if (l.data.partFabrics?.legBack) parts.push({ part: 'legs back', fabric: getFabric(l.data.partFabrics.legBack.fabricId).name })
         const metrics = activeMetrics(l)
         const markerLayout = nestMarker(garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels, 140)
+        // metal hardware trims implied by the construction: rivets on heavy hip-pocketed
+        // (workwear) cloth, eyelets for a drawstring, snaps on a heavy front-closure placket
+        const m = mannequin.measurements
+        const heavy = l.fabric.gsm >= 280
+        const hasLegs = def.pieces.some((p) => p.kind === 'legTubes')
+        const hardware = hardwareBOM(
+          hardwarePlacements({
+            pockets: hasLegs ? pocketPlacements(def, m) : [],
+            rivet: heavy && hasLegs,
+            eyelet: !!l.data.drawstring,
+            snap: heavy && !!l.data.closure && (def.closureStyle ?? 'button') !== 'zip',
+            frontZ: m.chestR + 0.02,
+            waistY: (m.chestY + m.hipY) / 2,
+            neckY: m.chestY + 0.16,
+            hemY: m.hipY - 0.05
+          })
+        )
         return {
           name: def.name,
           size: l.data.size,
@@ -1801,6 +1820,7 @@ function initStudio(
           colorRef: colorRefLabel(l.data.color),
           parts: parts.length ? parts : undefined,
           trim: l.data.trim ? getFabric(l.data.trimFabricId ?? l.data.fabricId).name : undefined,
+          hardware: hardware.length ? hardware : undefined,
           // no explicit allowance → the seam type's recommended one (french/flat-fell need more)
           seam: l.data.seam ?? (l.data.stitch ? SEAM_TYPES[l.data.stitch.seamType].allowanceMm : 10),
           stitch: l.data.stitch ? { summary: stitchSummary(l.data.stitch), spec: l.data.stitch } : undefined,
