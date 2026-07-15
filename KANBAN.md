@@ -393,7 +393,7 @@ fit & physics 0/10 · materials & production 0/10)_
 - [ ] **Waxed rain hat** — waterproof shell sheen + water-bead normal detail
 - [ ] **Fleece lining reveal** — a visible contrast lining at rolled cuffs + folded brims
 - [x] **Melton & boiled wool** — melton already shipped (500 gsm felted coating); added **boiled wool** — a knit fulled until the stitches close into a dense matte hide (the classic loden coating/hat wool): 450 gsm, near-zero stretch, structured `woven`-family drape, only a faint felted-knit ghost (low `normalStrength`) under a muted matte sheen. Unit-tested (heavy · near-rigid · matte · low-stretch, heavier + less aero than a jersey knit) — PR #375
-- [ ] **Corduroy cap fabric** — wale-scaled cord for dad hats
+- [x] **Corduroy cap fabric** — a `corduroy-cap` preset: a lighter (280 gsm) mid-wale cotton cord scaled for a cap's small panels — fewer, chunkier wales (`weaveScale` 40 vs the coat cord's 70) so the wale still reads at hat framing instead of blurring flat, in a classic camel, on the same vertical-cord pile weave + anisotropic sheen. Purely additive; unit-tested (lighter + chunkier-wale than the coat corduroy, same pile weave) — PR #381 _(visual wale scale to confirm in the next capture sweep)_
 - [ ] **Party headwear finishes** — sequins/beading tuned for small-panel headwear
 - [ ] **Reflective piping** — retroreflective trim on winter headwear that lights toward the camera
 - [ ] **Headwear pattern suite** — gore crowns · brims · bands unwrapped to SVG/DXF per style

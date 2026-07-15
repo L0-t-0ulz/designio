@@ -121,6 +121,18 @@ describe('FABRIC_LIBRARY', () => {
     expect(boiledP.mass).toBeGreaterThan(jerseyP.mass)
     expect(boiledP.aero).toBeLessThan(jerseyP.aero) // heavy wool ignores the air a light knit catches
   })
+
+  it('corduroy cap fabric is a lighter, chunkier-wale cord than the coat corduroy', () => {
+    const cap = getFabric('corduroy-cap')
+    const cord = getFabric('corduroy')
+    expect(cap.id).toBe('corduroy-cap')
+    expect(cap.weave).toBe('corduroy') // same vertical-cord pile weave
+    expect(cap.nap).toBe(true) // directional pile, like all corduroy
+    expect(cap.gsm).toBeLessThan(cord.gsm) // cap cord is lighter than a coat/pant cord
+    // fewer repeats across the (small) cap panel = chunkier wales that still read at hat scale
+    expect(cap.weaveScale).toBeLessThan(cord.weaveScale)
+    expect(cap.anisotropy).toBeGreaterThan(0) // the pile still streaks the sheen
+  })
 })
 
 describe('weave texture math', () => {
