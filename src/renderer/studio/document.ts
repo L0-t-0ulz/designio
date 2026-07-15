@@ -15,6 +15,7 @@ import type { TextilePattern } from '../fabric/textile'
 import type { TartanKind } from '../fabric/tartan'
 import type { OmbreDirection } from '../fabric/ombre'
 import type { WearKind } from '../fabric/wear'
+import type { DuotoneKind } from '../fabric/duotone'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
@@ -277,6 +278,8 @@ export interface GarmentLayerData {
   tartan?: TartanKind
   ombre?: OmbreDirection
   wear?: WearKind
+  /** Duotone two-tone remap of the fabric/pattern (behind the prints). */
+  duotone?: DuotoneKind
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
   iridescent?: IridescentKind
@@ -319,6 +322,7 @@ export interface Colorway {
   tartan?: TartanKind
   ombre?: OmbreDirection
   wear?: WearKind
+  duotone?: DuotoneKind
   sparkle?: SparkleKind
   iridescent?: IridescentKind
   quilt?: QuiltPattern
@@ -365,6 +369,7 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     tartan: l.tartan,
     ombre: l.ombre,
     wear: l.wear,
+    duotone: l.duotone,
     sparkle: l.sparkle,
     iridescent: l.iridescent,
     quilt: l.quilt,
@@ -395,6 +400,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.tartan = cw.tartan
   l.ombre = cw.ombre
   l.wear = cw.wear
+  l.duotone = cw.duotone
   l.sparkle = cw.sparkle
   l.iridescent = cw.iridescent
   l.quilt = cw.quilt
@@ -525,6 +531,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     tartan: c.tartan,
     ombre: c.ombre,
     wear: c.wear,
+    duotone: c.duotone,
     sparkle: c.sparkle,
     iridescent: c.iridescent,
     quilt: c.quilt,
@@ -633,6 +640,7 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     tartan: l.tartan,
     ombre: l.ombre,
     wear: l.wear,
+    duotone: l.duotone,
     sparkle: l.sparkle,
     iridescent: l.iridescent,
     quilt: l.quilt,

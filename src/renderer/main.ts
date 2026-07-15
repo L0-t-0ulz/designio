@@ -105,6 +105,7 @@ import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
 import { TARTAN_KINDS, type TartanKind } from './fabric/tartan'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from './fabric/ombre'
 import { WEAR_KINDS, type WearKind } from './fabric/wear'
+import { DUOTONE_KINDS, type DuotoneKind } from './fabric/duotone'
 import { demoSwatchCanvas } from './fabric/swatch'
 import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
 import { IRIDESCENT_KINDS, type IridescentKind } from './fabric/iridescent'
@@ -2640,6 +2641,8 @@ if (skipStart) {
   if (omb && (OMBRE_DIRECTIONS as string[]).includes(omb)) cfg.ombre = omb as OmbreDirection
   const wr = entryParams.get('wear')
   if (wr && (WEAR_KINDS as string[]).includes(wr)) cfg.wear = wr as WearKind
+  const duo = entryParams.get('duotone')
+  if (duo && (DUOTONE_KINDS as string[]).includes(duo)) cfg.duotone = duo as DuotoneKind
   const spk = entryParams.get('sparkle')
   if (spk && (SPARKLE_KINDS as string[]).includes(spk)) cfg.sparkle = spk as SparkleKind
   const iri = entryParams.get('iridescent')
