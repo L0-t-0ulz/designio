@@ -972,6 +972,38 @@ _The moonshots that make this a next-generation design tool. Each is deep + spec
 - [ ] **Returns-driven fit map** — feed real size-return statistics back in to flag a badly-graded size or a chronic fit failure
 - [ ] **Voice + gesture control** — hands-free "rotate", "pin here", "make it looser" during a live fitting session
 
+## ✨ Craft & detail — batch added 2026-07-15 _(cool, specific, mostly-tractable cards — real construction, rendering & interaction craft; each self-contained + unit-testable)_
+
+### Rendering & materials
+- [ ] **Real 3D topstitch thread** — replace the dashed decal along seams/hems with an actual raised thread tube (a swept low-poly cord following the seam curve) so topstitch catches light + casts a micro-shadow; SPI drives the bead pitch, thread weight the radius
+- [ ] **Backlight translucency for thin cloth** — a thin cotton/silk should glow where the key light rakes through it (a cheap wrap-diffuse + thickness term in `FabricMaterial`), so a sheer sleeve reads translucent against a bright backdrop instead of flat
+- [ ] **Directional nap tone shift** — velvet/corduroy/suede change tone with pile direction under the light (up-nap dark, down-nap bright); drive an anisotropic shading term off the weave/pile axis so brushing the surface visibly shifts it
+- [ ] **Fabric flyaway fuzz silhouette** — a grazing-angle alpha fuzz hull on brushed knits/fleece/mohair so the silhouette reads soft + haloed instead of a hard edge (extends the fur pile to the rim, no extra geometry)
+- [ ] **Screen-print ink realism** — placed prints get a plastisol option: a slight gloss + raised edge + optional distress "cracking" on the ink, distinct from the matte flat / embroidery / appliqué styles
+- [ ] **Selvage & cut-edge rendering** — a woven's cut edge frays a few threads; a knit's edge curls; a bound edge shows the binding — so an open hem/raw edge reads true to its fabric family
+- [ ] **Fold-contact soft shadow** — soften the contact shadow by gap distance (a fold just off the body casts a soft penumbra, a pressed contact a crisp one) so layered garments ground into each other believably
+
+### Construction craft
+- [ ] **Godet & gore inserts** — drop a triangular godet into a seam (or build an N-gore skirt) for a controlled flare burst at the hem; parametric insert height/width, sewn into the tube + unwrapped on the flat pattern
+- [ ] **Cowl neck drape** — extra fabric bias-folded at the neckline that hangs in real catenary folds (a fabric-surplus term at the top edge the solver drapes), a distinct neckline from scoop/v
+- [ ] **Peplum & waist ruffle** — a gathered flared frill seamed at the waistline of a top/jacket/dress (rides the waist anchor), with a fullness slider that sets the gather ratio
+- [ ] **Bound buttonhole + real welt pockets** — buttonholes cut as real slits with lip welts, and welt/besom pockets as actual openings, distinct from the current patch pockets — folded into the tech pack + flat pattern
+- [ ] **Cuff plackets & sleeve tabs** — a real shirt-cuff placket (slit + underlap + button) and a roll-up sleeve tab, so a long sleeve constructs like a true shirt sleeve
+- [ ] **Belt loops that thread the belt** — parametric belt loops on the waistband that the belt accessory actually passes through (loop meshes + the belt path constrained to run behind them)
+- [ ] **Shirred / elastic gather panels** — rows of elastic shirring that physically gather a panel (waistband, sleeve, back) — a per-row rest-length contraction the solver honours so the fabric puckers into real elastic ripples
+
+### Interaction & workflow
+- [ ] **Drape scrubber** — a timeline scrubber that replays the settle from flat → draped (record the deterministic step buffer), so you can scrub to any frame + snapshot the exact fold state you like
+- [ ] **Pin / baste tool** — click the garment to drop a temporary pin that holds that point in space (a live anchor) so you can arrange a drape/fold by hand, then release; pins export as a fitting note
+- [ ] **A/B compare split** — freeze the current look as "A", make edits, and drag a split-line to wipe between A and B live in the viewport for a side-by-side design decision
+- [ ] **Edit-symmetry mirror** — a mirror toggle so a placement/edit on the left front mirrors to the right (prints, pockets, darts), with a break-symmetry escape for asymmetric designs
+- [ ] **Fold / crease painter** — brush a crease line onto the fabric (a seeded fold the wrinkle shader + a light bending-bias respect) for a deliberately rumpled linen or a pressed trouser crease
+
+### Simulation & fit
+- [ ] **Hanger vs body drape toggle** — drape the garment on a hanger/dress-form/flat instead of the walking body (a gravity-direction + support-point change), for a flat-lay product shot or a "how it hangs in the closet" view
+- [ ] **Pre-shrink / relax pass** — a one-click relax that lets the fabric settle to its true relaxed dimensions (release seam tension + take-up) before measuring, so the production spec reflects the relaxed garment not the stretched mesh
+- [ ] **Stretch-recovery memory** — a knit that's been stretched over a curve keeps a little bagging (a plastic strain term) so ribbing at a cuff/hem reads worked-in rather than pristine
+
 ---
 
 _Update this board as things ship — check the box + note the PR._
