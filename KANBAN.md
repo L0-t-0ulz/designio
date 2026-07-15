@@ -125,6 +125,8 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [x] **Corduroy has vertical cords** — corduroy was weave `'twill'` (a diagonal); added a dedicated `'corduroy'` vertical-wale weave (rounded pile-topped cords over deep valleys) — PR #360
 - [x] **Sewn-panel body friction** — `ClothWorld.solveBody` never damped tangential slide; now mirrors `XPBDSolver` (a grippy knit clings, satin slides) — PR #357
 - [x] **Seam-continuous textiles** — `textileValue` camo/plaid weren't periodic and showed a hard tile seam; integer-frequency camo + edge-straddling plaid band → tiles cleanly — PR #357
+- [x] **Waffle-knit reads flat** — rebuilt the waffle weave as a chunky 2×2-thread thermal honeycomb so the relief reads at garment scale + a README photo — PR #367
+- [x] **Fleece reads as a net** — a napped-knit path gives fleece a soft fuzzy pile (fur normal + matte surface) instead of the crisp knit net + a README photo — PR #369
 - [ ] **Long-sleeve/shoulder jut (HIGH, diagnosed not fixed)** — the body-tube shoulder splays into a jut; root cause + fix location + golden-update path fully written up in the 🐞 Rendering bugs section — PR #362/#363/#364 (diagnosis)
 
 ---
@@ -1041,7 +1043,7 @@ _The moonshots that make this a next-generation design tool. Each is deep + spec
   - **Likely real fix (now correctly located in the BODY tube):** support/pin the body-tube **shoulder span** so the unsupported shoulder points can't splay — e.g. an extra pin group across the shoulder-line row to the shoulder/torso frame, or shape the top-edge so the shoulder seam sits on the deltoid capsule (collides + holds), or narrow the shoulder ring toward the neck so there's no unsupported span. Needs its own careful pass + golden re-verify (golden dress is short-sleeve but **also** a full-shoulder bodice — so re-verify the golden set carefully).
 - [ ] **Shoulder-cap fabric puff** — the armhole-gap cap lift (`a.y += 0.7·armR`, inboard `0.55·armR`) leaves excess fabric at the sleeve head that puffs up/out over a thin arm; wants a smoother cap easing so the overlap closes the gap without bunching
 - [x] **Waffle surface reads flat** — rebuilt the waffle weave as a chunky 2×2-thread thermal honeycomb (proud wall over a deep domed cell) so the relief reads at garment scale + a README photo — PR #367
-- [ ] **Fleece reads as a technical net** — fleece's shared `'knit'` weave reads as a fine diagonal net at range; wants a fuzzier matte pile hint on the *base* fabric (a napped-knit path), not only the `?fur=fleece` finish
+- [x] **Fleece reads as a technical net** — added a napped-knit path in `applyFabric`: a knit with `nap` (fleece) gets the soft fleece fur pile normal + a matte roughness-uniform surface, so the base fabric reads fuzzy (not the sharp knit net); the `?fur=fleece` finish still layers over it + a README photo — PR #369
 
 ## 📐 2D pattern-making — batch added 2026-07-15 _(300+ specific flat-pattern CAD cards — the deep 2D drafting / grading / marker / production side, in the spirit of Gerber · Lectra · Optitex · Seamly2D · CLO 2D. Each is concrete + mostly unit-testable pure geometry.)_
 
