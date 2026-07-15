@@ -8,7 +8,7 @@
  * type-aware thread estimate).
  */
 
-export type SeamType = 'plain' | 'french' | 'flat-fell' | 'overlock'
+export type SeamType = 'plain' | 'french' | 'flat-fell' | 'overlock' | 'bonded'
 
 export interface SeamTypeSpec {
   label: string
@@ -26,7 +26,8 @@ export const SEAM_TYPES: Record<SeamType, SeamTypeSpec> = {
   plain: { label: 'Plain (pressed open)', allowanceMm: 10, threadFactor: 2.5, visibleRows: 0, note: 'general seaming — press open' },
   french: { label: 'French (enclosed)', allowanceMm: 15, threadFactor: 5.0, visibleRows: 0, note: 'sewn twice, raw edge enclosed — sheers + luxury' },
   'flat-fell': { label: 'Flat-fell', allowanceMm: 18, threadFactor: 6.0, visibleRows: 2, note: 'folded + twin-stitched — jeans/workwear, strongest' },
-  overlock: { label: 'Overlock (serged)', allowanceMm: 8, threadFactor: 14, visibleRows: 0, note: 'looper-covered edge — knits' }
+  overlock: { label: 'Overlock (serged)', allowanceMm: 8, threadFactor: 14, visibleRows: 0, note: 'looper-covered edge — knits' },
+  bonded: { label: 'Bonded (heat-sealed)', allowanceMm: 8, threadFactor: 0, visibleRows: 0, note: 'welded/taped, no needle thread — waterproof + technical wear' }
 }
 
 export type NeedleMode = 'single' | 'double'
