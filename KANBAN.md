@@ -392,7 +392,7 @@ fit & physics 0/10 · materials & production 0/10)_
 **Perfection — Materials & production**
 - [ ] **Waxed rain hat** — waterproof shell sheen + water-bead normal detail
 - [ ] **Fleece lining reveal** — a visible contrast lining at rolled cuffs + folded brims
-- [ ] **Melton & boiled wool** — dense felted presets tuned for structured headwear
+- [x] **Melton & boiled wool** — melton already shipped (500 gsm felted coating); added **boiled wool** — a knit fulled until the stitches close into a dense matte hide (the classic loden coating/hat wool): 450 gsm, near-zero stretch, structured `woven`-family drape, only a faint felted-knit ghost (low `normalStrength`) under a muted matte sheen. Unit-tested (heavy · near-rigid · matte · low-stretch, heavier + less aero than a jersey knit) — PR #374
 - [ ] **Corduroy cap fabric** — wale-scaled cord for dad hats
 - [ ] **Party headwear finishes** — sequins/beading tuned for small-panel headwear
 - [ ] **Reflective piping** — retroreflective trim on winter headwear that lights toward the camera

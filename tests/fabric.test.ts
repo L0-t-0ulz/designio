@@ -103,6 +103,24 @@ describe('FABRIC_LIBRARY', () => {
     // non-metallic cloth stays dielectric in the material
     expect(getFabric('denim').metalness ?? 0).toBe(0)
   })
+
+  it('boiled wool is a felted coating wool — heavy, near-rigid, matte, low-stretch', () => {
+    const boiled = getFabric('boiled-wool')
+    expect(boiled.id).toBe('boiled-wool')
+    expect(boiled.family).toBe('woven') // drapes structured like its melton sibling, not a stretchy knit
+    // fulling closes the knit: heavy, matte, and it barely stretches
+    expect(boiled.gsm).toBeGreaterThanOrEqual(400)
+    expect(boiled.stretch).toBeLessThan(0.1)
+    expect(boiled.roughness).toBeGreaterThan(0.9)
+    expect(boiled.sheen).toBeLessThan(0.4)
+    // felting obscures the stitches — only a faint knit ghost, far softer relief than a raw knit
+    expect(boiled.normalStrength).toBeLessThan(getFabric('cable-knit').normalStrength)
+    // heavier + denser than a jersey knit, so it drapes with lazier, more structured folds
+    const boiledP = fabricToSolverParams(boiled)
+    const jerseyP = fabricToSolverParams(getFabric('jersey-knit'))
+    expect(boiledP.mass).toBeGreaterThan(jerseyP.mass)
+    expect(boiledP.aero).toBeLessThan(jerseyP.aero) // heavy wool ignores the air a light knit catches
+  })
 })
 
 describe('weave texture math', () => {

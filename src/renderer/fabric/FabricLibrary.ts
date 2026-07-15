@@ -195,6 +195,10 @@ export const FABRIC_LIBRARY: Fabric[] = [
   { id: 'gabardine', name: 'Gabardine', family: 'woven', gsm: 280, stretch: 0.05, bendiness: 0.2, friction: 0.5, color: 0x726a5c, roughness: 0.72, sheen: 0.55, sheenRoughness: 0.48, weave: 'twill', weaveScale: 165, normalStrength: 0.52, anisotropy: 0.1, transmission: 0 },
   { id: 'worsted-wool', name: 'Worsted wool', family: 'woven', gsm: 250, stretch: 0.06, bendiness: 0.3, friction: 0.55, color: 0x33373d, roughness: 0.76, sheen: 0.55, sheenRoughness: 0.48, weave: 'twill', weaveScale: 150, normalStrength: 0.5, anisotropy: 0.08, transmission: 0 },
   { id: 'melton', name: 'Melton wool', family: 'woven', gsm: 500, stretch: 0.03, bendiness: 0.22, friction: 0.66, color: 0x3a4048, roughness: 0.97, sheen: 0.3, sheenRoughness: 0.65, weave: 'twill', weaveScale: 110, normalStrength: 0.7, anisotropy: 0, transmission: 0 },
+  // a knit fulled (shrunk/felted) until the stitches close into a dense matte hide — the classic
+  // loden coating/hat wool: heavy, near-zero stretch, holds a soft structured shape; only a faint
+  // felted-knit ghost survives (low normalStrength), muted matte sheen.
+  { id: 'boiled-wool', name: 'Boiled wool', family: 'woven', gsm: 450, stretch: 0.05, bendiness: 0.34, friction: 0.64, color: 0x4a5540, roughness: 0.97, sheen: 0.28, sheenRoughness: 0.66, weave: 'knit', weaveScale: 90, normalStrength: 0.35, anisotropy: 0, transmission: 0 },
   { id: 'ponte', name: 'Ponte knit', family: 'knit', gsm: 320, stretch: 0.4, bendiness: 0.42, friction: 0.6, color: 0x2e2e34, roughness: 0.88, sheen: 0.38, sheenRoughness: 0.58, weave: 'knit', weaveScale: 100, normalStrength: 0.5, anisotropy: 0, transmission: 0 },
   { id: 'scuba', name: 'Scuba knit', family: 'knit', gsm: 300, stretch: 0.35, bendiness: 0.5, friction: 0.55, color: 0x25262b, roughness: 0.7, sheen: 0.5, sheenRoughness: 0.5, weave: 'knit', weaveScale: 130, normalStrength: 0.4, anisotropy: 0, transmission: 0 },
 
