@@ -11,6 +11,7 @@ import { rafCoalesce } from './core/coalesce'
 import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOverlay'
 import { openGlossary } from './ui/glossaryOverlay'
 import { openLessons } from './ui/lessonsOverlay'
+import { openChallenges } from './ui/challengesOverlay'
 import { registerPlugin, loadedPlugins, setPluginHost } from './plugins'
 import { KEY_ACTIONS, actionFor, keymap, type KeyAction } from './ui/keymap'
 import { startTour, closeTour, tourOpen, hasSeenTour } from './ui/onboardingTour'
@@ -2002,6 +2003,7 @@ function initStudio(
     onTour: () => startTour(),
     onGlossary: openGlossary,
     onLessons: openLessons,
+    onChallenges: () => openChallenges((gid) => { garment.type = gid as GarmentType; Object.assign(garment, getGarment(gid).defaults); api.syncGarment(); applyGarmentEdit() }),
     onAbout: () =>
       window.alert('DesignIO — a fully-3D clothing design studio.\n© Zayan Khan. All rights reserved.')
   })
@@ -2528,6 +2530,7 @@ function initStudio(
   if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
   if (params.get('lessons') === '1') window.setTimeout(() => openLessons(), 500) // open pattern-making lessons
+  if (params.get('challenges') === '1') window.setTimeout(() => openChallenges(), 500) // open community challenges
   {
     const shareTok = shareTokenFrom(location.hash) ?? shareTokenFrom(location.search)
     if (shareTok) { try { applyDoc(decodeShare(shareTok)) } catch { /* corrupt/old share token — ignore */ } }
