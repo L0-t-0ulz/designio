@@ -282,3 +282,61 @@ describe('per-edge seam allowance', () => {
     expect(neckSA).toBeCloseTo(6, 3) // min(seam, 6)
   })
 })
+
+describe('headwear pattern suite — gore crowns · brims · bands', () => {
+  const result = (id: string, over: Partial<GarmentParams> = {}) =>
+    garmentToPanels(getGarment(id), { ...DEFAULT_PARAMS, ...getGarment(id).defaults, ...over }, M, C)
+  const hp = (id: string, over: Partial<GarmentParams> = {}) => result(id, over).panels
+  const byName = (id: string) => hp(id).map((p) => p.name)
+
+  it('a crown hat unwraps into a gored crown + a band', () => {
+    const names = byName('beanie')
+    expect(names).toContain('Crown gore')
+    expect(names).toContain('Band')
+    const gore = hp('beanie').find((p) => p.name === 'Crown gore')!
+    const band = hp('beanie').find((p) => p.name === 'Band')!
+    expect(gore.cut).toBe(6) // six gores make the crown
+    expect(band.cut).toBe(1)
+    expect(gore.wmm).toBeGreaterThan(0)
+    expect(gore.hmm).toBeGreaterThan(0)
+    // the band is the full head circumference; one gore is ~a sixth of it
+    expect(band.wmm).toBeGreaterThan(gore.wmm)
+    expect(band.wmm / gore.wmm).toBeGreaterThan(4)
+    expect(band.wmm / gore.wmm).toBeLessThan(8)
+  })
+
+  it('a visored crown hat also gets a brim panel', () => {
+    const names = byName('brimmed-beanie')
+    expect(names).toContain('Crown gore')
+    expect(names).toContain('Brim')
+    const brim = hp('brimmed-beanie').find((p) => p.name === 'Brim')!
+    expect(brim.cut).toBe(1)
+    expect(brim.wmm).toBeGreaterThan(0)
+    expect(brim.hmm).toBeGreaterThan(0)
+  })
+
+  it('a neck cowl/snood unwraps front + back like a body tube (no gores)', () => {
+    const names = byName('snood')
+    expect(names).toEqual(['Cowl front', 'Cowl back'])
+    expect(names).not.toContain('Crown gore')
+  })
+
+  it('the head panels export to SVG + DXF', () => {
+    const res = result('beanie')
+    const svg = panelsToSVG(res)
+    expect(svg).toContain('Crown gore')
+    expect(svg).toContain('Band')
+    expect(svg.startsWith('<svg') || svg.includes('<svg')).toBe(true)
+    const dxf = panelsToDXF(res)
+    expect(dxf).toContain('ENTITIES') // a well-formed DXF with the panel geometry
+    expect(dxf.trimEnd().endsWith('EOF')).toBe(true)
+    // the head panels carry real cut geometry — more than an empty (panel-less) drawing
+    const empty = panelsToDXF({ ...res, panels: [] })
+    expect(dxf.length).toBeGreaterThan(empty.length)
+  })
+
+  it('a body garment gets no head panels (regression)', () => {
+    expect(byName('top')).not.toContain('Crown gore')
+    expect(byName('top')).not.toContain('Band')
+  })
+})

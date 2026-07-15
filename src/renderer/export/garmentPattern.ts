@@ -166,6 +166,86 @@ function unwrapSleeve(spec: AxisTubeSpec): { outline: Pt[]; notches: Pt[] } {
   return { outline: out, notches }
 }
 
+/**
+ * Unwrap one **gore** of a crown tube (a panelled hat crown) — a symmetric wedge
+ * from the gathered crown (top) down to the band (bottom), `gores` of them making
+ * the full crown. The height is the *slant* length along the tube profile (the true
+ * flat length, not the vertical drop), and the width at each level is that level's
+ * circumference split between the gores. Pure so it's unit-tested.
+ */
+export function unwrapCrownGore(spec: TubeSpec, gores: number): { outline: Pt[]; notches: Pt[] } {
+  const n = Math.max(3, Math.floor(gores))
+  const topY = topEdge(spec, Math.PI / 2)
+  const botY = bottomEdge(spec, Math.PI / 2)
+  const S = 24 // samples down the gore
+  const prof: { r: number; y: number }[] = []
+  for (let i = 0; i <= S; i++) {
+    const t = i / S
+    prof.push({ r: radiusAt(spec, t), y: topY + (botY - topY) * t })
+  }
+  // cumulative slant length down the profile (crown → band)
+  const cum: number[] = [0]
+  for (let i = 1; i < prof.length; i++) {
+    cum.push(cum[i - 1] + Math.hypot(prof[i].r - prof[i - 1].r, prof[i].y - prof[i - 1].y))
+  }
+  const right: Pt[] = []
+  const left: Pt[] = []
+  for (let i = 0; i <= S; i++) {
+    const y = cum[i] * MM // 0 at the crown, slant-length at the band
+    const halfW = (Math.PI * prof[i].r / n) * MM // (2π r / n) / 2 — arc per gore, halved
+    right.push({ x: halfW, y })
+    left.push({ x: -halfW, y })
+  }
+  // outline: down the right edge (crown → band), back up the left edge (band → crown)
+  const outline = [...right, ...left.reverse()]
+  // matching notch at mid-height on both seams (helps align gores when sewing)
+  const mid = Math.round(S / 2)
+  const notches: Pt[] = [
+    { x: (Math.PI * prof[mid].r / n) * MM, y: cum[mid] * MM },
+    { x: -(Math.PI * prof[mid].r / n) * MM, y: cum[mid] * MM }
+  ]
+  return { outline, notches }
+}
+
+/**
+ * The **band / sweatband** strip of a hat — a straight strip the head circumference
+ * long × a band height (cut on the fold at centre-back). Pure.
+ */
+export function headBandStrip(spec: TubeSpec, bandH = 0.045): { outline: Pt[]; notches: Pt[] } {
+  const w = 2 * Math.PI * spec.radiusBottom * MM
+  const h = bandH * MM
+  return {
+    outline: [
+      { x: 0, y: 0 },
+      { x: w, y: 0 },
+      { x: w, y: h },
+      { x: 0, y: h }
+    ],
+    notches: [
+      { x: w / 2, y: 0 },
+      { x: w / 2, y: h }
+    ]
+  }
+}
+
+/**
+ * The **brim / visor** of a hat — the front half-annulus (inner radius = head
+ * radius, outer = head radius + depth) unrolled flat into a crescent panel. Pure.
+ */
+export function headBrimPanel(spec: TubeSpec, depth = 0.06): { outline: Pt[]; notches: Pt[] } {
+  const r1 = Math.max(0.02, spec.radiusBottom)
+  const r2 = r1 + Math.max(0.01, depth)
+  const A = 20
+  const outer: Pt[] = []
+  const inner: Pt[] = []
+  for (let i = 0; i <= A; i++) {
+    const a = -Math.PI / 2 + Math.PI * (i / A) // front half arc
+    outer.push({ x: Math.cos(a) * r2 * MM, y: Math.sin(a) * r2 * MM })
+    inner.push({ x: Math.cos(a) * r1 * MM, y: Math.sin(a) * r1 * MM })
+  }
+  return { outline: [...outer, ...inner.reverse()], notches: [{ x: 0, y: r1 * MM }] }
+}
+
 const finishPanel = (
   name: string,
   cut: number,
@@ -212,6 +292,27 @@ export function garmentToPanels(
     const shape = params.sleeveShape ?? 'set-in'
     const sname = shape === 'set-in' ? 'Sleeve' : `Sleeve (${shape})`
     panels.push(finishPanel(sname, 2, unwrapSleeve(specs.sleeves[0])))
+  }
+
+  // Headwear pattern suite — unwrap each head tube into real millinery panels. A
+  // crown hat becomes a gored crown (cut N) + a band strip (+ a brim for a visored
+  // style); a neck cowl/snood/gaiter unwraps front/back like a body tube.
+  {
+    let hi = 0
+    const CROWN_GORES = 6
+    for (const pc of def.pieces) {
+      if (pc.kind !== 'headTube') continue
+      const spec = specs.head[hi++]
+      if (!spec) continue
+      if (pc.anchor === 'neck') {
+        panels.push(finishPanel('Cowl front', 1, unwrapTube(spec, Math.PI / 2)))
+        panels.push(finishPanel('Cowl back', 1, unwrapTube(spec, (3 * Math.PI) / 2)))
+      } else {
+        panels.push(finishPanel('Crown gore', CROWN_GORES, unwrapCrownGore(spec, CROWN_GORES)))
+        panels.push(finishPanel('Band', 1, headBandStrip(spec)))
+        if (def.visor) panels.push(finishPanel('Brim', 1, headBrimPanel(spec)))
+      }
+    }
   }
 
   if (params.pocket) {
