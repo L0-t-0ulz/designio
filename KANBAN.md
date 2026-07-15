@@ -369,7 +369,7 @@ fit & physics 0/10 · materials & production 0/10)_
 
 **Perfection — Head scarves & wraps**
 - [ ] **Hijab style set** — shayla · al-amira · turban-wrap variants over the under-cap
-- [x] **Hijab under-cap** — a data-driven **`undercap`** garment: the underscarf worn beneath a hijab — the snug open-face crown block in soft cotton **jersey** (`jersey-knit`) with a little neck coverage, holding the hairline (the wrap layer drapes over it). Additive registry entry; unit-tested (open-face crown headwear · jersey default) + sims stably + visually confirmed the snug open-face cap — PR #TBD
+- [x] **Hijab under-cap** — a data-driven **`undercap`** garment: the underscarf worn beneath a hijab — the snug open-face crown block in soft cotton **jersey** (`jersey-knit`) with a little neck coverage, holding the hairline (the wrap layer drapes over it). Additive registry entry; unit-tested (open-face crown headwear · jersey default) + sims stably + visually confirmed the snug open-face cap — PR #390
 - [ ] **Turban wrap count** — visible wrap layers + the front twist knot
 - [ ] **Durag** — skull wrap + long tie tails + the back flap draping the neck
 - [x] **Bandana face-cover state** — the folded triangle tied over the nose: the `bandana` garment wears the gaiter-up mechanics by default + the new `point-front` hem (one centre-front triangle point); gaiter-up now grips nose bridge + nape (one pin can't hold non-stretch poplin with a weighted point); top edge verified settling at the nose line — PR #317
