@@ -3,6 +3,7 @@ import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from '../garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from '../garment/templates'
+import { WRAP_PRESETS, applyWrapPreset } from '../avatar/wrapPresets'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { SKIN_TONES, SKIN_TONE_HEX, UNDERTONES, type SkinTone, type Undertone } from '../avatar/skin'
@@ -531,7 +532,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
   const scarfW = slider({ label: 'Scarf width', min: 0.5, max: 1.8, step: 0.05, format: (v) => `${Math.round(v * 100)}%`, get: () => garment.scarfWidth ?? 1, set: (v) => { garment.scarfWidth = v === 1 ? undefined : v; syncGarment(); opts.onGarmentEdit() } })
   const scarfBlock = el('div')
-  scarfBlock.append(el('div', 'dio-field-label', 'Scarf fit (Length drives the tails)'), track(scarfW))
+  // one-click pre-tied wrap presets (set an exclusive worn-state + a flattering width)
+  const wrapRow = el('div', 'dio-actions')
+  wrapRow.style.flexWrap = 'wrap'
+  for (const preset of WRAP_PRESETS) {
+    wrapRow.append(button(preset.label, () => { applyWrapPreset(garment, preset); syncGarment(); opts.onGarmentEdit() }))
+  }
+  scarfBlock.append(el('div', 'dio-field-label', 'Wrap preset'), wrapRow, el('div', 'dio-field-label', 'Scarf fit (Length drives the tails)'), track(scarfW))
   // the scarf pin / brooch: an extra stitch constraint sewing the tails together
   const knotT = toggle({ label: 'Parisian knot', get: () => !!garment.scarfKnot, set: (v) => { garment.scarfKnot = v || undefined; syncGarment(); opts.onGarmentEdit() } })
   const doubleT = toggle({ label: 'Double wrap', get: () => !!garment.scarfDouble, set: (v) => { garment.scarfDouble = v || undefined; syncGarment(); opts.onGarmentEdit() } })
@@ -777,6 +784,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     easeChestS.refresh()
     easeWaistS.refresh()
     easeHipS.refresh()
+    // reflect wrap-preset changes on the scarf toggles + width/pin sliders
+    knotT.refresh()
+    doubleT.refresh()
+    blanketT.refresh()
+    pinT.refresh()
+    scarfW.refresh()
+    pinAtS.refresh()
   }
   function selectGarment(id: string): void {
     garment.type = id

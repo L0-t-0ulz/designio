@@ -131,6 +131,7 @@ import { portfolioHtml } from './export/portfolio'
 import { configuratorHtml } from './export/configurator'
 import { tryOnWidgetHtml } from './export/tryOn'
 import { separationsHTML } from './export/separations'
+import { getWrapPreset, applyWrapPreset } from './avatar/wrapPresets'
 import { openVersionHistory } from './ui/versionHistory'
 import { diffDocs } from './studio/diffDoc'
 import { shareUrl, shareTokenFrom, decodeShare } from './studio/shareLink'
@@ -2708,6 +2709,11 @@ if (skipStart) {
   const sw = parseFloat(entryParams.get('scarfWidth') ?? '')
   if (Number.isFinite(sw)) cfg.scarfWidth = Math.max(0.5, Math.min(1.8, sw))
   if (entryParams.get('scarfPin')) cfg.scarfPin = true
+  const wrapP = entryParams.get('wrapPreset')
+  if (wrapP) {
+    const preset = getWrapPreset(wrapP)
+    if (preset) applyWrapPreset(cfg, preset)
+  }
   if (entryParams.get('scarfKnot')) cfg.scarfKnot = true
   if (entryParams.get('scarfDouble')) cfg.scarfDouble = true
   if (entryParams.get('scarfBlanket')) cfg.scarfBlanket = true
