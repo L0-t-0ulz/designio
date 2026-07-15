@@ -2620,7 +2620,14 @@ function openProjects(): void {
 // ---- entry: homepage, unless a snapshot deep-link jumps straight in -----
 // Plugin API — expose the registry globally + install the host so plugins can add
 // fabrics; a plugin that registers before or after boot is applied immediately.
-;(globalThis as { designio?: unknown }).designio = { registerPlugin, loadedPlugins }
+// NB: `window.designio` is the preload's file-IPC bridge (a read-only contextBridge
+// property) — reassigning it THROWS and kills renderer boot. The plugin registry gets
+// its own `designioPlugins` global, guarded so a locked-down host can never crash boot.
+try {
+  ;(globalThis as { designioPlugins?: unknown }).designioPlugins = { registerPlugin, loadedPlugins }
+} catch {
+  /* a frozen/locked-down host may forbid new globals; the in-process registry still works */
+}
 setPluginHost({
   addFabric: (f) => { if (!FABRIC_LIBRARY.some((x) => x.id === f.id)) FABRIC_LIBRARY.push(f) },
   addNamedColor: () => {},
