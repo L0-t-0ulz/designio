@@ -24,8 +24,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'necklace', 'hoops']
+export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -123,6 +123,7 @@ export class Accessories {
       this.buildBalaclava(),
       this.buildGoggles(),
       this.buildSunglasses(),
+      this.buildTurban(),
       this.buildNecklace(),
       this.buildHoops(),
       this.buildScarf(),
@@ -1003,6 +1004,54 @@ export class Accessories {
     bridge.position.set(0, eyeY + 0.06, eyeZ + 0.01)
     obj.add(bridge)
     return this.headItem('sunglasses', obj)
+  }
+
+  private turbanWraps = 4
+
+  private buildTurban(): Item {
+    // a wrapped turban: a domed crown cap + N overlapping cloth wraps stacked from
+    // the brow up over the head (the wrap count is designer-controlled). Authored in
+    // the unit head frame like the other headwear.
+    const mat = new THREE.MeshStandardMaterial({ color: 0x6b3f8f, roughness: 0.72, metalness: 0, side: THREE.DoubleSide })
+    const obj = new THREE.Group()
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.78, 24, 16, 0, TAU, 0, Math.PI * 0.6), mat)
+    cap.position.y = HC + 0.12 // dome the crown (HC is where headwear caps the head)
+    obj.add(cap)
+    const holder = new THREE.Group()
+    holder.name = 'wrap-holder'
+    holder.userData.mat = mat
+    obj.add(holder)
+    this.addTurbanWraps(holder, mat)
+    return this.headItem('turban', obj)
+  }
+
+  private addTurbanWraps(holder: THREE.Group, mat: THREE.Material): void {
+    const n = this.turbanWraps
+    for (let i = 0; i < n; i++) {
+      const t = n > 1 ? i / (n - 1) : 0 // 0 at the hairline → 1 near the crown
+      const major = 1.14 - t * 0.5 // narrows toward the domed top
+      const band = new THREE.Mesh(new THREE.TorusGeometry(major, 0.14, 10, 32), mat)
+      band.rotation.x = Math.PI / 2
+      band.rotation.z = (i % 2 ? 1 : -1) * 0.06 // slight alternating tilt — the wrapped look
+      band.position.y = HC - 0.28 + t * 0.62 // stack from the hairline up over the crown
+      holder.add(band)
+    }
+  }
+
+  /** The turban wrap-count designer — re-wrap with `n` (2–8) bands in place. */
+  setTurbanWraps(n: number): void {
+    this.turbanWraps = Math.max(2, Math.min(8, Math.round(n) || 4))
+    const it = this.items.find((i) => i.kind === 'turban')
+    const holder = it?.obj.getObjectByName('wrap-holder') as THREE.Group | undefined
+    if (!holder) return
+    for (const child of [...holder.children]) {
+      ;(child as THREE.Mesh).geometry?.dispose()
+      holder.remove(child)
+    }
+    this.addTurbanWraps(holder, holder.userData.mat as THREE.Material)
+  }
+  getTurbanWraps(): number {
+    return this.turbanWraps
   }
 
   private buildScarf(): Item {

@@ -1187,6 +1187,9 @@ function initStudio(
     // ?crownShape= — the crown shape library (the fedora's blocked crease)
     const cs = params.get('crownShape')
     if (cs && (CROWN_STYLES as string[]).includes(cs)) accessories.setCrown(cs as CrownStyle)
+    // ?turbanWraps= — the turban wrap-count designer (2–8 wraps)
+    const tw = parseFloat(params.get('turbanWraps') ?? '')
+    if (Number.isFinite(tw)) accessories.setTurbanWraps(tw)
     // ?hatBand= & ?bandTrim= & ?bandColor= — the hat band designer
     const bandPatch: Partial<HatBandParams> = {}
     const hb = params.get('hatBand')

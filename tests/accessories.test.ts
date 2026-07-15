@@ -29,7 +29,7 @@ function baseBody(): Capsule[] {
 
 describe('accessories — body attach anchors', () => {
   it('exposes the accessory set incl. headwear & neckwear', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'necklace', 'hoops'])
+    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops'])
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
@@ -160,6 +160,31 @@ describe('accessories — sunglasses coexist with headwear', () => {
     const glasses = new THREE.Box3().setFromObject(acc.group.getObjectByName('sunglasses')!)
     const cap = new THREE.Box3().setFromObject(acc.group.getObjectByName('cap')!)
     expect(cap.max.y).toBeGreaterThan(glasses.max.y) // the cap crowns above the shades
+  })
+})
+
+describe('accessories — turban wrap count', () => {
+  it('wraps the head with the chosen number of bands, re-wrapping in place', () => {
+    const acc = new Accessories()
+    acc.setEnabled('turban', true)
+    const holder = (): THREE.Group => acc.group.getObjectByName('turban')!.getObjectByName('wrap-holder') as THREE.Group
+    expect(acc.getTurbanWraps()).toBe(4) // default
+    expect(holder().children.length).toBe(4) // one mesh per wrap
+    acc.setTurbanWraps(7)
+    expect(acc.getTurbanWraps()).toBe(7)
+    expect(holder().children.length).toBe(7) // more wraps → more bands
+    acc.setTurbanWraps(1) // clamped to the 2–8 range
+    expect(acc.getTurbanWraps()).toBe(2)
+  })
+
+  it('the wrapped turban sits up on the head', () => {
+    const acc = new Accessories()
+    acc.setEnabled('turban', true)
+    acc.update(baseBody())
+    acc.group.updateMatrixWorld(true)
+    const box = new THREE.Box3().setFromObject(acc.group.getObjectByName('turban')!)
+    expect(box.max.y).toBeGreaterThan(1.6) // up over the crown
+    expect(box.min.y).toBeGreaterThan(1.4) // not down at the shoulders
   })
 })
 
