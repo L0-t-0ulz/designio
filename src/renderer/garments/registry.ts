@@ -459,9 +459,9 @@ export const GARMENTS: GarmentDefinition[] = [
     name: 'Snood',
     category: 'outerwear',
     icon: 'top',
-    // a knit tube around the neck that drapes onto the shoulders (a cowl)
-    pieces: [{ kind: 'headTube', anchor: 'neck', dropHi: 0.14, dropLo: 0.34, topScale: 1.6, botScale: 2.8 }],
-    supports: { length: true, ease: true, flare: true },
+    // a knit tube around the neck that drapes onto the shoulders (a cowl); pulls up into a hood
+    pieces: [{ kind: 'headTube', anchor: 'neck', dropHi: 0.14, dropLo: 0.34, topScale: 1.6, botScale: 2.8, hood: true }],
+    supports: { length: true, ease: true, flare: true, snoodWorn: true },
     defaults: { length: 0.55, ease: 0.02, flare: 0.03 },
     defaultFabric: 'cable-knit'
   },

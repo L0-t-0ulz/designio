@@ -136,6 +136,27 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
     ]
     return spec
   }
+  if (pc.hood && p.snoodWorn === 'hood') {
+    // the cowl pulled UP over the crown → a loose hood: full-head coverage with a big
+    // FACE OPENING at the front (an open-face cut-out) draping down to the shoulders.
+    // Reuses the proven open-face-balaclava machinery — a gathered-ish crown so the
+    // head is covered (not a donut hole), a belly at face height, then a flare onto
+    // the shoulders; every ring spawns ON the skull dome (never inside).
+    const rise = 0.03
+    spec.topY = m.crownY + rise
+    spec.bottomY = Math.max(m.chestY - 0.02, m.neckY - 0.1) // drapes onto the shoulders/upper back
+    spec.radiusTop = m.headR * 0.66 + p.ease // gathered over the crown — covered, no crown hole
+    spec.radiusBottom = m.neckR * 2.3 + p.ease + p.flare // flares onto the shoulders (a hood collar)
+    spec.radiusStops = [
+      { t: 0.3, r: m.headR * 1.16 + p.ease }, // belly over the face/head
+      { t: 0.58, r: m.neckR * 1.5 + p.ease } // nip toward the neck before the shoulder flare
+    ]
+    spec.dome = { cy: spec.topY - m.headR, r: m.headR * 1.12 + p.ease }
+    spec.radiusWaist = undefined
+    const cuts = balaclavaCutouts('open-face', spec.topY, spec.bottomY, m)
+    if (cuts.length) spec.cutouts = cuts
+    return spec
+  }
   const face = pc.face && (p.faceStyle ?? pc.face)
   if (face && (p.balaclavaWorn === 'rolled' || p.convertibleWorn === 'beanie')) {
     // the convertible fold: worn ROLLED UP as a beanie — the face/neck half is

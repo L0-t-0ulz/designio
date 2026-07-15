@@ -50,6 +50,8 @@ export interface ConstructionCaps {
   scarfPin?: boolean
   /** Gaiter worn toggle — bunched at the neck vs pulled over the nose. */
   gaiterWorn?: boolean
+  /** Cowl-to-hood worn toggle — around the neck vs pulled up over the crown. */
+  snoodWorn?: boolean
   /** The convertible three-way picker (beanie · balaclava · gaiter). */
   convertible?: boolean
   length?: boolean
@@ -144,7 +146,13 @@ export interface HeadTubePiece {
   face?: BalaclavaFace
   /** A neck gaiter / buff — `gaiterWorn: 'up'` pulls it over the nose. */
   gaiter?: boolean
+  /** A cowl/snood that can pull **up over the crown** into a hood — `snoodWorn: 'hood'`. */
+  hood?: boolean
 }
+
+/** How a cowl-to-hood is worn — around the neck (default) or pulled up over the crown. */
+export type SnoodWorn = 'cowl' | 'hood'
+export const SNOOD_WORN: SnoodWorn[] = ['cowl', 'hood']
 
 /** The convertible tube's three worn states. */
 export type ConvertibleWorn = 'balaclava' | 'beanie' | 'gaiter'

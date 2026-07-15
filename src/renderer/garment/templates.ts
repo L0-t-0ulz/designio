@@ -63,6 +63,8 @@ export interface GarmentParams {
   pinAt?: number
   /** Gaiter worn state — bunched at the neck (default) or pulled up over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
+  /** Cowl-to-hood worn state — around the neck (default) or pulled up over the crown. */
+  snoodWorn?: import('../garments/schema').SnoodWorn
   /** Beanie cuff height, 0 (skull-cap edge) … 1 (deep double roll). */
   cuffHeight?: number
   /** Beanie slouch depth, 0 (fitted crown) … 1 (full slouch). */
