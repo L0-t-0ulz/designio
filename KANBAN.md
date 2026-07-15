@@ -260,13 +260,13 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Flat cap / newsboy** — a panelled crown + a short stiff front brim
 
 **Scarves & neckwear**
-- [ ] **Rectangular scarf** — length / width params + fringe ends
+- [x] **Rectangular scarf** — length / width params + fringe ends — already shipped: the cloth-sim `scarf` is a rectangular panel with a **width** multiplier (`scarfWidth` — the dimension designer), **length** driving the tails, and `?fringe=1` hanging real verlet strands off the tail ends _(drift check-off)_
 - [ ] **Infinity / loop scarf** — a closed loop, worn single or doubled
 - [ ] **Blanket scarf** — an oversized square with a plaid check + fringe
 - [ ] **Silk neck scarf** — a small square knotted at the neck (knot styles)
 - [ ] **Snood / cowl** — a wide knit tube around the neck
 - [x] **Neck gaiter / buff** — a thin stretch tube (pull up over the nose): the `gaiter` catalog garment (neck-anchored headTube, stretch jersey, `HeadTubePiece.gaiter`) — worn states above — PR #316
-- [ ] **Scarf drape styles** — once-around · wrapped · draped-tails · Parisian knot
+- [x] **Scarf drape styles** — once-around · wrapped · draped-tails · Parisian knot — already shipped: `scarfCentre` gives the default ~234° once-around wrap with draped front tails, plus `knotCentre` (Parisian knot), `doubleCentre` (double wrap) + the blanket shoulder-drape — several distinct worn-states on one strip _(drift check-off)_
 - [ ] **Fringe & tassels** — a configurable knotted fringe / tassel trim on scarf ends
 
 **Head scarves & wraps**
@@ -278,7 +278,7 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [ ] **Head-wrap print** — a repeating scarf print / pattern mapped onto the wrap
 
 **Materials & finish**
-- [ ] **Knit-yarn material** — a wool / acrylic matte knit with rib / cable normal + sheen (reuse `FabricMaterial`)
+- [x] **Knit-yarn material** — a wool / acrylic matte knit with rib / cable normal + sheen (reuse `FabricMaterial`) — already shipped: the fabric library carries **cable-knit · rib-knit · jersey-knit · french-terry** (soft-knit family with knit weave normals + per-family cloth sheen), on top of the knit-chart designer (stockinette/rib/cable) that bakes real knit relief _(drift check-off)_
 - [ ] **Faux-fur trim** — pom-poms, trapper flaps, brim fur (reuse the `fur` finish)
 - [ ] **Felt / wool-melton** — a dense matte felt with a subtle nap for structured hats
 - [ ] **Silk / satin** — a drapey lustrous finish for neck scarves
