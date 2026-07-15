@@ -45,6 +45,10 @@ export function createFabricMaterial(fabric: Fabric): THREE.MeshPhysicalMaterial
 export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): void {
   mat.color.set(fabric.color)
   mat.metalness = fabric.metalness ?? 0 // lamé / foil / sequin-base cloth reads as metal
+  // Clearcoat lacquer — patent / coated / wet-look cloth gets a glossy top layer; 0 for
+  // everything else is three's default, so no other fabric changes a pixel.
+  mat.clearcoat = fabric.clearcoat ?? 0
+  mat.clearcoatRoughness = fabric.clearcoat ? 0.12 : 0
   // perforated cloth (athletic mesh) — real see-through holes, per material so a
   // mesh *part* (sleeves/back panel) cuts out while the rest of the garment stays solid
   mat.alphaMap = fabric.perforated ? makePerfAlphaMap() : null
