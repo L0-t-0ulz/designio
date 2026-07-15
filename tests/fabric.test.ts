@@ -165,6 +165,28 @@ describe('weave texture math', () => {
     expect(hi - lo).toBeGreaterThan(0.6) // strong relief — not a flat, washed-out grid
   })
 
+  it('leather is a smooth low-relief grain, not a woven crosshatch', () => {
+    const threads = 16
+    let hi = -Infinity
+    let lo = Infinity
+    for (let i = 0; i < 96; i++) {
+      const u = (i + 0.5) / 96
+      for (let j = 0; j < 96; j++) {
+        const h = weaveHeight('leather', u, (j + 0.5) / 96, threads)
+        expect(h).toBeGreaterThanOrEqual(0)
+        expect(h).toBeLessThanOrEqual(1)
+        if (h > hi) hi = h
+        if (h < lo) lo = h
+      }
+    }
+    // A plain woven crosshatch spans ~0→1; leather grain stays shallow (mostly flat hide).
+    expect(hi - lo).toBeLessThan(0.55)
+    // and it tiles seamlessly (the coarse undulation uses integer tile frequencies)
+    for (const v of [0.2, 0.6]) {
+      expect(weaveHeight('leather', 0.999, v, threads)).toBeCloseTo(weaveHeight('leather', 1.999, v, threads), 6)
+    }
+  })
+
   it('corduroy runs as continuous vertical cords (wales), not a diagonal twill', () => {
     const threads = 16
     // A cord's profile depends only on the across-wale coordinate; it runs unbroken up

@@ -228,10 +228,10 @@ wool coat sits visibly thicker than a light poplin.
 | --- | --- |
 | ![A velvet dress](docs/fabrics-start.png) | ![Macro close-up of satin — procedural weave normal map + sheen + anisotropic highlights](docs/closeup.png) |
 
-Every weave has its own procedural micro-surface — smooth satin floats, vertical corduroy cords, a chunky waffle-knit thermal honeycomb, and a soft fuzzy fleece pile:
+Every weave has its own procedural micro-surface — smooth satin floats, vertical corduroy cords, a chunky waffle-knit thermal honeycomb, a soft fuzzy fleece pile, and smooth grained leather (not a woven cross):
 
-| ![A waffle-knit top — the chunky thermal-honeycomb weave relief](docs/waffle-knit.png) | ![A fleece top — a soft, matte, fuzzy napped-knit pile](docs/fleece.png) |
-| --- | --- |
+| ![A waffle-knit top — the chunky thermal-honeycomb weave relief](docs/waffle-knit.png) | ![A fleece top — a soft, matte, fuzzy napped-knit pile](docs/fleece.png) | ![A leather top — smooth supple hide with a subtle pebbled grain](docs/leather.png) |
+| --- | --- | --- |
 
 Live-inspect any fabric (GSM, stretch, drape, grip, roughness, sheen, weave density/depth, anisotropy,
 sheerness), and macro-zoom to see the woven micro-surface. Pick a colour and DesignIO snaps it to the

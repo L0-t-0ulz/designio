@@ -24,6 +24,7 @@ const shots = [
   ['docs/closeup.png', 6000, 'garment=top&fabric=satin&closeup=1&start=0'],
   ['docs/waffle-knit.png', 4500, 'garment=top&fabric=waffle-knit&closeup=1&start=0'],
   ['docs/fleece.png', 4500, 'garment=top&fabric=fleece&closeup=1&start=0'],
+  ['docs/leather.png', 4500, 'garment=top&fabric=leather&closeup=1&start=0'],
   ['docs/pattern.png', 6000, 'mode=pattern&fabric=cotton-poplin&start=0'],
   ['docs/pattern-2d.png', 4000, 'garment=dress&fabric=satin&start=0&view=pattern'],
   ['docs/pattern-trouser.png', 4500, 'garment=wide-leg&fabric=denim&view=pattern&start=0'],
