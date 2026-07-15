@@ -57,6 +57,7 @@ export interface MenuActions {
   onShortcuts: () => void
   onTour: () => void
   onGlossary: () => void
+  onLessons: () => void
   onAbout: () => void
 }
 
@@ -218,6 +219,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Take the tour', run: a.onTour },
     { label: 'Keyboard shortcuts (?)', run: a.onShortcuts },
     { label: 'Term glossary', run: a.onGlossary },
+    { label: 'Pattern-making lessons', run: a.onLessons },
     { sep: true },
     { label: 'About DesignIO', run: a.onAbout }
   ])
