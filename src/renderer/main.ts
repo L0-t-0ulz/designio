@@ -90,7 +90,8 @@ import { pomTable } from './export/pom'
 import { bodyToMeasurements } from './avatar/measure'
 import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
-import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims } from './export/cost'
+import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost } from './export/cost'
+import { shopifyCsv, type ListingInput } from './export/listing'
 import { circularScore, fibreGroup, garmentFootprint, longevityCare, materialPassport } from './export/sustainability'
 import { supplierFor } from './export/suppliers'
 import { factoryPackJSON } from './export/factoryPack'
@@ -1337,6 +1338,20 @@ function initStudio(
       case 'factory-json':
         await saveFile('factory-pack.json', factoryPackJSON(manufactureBundle()), [{ name: 'JSON', extensions: ['json'] }])
         break
+      case 'listing': {
+        // e-commerce listing — a Shopify product CSV (one row per colour×size variant)
+        const l = stack.active
+        const def = getGarment(l.data.garmentType)
+        const metrics = activeMetrics(l)
+        const cost = costRollup({ fabricM: metrics.fabricM2 / 1.4, pricePerM: estimatedFabricPrice(l.fabric), threadM: threadMetres(metrics.seamCm), labourMin: estimateLabourMinutes(metrics.seamCm), labourRate: 15 })
+        const cw = stack.colorways()
+        const colours = (cw.length ? cw.map((c) => c.color) : [l.data.color]).map((hex) => ({ label: colorRefLabel(hex).replace(/^TR-\d+\s*/, '') || 'Colour', hex: '#' + hex.toString(16).padStart(6, '0') }))
+        const label = careLabel(l.fabric)
+        const inp: ListingInput = { name: projectName !== 'Untitled' ? projectName : def.name, fabricName: l.fabric.name, fibre: label.fibre, colours, sizes: [...SIZES], priceUsd: priceFromCost({ cost: cost.total }).retail, careLines: label.care }
+        await saveFile('shopify-listing.csv', new TextEncoder().encode(shopifyCsv(inp)), [{ name: 'CSV', extensions: ['csv'] }])
+        statusHandles?.setSelection(`Listing CSV — ${inp.colours.length}×${inp.sizes.length} variants`)
+        break
+      }
       case 'size-set': {
         // the graded run: regenerate the flat pattern at every size through gradeParams
         const l = stack.active
