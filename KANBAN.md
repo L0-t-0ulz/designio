@@ -829,7 +829,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Pattern-making lessons** — overlaid teaching on the real tool
 - [ ] **Template marketplace** — buy/sell blocks + finished designs
 - [ ] **Community challenges** — themed prompts + a featured gallery
-- [ ] **In-app term glossary** — hover any construction term for a definition
+- [x] **In-app term glossary** — a curated dictionary of the garment / fabric / construction / pattern / production words the studio uses (40 terms across 5 categories) so a designer new to the trade can look one up in-app. Pure `searchGlossary` (matches term **or** definition, case-insensitive) + `glossaryByCategory` (grouped, empty groups dropped) are unit-tested; a searchable, category-grouped modal (`ui/glossaryOverlay`, reusing the shortcuts-overlay styling) opens from **Help → Term glossary** or `?glossary=1`. Unit-tested (well-formed · no dup terms · search over term+def · grouping) + visually confirmed the modal — PR #TBD
 
 **Platform & infrastructure**
 - [ ] **Plugin API** — third-party fabrics, tools, and exporters
