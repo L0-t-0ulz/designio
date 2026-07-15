@@ -9,6 +9,7 @@ import { paintColourwork, type ColourworkChart } from '../fabric/colourwork'
 import { paintOmbre, type OmbreDirection } from '../fabric/ombre'
 import { paintTartan, type TartanKind } from '../fabric/tartan'
 import { paintWear, type WearKind } from '../fabric/wear'
+import { paintDuotone, type DuotoneKind } from '../fabric/duotone'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
@@ -121,6 +122,8 @@ export interface DesignConfig {
   ombre?: OmbreDirection
   /** A distressed / washed / faded wear finish bleached into the albedo. */
   wear?: WearKind
+  /** A duotone two-tone remap of the fabric/pattern (behind the prints). */
+  duotone?: DuotoneKind
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
   sparkle?: SparkleKind
   /** Iridescent finish — soap-bubble / holographic / oil-slick colour shift. */
@@ -247,13 +250,15 @@ export interface DesignArtInput {
   colourwork?: ColourworkChart
   ombre?: OmbreDirection
   wear?: WearKind
+  /** Duotone two-tone remap of the fabric/pattern, behind the prints. */
+  duotone?: DuotoneKind
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 
-/** Whether the design needs an albedo map — a print, a textile, a tartan, an ombré, or a wear finish. */
-export function hasArt(c: { prints: Print[]; textile?: TextilePattern; tartan?: TartanKind; colourwork?: ColourworkChart; ombre?: OmbreDirection; wear?: WearKind }): boolean {
-  return !!c.textile || !!c.tartan || !!c.colourwork || !!c.ombre || !!c.wear || c.prints.some(printHasContent)
+/** Whether the design needs an albedo map — a print, a textile, a tartan, an ombré, a wear, or a duotone finish. */
+export function hasArt(c: { prints: Print[]; textile?: TextilePattern; tartan?: TartanKind; colourwork?: ColourworkChart; ombre?: OmbreDirection; wear?: WearKind; duotone?: DuotoneKind }): boolean {
+  return !!c.textile || !!c.tartan || !!c.colourwork || !!c.ombre || !!c.wear || !!c.duotone || c.prints.some(printHasContent)
 }
 
 /** Whether any placed motif is raised (embroidery / appliqué) → needs the bump map. */
@@ -380,6 +385,7 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
     if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color, 10, inp.textileScale ?? 1, inp.textileRotation ?? 0) // tiling pattern behind the prints
     if (inp.tartan) paintTartan(ctx, size, inp.tartan) // a real tartan sett (its own palette) behind the prints
     if (inp.colourwork) paintColourwork(ctx, size, inp.colourwork) // knit colourwork over the ground, behind the prints
+    if (inp.duotone) paintDuotone(ctx, size, inp.duotone) // two-tone the fabric/pattern (behind the prints, which stay full-colour)
     for (const p of inp.prints) {
       if (!printHasContent(p)) continue
       placeMotif(ctx, p, () => paintAlbedoMotif(ctx, p, size))

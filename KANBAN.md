@@ -792,7 +792,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **In-app vector print editor** — draw shapes/paths, not just import a file
 - [ ] **Repeat-pattern engine** — half-drop · brick · mirror tiling of a custom motif
 - [ ] **Print warp-to-seamline** — a placement print that wraps cleanly across seams
-- [ ] **Gradient-mesh + duotone** print effects
+- [x] **Duotone** print effect — a two-tone remap of the fabric/pattern onto a shadow→highlight ramp (the classic duotone / risograph look): pure `duotonePalette` (5 presets — noir · sepia · cyanotype · acid · blush), `duotoneMap` (luminance→ramp) + Rec-709 `luminance`; `paintDuotone` bakes it into the albedo **behind the prints** (so logos stay full-colour) in `buildDesignArt`, after the textile/tartan/colourwork ground. `?duotone=<kind>`; persisted on the layer + colorway; counts toward `hasArt`. Unit-tested (ramp endpoints/clamp · monotonic · every preset dark<light · Rec-709 · colorway/`.dio` round-trip) + visually confirmed a camo dress remapped to a cyanotype blueprint — PR #TBD _(the gradient-mesh half is a follow-up)_
 - [ ] **Puff / discharge / foil** print simulation (raised + specialty inks)
 - [ ] **Layered print with registration** — knockout layers + a registration preview
 
