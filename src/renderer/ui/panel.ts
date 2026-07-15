@@ -1209,6 +1209,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     boonie: 'Boonie hat',
     bakerboy: 'Baker boy',
     goggles: 'Ski goggles',
+    sunglasses: 'Sunglasses',
     necklace: 'Necklace',
     hoops: 'Hoop earrings'
   }
