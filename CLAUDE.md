@@ -435,7 +435,7 @@ selector do the same interactively) · `?body=mesh|glb` (GLB realistic avatar is
 `?arranged=demo` (**sewing lines & arrangement** — the four-panel colour-block bodice: panels placed at arrangement points, side seams eased) ·
 `?styleLines=demo` (**style lines** — the bodice front split by a princess curve, colour-blocked + re-sewn) ·
 `?internalShapes=demo` (**internal shapes & notches** — waist darts stitched closed (real take-up) + a keyhole back cut-out) ·
-`?seamType=<plain|french|flat-fell|overlock>&spi=<4..22>&needle=<single|double>&threadWt=<tex-27|tex-40|tex-60>` (**seam & topstitch spec** — SPI dash pitch + twin double-needle rows read on the garment; the spec lands in the tech pack) ·
+`?seamType=<plain|french|flat-fell|overlock|bonded>&spi=<4..22>&needle=<single|double>&threadWt=<tex-27|tex-40|tex-60>` (**seam & topstitch spec** — SPI dash pitch + twin double-needle rows read on the garment; **bonded** = a welded/heat-sealed seam that uses **no needle thread** (waterproof + technical wear); the spec lands in the tech pack) ·
 `?gsm=<40..800>&thickMm=<0.05..4>&bend=<0.8..120>&stretchWarp=<0..60>&stretchWeft=<0..60>&shear=<0..60>` (**physical fabric override** — real units driving the solver; unset fields seed from the fabric preset) ·
 `?drapeTest=1` (**virtual drape test** — run the drape bench for the active fabric; drape coefficient % + bending length as a toast/console line) ·
 `?layers=<id>,<id>` (layer extra garments) · `?collar/cuff/pleats/dart/pocket/hem/closure=1` (construction detail; `closure` = front placket/zip) ·

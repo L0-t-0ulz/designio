@@ -37,8 +37,11 @@ describe('thread estimate', () => {
     const plain = threadMetresFor(300, { ...base, seamType: 'plain' })
     const french = threadMetresFor(300, { ...base, seamType: 'french' })
     const overlock = threadMetresFor(300, { ...base, seamType: 'overlock' })
+    const bonded = threadMetresFor(300, { ...base, seamType: 'bonded' })
     expect(french).toBeGreaterThan(plain)
     expect(overlock).toBeGreaterThan(french)
+    // a bonded/heat-sealed seam is welded — it needs no sewing thread at all
+    expect(bonded).toBe(0)
     // plain lockstitch at 10 SPI = the classic ~2.5× seam length
     expect(plain).toBeCloseTo(3 * 2.5, 5)
   })
@@ -53,10 +56,13 @@ describe('library data', () => {
   it('every seam type carries allowance, factor, rows and a note', () => {
     for (const spec of Object.values(SEAM_TYPES)) {
       expect(spec.allowanceMm).toBeGreaterThanOrEqual(8)
-      expect(spec.threadFactor).toBeGreaterThan(1)
+      expect(spec.threadFactor).toBeGreaterThanOrEqual(0)
       expect([0, 1, 2]).toContain(spec.visibleRows)
       expect(spec.note.length).toBeGreaterThan(0)
     }
+    // every thread-sewn seam consumes thread; only a welded/bonded seam doesn't
+    for (const [k, spec] of Object.entries(SEAM_TYPES))
+      if (k !== 'bonded') expect(spec.threadFactor).toBeGreaterThan(1)
     // enclosed/folded seams need more allowance than plain
     expect(SEAM_TYPES.french.allowanceMm).toBeGreaterThan(SEAM_TYPES.plain.allowanceMm)
     expect(SEAM_TYPES['flat-fell'].allowanceMm).toBeGreaterThan(SEAM_TYPES.plain.allowanceMm)
