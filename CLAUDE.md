@@ -425,7 +425,7 @@ count/ply/twist adjust the fabric's hand: drape + surface together) · `?sparkle
 `?lace=<chantilly|geometric|fishnet>` (a sheer alpha-cutout lace finish) ·
 `?fur=<shearling|faux-fur|fleece>` (a fuzzy pile finish) · `?prints=demo`
 (two body prints) · `?prints=parts` (a print on the body + sleeves + legs — each print sits on its own
-piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·
+piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) · `?prints=enamel-pin` (the **enamel pin / patch designer** — a hard raised badge: a gold metal rim, glossy enamel fill in the print colour, an inlaid motif + a gloss highlight; opaque like appliqué; also a Finish option in the print editor) ·
 `?prints=blend` (**print opacity + blend** — a translucent 50 %-opacity print + a `multiply`-blend print
 that tints into the weave; each `Print` carries `opacity` (0…1) + `blend` (normal · multiply · screen),
 applied in `paintAlbedoMotif` via the pure `resolvePrintPaint`; appliqué patches stay opaque) ·

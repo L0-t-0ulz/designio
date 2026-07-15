@@ -105,6 +105,11 @@ describe('placed prints (multiple logos + text)', () => {
     expect(printIsRaised({ ...newTextPrint('X'), style: 'foil' })).toBe(false) // flat transfer
   })
 
+  it('the enamel pin is a raised, opaque physical badge', () => {
+    expect(PRINT_STYLES).toContain('enamel-pin')
+    expect(printIsRaised({ ...newTextPrint('X'), style: 'enamel-pin' })).toBe(true) // a hard raised disc
+  })
+
   it('foilTone lifts a print colour toward a bright metallic sheen', () => {
     const lum = (c: number): number => 0.2126 * ((c >> 16) & 255) + 0.7152 * ((c >> 8) & 255) + 0.0722 * (c & 255)
     for (const base of [0xd4af37, 0x8a1538, 0x0d2b1a, 0x101014]) {

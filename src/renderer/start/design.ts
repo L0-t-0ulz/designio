@@ -146,8 +146,8 @@ export type PrintPart = 'body' | 'sleeves' | 'legs'
  * (bleaches the fabric to a pale tone where it prints), or a **foil** print (a
  * bright metallic transfer). The raised styles (embroidery · appliqué · puff) paint
  * a bump map so they catch the light. */
-export type PrintStyle = 'flat' | 'embroidery' | 'applique' | 'puff' | 'discharge' | 'foil'
-export const PRINT_STYLES: PrintStyle[] = ['flat', 'embroidery', 'applique', 'puff', 'discharge', 'foil']
+export type PrintStyle = 'flat' | 'embroidery' | 'applique' | 'puff' | 'discharge' | 'foil' | 'enamel-pin'
+export const PRINT_STYLES: PrintStyle[] = ['flat', 'embroidery', 'applique', 'puff', 'discharge', 'foil', 'enamel-pin']
 
 /** The bright metallic transfer tone for a foil print — the print's hue lifted toward
  *  a light metallic sheen. Pure so it's unit-tested. */
@@ -214,7 +214,7 @@ export function newTextPrint(text = ''): Print {
   return { id: newPrintId(), kind: 'text', image: null, text, color: 0x1a1a22, x: 0.25, y: 0.5, scale: 0.5, rotation: 0, part: 'body', style: 'flat' }
 }
 /** Whether a motif is raised (embroidery / appliqué) → contributes to the bump relief. */
-export const printIsRaised = (p: Print): boolean => p.style === 'embroidery' || p.style === 'applique' || p.style === 'puff'
+export const printIsRaised = (p: Print): boolean => p.style === 'embroidery' || p.style === 'applique' || p.style === 'puff' || p.style === 'enamel-pin'
 export const printHasContent = (p: Print): boolean => (p.kind === 'image' ? p.image != null : p.text.trim().length > 0)
 export function printToSpec(p: Print): PrintSpec {
   const { image: _drop, ...spec } = p
@@ -304,10 +304,31 @@ function shade(color: number, dl: number): string {
 function paintAlbedoMotif(ctx: CanvasRenderingContext2D, p: Print, size: number): void {
   // Opacity + blend onto the fabric (reset by the caller's save/restore). Appliqué is a
   // physical patch, so it stays opaque + normal — only flat/embroidered art blends.
-  if (p.style !== 'applique') {
+  // appliqué + enamel pin are physical objects on the cloth — always opaque + normal
+  if (p.style !== 'applique' && p.style !== 'enamel-pin') {
     const { alpha, composite } = resolvePrintPaint(p)
     ctx.globalAlpha = alpha
     ctx.globalCompositeOperation = composite
+  }
+  if (p.style === 'enamel-pin') {
+    // a hard enamel pin: a bright gold metal rim, glossy enamel fill in the print
+    // colour, the motif inlaid in white, and a soft specular gloss arc
+    const rad = p.scale * size * 0.55
+    ctx.fillStyle = '#e6c163' // polished gold rim
+    ctx.beginPath()
+    ctx.arc(0, 0, rad, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = hex(p.color) // enamel fill
+    ctx.beginPath()
+    ctx.arc(0, 0, rad * 0.82, 0, Math.PI * 2)
+    ctx.fill()
+    drawMotifShape(ctx, p, size, '#ffffff') // inlaid motif
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)' // gloss highlight arc, top-left
+    ctx.lineWidth = Math.max(1.5, rad * 0.06)
+    ctx.beginPath()
+    ctx.arc(0, 0, rad * 0.68, Math.PI * 1.02, Math.PI * 1.5)
+    ctx.stroke()
+    return
   }
   if (p.style === 'applique') {
     const { w, h, r } = appliqueBox(p, size)
@@ -368,6 +389,17 @@ function paintRaisedBump(b: CanvasRenderingContext2D, p: Print, size: number): v
     b.stroke()
     b.setLineDash([])
     drawMotifShape(b, p, size, '#ffffff') // the motif sits proud on the patch
+  } else if (p.style === 'enamel-pin') {
+    // a hard raised disc — the metal rim ridge highest, a domed enamel centre
+    const rad = s * 0.55
+    b.fillStyle = '#f2f2f2' // rim ridge (max height)
+    b.beginPath()
+    b.arc(0, 0, rad, 0, Math.PI * 2)
+    b.fill()
+    b.fillStyle = '#cfcfcf' // enamel dome, a touch lower than the rim
+    b.beginPath()
+    b.arc(0, 0, rad * 0.8, 0, Math.PI * 2)
+    b.fill()
   } else if (p.style === 'puff') {
     // puff print: a chunky, rounded high-loft — the motif full-white (max height) with a
     // soft blur so it domes like a rubber puff instead of reading as flat thread
