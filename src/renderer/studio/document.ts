@@ -89,6 +89,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     pinAt: l.pinAt,
     scarfKnot: l.scarfKnot,
     scarfDouble: l.scarfDouble,
+    scarfBlanket: l.scarfBlanket,
     gaiterWorn: l.gaiterWorn,
     collar: l.collar,
     collarStyle: l.collarStyle,
@@ -181,6 +182,8 @@ export interface GarmentLayerData {
   scarfKnot?: boolean
   /** Worn double-wrapped. */
   scarfDouble?: boolean
+  /** Worn as a blanket-scarf shoulder drape (ruana). */
+  scarfBlanket?: boolean
   /** Gaiter worn state — bunched at the neck or pulled over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Pom customizer (pom-pom beanie) — size scale · contrast colour · faux-fur pile. */
@@ -435,6 +438,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     pinAt: c.pinAt,
     scarfKnot: c.scarfKnot,
     scarfDouble: c.scarfDouble,
+    scarfBlanket: c.scarfBlanket,
     gaiterWorn: c.gaiterWorn,
     pomScale: c.pomScale,
     pomColor: c.pomColor,

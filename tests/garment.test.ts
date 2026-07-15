@@ -371,6 +371,16 @@ describe('scarf (flat draped panel)', () => {
     expect(both.double).toBeFalsy() // the knot takes over
     expect(both.knot).toBe(true)
   })
+
+  it('scarfBlanket makes an oversized draped panel; it wins over the knot/double wrap', () => {
+    const pc = { kind: 'scarfPanel', width: 0.16, wrapEase: 0.035, tailHi: 0.3, tailLo: 0.6 } as const
+    const plain = scarfToSpec(pc, DEFAULT_PARAMS, mann.measurements)
+    const blanket = scarfToSpec(pc, { ...DEFAULT_PARAMS, scarfBlanket: true }, mann.measurements)
+    expect(blanket.blanket).toBe(true)
+    expect(blanket.width).toBeGreaterThan(plain.width * 3) // an oversized hanging panel, not a band
+    // blanket takes over even if the knot/double are also set
+    expect(scarfToSpec(pc, { ...DEFAULT_PARAMS, scarfBlanket: true, scarfKnot: true, scarfDouble: true }, mann.measurements).blanket).toBe(true)
+  })
 })
 
 describe('pieceAnchor (pin routing)', () => {

@@ -209,12 +209,17 @@ export function balaclavaCutouts(face: BalaclavaFace, topY: number, bottomY: num
 export function scarfToSpec(pc: ScarfPiece, p: GarmentParams, m: Measurements): ScarfSpec {
   const wrapR = m.neckR + pc.wrapEase + p.ease
   const tailLen = pc.tailHi + (pc.tailLo - pc.tailHi) * p.length
-  const width = pc.width * Math.max(0.5, Math.min(1.8, p.scarfWidth ?? 1)) // the dimension designer's width
+  // the blanket-scarf shoulder drape is the dominant worn-state (fillScarf/buildScarf
+  // check `blanket` before knot/double), so it wins when several are set
+  const blanket = !!p.scarfBlanket
+  // blanket = an oversized panel that hangs DOWN from the shoulders (0.62…0.8 m); a
+  // normal scarf's width is its band height
+  const width = blanket ? (0.62 + 0.18 * p.length) * Math.max(0.5, Math.min(1.8, p.scarfWidth ?? 1)) : pc.width * Math.max(0.5, Math.min(1.8, p.scarfWidth ?? 1))
   const len = 1.3 * Math.PI * wrapR + 2 * tailLen // ≈ total centreline length (~234° wrap + tails)
-  const nx = Math.max(24, Math.min(120, Math.round((len / 0.02) * simScale)))
-  const ny = Math.max(4, Math.min(24, Math.round((width / 0.03) * simScale)))
+  const nx = blanket ? Math.max(40, Math.min(120, Math.round(64 * simScale))) : Math.max(24, Math.min(120, Math.round((len / 0.02) * simScale)))
+  const ny = Math.max(4, Math.min(28, Math.round((width / 0.03) * simScale)))
   // tails hang in front of the chest, clear of the torso capsule
-  return { nx, ny, neckY: m.neckY, wrapR, width, tailLen, tailZ: m.chestR + 0.04, knot: p.scarfKnot, double: p.scarfDouble && !p.scarfKnot }
+  return { nx, ny, neckY: m.neckY, wrapR, width, tailLen, tailZ: m.chestR + 0.04, knot: !blanket && p.scarfKnot, double: !blanket && p.scarfDouble && !p.scarfKnot, blanket }
 }
 
 /** The two trouser legs (hip → knee/ankle by length). */
