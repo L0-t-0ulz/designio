@@ -124,6 +124,27 @@ describe('weave texture math', () => {
     const h2 = weaveHeight('twill', 0.3, 0.3, 16)
     expect(h1).not.toBeCloseTo(h2, 3)
   })
+
+  it('satin is float-dominant with only a shallow binding dip (no hard dot grid)', () => {
+    // Satin gets its smooth luster from long high floats bound only occasionally; the
+    // binding point must dip only shallowly, or the baked normal map beads into a
+    // visible polka-dot grid at range. Scan a tile: floats stay high, and the
+    // float→binding contrast is modest (a gentle dimple, not a ~1.0 crater).
+    let hi = -Infinity
+    let lo = Infinity
+    const threads = 16
+    for (let i = 0; i < 64; i++) {
+      const u = (i + 0.5) / 64
+      for (let j = 0; j < 64; j++) {
+        const h = weaveHeight('satin', u, (j + 0.5) / 64, threads)
+        if (h > hi) hi = h
+        if (h < lo) lo = h
+      }
+    }
+    expect(hi).toBeGreaterThan(0.9) // the floats sit proud and near-flat
+    expect(lo).toBeGreaterThan(0.6) // even the binding point stays well off the floor
+    expect(hi - lo).toBeLessThan(0.35) // shallow contrast → smooth, not a beaded dot grid
+  })
 })
 
 describe('weaveRoughness (procedural roughness map)', () => {
