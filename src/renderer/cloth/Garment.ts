@@ -525,6 +525,9 @@ export interface ScarfSpec {
   knot?: boolean
   /** The double wrap — the strip spirals TWICE around the neck (knot wins if both set). */
   double?: boolean
+  /** The blanket-scarf shoulder drape — an oversized square draped over both shoulders,
+   *  hanging down front + back like a ruana (overrides knot/double). */
+  blanket?: boolean
 }
 
 // The wrap (collar) occupies the middle of the length; the two ends are the front tails.
@@ -641,6 +644,33 @@ export function doubleCentre(u: number, s: ScarfSpec, out: THREE.Vector3): THREE
   return out.set(tipX + (ex - tipX) * s01, ey - tailDrop + tailDrop * s01, s.tailZ + (ez - s.tailZ) * s01)
 }
 
+// ---- the blanket-scarf shoulder drape — an oversized square worn as a ruana ----
+// The strip's LENGTH is a "rail" arcing over both shoulders (front-left → over the
+// left shoulder → behind the neck → over the right shoulder → front-right); its
+// WIDTH then hangs straight DOWN from the rail, so the big panel drapes over the
+// shoulders and falls front + back. The rail's shoulder span is what gets pinned.
+/** The blanket rail (the top edge resting on the shoulders) at length param `u` ∈ [0,1]. Pure. */
+export function blanketCentre(u: number, s: ScarfSpec, out: THREE.Vector3): THREE.Vector3 {
+  const sx = s.wrapR * 3.2 // shoulder half-span (the rail reaches well past the shoulders — an oversized square)
+  const shoulderY = s.neckY - 0.01
+  const P: [number, number, number][] = [
+    [-sx, s.neckY - 0.04, s.tailZ], // front-left top (wide, out over the shoulder)
+    [-sx * 0.92, shoulderY, 0], // over the left shoulder
+    [0, s.neckY + 0.03, -s.wrapR * 1.2], // behind the neck
+    [sx * 0.92, shoulderY, 0], // over the right shoulder
+    [sx, s.neckY - 0.04, s.tailZ] // front-right top
+  ]
+  const seg = Math.min(3, Math.max(0, Math.floor(u * 4)))
+  const k = u * 4 - seg
+  const a = P[seg]
+  const b = P[seg + 1]
+  return out.set(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k)
+}
+// The rail's shoulder-to-shoulder span that rests on the body (pinned); the front
+// tips (outside this) hang free.
+const BLANKET_PIN_A = 0.18
+const BLANKET_PIN_B = 0.82
+
 const _sp = new THREE.Vector3()
 const _sw = new THREE.Vector3()
 
@@ -648,6 +678,19 @@ const _sw = new THREE.Vector3()
 export function fillScarf(positions: Float32Array, s: ScarfSpec): void {
   for (let ix = 0; ix < s.nx; ix++) {
     const u = s.nx > 1 ? ix / (s.nx - 1) : 0.5
+    if (s.blanket) {
+      // the rail arcs over the shoulders; the width hangs straight DOWN from it
+      // (row 0 = the rail, the last row = the hem), so the big panel drapes as a ruana
+      blanketCentre(u, s, _sp)
+      for (let iy = 0; iy < s.ny; iy++) {
+        const drop = (s.ny > 1 ? iy / (s.ny - 1) : 0) * s.width
+        const k = (iy * s.nx + ix) * 3
+        positions[k] = _sp.x
+        positions[k + 1] = _sp.y - drop
+        positions[k + 2] = _sp.z
+      }
+      continue
+    }
     if (s.knot) {
       knotCentre(u, s, _sp)
       // the hanging sections (the bight U AND the tails) lie flat like ribbons;
@@ -711,6 +754,17 @@ export function buildScarf(s: ScarfSpec): TubeBuild {
   // the neck while the front crossings + tails drape on the repulsion.
   const pinned: number[] = []
   const _pc = new THREE.Vector3()
+  if (s.blanket) {
+    // pin the whole RAIL (top edge) so the panel hangs symmetrically from the
+    // shoulders/back (a free-hanging corner would fold asymmetrically); the second
+    // row is pinned only across the shoulder span so the front panels can still swing
+    for (let ix = 0; ix < s.nx; ix++) {
+      const u = s.nx > 1 ? ix / (s.nx - 1) : 0.5
+      pinned.push(ix) // row 0 — the full top edge
+      if (s.ny > 1 && u >= BLANKET_PIN_A && u <= BLANKET_PIN_B) pinned.push(s.nx + ix)
+    }
+    return finishPanel(positions, s.nx, s.ny, pinned)
+  }
   for (let ix = 0; ix < s.nx; ix++) {
     const u = s.nx > 1 ? ix / (s.nx - 1) : 0.5
     const t = Math.abs(u - 0.5) / 0.5
