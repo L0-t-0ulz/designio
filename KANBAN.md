@@ -120,6 +120,13 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [x] **Cleaner fit on the body** — cloth rests further off the surface (less body poke-through), decor (collar/lapel/buttons/hood) sits proud, short sleeves are true mid-bicep caps (less flare) — PR #84
 - [x] **Static at default** — garments freeze to rest until you change something — PR #47
 
+**Rendering & fabric quality (2026-07-15 — a fabric/garment rendering audit)**
+- [x] **Satin reads smooth, not beaded** — the satin weave's deep every-5th-cell binding dip baked a polka-dot grid across satin / charmeuse / velvet / lamé / sequin; made `weaveHeight('satin')` float-dominant + refreshed the 4 satin/silk README photos — PR #359
+- [x] **Corduroy has vertical cords** — corduroy was weave `'twill'` (a diagonal); added a dedicated `'corduroy'` vertical-wale weave (rounded pile-topped cords over deep valleys) — PR #360
+- [x] **Sewn-panel body friction** — `ClothWorld.solveBody` never damped tangential slide; now mirrors `XPBDSolver` (a grippy knit clings, satin slides) — PR #357
+- [x] **Seam-continuous textiles** — `textileValue` camo/plaid weren't periodic and showed a hard tile seam; integer-frequency camo + edge-straddling plaid band → tiles cleanly — PR #357
+- [ ] **Long-sleeve/shoulder jut (HIGH, diagnosed not fixed)** — the body-tube shoulder splays into a jut; root cause + fix location + golden-update path fully written up in the 🐞 Rendering bugs section — PR #362/#363/#364 (diagnosis)
+
 ---
 
 ## 🔄 In progress
