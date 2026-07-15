@@ -446,11 +446,18 @@ and notches**. It's derived from the exact 3D construction, so 2D and 3D always 
 
 ![The editable 2D flat pattern — size / length / width / hem tools drive the 3D](docs/pattern-2d.png)
 
+Every garment unwraps to its true pieces — tapered trouser legs, or a bodice with **darts**, a shaped
+sleeve, and separate collar / cuff / pocket pieces, all with grainlines and per-edge seam allowance:
+
+| ![A trouser flat pattern — tapered leg-front / leg-back panels with grainlines + seam allowance](docs/pattern-trouser.png) | ![A long-sleeve bodice flat pattern — front/back with darts, a shaped sleeve, and collar / cuff / pocket pieces](docs/pattern-detail.png) |
+| --- | --- |
+
 **2D and 3D are one design — edit either way.** The quick-edit toolbar floats over **both** views (size ·
 neckline · sleeve · length · width · hem), driving the same garment, so you can design entirely in 2D *or*
 3D and the other updates live. You can **import a flat pattern** (DXF, round-tripping the export) back into
-the 2D pane, or work in **Pattern (sew)** mode — adjust FRONT/BACK panels and *Sew & simulate* to wrap them
-onto the body.
+the 2D pane, or work in **Pattern (sew)** mode — adjust FRONT/BACK panels, **draw your own panel**, and
+*Sew & simulate* to wrap them onto the body. A deep **2D pattern-making roadmap** (300+ cards — drafting
+tools, dart engineering, grading, marker making, digitizing) is tracked in `KANBAN.md`.
 
 ---
 
