@@ -10,6 +10,8 @@ import { showToast } from './ui/toast'
 import { rafCoalesce } from './core/coalesce'
 import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOverlay'
 import { openGlossary } from './ui/glossaryOverlay'
+import { ReviewStore } from './studio/reviewPins'
+import { openReview } from './ui/reviewOverlay'
 import { openLessons } from './ui/lessonsOverlay'
 import { openChallenges } from './ui/challengesOverlay'
 import { openTemplates } from './ui/templatesOverlay'
@@ -158,6 +160,7 @@ const viewport = new Viewport(container)
 const env = setupEnvironment(viewport.scene, viewport.renderer)
 const mannequin = buildMannequin()
 viewport.scene.add(mannequin.group)
+const reviewStore = new ReviewStore()
 const accessories = new Accessories()
 viewport.scene.add(accessories.group)
 const faceRig = new FaceRig() // hair + face features, worn on the head
@@ -2054,6 +2057,7 @@ function initStudio(
     onShortcuts: toggleShortcuts,
     onTour: () => startTour(),
     onGlossary: openGlossary,
+    onReview: () => openReview(reviewStore),
     onLessons: openLessons,
     onChallenges: () => openChallenges((gid) => { garment.type = gid as GarmentType; Object.assign(garment, getGarment(gid).defaults); api.syncGarment(); applyGarmentEdit() }),
     onAbout: () =>
@@ -2581,6 +2585,7 @@ function initStudio(
   if (params.get('tour') === '1') window.setTimeout(() => startTour(), 500) // force the tour (verify/share)
   if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
+  if (params.get('review') === '1') window.setTimeout(() => openReview(reviewStore), 500) // open the design-review panel
   if (params.get('lessons') === '1') window.setTimeout(() => openLessons(), 500) // open pattern-making lessons
   if (params.get('challenges') === '1') window.setTimeout(() => openChallenges(), 500) // open community challenges
   if (params.get('templates') === '1') window.setTimeout(() => openTemplates(), 500) // open the template gallery

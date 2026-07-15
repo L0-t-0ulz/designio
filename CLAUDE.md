@@ -452,6 +452,7 @@ selector do the same interactively) · `?body=mesh|glb` (GLB realistic avatar is
 `?trim=1&trimColor=<hex>` · `?sleeveFabric=<id>` · `?legFabric=<id>` (per-part fabric) ·
 `?fringe=1` (**hem fringe** — REAL verlet strand chains (gravity + rope projection, pure `garment/Fringe.stepStrand`) hanging from the live hem: a skirt/dress bottom row, or a scarf's tail-end columns) ·
 `?backFabric=<id>` · `?legBackFabric=<id>` · `?sleeveBackFabric=<id>` (per-panel fabric — the body/leg/sleeve **back** panel) ·
+`?review=1` (**design comments & review pins** — a review panel of comments each with an author + open/resolved status + optional 3D point; `studio/reviewPins` store + `ui/reviewOverlay`, View → Design review…) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?stress=1` (fit-failure viz) ·
 `?pressure=1` (pressure / contact fit map — where the garment presses into the body) ·
 `?wrinkles=1` (strain-driven micro-wrinkles) · `?tearing=1` (**cloth tearing** — constraints rip past ~1.5× the fabric's stress-fail strain (`XPBDSolver.tearThreshold` + `onTear`), the mesh drops the bordering quads via the shared `tubeIndices` emitter) · `?wind=<still|breeze|gust|runway|storm>` (wind preset; **storm** = a turbulent noise *field* — `cloth/turbulence` per-particle swirl scaled by |wind|, so parts of the garment feel different air) ·
