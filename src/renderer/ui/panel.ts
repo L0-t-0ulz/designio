@@ -58,6 +58,7 @@ import type { PartId } from '../studio/GarmentStack'
 import type { GarmentMetrics } from '../export/garmentMetrics'
 import type { GirthRow } from '../export/drapeFit'
 import { TEXTILE_PATTERNS, type TextilePattern } from '../fabric/textile'
+import { TARTAN_KINDS, type TartanKind } from '../fabric/tartan'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from '../fabric/ombre'
 import { WEAR_KINDS, type WearKind } from '../fabric/wear'
 import { SPARKLE_KINDS, type SparkleKind } from '../fabric/sparkle'
@@ -276,6 +277,8 @@ export interface PanelOptions {
   prints?: PrintControls
   /** The repeating textile pattern tiled across the whole garment (optional). */
   textile?: { get: () => TextilePattern | undefined; set: (t: TextilePattern | undefined) => void }
+  /** A real tartan sett woven across the garment (optional). */
+  tartan?: { get: () => TartanKind | undefined; set: (t: TartanKind | undefined) => void }
   /** Open the real-scale repeat preview for the current textile. */
   onPreviewRepeat?: () => void
   /** A dip-dye / ombré gradient baked into the albedo (optional). */
@@ -1364,6 +1367,28 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     return wrap
   }
 
+  // A real tartan sett (thread-count stripes woven in 2/2 twill) across the garment.
+  const TARTAN_LABELS: Record<TartanKind, string> = {
+    'black-watch': 'Black Watch', 'royal-stewart': 'Royal Stewart', hunting: 'Hunting', 'dress-blue': 'Dress Blue', 'camel-check': 'Camel check', grey: 'Grey'
+  }
+  function tartanControls(t: NonNullable<PanelOptions['tartan']>): HTMLElement {
+    const wrap = el('div')
+    const row = el('div', 'dio-seg dio-seg-wrap')
+    const choices: [string, TartanKind | undefined][] = [['None', undefined], ...TARTAN_KINDS.map((k) => [TARTAN_LABELS[k], k] as [string, TartanKind])]
+    for (const [label, kind] of choices) {
+      const b = el('button', 'dio-seg-btn' + (t.get() === kind ? ' on' : ''), label)
+      b.setAttribute('type', 'button')
+      b.addEventListener('click', () => {
+        t.set(kind)
+        for (const n of Array.from(row.children)) n.classList.remove('on')
+        b.classList.add('on')
+      })
+      row.append(b)
+    }
+    wrap.append(el('div', 'dio-field-label', 'Tartan sett'), row)
+    return wrap
+  }
+
   // A dip-dye / ombré gradient baked into the albedo (base → a deeper dipped tone).
   const OMBRE_LABELS: Record<OmbreDirection, string> = { 'top-down': 'Top-down', 'bottom-up': 'Bottom-up', radial: 'Radial' }
   function ombreControls(o: NonNullable<PanelOptions['ombre']>): HTMLElement {
@@ -1933,6 +1958,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   look.body.append(physBlock)
 
   if (opts.textile) look.body.append(textileControls(opts.textile))
+  if (opts.tartan) look.body.append(tartanControls(opts.tartan))
   if (opts.ombre) look.body.append(ombreControls(opts.ombre))
   if (opts.wear) look.body.append(wearControls(opts.wear))
   if (opts.sparkle) look.body.append(sparkleControls(opts.sparkle))

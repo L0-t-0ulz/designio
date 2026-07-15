@@ -7,6 +7,7 @@ import type { SizeLabel, PartFabrics } from '../studio/document'
 import { paintTextile, type TextilePattern } from '../fabric/textile'
 import { paintColourwork, type ColourworkChart } from '../fabric/colourwork'
 import { paintOmbre, type OmbreDirection } from '../fabric/ombre'
+import { paintTartan, type TartanKind } from '../fabric/tartan'
 import { paintWear, type WearKind } from '../fabric/wear'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { IridescentKind } from '../fabric/iridescent'
@@ -105,6 +106,8 @@ export interface DesignConfig {
   prints: Print[]
   /** A repeating textile pattern tiled across the whole garment (behind prints). */
   textile?: TextilePattern
+  /** A real tartan sett (thread-count stripes, 2/2 twill) woven across the garment. */
+  tartan?: TartanKind
   /** A dip-dye / ombré gradient baked into the albedo (base → a deeper dipped tone). */
   ombre?: OmbreDirection
   /** A distressed / washed / faded wear finish bleached into the albedo. */
@@ -207,6 +210,7 @@ export interface DesignArtInput {
   color: number
   prints: Print[]
   textile?: TextilePattern
+  tartan?: TartanKind
   /** Knit colourwork — a tiling fair-isle jacquard or a placed intarsia block. */
   colourwork?: ColourworkChart
   ombre?: OmbreDirection
@@ -215,9 +219,9 @@ export interface DesignArtInput {
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
 
-/** Whether the design needs an albedo map — a print, a textile, an ombré, or a wear finish. */
-export function hasArt(c: { prints: Print[]; textile?: TextilePattern; colourwork?: ColourworkChart; ombre?: OmbreDirection; wear?: WearKind }): boolean {
-  return !!c.textile || !!c.colourwork || !!c.ombre || !!c.wear || c.prints.some(printHasContent)
+/** Whether the design needs an albedo map — a print, a textile, a tartan, an ombré, or a wear finish. */
+export function hasArt(c: { prints: Print[]; textile?: TextilePattern; tartan?: TartanKind; colourwork?: ColourworkChart; ombre?: OmbreDirection; wear?: WearKind }): boolean {
+  return !!c.textile || !!c.tartan || !!c.colourwork || !!c.ombre || !!c.wear || c.prints.some(printHasContent)
 }
 
 /** Whether any placed motif is raised (embroidery / appliqué) → needs the bump map. */
@@ -335,6 +339,7 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
     if (inp.ombre) paintOmbre(ctx, size, inp.color, inp.ombre) // dip-dye gradient over the flat base
     if (inp.wear) paintWear(ctx, size, inp.color, inp.wear) // distressed / washed / faded bleach
     if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color) // tiling pattern behind the prints
+    if (inp.tartan) paintTartan(ctx, size, inp.tartan) // a real tartan sett (its own palette) behind the prints
     if (inp.colourwork) paintColourwork(ctx, size, inp.colourwork) // knit colourwork over the ground, behind the prints
     for (const p of inp.prints) {
       if (!printHasContent(p)) continue

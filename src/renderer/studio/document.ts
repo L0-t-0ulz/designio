@@ -12,6 +12,7 @@ import type { AnimationMode, BodyType } from '../avatar/Mannequin'
 import { SKIN_TONES, UNDERTONES, type SkinTone, type Undertone } from '../avatar/skin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
 import type { TextilePattern } from '../fabric/textile'
+import type { TartanKind } from '../fabric/tartan'
 import type { OmbreDirection } from '../fabric/ombre'
 import type { WearKind } from '../fabric/wear'
 import type { SparkleKind } from '../fabric/sparkle'
@@ -259,6 +260,7 @@ export interface GarmentLayerData {
   /** Placed prints (logos + text); uploaded PNGs are runtime-only (image dropped on save). */
   prints?: PrintSpec[]
   textile?: TextilePattern
+  tartan?: TartanKind
   ombre?: OmbreDirection
   wear?: WearKind
   /** Sparkle finish — sequins / beading / metallic foil (eveningwear glints). */
@@ -294,6 +296,7 @@ export interface Colorway {
   trimFabricId?: string
   partFabrics?: PartFabrics
   textile?: TextilePattern
+  tartan?: TartanKind
   ombre?: OmbreDirection
   wear?: WearKind
   sparkle?: SparkleKind
@@ -333,6 +336,7 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     trimFabricId: l.trimFabricId,
     partFabrics: clonePartFabrics(l.partFabrics),
     textile: l.textile,
+    tartan: l.tartan,
     ombre: l.ombre,
     wear: l.wear,
     sparkle: l.sparkle,
@@ -356,6 +360,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.trimFabricId = cw.trimFabricId
   l.partFabrics = clonePartFabrics(cw.partFabrics)
   l.textile = cw.textile
+  l.tartan = cw.tartan
   l.ombre = cw.ombre
   l.wear = cw.wear
   l.sparkle = cw.sparkle
@@ -477,6 +482,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     color: c.color,
     prints: c.prints.map(printToSpec),
     textile: c.textile,
+    tartan: c.tartan,
     ombre: c.ombre,
     wear: c.wear,
     sparkle: c.sparkle,
@@ -533,6 +539,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     color: 0xc85a54,
     prints: [],
     textile: undefined,
+    tartan: undefined,
     ombre: undefined,
     wear: undefined,
     sparkle: undefined,
@@ -578,6 +585,7 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     partFabrics: clonePartFabrics(l.partFabrics),
     prints: l.prints ? l.prints.map((p) => ({ ...p })) : undefined,
     textile: l.textile,
+    tartan: l.tartan,
     ombre: l.ombre,
     wear: l.wear,
     sparkle: l.sparkle,

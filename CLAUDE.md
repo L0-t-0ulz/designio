@@ -153,7 +153,13 @@ Renderer modules:
   `?yarn=<preset>`; unit-tested), `dither` (**ordered/blue-noise dithering** — pure `bayerDither` 8×8 offset baked into smooth
   finish gradients so they don't 8-bit band; unit-tested), `textile` (repeating textile
   **patterns** — stripe/plaid/check/gingham/polka/camo; pure `textileValue` tonal field is unit-tested +
-  `paintTextile` tiles it across the albedo), `ombre` (**dip-dye / ombré gradient** — top-down · bottom-up ·
+  `paintTextile` tiles it across the albedo), `tartan` (**tartan sett designer** — a real sett
+  (thread-count coloured stripes) woven in **2/2 twill**: pure `expandSett` mirrors a *reflective* sett
+  about its two pivot threads into the symmetric repeat, `tartanColorAt` picks the warp/weft colour on the
+  twill diagonal so equal crossings read solid + unequal ones hatch half-and-half; 6 preset setts
+  (Black Watch · Royal Stewart · Hunting · Dress Blue · Camel check · Grey), `paintTartan` bakes it into
+  the design-art albedo behind the prints; a **Tartan sett** picker under Appearance; per-layer, `.dio` +
+  colorways; `?tartan=<preset>`; pure math unit-tested), `ombre` (**dip-dye / ombré gradient** — top-down · bottom-up ·
   radial; pure `ombreT` blend field + `ombreDip` derived tone are unit-tested; `paintOmbre` bakes the
   base→dipped-tone gradient **per-pixel through `ombreT` with `bayerDither`** — no gradient banding — into the
   albedo, behind any prints/textile), `wear` (**distressed / washed /
@@ -376,7 +382,8 @@ features — brows/eyes/lips) ·
 exports a PNG **with alpha**) · `?neckline=<scoop|crew|v|one-shoulder|strapless>` (**one-shoulder** = the asymmetric-fit neckline — `topEdge` breaks mirror symmetry; the flat pattern follows) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
-the garment, behind the prints) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
+the garment, behind the prints) · `?tartan=<black-watch|royal-stewart|hunting|dress-blue|camel-check|grey>`
+(a real tartan sett — thread-count stripes woven in 2/2 twill) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
 into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
 `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
 procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone>` (a **weave draft** —
