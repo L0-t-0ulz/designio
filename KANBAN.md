@@ -5,6 +5,17 @@ _Ship rule: one feature per branch → green CI (Node 20/22) → merge to `main`
 
 Legend: ✅ done · 🔄 in progress · 📋 backlog
 
+_Latest sweep — 2026-07-15: **CI is back + green** — GitHub Actions runs again (the billing block is
+cleared); the latest `main` passes the full matrix — **typecheck · test · build on Node 20 *and* 22**
+plus the **golden-image** job (all green). Shipped ~17 cards this session (PRs #375–#399): new fabrics
+(**boiled wool · waxed cotton · cap corduroy**), cloth-sim headwear (**durag · satin bonnet · hijab
+under-cap**) + the **headwear pattern suite** (gore crown · band · brim → SVG/DXF), **headwear care
+labels · cost sheet**, and a run of surface/print effects — **thermochromic**, **reflective piping**,
+**duotone**, a **repeat-pattern engine** (half-drop · brick · mirror), **puff / discharge / foil** prints,
+a **unisex** body block, and an **in-app term glossary**. Suite **1029 tests**. README refreshed (counts
+→ 55 garments · 39 fabrics + new showcase photos, PRs #393–#394). **Every Done card is now linked to its
+PR** in the board._
+
 _Latest sweep — 2026-07-14: **the headwear perfection tier is at 36 of 72 cards (PRs #309–#333)** —
 the **ski mask & balaclava group (10/10)** and the **structured hats group (12/12)** are ✅ COMPLETE
 (crown shapes · hat bands · cap bill/panels/puff embroidery · cowboy · top hat & bowler · boonie ·
