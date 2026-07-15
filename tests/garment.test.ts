@@ -99,6 +99,16 @@ describe('garment registry + factory', () => {
     expect(specs('pants').length).toBe(2) // two legs
   })
 
+  it('the durag is a snug open-face satin skull cap with a nape flap', () => {
+    const d = getGarment('durag')
+    expect(d.name).toMatch(/durag/i)
+    const head = d.pieces.find((p) => p.kind === 'headTube')
+    expect(head?.kind === 'headTube' && head.anchor).toBe('crown')
+    expect(head?.kind === 'headTube' && head.face).toBe('open-face')
+    expect(d.defaults?.hemShape).toBe('back-flap') // the flap draping the nape
+    expect(d.defaultFabric).toBe('satin') // the silky durag
+  })
+
   it('the hijab under-cap is a snug open-face crown cap in jersey', () => {
     const u = getGarment('undercap')
     expect(u.name).toMatch(/under-cap|undercap/i)

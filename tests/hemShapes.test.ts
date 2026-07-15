@@ -19,6 +19,17 @@ describe('high-low & asymmetric hems', () => {
     expect(bottomEdge(hl, SIDE)).toBeCloseTo(spec.bottomY, 10) // sides neutral
   })
 
+  it('point-front drops the centre-front; back-flap drops the centre-back (a durag nape flap)', () => {
+    const pf: TubeSpec = { ...spec, hemShape: 'point-front' }
+    expect(bottomEdge(pf, FRONT)).toBeLessThan(spec.bottomY) // a point hangs at centre-front
+    expect(bottomEdge(pf, BACK)).toBeCloseTo(spec.bottomY, 10) // back neutral
+    const bf: TubeSpec = { ...spec, hemShape: 'back-flap' }
+    expect(bottomEdge(bf, BACK)).toBeLessThan(spec.bottomY) // the flap drapes the nape
+    expect(bottomEdge(bf, FRONT)).toBeCloseTo(spec.bottomY, 10) // front (the face) neutral
+    expect(bottomEdge(bf, SIDE)).toBeCloseTo(spec.bottomY, 10) // sides neutral
+    expect(bottomEdge(bf, BACK)).toBeLessThan(bottomEdge(pf, BACK)) // the durag flap hangs deeper at back than a front-point
+  })
+
   it('shirttail vents rise at the sides; handkerchief points hang at the diagonals', () => {
     const st: TubeSpec = { ...spec, hemShape: 'shirttail' }
     expect(bottomEdge(st, SIDE)).toBeGreaterThan(spec.bottomY)
