@@ -859,7 +859,7 @@ _A fresh, specific pass across every lane. Each is a concrete, self-contained bu
 - [ ] **Collar roll & stand** — a real under-collar stand that rolls a shirt/coat collar over the band (a fold ridge, not a flat flap)
 
 ### Fabrics & surface
-- [ ] **Woven library expansion** — chambray · gabardine · ponte · scuba · melton · shirting oxford, each with correct gsm/drape/sheen
+- [x] **Woven library expansion** — chambray · gabardine · ponte · scuba · melton · shirting oxford, each with correct gsm/drape/sheen: added 6 fabrics to `FabricLibrary` — **chambray** (light plain-weave shirting) · **gabardine** (crisp suiting twill) · **worsted wool** (smooth suiting twill) · **melton** (heavy 500 gsm felted coating) · **ponte** (stable double-knit) · **scuba** (smooth bonded double-knit), each with real gsm/stretch/bend/friction + weave/sheen/roughness/normal so they drape + read distinctly _(oxford already existed → added worsted wool instead; ponte/scuba are correctly the `knit` family)_; verified a gabardine coat + a ponte dress render right
 - [ ] **Sequin fabric** — per-sequin facets that flip colour with the viewing angle (a scatter normal + a metal recipe)
 - [ ] **Waxed cotton** — a matte-waxy sheen with sharp fold-memory creasing at the bends
 - [ ] **Patent / coated leather** — a high-clearcoat wet shine over a fine crackle normal
