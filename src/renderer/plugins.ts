@@ -5,7 +5,7 @@ import type { TextilePattern } from './fabric/textile'
  * **Plugin API** — a small, safe extension surface so third-party (or your own)
  * scripts can add assets to DesignIO without touching the core. A plugin declares
  * an `id`, `name` and a `setup(ctx)` that registers new fabrics/named colours via
- * the context. Plugins register through `registerPlugin` (or the `window.designio`
+ * the context. Plugins register through `registerPlugin` (or the `window.designioPlugins`
  * global) before the studio boots; `runPlugins` applies them into the live catalog.
  * The registry + dispatch are pure (no DOM) so they're unit-tested. (Loading plugin
  * *files/URLs* at runtime is a separate host concern; this is the stable API + registry.)
