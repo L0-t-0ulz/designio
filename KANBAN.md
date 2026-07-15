@@ -908,4 +908,70 @@ _A fresh, specific pass across every lane. Each is a concrete, self-contained bu
 
 ---
 
+## 🚀 Frontier — the futuristic roadmap (batch added 2026-07-15)
+
+_The moonshots that make this a next-generation design tool. Each is deep + specific; most are multi-PR spikes, not quick cards._
+
+### AI & generative design
+- [ ] **Text-to-garment** — a prompt ("a puff-sleeve midi with a sweetheart neck in emerald crepe") assembles the closest parametric garment + fabric + colourway, fully editable after; a small on-device model maps language → the construction-cap vocabulary
+- [ ] **Sketch-to-3D** — draw a flat croquis on the 2D canvas and an ML model lifts it into a sewn 3D garment with inferred panels, seams, and dart placement
+- [ ] **Photo-to-garment reconstruction** — drop a runway/street photo → segment the garment → reconstruct an editable 3D approximation (silhouette + est. fabric + colour)
+- [ ] **Style transfer between garments** — "make this dress in the spirit of that jacket" — transfer proportion, detailing, and finish, not just colour
+- [ ] **Generative colourway + print engine** — an ML palette/print generator seeded by a mood/season brief, proposing coordinated colourways with a diversity slider
+- [ ] **Auto-grade from one fitted sample** — learn a full graded size run (XS–XXL) from a single perfected M block by inferring the grade rules, not a uniform scale
+- [ ] **Latent design-space explorer** — continuous morph sliders (fitted↔oversized · minimal↔maximal · classic↔avant-garde) that interpolate the whole garment through a learned space
+- [ ] **AI fit critic** — an ML pass that detects pull lines, gaping, drag folds, and poor ease from the settled drape and proposes the exact pattern edit to fix each
+- [ ] **Auto tech-pack writer** — generate the construction callouts + a written BOM in prose directly from the 3D model, factory-ready
+- [ ] **Trend-forecast match** — score your library against an uploaded trend brief and flag which pieces align + the smallest tweak to hit the trend
+
+### Next-generation simulation
+- [ ] **Yarn-level knit simulation** — simulate the actual loop structure of a knit (stitch mechanics, inter-loop friction) for true knit stretch, curl, and run behaviour instead of a shell
+- [ ] **Woven yarn-interlacement sim** — model warp/weft yarns as a physical lattice so a bias cut, a fray, and a pulled thread behave the way real cloth does
+- [ ] **Anisotropic FEM cloth shell** — a finite-element shell with per-direction warp/weft/shear stiffness driven by real fabric-test data (KES-F / FAST)
+- [ ] **Conditioning-aware drape** — how a fabric hangs when damp, warm, or starched (bending length + hand shift with temperature/moisture)
+- [ ] **Seam-pucker prediction** — simulate thread tension vs. fabric stiffness to predict puckering along a stitched seam and warn before sampling
+- [ ] **Heat-set crease memory** — press a permanent pleat/crease that survives the drape (a plastic-deformation term the solver respects)
+- [ ] **Garment aging over wear cycles** — bagging at stress points, colour fade, and pilling progressing over simulated wash/wear time
+- [ ] **CFD-lite wind field** — a real airflow solve (not a uniform force) so a cape/skirt reacts to directional, turbulent, obstacle-shed air
+- [ ] **Live ironing / steaming tool** — press or steam a fold on the body in real time and watch the crease set or relax
+- [ ] **Coupled multi-layer air pressure** — trapped-air between layers modelled as coupled shells (a lined coat that genuinely billows)
+
+### Materials & digital-twin capture
+- [ ] **SVBRDF capture from a phone** — photograph a real swatch under flash and recover a tiling albedo/normal/roughness/anisotropy PBR set
+- [ ] **Photogrammetry drape-scan → stiffness** — a few phone photos of real draped fabric fit the solver's bending/shear parameters to match it
+- [ ] **Spectral fabric colour** — store colour as a reflectance spectrum so metamerism (colour shift between store light and daylight) renders correctly
+- [ ] **Measured BRDF library** — real goniophotometer lobes for velvet/satin/leather/lamé, replacing the parametric sheen fits
+- [ ] **WIF loom-file export** — export the weave-draft drawdown as a WIF file a real dobby/jacquard loom can weave
+- [ ] **Knitting-machine file export** — export a stitch chart as a Shima Seiki / Stoll–style machine file
+- [ ] **Live mill-catalogue search** — query a real fabric supplier's catalogue and pull the swatch's specs + MOQ + price + lead time into the design
+- [ ] **Pantone / dye-recipe match** — match a picked colour to the nearest Pantone TCX + a mill dye recipe with a ΔE readout
+- [ ] **Physical thread & trim twins** — a drag-and-drop library of real thread weights, zipper gauges, and button sizes with physical + cost data
+- [ ] **Learned fabric-hand descriptor** — translate the physical params into a designer's vocabulary (crisp · fluid · spongy · papery) and search by it
+
+### Avatar, body & immersive try-on
+- [ ] **Markerless motion capture** — drive live cloth off the user's real body motion via a webcam pose model (no suit, no markers)
+- [ ] **AR showroom export** — a self-contained WebXR/USDZ scene a buyer opens on a phone to walk around the piece at true scale
+- [ ] **Muscle & soft-body avatar** — secondary body motion (breathing, jiggle, muscle flex) so cloth reacts to real body dynamics, not a rigid capsule
+- [ ] **Adaptive / seated avatar** — a wheelchair-seated body block + adaptive-clothing construction (magnetic closures, seated rise, side-access seams)
+- [ ] **Facial expression + gaze** for beauty and headwear shots (blink, smile, look-to-camera)
+- [ ] **Interactive hand poses** the garment reacts to — hand in pocket, holding a bag strap, arm raised to show a gusset
+- [ ] **Gait / walk-cycle designer** — author a catwalk gait (stride, cadence, turns, pauses) that drives a full runway walk-through clip
+- [ ] **Photoreal skin shader** — subsurface scattering + peach-fuzz + pore detail for macro close-ups at the neckline/cuff
+- [ ] **Strand-based hair simulation** — real hair strands that a collar/hood/scarf pushes and interacts with
+- [ ] **Scanned-body morph library** — a broad set of real scanned bodies (age · ability · size · posture) beyond parametric multipliers
+
+### Pipeline, output & business
+- [ ] **Game-engine export** — a rigged, LOD'd, game-ready GLB with baked cloth motion + a blendshape wardrobe for Unity / Unreal
+- [ ] **Metaverse-avatar fitting** — auto-fit a garment to VRChat / Ready-Player-Me / Roblox rigs honouring each platform's constraints + poly budget
+- [ ] **On-demand CMT handoff** — push the graded tech-pack + nested marker straight to a cut-and-sew / print-on-demand partner's intake API
+- [ ] **Embeddable 3D viewer widget** — a brand drops a live, rotatable, AR-capable garment onto their own product page
+- [ ] **Size-recommendation from 3 photos** — predict a customer's best size + fit notes from three phone photos of themselves
+- [ ] **Live cost/margin feed** — recompute the landed cost + retail as a global material-price feed updates, flagging margin erosion
+- [ ] **Lifecycle dashboard** — a per-design carbon + water + circularity score with a concrete "swap this for that" reduction advisor
+- [ ] **Digital-sample sign-off** — a signed 3D sample that formally replaces a physical proto round in the approval chain
+- [ ] **Returns-driven fit map** — feed real size-return statistics back in to flag a badly-graded size or a chronic fit failure
+- [ ] **Voice + gesture control** — hands-free "rotate", "pin here", "make it looser" during a live fitting session
+
+---
+
 _Update this board as things ship — check the box + note the PR._
