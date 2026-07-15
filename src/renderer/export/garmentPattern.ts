@@ -342,19 +342,24 @@ export function garmentToPanels(
 
   if (params.collar) {
     const style = params.collarStyle ?? 'band'
+    const isLapel = style === 'notch' || style === 'peak' || style === 'shawl'
     const neckR = specs.body[0] ? specs.body[0].radiusTop * 0.6 : 0.11
     const w = Math.max(200, Math.PI * neckR * MM) // half neck circumference band (cut on the fold)
-    const h = { band: 40, mandarin: 60, shirt: 80, peterpan: 95, notch: 105 }[style]
+    const h = { band: 40, mandarin: 60, shirt: 80, peterpan: 95, notch: 105, peak: 108, shawl: 102 }[style]
     let outline: Pt[]
     if (style === 'peterpan') {
       outline = [{ x: 0, y: h * 0.2 }, { x: w * 0.15, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: w * 0.1, y: h }] // curved flat collar half
+    } else if (style === 'peak') {
+      outline = [{ x: 0, y: 0 }, { x: w * 0.62, y: 0 }, { x: w, y: h }, { x: w * 0.82, y: h * 0.72 }, { x: w * 0.28, y: h }] // lapel with the gorge point swept up
+    } else if (style === 'shawl') {
+      outline = [{ x: 0, y: 0 }, { x: w * 0.55, y: 0 }, { x: w * 0.9, y: h * 0.45 }, { x: w, y: h }, { x: w * 0.24, y: h }] // rounded continuous lapel roll
     } else if (style === 'notch') {
       outline = [{ x: 0, y: 0 }, { x: w * 0.62, y: 0 }, { x: w, y: h * 0.7 }, { x: w, y: h }, { x: w * 0.28, y: h }] // slanted lapel with a notch
     } else {
       outline = [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }] // stand band
     }
-    const name = style === 'notch' ? 'Lapel' : style === 'peterpan' ? 'Collar (flat)' : style === 'shirt' ? 'Collar + stand' : 'Collar'
-    panels.push(finishPanel(name, style === 'peterpan' || style === 'notch' ? 2 : 1, { outline, notches: [] }))
+    const name = isLapel ? 'Lapel' : style === 'peterpan' ? 'Collar (flat)' : style === 'shirt' ? 'Collar + stand' : 'Collar'
+    panels.push(finishPanel(name, style === 'peterpan' || isLapel ? 2 : 1, { outline, notches: [] }))
   }
 
   // Waistband — a straight band the width of the waist (cut on the fold), finished

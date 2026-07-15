@@ -106,6 +106,22 @@ describe('real per-garment 2D pattern', () => {
     expect(garmentToPanels(getGarment('skirt'), paramsFor('skirt'), M, C).princess).toBeFalsy()
   })
 
+  it('cuts a Lapel pattern piece for every lapel gorge, each a distinct outline', () => {
+    const lapel = (style: 'notch' | 'peak' | 'shawl'): Pt[] => {
+      const p = panels('blazer', { collar: true, collarStyle: style }).find((p) => p.name === 'Lapel')
+      expect(p, `blazer collarStyle=${style} should cut a Lapel`).toBeTruthy()
+      return p!.outline
+    }
+    const notch = lapel('notch')
+    const peak = lapel('peak')
+    const shawl = lapel('shawl')
+    // the three gorges are genuinely different outlines, not the same panel relabelled
+    const key = (pts: Pt[]): string => pts.map((p) => `${Math.round(p.x)},${Math.round(p.y)}`).join(';')
+    expect(new Set([key(notch), key(peak), key(shawl)]).size).toBe(3)
+    // a plain band collar cuts a stand, not a lapel
+    expect(panels('blazer', { collar: true, collarStyle: 'band' }).some((p) => p.name === 'Lapel')).toBe(false)
+  })
+
   it('adds a hem-frill pattern piece per frill style', () => {
     const ruffle = garmentToPanels(getGarment('skirt'), { ...paramsFor('skirt'), ruffles: true, frillStyle: 'ruffle' }, M, C)
     expect(ruffle.panels.some((p) => p.name === 'Ruffle')).toBe(true)
