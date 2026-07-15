@@ -2106,7 +2106,7 @@ function initStudio(
       list: () => stack.active.prints.map((p) => ({ id: p.id, kind: p.kind, label: p.kind === 'image' ? (p.imageName ?? 'logo') : p.text || 'text' })),
       get: (id) => {
         const p = stack.active.prints.find((q) => q.id === id)
-        return p ? { kind: p.kind, x: p.x, y: p.y, scale: p.scale, rotation: p.rotation, text: p.text, color: p.color, part: p.part, style: p.style } : null
+        return p ? { kind: p.kind, x: p.x, y: p.y, scale: p.scale, rotation: p.rotation, text: p.text, color: p.color, part: p.part, style: p.style, opacity: p.opacity, blend: p.blend } : null
       },
       addImage: (image, name) => {
         const p = newImagePrint(image, name)
@@ -2504,6 +2504,11 @@ if (skipStart) {
   }
   if (entryParams.get('prints') === 'applique') {
     cfg.prints.push({ ...newTextPrint('STAR'), x: 0.25, y: 0.36, scale: 0.5, color: 0xd94f6a, style: 'applique' })
+  }
+  if (entryParams.get('prints') === 'blend') {
+    // a translucent multiply print (tints into the weave) beside a 60%-opacity one
+    cfg.prints.push({ ...newTextPrint('FADED'), x: 0.25, y: 0.34, scale: 0.55, color: 0x101014, blend: 'multiply' })
+    cfg.prints.push({ ...newTextPrint('GHOST'), x: 0.25, y: 0.52, scale: 0.42, color: 0xffffff, opacity: 0.5 })
   }
   if (entryParams.get('collar')) cfg.collar = true
   const cs = entryParams.get('collarStyle')

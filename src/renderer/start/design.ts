@@ -134,6 +134,23 @@ export type PrintPart = 'body' | 'sleeves' | 'legs'
  * The raised styles paint a bump map so they catch the light. */
 export type PrintStyle = 'flat' | 'embroidery' | 'applique'
 
+/** How a print blends onto the fabric beneath it — opaque, multiplied (tints into the
+ *  weave, like a screen print), or screened (lightens). */
+export type PrintBlend = 'normal' | 'multiply' | 'screen'
+export const PRINT_BLENDS: PrintBlend[] = ['normal', 'multiply', 'screen']
+
+const BLEND_COMPOSITE: Record<PrintBlend, GlobalCompositeOperation> = {
+  normal: 'source-over',
+  multiply: 'multiply',
+  screen: 'screen'
+}
+
+/** Resolve a print's opacity + blend to canvas paint params. Pure + unit-tested. */
+export function resolvePrintPaint(p: { opacity?: number; blend?: PrintBlend }): { alpha: number; composite: GlobalCompositeOperation } {
+  const alpha = Math.max(0, Math.min(1, p.opacity ?? 1))
+  return { alpha, composite: BLEND_COMPOSITE[p.blend ?? 'normal'] ?? 'source-over' }
+}
+
 /** A logo/graphic or text placed on the garment. `x/y` are 0…1 across the front. */
 export interface Print {
   id: string
@@ -153,6 +170,10 @@ export interface Print {
   part: PrintPart
   /** Finish: flat graphic · raised embroidery · appliqué patch. */
   style: PrintStyle
+  /** Opacity 0…1 (default 1 = opaque). */
+  opacity?: number
+  /** Blend onto the fabric — normal · multiply · screen (default normal). */
+  blend?: PrintBlend
 }
 
 /** The serialisable part of a print (no runtime image) for `.dio` projects. */
@@ -251,6 +272,13 @@ function shade(color: number, dl: number): string {
 /** Draw the coloured motif onto the albedo — a flat/embroidered graphic in its own
  *  colour, or an appliqué patch (filled panel + border) with the motif proud on top. */
 function paintAlbedoMotif(ctx: CanvasRenderingContext2D, p: Print, size: number): void {
+  // Opacity + blend onto the fabric (reset by the caller's save/restore). Appliqué is a
+  // physical patch, so it stays opaque + normal — only flat/embroidered art blends.
+  if (p.style !== 'applique') {
+    const { alpha, composite } = resolvePrintPaint(p)
+    ctx.globalAlpha = alpha
+    ctx.globalCompositeOperation = composite
+  }
   if (p.style === 'applique') {
     const { w, h, r } = appliqueBox(p, size)
     ctx.fillStyle = hex(p.color) // the patch fabric

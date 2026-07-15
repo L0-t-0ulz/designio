@@ -409,6 +409,9 @@ count/ply/twist adjust the fabric's hand: drape + surface together) · `?sparkle
 `?fur=<shearling|faux-fur|fleece>` (a fuzzy pile finish) · `?prints=demo`
 (two body prints) · `?prints=parts` (a print on the body + sleeves + legs — each print sits on its own
 piece) · `?prints=embroidery` / `?prints=applique` (a raised embroidered / appliqué motif) ·
+`?prints=blend` (**print opacity + blend** — a translucent 50 %-opacity print + a `multiply`-blend print
+that tints into the weave; each `Print` carries `opacity` (0…1) + `blend` (normal · multiply · screen),
+applied in `paintAlbedoMotif` via the pure `resolvePrintPaint`; appliqué patches stay opaque) ·
 `?view=pattern` (open the 2D flat-pattern tab) · `?view=render` (open the Render tab — supersampled still) ·
 `?pathtrace=1` (+ `?ptQuality=<draft|high|ultra>`) (open the Render tab in **path-traced hero-render** mode
 + converge an offline GI still once the drape settles — the Render tab's ✦ Path traced toggle + quality
