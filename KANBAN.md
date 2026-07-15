@@ -811,7 +811,7 @@ _100 concrete cards to push the math/physics/GPU behind every garment past the c
 - [ ] **Storefront product page export** — images + 360° + a spec block
 - [ ] **Virtual try-on widget** — a shopper picks a body and sees the fit
 - [ ] **Made-to-order configurator** — a customer customizes colour/fabric/fit
-- [ ] **Pricing calculator** — cost → margin → suggested retail
+- [x] **Pricing calculator** — cost → margin → suggested retail: pure `export/cost.priceFromCost` takes the landed cost + a target gross margin and prices **wholesale** to hit it (`cost / (1 − margin)`), then **suggested retail** off a keystone multiple (default 2.2×), backing out the realised margin % + markup % (margin clamped < 100 %, retail multiple ≥ 1, zero-cost safe); the manufacturing pack's cost sheet now renders a **Pricing** block (wholesale · gross margin · suggested retail); unit-tested
 - [ ] **Shopify / Etsy listing export** — a ready-to-publish product listing
 
 **Education & community**
