@@ -40,6 +40,19 @@ describe('distressed / washed / faded wear finish', () => {
     expect(faded.mean).toBeGreaterThan(distressed.mean) // faded wears more overall
   })
 
+  it('adaptive wear concentrates at the hem + side edges, sparing the centre top', () => {
+    const meanRow = (v: number): number => {
+      let s = 0
+      for (let x = 0; x < 32; x++) s += wearValue('adaptive', x / 32, v)
+      return s / 32
+    }
+    expect(meanRow(0.95)).toBeGreaterThan(meanRow(0.1)) // hem wears far more than the top
+    // side edges wear more than the centre at the same height
+    expect(wearValue('adaptive', 0.98, 0.8)).toBeGreaterThan(wearValue('adaptive', 0.5, 0.8))
+    // the calm centre-top is nearly untouched
+    expect(wearValue('adaptive', 0.5, 0.05)).toBeLessThan(0.2)
+  })
+
   it('the worn tone is lighter + less saturated than the base', () => {
     const base = 0x2b3a67 // deep indigo (denim)
     const b = { h: 0, s: 0, l: 0 }
