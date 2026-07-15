@@ -434,7 +434,7 @@ fit & physics 0/10 · materials & production 0/10)_
 
 **Prints & graphics** _(refine PRs #51 · #112 · #114 · #116)_
 - [ ] **Prints warp with the drape** — logos/text distort over folds (currently flat on the albedo)
-- [ ] **Print opacity + blend mode** — semi-transparent / multiply onto the fabric
+- [x] **Print opacity + blend mode** — semi-transparent / multiply onto the fabric: each `Print` carries `opacity` (0…1) + `blend` (normal · multiply · screen); the pure `resolvePrintPaint` maps them to canvas `globalAlpha` + `globalCompositeOperation`, applied in `paintAlbedoMotif` (appliqué patches stay opaque — a physical patch). Per-print **Opacity** slider + **Blend** picker in the Prints manager; serialises in the `.dio` (via `PrintSpec`); `?prints=blend` demo; `resolvePrintPaint` unit-tested
 - [ ] **Arched / curved text** — bend text along an arc (team-jersey style)
 - [ ] **All-over repeat of a placed print** — tile one motif across the whole garment
 - [ ] **Per-print recolour** — recolour a single print, not just the whole design at once
