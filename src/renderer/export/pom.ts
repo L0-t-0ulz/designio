@@ -17,6 +17,7 @@ import type { Capsule } from '../avatar/colliders'
 import type { Measurements } from '../avatar/Mannequin'
 import type { GarmentDefinition } from '../garments/schema'
 import { garmentMetrics } from './garmentMetrics'
+import { headSizing, type HeadSizing } from './headSizing'
 import { SIZES, gradeParams, type GarmentLayerData, type SizeLabel } from '../studio/document'
 
 export interface PomRow {
@@ -31,6 +32,8 @@ export interface PomRow {
 export interface PomSheet {
   sizes: SizeLabel[]
   rows: PomRow[]
+  /** Head-circumference sizing (headwear garments only) — the fitted circ + hat size run. */
+  head?: HeadSizing
 }
 
 /** Standard grading tolerance: girths ±1.0 cm, lengths ±1.5 cm. */
@@ -55,5 +58,7 @@ export function pomTable(def: GarmentDefinition, data: GarmentLayerData, m: Meas
       row.bySize[size] = r.cm
     }
   }
-  return { sizes: SIZES, rows }
+  // Headwear (a head/neck tube) also carries a head-circumference size run.
+  const isHeadwear = def.pieces.some((p) => p.kind === 'headTube')
+  return { sizes: SIZES, rows, head: isHeadwear ? headSizing(m.headR) : undefined }
 }
