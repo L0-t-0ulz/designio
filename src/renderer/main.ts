@@ -118,7 +118,8 @@ import { FUR_KINDS, type FurKind } from './fabric/fur'
 import { colorRefLabel } from './fabric/namedColors'
 import { showHomepage } from './start/Homepage'
 import { showProjectsPage } from './start/ProjectsPage'
-import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restoreSnapshot, deleteSnapshot } from './studio/projectStore'
+import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restoreSnapshot, deleteSnapshot, listProjects } from './studio/projectStore'
+import { portfolioHtml } from './export/portfolio'
 import { openVersionHistory } from './ui/versionHistory'
 import { listBookmarks, saveBookmark, deleteBookmark } from './studio/cameraBookmarks'
 import { openCameraBookmarks } from './ui/cameraBookmarksPanel'
@@ -1365,6 +1366,14 @@ function initStudio(
         const inp: ListingInput = { name: projectName !== 'Untitled' ? projectName : def.name, fabricName: l.fabric.name, fibre: label.fibre, colours, sizes: [...SIZES], priceUsd: priceFromCost({ cost: cost.total }).retail, careLines: label.care }
         await saveFile('product-page.html', new TextEncoder().encode(productPageHtml(inp, viewport.renderStill(900))), [{ name: 'HTML', extensions: ['html'] }])
         statusHandles?.setSelection('Product page exported — open in a browser')
+        break
+      }
+      case 'portfolio': {
+        // a shareable gallery of every saved project (thumbnail grid)
+        const items = listProjects().map((p) => ({ name: p.name, thumb: p.thumb, updatedAt: p.updatedAt }))
+        const brand = projectName !== 'Untitled' ? projectName : 'Portfolio'
+        await saveFile('portfolio.html', new TextEncoder().encode(portfolioHtml(brand, items)), [{ name: 'HTML', extensions: ['html'] }])
+        statusHandles?.setSelection(`Portfolio — ${items.length} design(s)`)
         break
       }
       case 'size-set': {
