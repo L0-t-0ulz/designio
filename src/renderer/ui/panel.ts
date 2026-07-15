@@ -1873,7 +1873,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       {
         const cur = p.get(id)?.style ?? 'flat'
         const row = el('div', 'dio-seg dio-seg-wrap')
-        for (const [label, st] of [['Flat', 'flat'], ['Embroidery', 'embroidery'], ['Appliqué', 'applique']] as [string, PrintStyle][]) {
+        for (const [label, st] of [['Flat', 'flat'], ['Embroidery', 'embroidery'], ['Appliqué', 'applique'], ['Enamel pin', 'enamel-pin']] as [string, PrintStyle][]) {
           const b = el('button', 'dio-seg-btn' + (cur === st ? ' on' : ''), label)
           b.setAttribute('type', 'button')
           b.addEventListener('click', () => { p.update(id, { style: st }); renderEditor() })
@@ -1888,8 +1888,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         slider({ label: 'Rotation', min: -180, max: 180, step: 1, format: (v) => `${v | 0}°`, get: () => p.get(id)?.rotation ?? 0, set: (v) => p.update(id, { rotation: v }) }).row,
         slider({ label: 'Opacity', min: 0, max: 1, step: 0.05, format: (v) => `${Math.round(v * 100)}%`, get: () => p.get(id)?.opacity ?? 1, set: (v) => p.update(id, { opacity: v === 1 ? undefined : v }) }).row
       )
-      // Blend onto the fabric (appliqué patches stay opaque, so it's flat/embroidery only).
-      if ((p.get(id)?.style ?? 'flat') !== 'applique') {
+      // Blend onto the fabric (appliqué + enamel-pin are physical objects, always opaque).
+      if (!['applique', 'enamel-pin'].includes(p.get(id)?.style ?? 'flat')) {
         const cur = p.get(id)?.blend ?? 'normal'
         const row = el('div', 'dio-seg dio-seg-wrap')
         for (const b of PRINT_BLENDS) {
