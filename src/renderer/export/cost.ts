@@ -59,6 +59,50 @@ export function costRollup(inp: CostInputs): CostBreakdown {
   return { fabric, thread, trims, labour, overhead, total: round(sub + overhead), currency: 'USD' }
 }
 
+// ---- headwear cost: small-panel yield + hat-specific trims -------------------
+
+/**
+ * Fabric yield (linear metres at bolt width) for a **small-panel headwear** garment.
+ * A hat is cut from small crown gores / a brim / a band that nest with more waste
+ * than long body panels, and there's a per-hat minimum cut, so its yield can't be
+ * read off the body marker. Pure + unit-tested.
+ */
+export function headwearFabricM(fabricAreaM2: number, boltWidthCm = 140): number {
+  const SMALL_PANEL_WASTE = 1.6 // small panels nest poorly vs. a body garment's ~1.4
+  const MIN_CUT_M = 0.15 // you can't buy less than a short cut
+  const theoreticalM = Math.max(0, fabricAreaM2) / Math.max(0.01, boltWidthCm / 100)
+  return Math.round(Math.max(MIN_CUT_M, theoreticalM * SMALL_PANEL_WASTE) * 1000) / 1000
+}
+
+/** Which hat-specific notions a headwear garment carries. */
+export interface HeadwearTrimInputs {
+  /** A faux-fur / yarn pom on the crown (pom beanie · chullo). */
+  pom?: boolean
+  /** An inner grosgrain / terry sweatband (structured / brimmed hats). */
+  sweatband?: boolean
+  /** Millinery wire sewn into the brim edge (shaped brims). */
+  brimWire?: boolean
+  /** A stretch band at the back (fitted / adjustable caps). */
+  elastic?: boolean
+}
+
+/** First-pass unit costs (USD) for headwear notions — placeholders like the fabric prices. */
+const HEADWEAR_TRIM_UNIT = { pom: 1.2, sweatband: 0.35, brimWire: 0.25, elastic: 0.15 } as const
+
+/**
+ * Hat-specific **trims / notions** as costed BOM rows — a hat's trims are a pom /
+ * brim wire / sweatband / elastic, not a shirt's buttons and zips. Feeds
+ * `costRollup({ trims })`. Pure + unit-tested.
+ */
+export function headwearTrims(inp: HeadwearTrimInputs): TrimCost[] {
+  const trims: TrimCost[] = []
+  if (inp.pom) trims.push({ name: 'Pom-pom', qty: 1, unitCost: HEADWEAR_TRIM_UNIT.pom })
+  if (inp.sweatband) trims.push({ name: 'Sweatband', qty: 1, unitCost: HEADWEAR_TRIM_UNIT.sweatband })
+  if (inp.brimWire) trims.push({ name: 'Brim wire', qty: 1, unitCost: HEADWEAR_TRIM_UNIT.brimWire })
+  if (inp.elastic) trims.push({ name: 'Elastic band', qty: 1, unitCost: HEADWEAR_TRIM_UNIT.elastic })
+  return trims
+}
+
 // ---- pricing calculator: landed cost → margin → suggested wholesale + retail ----
 
 export interface PriceInputs {

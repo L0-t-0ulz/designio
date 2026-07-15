@@ -89,7 +89,7 @@ import { pomTable } from './export/pom'
 import { bodyToMeasurements } from './avatar/measure'
 import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
-import { costRollup, estimateLabourMinutes } from './export/cost'
+import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims } from './export/cost'
 import { circularScore, fibreGroup, garmentFootprint, longevityCare, materialPassport } from './export/sustainability'
 import { supplierFor } from './export/suppliers'
 import { factoryPackJSON } from './export/factoryPack'
@@ -1695,9 +1695,11 @@ function initStudio(
       body: { ...bodySize },
       layers: stack.layers.map((l) => {
         const def = getGarment(l.data.garmentType)
-        // headwear is blocked to a shape, so its care label is shaping-aware (same
-        // headTube predicate the head-sizing POM uses)
-        const label = careLabel(l.fabric, { headwear: def.pieces.some((p) => p.kind === 'headTube') })
+        // headwear is blocked to a shape (same headTube predicate the head-sizing POM
+        // uses): its care label is shaping-aware, and its cost sheet uses a small-panel
+        // yield + hat-specific trims (pom · wire · sweatband) instead of body panels.
+        const headwear = def.pieces.some((p) => p.kind === 'headTube')
+        const label = careLabel(l.fabric, { headwear })
         const parts: { part: string; fabric: string }[] = []
         if (l.data.partFabrics?.sleeves) parts.push({ part: 'sleeves', fabric: getFabric(l.data.partFabrics.sleeves.fabricId).name })
         if (l.data.partFabrics?.legs) parts.push({ part: 'legs', fabric: getFabric(l.data.partFabrics.legs.fabricId).name })
@@ -1725,9 +1727,15 @@ function initStudio(
           pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders),
           marker: markerLayout,
           cost: costRollup({
-            fabricM: markerLayout ? markerLayout.lengthCm / 100 : metrics.fabricM2 / 1.4,
+            fabricM: headwear
+              ? headwearFabricM(metrics.fabricM2)
+              : markerLayout
+                ? markerLayout.lengthCm / 100
+                : metrics.fabricM2 / 1.4,
             pricePerM: estimatedFabricPrice(l.fabric),
             threadM: threadMetres(metrics.seamCm),
+            // a hat's notions: pom (pom beanie / chullo) + a sweatband under a stiff visor
+            trims: headwear ? headwearTrims({ pom: def.pom, sweatband: def.visor }) : undefined,
             labourMin: estimateLabourMinutes(metrics.seamCm),
             labourRate: 15
           }),

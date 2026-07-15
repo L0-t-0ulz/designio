@@ -397,7 +397,7 @@ fit & physics 0/10 · materials & production 0/10)_
 - [ ] **Party headwear finishes** — sequins/beading tuned for small-panel headwear
 - [ ] **Reflective piping** — retroreflective trim on winter headwear that lights toward the camera
 - [ ] **Headwear pattern suite** — gore crowns · brims · bands unwrapped to SVG/DXF per style
-- [ ] **Headwear cost sheet** — small-panel yield + trims (pom · wire · sweatband) in the cost rollup
+- [x] **Headwear cost sheet** — a hat isn't costed like a body garment: pure `headwearFabricM` converts the small crown/brim/band panel area to a bolt-width yield with a small-panel waste factor (1.6× vs a body garment's 1.4×) + a per-hat minimum cut, and `headwearTrims` emits the hat notions (pom · sweatband · brim wire · elastic) as costed BOM rows. Wired into the manufacturing-pack cost rollup for headwear (`headTube`) layers — pom from `def.pom`, sweatband from `def.visor`. Unit-tested; body garments unchanged — PR #377
 - [ ] **Headwear size-run line-up** — one hat rendered across the head-size run into a single PNG
 - [x] **Headwear care labels** — headwear is *blocked* to a shape, so its care is shaping-aware: pure `headwearMaterial` classifies a fabric (knit · felt · straw · coated), `headwearCareLines` gives the extra lines, and `careLabel(fabric, {headwear})` builds a coherent label — a knit beanie keeps its fibre wash line but reshapes damp + dries flat (never tumble/hang), a felted/boiled-wool hat is steamed + spot-cleaned (never washed), a leather/coated cap wipes clean. Wired into the manufacturing pack + line sheet via the same `headTube` predicate the head-sizing POM uses. Also fixed melton/worsted/boiled wool mislabelling as cotton → **wool**. Unit-tested; body-garment labels unchanged — PR #376
 
