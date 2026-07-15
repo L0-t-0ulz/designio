@@ -4,7 +4,7 @@ import type { NecklineStyle } from '../cloth/Garment'
 import type { BodyType } from '../avatar/Mannequin'
 import type { SkinTone, Undertone } from '../avatar/skin'
 import type { SizeLabel, PartFabrics } from '../studio/document'
-import { paintTextile, type TextilePattern } from '../fabric/textile'
+import { paintTextile, type TextilePattern, type RepeatMode } from '../fabric/textile'
 import { paintColourwork, type ColourworkChart } from '../fabric/colourwork'
 import { paintOmbre, type OmbreDirection } from '../fabric/ombre'
 import { paintTartan, type TartanKind } from '../fabric/tartan'
@@ -116,6 +116,7 @@ export interface DesignConfig {
   /** Textile motif scale (0.25…4; >1 = bigger) + rotation in degrees. */
   textileScale?: number
   textileRotation?: number
+  textileRepeat?: RepeatMode
   /** A real tartan sett (thread-count stripes, 2/2 twill) woven across the garment. */
   tartan?: TartanKind
   /** A dip-dye / ombré gradient baked into the albedo (base → a deeper dipped tone). */
@@ -245,6 +246,7 @@ export interface DesignArtInput {
   textile?: TextilePattern
   textileScale?: number
   textileRotation?: number
+  textileRepeat?: RepeatMode
   tartan?: TartanKind
   /** Knit colourwork — a tiling fair-isle jacquard or a placed intarsia block. */
   colourwork?: ColourworkChart
@@ -382,7 +384,7 @@ export function buildDesignArt(input: DesignArtInput): DesignArt {
     ctx.fillRect(0, 0, size, size)
     if (inp.ombre) paintOmbre(ctx, size, inp.color, inp.ombre) // dip-dye gradient over the flat base
     if (inp.wear) paintWear(ctx, size, inp.color, inp.wear) // distressed / washed / faded bleach
-    if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color, 10, inp.textileScale ?? 1, inp.textileRotation ?? 0) // tiling pattern behind the prints
+    if (inp.textile) paintTextile(ctx, size, inp.textile, inp.color, 10, inp.textileScale ?? 1, inp.textileRotation ?? 0, inp.textileRepeat ?? 'full-drop') // tiling pattern behind the prints
     if (inp.tartan) paintTartan(ctx, size, inp.tartan) // a real tartan sett (its own palette) behind the prints
     if (inp.colourwork) paintColourwork(ctx, size, inp.colourwork) // knit colourwork over the ground, behind the prints
     if (inp.duotone) paintDuotone(ctx, size, inp.duotone) // two-tone the fabric/pattern (behind the prints, which stay full-colour)

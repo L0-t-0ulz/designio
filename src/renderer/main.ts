@@ -101,7 +101,7 @@ import { careSymbols } from './export/careSymbols'
 import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
-import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
+import { TEXTILE_PATTERNS, type TextilePattern, REPEAT_MODES, type RepeatMode } from './fabric/textile'
 import { TARTAN_KINDS, type TartanKind } from './fabric/tartan'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from './fabric/ombre'
 import { WEAR_KINDS, type WearKind } from './fabric/wear'
@@ -2635,6 +2635,8 @@ if (skipStart) {
   if (Number.isFinite(txScale)) cfg.textileScale = Math.max(0.25, Math.min(4, txScale))
   const txRot = parseFloat(entryParams.get('textileRotation') ?? '')
   if (Number.isFinite(txRot)) cfg.textileRotation = txRot
+  const txRep = entryParams.get('textileRepeat')
+  if (txRep && (REPEAT_MODES as string[]).includes(txRep)) cfg.textileRepeat = txRep as RepeatMode
   const tar = entryParams.get('tartan')
   if (tar && (TARTAN_KINDS as string[]).includes(tar)) cfg.tartan = tar as TartanKind
   const omb = entryParams.get('ombre')

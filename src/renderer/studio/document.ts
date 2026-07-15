@@ -16,6 +16,7 @@ import type { TartanKind } from '../fabric/tartan'
 import type { OmbreDirection } from '../fabric/ombre'
 import type { WearKind } from '../fabric/wear'
 import type { DuotoneKind } from '../fabric/duotone'
+import type { RepeatMode } from '../fabric/textile'
 import type { SparkleKind } from '../fabric/sparkle'
 import type { IridescentKind } from '../fabric/iridescent'
 import type { QuiltPattern } from '../fabric/quilt'
@@ -275,6 +276,7 @@ export interface GarmentLayerData {
   textile?: TextilePattern
   textileScale?: number
   textileRotation?: number
+  textileRepeat?: RepeatMode
   tartan?: TartanKind
   ombre?: OmbreDirection
   wear?: WearKind
@@ -319,6 +321,7 @@ export interface Colorway {
   textile?: TextilePattern
   textileScale?: number
   textileRotation?: number
+  textileRepeat?: RepeatMode
   tartan?: TartanKind
   ombre?: OmbreDirection
   wear?: WearKind
@@ -366,6 +369,7 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
     textile: l.textile,
     textileScale: l.textileScale,
     textileRotation: l.textileRotation,
+    textileRepeat: l.textileRepeat,
     tartan: l.tartan,
     ombre: l.ombre,
     wear: l.wear,
@@ -397,6 +401,7 @@ export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.textile = cw.textile
   l.textileScale = cw.textileScale
   l.textileRotation = cw.textileRotation
+  l.textileRepeat = cw.textileRepeat
   l.tartan = cw.tartan
   l.ombre = cw.ombre
   l.wear = cw.wear
@@ -528,6 +533,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     textile: c.textile,
     textileScale: c.textileScale,
     textileRotation: c.textileRotation,
+    textileRepeat: c.textileRepeat,
     tartan: c.tartan,
     ombre: c.ombre,
     wear: c.wear,
@@ -637,6 +643,7 @@ export function cloneLayer(l: GarmentLayerData): GarmentLayerData {
     textile: l.textile,
     textileScale: l.textileScale,
     textileRotation: l.textileRotation,
+    textileRepeat: l.textileRepeat,
     tartan: l.tartan,
     ombre: l.ombre,
     wear: l.wear,
