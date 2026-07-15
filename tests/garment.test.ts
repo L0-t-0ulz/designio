@@ -99,6 +99,15 @@ describe('garment registry + factory', () => {
     expect(specs('pants').length).toBe(2) // two legs
   })
 
+  it('the satin bonnet is a crown-anchored headwear garment that defaults to satin + loft', () => {
+    const b = getGarment('bonnet')
+    expect(b.name).toMatch(/bonnet/i)
+    expect(b.pieces.some((p) => p.kind === 'headTube' && p.anchor === 'crown')).toBe(true)
+    expect(b.defaultFabric).toBe('satin') // the satin sleep bonnet
+    expect(b.defaults?.puff).toBe(true) // trapped-air loft puffs the dome off the head
+    expect(b.supports.beanieFit).toBe(true) // fits + turns/nods with the head like the beanies
+  })
+
   it('every catalog garment produces geometrically valid tube pieces', () => {
     for (const t of GARMENT_IDS) {
       for (const spec of specs(t)) {

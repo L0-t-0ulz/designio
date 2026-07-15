@@ -524,6 +524,19 @@ export const GARMENTS: GarmentDefinition[] = [
     pom: true
   },
   {
+    id: 'bonnet',
+    name: 'Satin bonnet',
+    category: 'outerwear',
+    icon: 'top',
+    // a roomy gathered sleep bonnet — the beanie's gathered-crown block (small top,
+    // brim gathered at the hairline) worn loose in satin, with trapped-air loft puffing
+    // it up off the head so it stands roomy (the classic satin hair bonnet)
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.26, dropLo: 0.32, topScale: 0.13, botScale: 1.22 }],
+    supports: { beanieFit: true, length: true, ease: true, flare: true },
+    defaults: { length: 0.5, ease: 0.008, flare: 0, puff: true },
+    defaultFabric: 'satin'
+  },
+  {
     id: 'convertible',
     name: 'Convertible 3-way',
     category: 'outerwear',
