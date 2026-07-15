@@ -60,6 +60,7 @@ export interface MenuActions {
   onGlossary: () => void
   onLessons: () => void
   onChallenges: () => void
+  onReview: () => void
   onAbout: () => void
 }
 
@@ -209,6 +210,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Measure distances', run: a.onMeasure },
     { label: 'Add annotation', run: a.onAnnotate },
     { label: 'Clear measurements', run: a.onClearMeasure },
+    { label: 'Design review…', run: a.onReview },
     { sep: true },
     { label: 'Camera bookmarks…', run: a.onCameraBookmarks },
     { label: 'Depth of field', run: a.onToggleDOF },
