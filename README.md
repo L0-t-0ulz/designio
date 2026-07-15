@@ -131,7 +131,9 @@ numbers):
 
 - **3D** — the live simulated garment on the avatar.
 - **2D Pattern** — the real flat pattern of the garment you designed (2D and 3D stay in sync).
-- **Render** — supersample the current view to a crisp **HD / 2K / 4K** PNG and save it.
+- **Render** — supersample the current view to a crisp **HD / 2K / 4K** PNG and save it, or flip on
+  **✦ Path traced** for an offline, physically-based **GI hero render** (true global illumination · soft
+  shadows · accurate fabric sheen).
 
 **The right dock** — an **Object Browser** (every garment worn on the body: select · show/hide · add ·
 duplicate · delete) above a **context-sensitive Property Editor** that switches between three contexts:
@@ -271,6 +273,13 @@ Design the *textile itself*, not just pick one:
 | ![A herringbone weave draft on a dress](docs/weave-draft.png) | ![A fair-isle colourwork knit](docs/colourwork.png) | ![The same jersey in chunky yarn](docs/yarn-chunky.png) |
 | threading · tie-up · treadling → the real drawdown | knit/purl/cable charts + fair-isle / intarsia colour | count · ply · twist change the hand — look **and** drape |
 
+![A Royal Stewart tartan — a real thread-count sett woven in 2/2 twill](docs/tartan.png)
+
+- **Tartan sett designer** — a real sett (thread-count coloured stripes) woven in **2/2 twill**: a
+  *reflective* sett mirrors about its two pivot threads into the symmetric repeat, and the twill diagonal
+  blends the warp + weft so a colour crossing itself reads solid while two different colours hatch
+  half-and-half (Black Watch · Royal Stewart · Hunting · Dress Blue · Camel check · Grey).
+
 - **Weave draft designer** — author a real loom draft (threading · tie-up · treadling); the drawdown's
   interlacement + float lengths bake into the weave's normal + roughness maps (plain · basket · twills ·
   satin · herringbone presets, or draw your own).
@@ -389,6 +398,13 @@ with a walk and settling plumb.
 | Cloth-sim knit beanie | Scarf with verlet fringe |
 | --- | --- |
 | ![A cloth-sim knit beanie draped on the head](docs/beanie-cloth.png) | ![A knit scarf with real hanging fringe strands on its tails](docs/scarf-fringe.png) |
+
+One scarf, many **worn-states** — each a distinct cloth spawn + pinning, not a preset pose:
+
+| Blanket-scarf shoulder drape | Double wrap | Cowl-to-hood |
+| --- | --- | --- |
+| ![An oversized blanket scarf draped over both shoulders like a ruana](docs/scarf-blanket.png) | ![A scarf wound twice around the neck](docs/scarf-double.png) | ![A knit snood pulled up over the crown into a hood](docs/cowl-hood.png) |
+| oversized square over the shoulders (ruana) | spiralled twice around the neck | a snood pulled up over the crown, with a face opening |
 
 ---
 
@@ -519,6 +535,12 @@ still). Then bring it to life:
 
 *(The viewport renders adaptively — full frame rate while anything moves or you interact, and a light idle
 heartbeat when the scene is settled, so it stays smooth and light.)*
+
+For a hero shot, the **Render** tab can path-trace the scene offline — a GPU path tracer (three-gpu-pathtracer)
+bakes the posed garments + body into a BVH and converges accumulated samples for true global illumination,
+soft shadows and accurate glossy fabric sheen, a step beyond the rasterised still:
+
+![A runway-lit gown, path-traced in the Render tab with global illumination](docs/path-traced.png)
 
 ---
 
