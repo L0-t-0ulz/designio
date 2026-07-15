@@ -86,7 +86,17 @@ const shots = [
   // Motion & shots
   ['docs/render-tab.png', 5000, 'garment=gown&fabric=satin&light=runway&view=render&start=0'],
   ['docs/path-traced.png', 90000, 'garment=gown&fabric=satin&light=runway&pathtrace=1&ptQuality=high&freezeAt=2.5&start=0'], // the offline GI trace needs ~60s to converge
-  ['docs/wind.png', 3500, 'garment=dress&fabric=chiffon&wind=runway&anim=idle&start=0']
+  ['docs/wind.png', 3500, 'garment=dress&fabric=chiffon&wind=runway&anim=idle&start=0'],
+  // New fabrics + finishes
+  ['docs/boiled-wool.png', 4500, 'garment=top&fabric=boiled-wool&closeup=1&start=0'],
+  ['docs/waxed-cotton.png', 6500, 'garment=coat&fabric=waxed-cotton&start=0'],
+  ['docs/corduroy-cap.png', 4500, 'garment=top&fabric=corduroy-cap&closeup=1&start=0'],
+  ['docs/thermochromic.png', 6000, 'garment=dress&fabric=denim&thermo=1&thermoTemp=0.55&start=0'],
+  ['docs/reflective-piping.png', 6000, 'garment=beanie&fabric=melton&reflectiveTrim=1&trimColor=e8ecf0&closeup=head&headDist=0.55&start=0'],
+  // New cloth-sim headwear
+  ['docs/durag.png', 8000, 'garment=durag&closeup=head&headDist=0.6&start=0'],
+  ['docs/bonnet.png', 8000, 'garment=bonnet&closeup=head&headDist=0.6&start=0'],
+  ['docs/undercap.png', 8000, 'garment=undercap&closeup=head&headDist=0.6&start=0']
 ]
 
 let failed = 0

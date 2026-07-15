@@ -233,6 +233,11 @@ Every weave has its own procedural micro-surface — smooth satin floats, vertic
 | ![A waffle-knit top — the chunky thermal-honeycomb weave relief](docs/waffle-knit.png) | ![A fleece top — a soft, matte, fuzzy napped-knit pile](docs/fleece.png) | ![A leather top — smooth supple hide with a subtle pebbled grain](docs/leather.png) |
 | --- | --- | --- |
 
+More wovens — a felted loden **boiled wool**, a low-sheen waxed-cotton **rain shell**, and a **cap corduroy** with chunkier mid-wales scaled for small panels:
+
+| ![A boiled-wool top — a felted matte loden coating wool](docs/boiled-wool.png) | ![A waxed-cotton coat — a low semi-gloss paraffin rain shell](docs/waxed-cotton.png) | ![A cap corduroy — chunkier mid-wale cord for hats](docs/corduroy-cap.png) |
+| --- | --- | --- |
+
 Live-inspect any fabric (GSM, stretch, drape, grip, roughness, sheen, weave density/depth, anisotropy,
 sheerness), and macro-zoom to see the woven micro-surface. Pick a colour and DesignIO snaps it to the
 nearest **named production reference** (`TR-####`), shown in the panel and carried into the tech-pack.
@@ -258,6 +263,11 @@ they simulate and export with it:
 | --- | --- | --- |
 | ![A diamond-quilted bomber](docs/quilt.png) | ![A shearling fur coat with a fuzzy pile](docs/fur.png) | ![A waterlogged wet-look dress](docs/wet.png) |
 | channel · diamond · box pillow-loft | directional fuzzy pile, no extra geometry | waterlogged: darker + glossy, clings limp |
+
+| Thermochromic (heat-reactive) | Reflective piping |
+| --- | --- |
+| ![A denim dress fading pale as it warms — a heat-reactive thermochromic dye](docs/thermochromic.png) | ![A melton beanie ringed with bright hi-vis retroreflective piping](docs/reflective-piping.png) |
+| shifts colour with a temperature slider (leuco-dye pale fade) | retroreflective hi-vis trim that lights toward the camera |
 
 The **iridescent** finish flows a real oil-on-water swirl across the surface (a procedural thin-film
 thickness map), not a flat colour shift. The **Wet look** toggle (in the Appearance panel) makes the fabric
@@ -403,6 +413,11 @@ with a walk and settling plumb.
 | Cloth-sim knit beanie | Scarf with verlet fringe |
 | --- | --- |
 | ![A cloth-sim knit beanie draped on the head](docs/beanie-cloth.png) | ![A knit scarf with real hanging fringe strands on its tails](docs/scarf-fringe.png) |
+
+More cloth-sim headwear — a silky satin **durag** with its nape flap, a puffed satin **sleep bonnet**, and a snug jersey **hijab under-cap**:
+
+| ![A silky satin durag with a nape flap](docs/durag.png) | ![A puffed satin sleep bonnet](docs/bonnet.png) | ![A snug open-face jersey hijab under-cap](docs/undercap.png) |
+| --- | --- | --- |
 
 One scarf, many **worn-states** — each a distinct cloth spawn + pinning, not a preset pose:
 
