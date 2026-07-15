@@ -44,7 +44,7 @@ If you are unsure whether something is allowed, **ask first.**
 - [The professional studio — every panel](#the-professional-studio--every-panel)
 - [The garment catalog — 52 garments](#the-garment-catalog--52-garments)
 - [Construction detail](#construction-detail)
-- [The fabric library — 29 fabrics](#the-fabric-library--29-fabrics)
+- [The fabric library — 35 fabrics](#the-fabric-library--35-fabrics)
 - [Surface design & fabric finishes](#surface-design--fabric-finishes)
 - [Per-part & per-panel fabric](#per-part--per-panel-fabric)
 - [Prints, logos & text](#prints-logos--text)
@@ -74,7 +74,7 @@ If you are unsure whether something is allowed, **ask first.**
 | What | DesignIO |
 | --- | --- |
 | **Garments** | 31 data-driven garments across tops · bottoms · dresses · one-pieces · outerwear · headwear |
-| **Fabrics** | 24 real fabrics with physical **and** visual properties that drive both drape and look |
+| **Fabrics** | 35 real fabrics with physical **and** visual properties that drive both drape and look |
 | **Body** | imported photoreal GLB avatar (default) or a sculpted metaball body — female/male, fully shapeable |
 | **Simulation** | XPBD cloth · mesh-accurate BVH body collision · cloth self/inter-collision · 4D motion · trapped-air puffer loft |
 | **Surface** | textiles · ombré · distressing · sequins · iridescence · quilting · lace · faux-fur · wet look · photo→PBR swatch |
@@ -119,7 +119,7 @@ empty clipboard, last garment).
 | Tab | What's in it |
 | --- | --- |
 | **Garments** | the full 43-garment catalog, grouped by category, each a one-click add |
-| **Fabrics** | all 29 fabrics — **filter** by family · weight · stretch, combined with the text search |
+| **Fabrics** | all 35 fabrics — **filter** by family · weight · stretch, combined with the text search |
 | **Avatars** | body type, presets and the mannequin options |
 | **Presets** | curated looks to start from |
 
@@ -210,7 +210,7 @@ gold topstitch guide inset from each panel's sew line.
 
 ---
 
-## The fabric library — 29 fabrics
+## The fabric library — 35 fabrics
 
 Every fabric carries **physical** properties (weight, stretch, bendiness, friction) that drive the
 **drape**, and **visual** properties (weave, sheen, anisotropy, sheerness, roughness) that drive the
@@ -637,7 +637,7 @@ src/
                 (default realistic avatar) · skin · measure · poses · bodyPresets · accessories · face · colliders
     cloth/      XPBDSolver · ClothCollision (self/inter) · ClothWorld (sewn panels) · Garment · adaptiveMesh
                 · FabricMaterial · fabricPresets · windPresets · simQuality
-    fabric/     FabricLibrary (29 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
+    fabric/     FabricLibrary (35 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
                 · iridescent · quilt · lace · fur · namedColors · heatmap · wrinkle
     garments/   schema (GarmentDefinition) · registry (the 43-garment catalog, as data) · factory · decor
     garment/    GarmentController (one garment's multi-piece sim, body-anchored) · templates
