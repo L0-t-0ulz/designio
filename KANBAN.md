@@ -1033,7 +1033,377 @@ _The moonshots that make this a next-generation design tool. Each is deep + spec
   - **Ruled out (all verified by render + revert):** real forearm anchor + forearm pin · mid-ring pin · cuff pin · pinning the whole sleeve rigid · zeroing the shoulder-cap lift · snugging the long-sleeve width · disabling inter-piece `ClothCollision`. **All sleeve-side — none relevant, per the breakthrough.**
   - **Likely real fix (now correctly located in the BODY tube):** support/pin the body-tube **shoulder span** so the unsupported shoulder points can't splay — e.g. an extra pin group across the shoulder-line row to the shoulder/torso frame, or shape the top-edge so the shoulder seam sits on the deltoid capsule (collides + holds), or narrow the shoulder ring toward the neck so there's no unsupported span. Needs its own careful pass + golden re-verify (golden dress is short-sleeve but **also** a full-shoulder bodice — so re-verify the golden set carefully).
 - [ ] **Shoulder-cap fabric puff** — the armhole-gap cap lift (`a.y += 0.7·armR`, inboard `0.55·armR`) leaves excess fabric at the sleeve head that puffs up/out over a thin arm; wants a smoother cap easing so the overlap closes the gap without bunching
-- [ ] **Waffle/fleece surface reads flat** — the waffle grid barely shows and fleece reads as a technical net at range; both want stronger, softer relief (waffle: deeper cells; fleece: a fuzzier matte pile hint on the base fabric, not only the `?fur=fleece` finish)
+- [x] **Waffle surface reads flat** — rebuilt the waffle weave as a chunky 2×2-thread thermal honeycomb (proud wall over a deep domed cell) so the relief reads at garment scale + a README photo — PR #367
+- [ ] **Fleece reads as a technical net** — fleece's shared `'knit'` weave reads as a fine diagonal net at range; wants a fuzzier matte pile hint on the *base* fabric (a napped-knit path), not only the `?fur=fleece` finish
+
+## 📐 2D pattern-making — batch added 2026-07-15 _(300+ specific flat-pattern CAD cards — the deep 2D drafting / grading / marker / production side, in the spirit of Gerber · Lectra · Optitex · Seamly2D · CLO 2D. Each is concrete + mostly unit-testable pure geometry.)_
+
+### A. Drafting canvas & primitives
+- [ ] **True-scale drafting canvas** — a real cm/inch grid the 2D pieces live on (not just an unwrap view), with pan/zoom, rulers, and a numeric origin, so points can be placed by exact coordinate
+- [ ] **Point tool with coordinate entry** — drop a control point at an exact (x, y) or by offset (dx, dy) from an existing point; every point is named + editable in a point table
+- [ ] **Line by length + angle** — draw a segment from a point at an exact length + angle (or Δx/Δy), the pattern-drafter's core stroke
+- [ ] **Perpendicular & parallel construction** — drop a perpendicular from a point to a line, or a parallel at a set distance (armscye squares, waistline squares)
+- [ ] **Point-on-line at distance / proportion** — place a point a set cm along a segment or at a fraction (¼, ⅓) of its length, staying live if the segment changes
+- [ ] **Intersection points** — line×line, line×curve, curve×curve intersection markers that update as inputs move
+- [ ] **Midpoint · bisector · division** — midpoint of a segment, angle bisector, and divide-into-N-equal-parts helpers
+- [ ] **Tangent construction** — a line tangent to a curve from an external point (dart legs, hip-curve blends)
+- [ ] **Snapping & guides** — snap to points/midpoints/intersections/grid + draggable construction guides, with a snap-distance setting
+- [ ] **Reference (construction) vs finished lines** — a construction-geometry layer (thin/dashed) that drives finished lines but doesn't cut or export
+- [ ] **Formula-driven dimensions** — any length/angle can be an expression referencing measurements + other values (`bust/4 + 1cm`), recomputed on change (the Seamly2D formula model)
+- [ ] **Undo/redo on the draft graph** — the construction is a dependency graph; editing an upstream point re-solves downstream, with full undo
+- [ ] **Point/curve labels + auto-lettering** — A, B, C… lettering along a draft (industry drafts read by letter), auto-placed + toggle-able
+- [ ] **Measure-between overlay** — a live dimension line between any two points/curve that reads the current cm and stays attached
+- [ ] **Mirror-live axis** — a symmetry axis so a half-draft mirrors live (edit one side, both update) until you "cut" to a full piece
+- [ ] **Group / component sub-drafts** — reusable parametric sub-drafts (a standard armscye, a placket) inserted + positioned, editable as a unit
+
+### B. Curve & line tools
+- [ ] **Bézier / spline curve tool** — author neckline/armhole/hip curves as editable Béziers with handles, not just sampled arcs
+- [ ] **Curve through points (interpolating spline)** — fit a smooth curve through N control points (waist→hip→hem), tension-adjustable
+- [ ] **French-curve / hip-curve stamps** — a library of standard pattern-maker curves you can lay down + trace, matched at endpoints
+- [ ] **Curvature-continuous blends** — G2 blends where two curves meet (a princess seam over the bust) so the joined line has no kink
+- [ ] **Offset curve** — a true parallel offset of a curve at a set distance (internal design lines + seam allowance on curves)
+- [ ] **Curve length readout + reshape-to-length** — show a curve's arc length and nudge its shape to a target length while keeping endpoints
+- [ ] **Fillet & chamfer corners** — round or bevel a corner to a set radius (softened hems, rounded patch pockets)
+- [ ] **Smooth / simplify a digitized curve** — reduce a noisy imported curve to clean control points within a tolerance
+- [ ] **Flip / reverse curve direction** — reverse a curve's sense so seam-walk + notch ordering line up
+- [ ] **Corner angle readout** — display the interior angle at a corner (checking a right-angle centre-front/hem)
+- [ ] **Break / join curves** — split a curve at a point into two, or join two curves into one editable path
+- [ ] **Convert arc ↔ bézier ↔ polyline** — switch a curve's representation for editing or export
+
+### C. Blocks & slopers (drafting from measurements)
+- [ ] **Bodice-block drafter** — a parametric front/back bodice sloper from bust/waist/back-length/shoulder/across measurements
+- [ ] **Skirt-block drafter** — a straight/A-line skirt sloper from waist/hip/hip-depth/skirt-length
+- [ ] **Trouser-block drafter** — a trouser sloper from waist/hip/rise/inseam/thigh/knee/hem with a real crotch curve
+- [ ] **Sleeve-block drafter** — a one-piece sleeve drafted to a given armscye (cap height from AH, bicep, length) that *walks* to the bodice armhole
+- [ ] **Two-piece (tailored) sleeve** — upper + under sleeve with the elbow bend, for jackets/coats
+- [ ] **Dress block** — a torso block combining bodice + skirt through the waist with dart control
+- [ ] **Bodice → shift/shirt derivation** — derive a shift, a shirt, a tunic from the block by adding ease + moving darts
+- [ ] **Knit block (negative-ease)** — a stretch block that reduces girths by a stretch-factor for jersey/rib garments
+- [ ] **Kids' / men's / plus block variants** — block drafts with the right proportion rules per size block, not a scaled women's block
+- [ ] **Standard measurement charts** — built-in ASTM/EN/JP body-measurement tables to seed a block, editable
+- [ ] **Ease chart per block** — wearing ease + design ease tables by garment type + fit (fitted/semi/relaxed/oversized)
+- [ ] **Block library + versioning** — save/name/version personal blocks, branch a style off a block, re-fit when the block changes
+- [ ] **Balance / hang lines** — draw the grain/balance lines on a block and check the piece hangs on-grain
+- [ ] **Draft-from-3D** — flatten a fitted 3D garment back to a 2D block (the reverse of sew-to-drape), as a starting sloper
+
+### D. Dart engineering
+- [ ] **Dart insert** — add a dart at a point with a chosen leg-length + intake width; the wedge is real removed fabric
+- [ ] **Dart rotation (pivot)** — pivot a dart's intake to a new position around an apex (waist → side/French/neckline dart), conserving intake
+- [ ] **Slash-and-spread** — cut a slash line and spread/close it to move or add fullness, the fundamental transform
+- [ ] **Dart-to-seam** — convert a dart into a shaped seam (a princess line) that removes the same shaping
+- [ ] **Dart-to-gather / -tuck / -pleat** — release a dart's intake as gathers, tucks, or pleats instead of a stitched dart
+- [ ] **Multiple / split darts** — split one dart into two or three smaller darts radiating from an apex
+- [ ] **Dart equalization + apex setback** — set the dart point back from the true apex + balance leg lengths
+- [ ] **Dart trueing (fold-and-cut)** — true the dart legs so, folded closed, the seam edge is a smooth line
+- [ ] **Contour / fisheye (double-point) dart** — a waist contour dart with two points for a fitted dress/waistcoat
+- [ ] **Dart intake from ease** — compute the required dart intake from the girth difference (bust vs under-bust) automatically
+- [ ] **Dart underlay / cut-away** — choose whether the dart is pressed to one side or cut open + graded
+- [ ] **Dart-value transfer log** — track where a block's total dart value went (bust/waist/shoulder) so nothing is lost
+
+### E. Seams & seam allowance
+- [ ] **Per-edge seam allowance (first-class)** — a different, editable SA per edge on the flat (export already does per-edge; surface it in the 2D editor)
+- [ ] **SA by seam type** — presets that set the allowance from the seam (plain 1 cm · french · flat-fell · overlock · hem) per edge
+- [ ] **Corner treatments** — mitered, butted, notched, and extended corners where two seam-allowance edges meet
+- [ ] **SA corner auto-fold-check** — verify the allowance folds flat at a corner (no negative wedge) and flag bad corners
+- [ ] **Sew line vs cut line as separate paths** — both drawn + exported, with the offset always current
+- [ ] **Variable / tapered SA** — a seam allowance that tapers along an edge (a curved hem to a point)
+- [ ] **Seam-intersection cleanup** — trim/extend allowances so adjoining pieces' corners nest without overlap
+- [ ] **Turn-of-cloth allowance** — a fabric-thickness allowance on faced/collared edges so the layers roll correctly
+- [ ] **SA on internal openings** — allowance around a slit/vent/pocket-mouth cut into a piece
+- [ ] **Clip/notch the SA for curves** — auto-place clip marks in the allowance on tight concave curves so they press
+- [ ] **Seam-type visual key** — the flat pattern shows each seam's type/stitch as a legend + coloured edge
+
+### F. Notches, drill holes & marks
+- [ ] **Notch types** — single · double · triple · T · slit · U · castle notches on an edge, industry-standard shapes
+- [ ] **Balance / match notches** — paired notches on two edges that must align when sewn (walk-derived, auto-numbered)
+- [ ] **Ease/gather notches** — notches that bound a gather/ease region with the ease amount labelled
+- [ ] **Fold-line notches** — notches marking a fold (lapel roll line, cuff fold, hem fold)
+- [ ] **Drill holes** — interior drill/awl marks for dart points, pocket corners, buttonhole ends, with an offset-from-point rule
+- [ ] **Button & buttonhole placement marks** — a button run with count/spacing driving marks on both the button + buttonhole pieces
+- [ ] **Punch / eyelet marks** — for drawstrings, lacing, grommets, placed by rule
+- [ ] **Match-point cross marks** — internal registration crosses for a placed pocket/appliqué/panel
+- [ ] **Notch depth/width standard** — set the shop's notch dimensions once; all notches use them (cutter-safe depths)
+- [ ] **Notch-collision guard** — warn if a notch lands on a curve corner or too near another notch/edge
+
+### G. Grainlines, fold lines & annotation
+- [ ] **Grainline tool** — a double-arrow grainline on every piece, settable to warp/weft/true-bias, that the marker respects
+- [ ] **Off-grain / bias angle** — set a piece's grain to an arbitrary angle (a bias-cut cowl) and carry it to the marker
+- [ ] **Fold line (cut-on-fold)** — mark an edge as placed-on-the-fold so the piece is cut as a mirrored whole
+- [ ] **Piece nomenclature block** — style · piece name · size · cut-count · fabric · grain stamped on each piece
+- [ ] **Cut-count + fabric-type label** — "Cut 2 self · 1 interfacing" auto-derived from the piece's role
+- [ ] **Directional / nap arrow** — a one-way arrow for napped/printed fabrics that constrains marker rotation
+- [ ] **Internal design-line annotation** — style lines, topstitch lines, quilting lines drawn as annotation on a separate export layer
+- [ ] **Text + leader notes on a piece** — freeform callouts with leader lines (e.g. "clip to here", "ease 0.5 cm")
+- [ ] **Scale-check square** — a 10 cm test square on every exported sheet so a printed pattern can be verified at 100 %
+- [ ] **Piece colour / hatch by fabric** — pieces tinted or hatched by their fabric so a multi-fabric style reads at a glance
+
+### H. Trueing, walking & measuring seams
+- [ ] **Walk-a-seam** — roll one piece's seam along the mating piece's seam to check equal length + notch alignment
+- [ ] **Auto seam-length balance** — report the length difference of two seamed edges + where the ease/stretch sits
+- [ ] **Ease distribution along a seam** — spread a seam's ease (sleeve cap, princess over bust) by a curve, not evenly
+- [ ] **Trueing across a seam** — blend a line (waist, hem, armhole) smoothly across a seam so it's continuous when sewn
+- [ ] **Right-angle-at-seam enforcement** — keep CF/CB/hem square to their seams (no dog-ears)
+- [ ] **Dart-closed trueing** — re-true an edge with its darts folded closed so the cut edge is smooth
+- [ ] **Corner-true when unfolded** — extend seam lines to their true crossing so a folded-open corner is correct
+- [ ] **Seam-length table** — a live table of every seam's length + its partner, flagging mismatches over a tolerance
+- [ ] **Girth-check ring** — sum a set of piece edges around a body girth (waist, chest) + compare to target + ease
+- [ ] **Hem-sweep readout** — the finished hem circumference across all skirt/dress panels
+
+### I. Fullness — pleats, tucks, gathers, flare
+- [ ] **Add-fullness slash-and-spread wizard** — pick edges + a spread amount/ratio and the piece opens with fullness added, hem trued
+- [ ] **Knife / box / inverted pleats** — insert pleats with depth + underlay, foldlines + direction arrows, hem allowance for the pleat
+- [ ] **Accordion / sunburst pleats** — radiating pleats from a waist, with pleat count + taper
+- [ ] **Pin-tucks & released tucks** — stitched-then-released tucks with take-up computed
+- [ ] **Gather ratio control** — set a gather ratio (2:1, 2.5:1) on an edge; the flat lengthens + notches bound it
+- [ ] **Shirring / smocking block** — a rows-of-elastic panel with the contraction ratio + finished vs flat size
+- [ ] **Circular skirt calculator** — full / half / quarter / any-degree circle from waist, with the radius math + seam count
+- [ ] **Godet insert** — drop a triangular godet into a seam for a controlled flare burst (also the 3D card)
+- [ ] **Cascade / handkerchief fullness** — bias fullness for a cowl or a cascading ruffle
+- [ ] **Flare-vs-fit slider on a panel** — parametrically morph a panel straight → A-line → full with the hem trued each step
+- [ ] **Ruffle-strip generator** — a straight or circular ruffle strip for a target gathered/flared finished length
+
+### J. Details on the flat — collars, cuffs, plackets, pockets
+- [ ] **Collar drafters** — convertible · shirt (stand + collar) · mandarin · Peter Pan · shawl · notched lapel, each drafted to the neckline length
+- [ ] **Stand + fall separation** — a two-piece collar with the roll line + the stand height
+- [ ] **Cuff drafters** — barrel · French · single/double, drafted to the sleeve-hem + wrist + button extension
+- [ ] **Placket drafters** — sleeve placket (tower / continuous-bound), shirt front placket, half-placket
+- [ ] **Waistband drafter** — straight/contoured/curved waistband with extension, interfacing piece, and the button/hook marks
+- [ ] **Yoke split** — split a back/shoulder yoke off a bodice with the seam + optional grown-on facing
+- [ ] **Pocket drafts** — patch (with flap), welt / double-welt / besom, jetted, inseam, and slant-front pockets as real piece sets
+- [ ] **Pocket bag + facing pieces** — the hidden bag + mouth facing generated with the pocket, on the piece list
+- [ ] **Fly-front drafter** — zip fly with fly shield + facing + topstitch line + bar-tack marks
+- [ ] **Vent / slit drafter** — a hem vent (skirt/jacket) or sleeve vent with the underlap/overlap + mitre
+- [ ] **Hood drafter** — a 2- or 3-panel hood drafted to the neckline, with a drawstring casing
+- [ ] **Epaulette / tab / loop generator** — small findings (belt loops, tabs, straps) as sized rectangles with fold marks
+
+### K. Facings, hems, bindings & finishes
+- [ ] **Cut-on vs separate facing** — extend an edge into a self-facing (fold-back) or generate a separate facing piece
+- [ ] **All-in-one / combination facing** — a neckline+armhole facing as one shaped piece for a sleeveless bodice
+- [ ] **Bias-binding calculator** — the length + width of bias strip to bind an edge, with the join/piecing count
+- [ ] **Continuous-bias strip layout** — the parallelogram-tube method to cut a long continuous bias strip + its yield
+- [ ] **Hem allowance by hem type** — plain / rolled / blind / faced / bound hem allowances, per edge, with the corner mitre
+- [ ] **Mitred hem/corner** — a proper mitre where a hem meets a vent/opening
+- [ ] **Facing-edge understitch line** — mark the understitch line on facings so the seam rolls to the inside
+- [ ] **Interfacing / interlining pieces** — auto-generate fusible/sew-in pieces from the pieces that need them, cut back slightly
+- [ ] **Lining derivation** — derive a lining from the shell (CB pleat allowance, shortened hem, wearing ease) as its own piece set
+- [ ] **Seam / hem finish spec per edge** — assign a finish (overlock, bound, pinked, turned) that lands in the tech pack
+
+### L. Grading
+- [ ] **Grade-rule library** — named grade rules (X/Y growth per point per size) applied to graded points
+- [ ] **Nested size run** — draw all sizes nested on one piece, colour-coded, from a base size + rules
+- [ ] **Grade by measurement chart** — drive grading from a full size × POM chart instead of hand rules
+- [ ] **Proportional (shift) vs incremental grading** — support both the simple shift and true per-point incremental grading
+- [ ] **Grade reference point** — pick the growth origin (CF/CB/grade-point) per piece
+- [ ] **Non-linear / split-size grading** — different increments below/above a break size (e.g. a plus-size curve)
+- [ ] **Grade a curve smoothly** — regrade a neckline/armhole so every size's curve stays fair, not just moved points
+- [ ] **Grade notches, drills, grainline, internal lines** — everything on the piece grades with it, not just the outline
+- [ ] **Grade from a perfected fit sample** — infer the grade rules by comparing a fitted sample piece to the base
+- [ ] **Size-set validation** — check every graded size still walks/trues/closes (no crossed seams at the extremes)
+- [ ] **Half-size / cup-size grading** — a separate cup-size grade axis for bust-fit bras/bodices
+- [ ] **Grade export (AAMA/ASTM rules)** — export the graded nest + the rule table in the standard formats
+
+### M. Marker making & nesting
+- [ ] **Marker layout canvas** — place graded pieces on a fabric-width strip at their grain, with live utilisation %
+- [ ] **Auto-nest (efficiency)** — an automatic nesting pass that maximises fabric utilisation within grain/nap constraints
+- [ ] **Fabric width + selvage buffer** — set the cuttable width + edge buffer; the marker respects it
+- [ ] **Nap / one-way marker** — lock all pieces to one direction for napped/printed/pile fabric
+- [ ] **Tubular / folded / open marker modes** — half-marker on a fold, tubular knit, or full open-width
+- [ ] **Plaid / stripe matching** — a match grid so pieces align on the check at CF, seams, and pockets, with the repeat set
+- [ ] **Bundle / size ratio** — cut-order ratios per size (e.g. S:2 M:3 L:2) that the marker instances
+- [ ] **Piece buffer / gap** — a set gap between pieces so the cutter blade clears
+- [ ] **Splice marks** — allowable splice zones across a fabric join in a long marker
+- [ ] **Marker efficiency report** — utilisation %, fabric length, and per-size consumption, with a target flag
+- [ ] **Manual override + collision guard** — drag pieces manually with overlap prevention + legal-angle rotation snapping
+- [ ] **Multi-fabric markers** — separate markers per fabric/colourway (self, contrast, lining, interfacing)
+
+### N. Digitizing & import/export
+- [ ] **DXF export (AAMA & ASTM)** — the industry pattern-interchange formats with layers (cut/sew/internal/grade), round-tripping the import
+- [ ] **DXF import round-trip fidelity** — read graded nests + notches + grainlines + piece names back in losslessly
+- [ ] **Gerber / Lectra / Optitex readers** — import piece bundles where the formats are documented
+- [ ] **HPGL / plotter export** — send a marker/piece to a wide-format plotter/cutter at 1:1
+- [ ] **Tiled PDF export (full pieces)** — extend the existing tiled print to whole pieces + a marker, A4/A3/Letter with assembly map
+- [ ] **Layered SVG export** — cut/sew/notch/grain/label as separate SVG layers for Illustrator/Inkscape
+- [ ] **Photo / scan digitizer** — trace a paper pattern from a phone photo with perspective + scale calibration to true cm
+- [ ] **Table digitizer input** — accept a digitizing-tablet point stream (line/curve/notch/drill/grain modes)
+- [ ] **Cut-file export (DXF-cut / ISO-cut)** — a cutter-ready file with cut order + tool assignments
+- [ ] **Measurement/rule CSV import-export** — round-trip measurement charts + grade rules as CSV/XLSX
+- [ ] **Piece thumbnail sheet** — a contact-sheet PDF of every piece with its nomenclature for the pattern-card
+
+### O. Pattern-piece management & the piece catalog
+- [ ] **Piece catalog panel** — every piece listed with name · fabric · cut-count · grain · area, select-to-highlight on the flat
+- [ ] **Mirror / asymmetric pieces** — cut-1-pair vs cut-2-same vs cut-1-on-fold, and true-asymmetry handling
+- [ ] **Piece roles** — self / contrast / lining / interfacing / interlining / underlining, each a filterable set
+- [ ] **Piece grouping by garment section** — front / back / sleeve / collar / pocket groups for big styles
+- [ ] **Duplicate / mirror / flatten piece** — copy a piece, mirror it, or flatten a folded piece to full for editing
+- [ ] **Piece-level lock + visibility** — lock a finished piece from edits; show/hide on the flat + in the marker
+- [ ] **Auto piece-numbering** — stable piece numbers that survive edits, used across marker + tech pack + cut order
+- [ ] **Seam-partner map** — record which edge sews to which edge on which piece (drives walk, 3D sew, and the tech pack)
+- [ ] **Piece area + perimeter readout** — live per-piece area (fabric estimate) + perimeter (edge finishing)
+- [ ] **Piece revision badges** — a piece flags when its upstream block/measurements changed and it needs a re-true
+
+### P. Measurement, POM & fit
+- [ ] **Points-of-measure (POM) sheet** — a garment measurement spec (chest, waist, HPS-to-hem, sleeve length…) measured off the flat pieces
+- [ ] **POM tolerance + grade** — each POM with a ± tolerance + its graded value per size, for the tech pack + QC
+- [ ] **Body vs garment measurement reconcile** — show ease = garment POM − body measure at each landmark
+- [ ] **Fit-sample measurement log** — record measured sample values vs spec, flag out-of-tolerance, and suggest the piece edit
+- [ ] **Made-to-measure remap** — feed a customer's measurements to re-solve the block + regrade the style to a bespoke size
+- [ ] **Measurement dependency to the draft** — a changed body measurement re-solves the dependent draft points live
+- [ ] **Size-chart authoring** — build/edit the brand's size chart (body + garment) with regional presets
+- [ ] **Ease-map visualization** — a colour map on the 2D pieces showing ease/negative-ease by zone
+- [ ] **Auto-fit critique from POM** — flag likely fit issues (tight hip, short rise) from the POM vs body deltas
+
+### Q. 2D ↔ 3D sync & sew-simulation prep
+- [ ] **Live 2D → 3D re-drape** — editing a flat piece re-sews + re-drapes the 3D garment without a full rebuild
+- [ ] **3D → 2D flatten (true development)** — flatten a 3D surface to 2D minimizing distortion, with a strain map showing where it stretches
+- [ ] **Auto seam-pairing from proximity** — propose which flat edges sew together from their 3D adjacency, editable
+- [ ] **Stitch-line assignment on the flat** — draw internal stitch/topstitch lines in 2D and see them on the 3D garment
+- [ ] **Arrange-on-avatar from 2D** — position flat pieces on the 3D body (front/back/sleeve stations) before the sew (extend the existing arrangement)
+- [ ] **Baste-preview** — a fast low-res sew preview to check a seam pairing before the full drape
+- [ ] **2D strain/tension read-back** — bring the 3D drape's strain back onto the 2D pieces so you edit the flat where it pulls
+- [ ] **Symmetry-aware sew** — sew a mirrored pair with one seam definition
+- [ ] **Internal-line → 3D feature** — a 2D dart/pleat/gather line becomes the real 3D take-up on drape
+- [ ] **2D pattern diffing** — a visual diff of two pattern versions (added/removed fabric, moved notches)
+
+### R. Production, QC & costing from the flat
+- [ ] **Fabric consumption from the marker** — true yield (m + cost) per size + per colourway, not an estimate
+- [ ] **Cost sheet from piece areas** — material cost from real piece area + waste %, feeding the existing cost roll-up
+- [ ] **Cut order / lay plan** — plies × marker × size ratio → total fabric + a cut-ticket
+- [ ] **Seam-length → thread + labour** — total seam length by seam type → thread metres + SAM labour estimate
+- [ ] **QC measurement spec export** — the POM + tolerance sheet as a QC form for the factory
+- [ ] **Pattern-card / spec sheet** — the classic pattern-envelope card (piece list, fabrics, notions, cut counts, marker)
+- [ ] **Notion / trim bill from the flat** — buttons, zips, elastic lengths, binding metres derived from the pieces
+- [ ] **Sew-order / operation breakdown** — an ordered operation list (a construction sequence) from the seam-partner map
+- [ ] **Grade-nest print for the cutter** — a print-ready nested size run at scale with cut lines only
+- [ ] **Fabric-utilisation target + alert** — flag a marker below the brand's utilisation floor before release
+
+### S. Made-to-measure & parametric automation
+- [ ] **Fully parametric style** — a style stored as a construction graph (formulas + rules), not fixed geometry, so any measurement set re-drafts it
+- [ ] **Rule-based auto-grade** — grade a fully-parametric style with zero hand rules (the draft re-solves per size)
+- [ ] **Style templates from a block** — parametric styles built on a block that re-fit when the block changes
+- [ ] **Constraint solver** — dimensional + geometric constraints (this seam = that seam, this angle = 90°) the draft satisfies
+- [ ] **Batch made-to-measure run** — a CSV of customer measurements → a folder of per-customer graded patterns + markers
+- [ ] **What-if slider panel** — expose a style's key parameters (ease, length, flare, dart intake) as live sliders on the 2D + 3D
+- [ ] **Auto-block-fit from a 3D scan** — fit a personal block to a scanned/measured body automatically
+- [ ] **Design-intent capture** — a note per parameter recording why a value is what it is, so a re-fit keeps the intent
+
+### T. Collaboration, versioning & UX
+- [ ] **Pattern version history** — named snapshots of the whole pattern (pieces + grade + marker) with restore + diff
+- [ ] **Piece-level comments / redlines** — pin a comment to a piece/edge for a fitter's note, resolvable
+- [ ] **Measurement-driven live preview** — drag a body measurement + watch the flat + 3D update together
+- [ ] **Keyboard-driven drafting** — type length/angle as you draw (a CAD-style command line) for fast drafting
+- [ ] **Pattern print presets** — saved print jobs (tiled A4 home, plotter 1:1, contact sheet) per style
+- [ ] **Unit + precision settings** — cm/inch, decimal/fractional inches, snap precision, per-project
+- [ ] **Template + block sharing** — export/import a block or parametric style as a portable file
+- [ ] **Draft-graph inspector** — a tree of the construction dependencies to debug a broken re-solve
+- [ ] **Onboarding drafting tutorial** — an interactive "draft your first bodice block" walkthrough
+
+### U. Specialty garment block drafters
+- [ ] **Shirt / blouse drafter** — a full shirt block with yoke, front placket, collar+stand, cuff+placket, and back pleat, all sized off the block
+- [ ] **A-line / flared dress drafter** — a dress from the bodice+skirt block with the waist dart released into flare
+- [ ] **Wrap-dress drafter** — an overlapping wrap front with the tie extension + the neckline/hem crossover geometry
+- [ ] **Princess-seam dress** — a bodice with the bust dart converted to a princess seam over the apex, front + side-front pieces
+- [ ] **Culotte / palazzo drafter** — a trouser-skirt hybrid from the trouser + skirt blocks
+- [ ] **Jumpsuit / boilersuit drafter** — a one-piece bodice+trouser through a dropped or fitted waist seam
+- [ ] **Cape / poncho drafter** — a circular/segmented cape with the neckline + arm-slit geometry
+- [ ] **Kimono / dolman drafter** — a grown-on sleeve (no armscye) with the underarm gusset for movement
+- [ ] **Raglan drafter** — a raglan bodice + sleeve with the neck-to-underarm seam split from the block
+- [ ] **Cowl-neck drafter** — a bias cowl draped as a 2D development with the fold-depth parameter
+- [ ] **Peplum drafter** — a flared peplum from a waist seam (circular or gathered) with the join length matched
+- [ ] **Gathered / tiered skirt drafter** — N tiers with a fullness ratio per tier + the seam lengths matched
+
+### V. Knit & stretch-specific drafting
+- [ ] **Stretch-reduction factor** — reduce girths by a per-direction stretch % so a knit block fits with negative ease
+- [ ] **Two-way vs four-way stretch handling** — different reductions for warp/weft when only some directions stretch
+- [ ] **Rib-band drafter** — neck/cuff/hem rib bands cut shorter than the opening by a stretch-fit ratio
+- [ ] **Binding vs banded edge for knits** — the two standard knit edge finishes with their strip lengths
+- [ ] **Fold-over-elastic (FOE) edges** — a FOE finish length + the seam-allowance treatment
+- [ ] **Activewear panel-lines** — sculpting/colour-block panels on a stretch block that stay on-grain for compression
+- [ ] **Flatlock / coverstitch seam spec** — knit seam types (flatlock, coverstitch, overlock) on the flat + tech pack
+- [ ] **Gusset drafter (knit)** — a diamond/hexagonal gusset for leggings/bodysuits at the crotch
+- [ ] **Seamless-knit tube layout** — a tubular-knit garment defined as a tube with shaping, no side seams
+- [ ] **Recovery / power-mesh zones** — mark high-compression zones that use a firmer knit block region
+
+### W. Bras, swim & foundation
+- [ ] **Bra-cup drafter** — a 2-, 3-, or 4-piece moulded/cut-and-sew cup drafted to a bust volume + cup size
+- [ ] **Cradle / frame + band** — the bridge, cradle, and band pieces with the underwire channel path
+- [ ] **Wing + strap drafter** — the back wing with the hook-and-eye extension + strap placement
+- [ ] **Cup-size grade axis** — grade cups independently of the band (a true bra size matrix)
+- [ ] **Swimsuit block** — a maillot block with the leg-line, gusset, and the elastic-reduction along every edge
+- [ ] **Bikini piece set** — top cups + ties + bottom with the side-tie or bonded-edge options
+- [ ] **Elastic reduction per edge** — each foundation edge shortens by its elastic's stretch factor, edge-specific
+- [ ] **Boning-channel layout** — draw boning channels + their spring-steel lengths on a foundation piece
+- [ ] **Lining / power-net derivation** — a firmer inner layer derived from the shell for support
+- [ ] **Nipple/apex + centre-front balance** — apex placement + CF depth parameters for cup fit
+
+### X. Tailoring & structured garments
+- [ ] **Tailored-jacket block** — a two-piece front with the bust dart, side-body, and the back with a CB seam
+- [ ] **Notched / peak lapel drafter** — the lapel + gorge + collar with the roll line + the break point
+- [ ] **Canvas / chest-piece pattern** — the internal haircloth/canvas shape for a structured chest
+- [ ] **Shoulder-pad allowance** — add the pad thickness into the shoulder + armhole so the sleeve still sets in
+- [ ] **Sleeve-head / sleeve-roll piece** — the wadding strip that supports a tailored sleeve cap
+- [ ] **Welt/besom pocket + flap set** — jetted pocket pieces with the flap, welts, and the pocket bags
+- [ ] **Vent (single/double) + facing** — a tailored back vent with the mitred facing + the bar-tack marks
+- [ ] **Under-collar on the bias** — the under-collar cut on the bias with turn-of-cloth so the collar rolls
+- [ ] **Waistcoat block** — a fitted waistcoat with the front points, welt pockets, and the back with a buckle strap
+- [ ] **Trouser tailoring details** — fly, waistband curtain, back-dart, and the crease/press lines
+
+### Y. Corsetry, historical & couture
+- [ ] **Corset panel drafter** — a multi-panel corset over the bust/waist/hip with the boning + busk placement
+- [ ] **Bias-cut gown development** — a true-bias dress panel with the on-bias grain + the seam-stretch allowance
+- [ ] **Godet-gore gown** — a many-gore fishtail gown with each gore's flare + the seam lengths matched
+- [ ] **Panniers / crinoline support** — a hooped underskirt structure pattern with the boning rings
+- [ ] **Draping-to-pattern capture** — capture a physically-draped muslin (photo/scan) into flat pieces
+- [ ] **Historical block library** — period blocks (Victorian bodice, 1920s, New Look) with their proportion rules
+- [ ] **Couture seam allowances** — wide couture allowances + basting/thread-trace lines on the pieces
+- [ ] **Boning-plan optimizer** — place boning to control a given seam's shape with the minimum count
+- [ ] **Hand-finish spec** — mark hand-picked/prick-stitch/catch-stitch edges for a couture tech pack
+
+### Z. Technical, performance & outerwear
+- [ ] **Seam-sealing / taping paths** — mark which seams get seam-tape (waterproof) + the tape length
+- [ ] **Bonded / welded-seam spec** — no-sew bonded edges with the bond-width allowance instead of an SA
+- [ ] **Articulated knee/elbow darting** — pre-bent articulation via darts/seams for outdoor + moto gear
+- [ ] **Zip drafters** — separating, invisible, two-way, and storm-flap zips with the tape + facing pieces
+- [ ] **Baffle / down-channel layout** — quilted down baffles with the channel loft + the sewn-through vs box-wall option
+- [ ] **Storm flap / draft tube** — a wind placket + an internal draft tube along a zip
+- [ ] **Pit-zip / vent set** — an underarm vent with the zip + the mesh backing piece
+- [ ] **Hood with wire brim + cord** — a technical hood with a wired peak + the drawcord channels
+- [ ] **Reflective / bonded trim paths** — placement lines for reflective tape/piping on a piece
+- [ ] **Pack / stuff geometry** — a garment's packed volume estimate from piece areas + fabric loft
+
+### AA. Bags, hats & non-apparel flat patterns
+- [ ] **Tote / duffel drafter** — panels + gusset + strap + base for a soft bag, with the seam-allowance boxes
+- [ ] **Boxed-corner / gusset math** — the boxed-corner cut for a bag base from width×depth
+- [ ] **Structured-hat panel set** — the crown gores + brim + band panels for a 6-panel/blocked hat (2D of the 3D hats)
+- [ ] **Cap panel + bill pattern** — a 5/6-panel cap crown + the bill/underbill flat pieces
+- [ ] **Glove / mitten drafter** — a hand-shaped glove with the fourchettes + thumb gusset
+- [ ] **Shoe-upper flat** — a simple shoe/slipper upper development from a last outline
+- [ ] **Belt / strap hardware layout** — strap lengths with buckle/D-ring/keeper placement + the punch holes
+- [ ] **Soft-goods pattern (cushion/cover)** — a parametric cushion/cover with piping + zip closure
+- [ ] **Pattern-piece kit export** — a labelled cut-kit sheet for a non-apparel maker
+
+### BB. Standards, symbols & pattern hygiene
+- [ ] **ASTM/AAMA symbol set** — standardized pattern symbols (grainline, fold, notch, drill, button) rendered to spec
+- [ ] **Self-intersection / degenerate guard** — detect a piece outline that crosses itself or has a zero-area sliver
+- [ ] **Open-outline / unclosed-piece check** — flag a piece whose boundary doesn't close before cut/marker
+- [ ] **Minimum-SA / tiny-corner check** — flag corners/edges where the allowance is below the shop minimum
+- [ ] **Grain-vs-symmetry sanity** — warn when a mirrored piece's grain would flip against a nap
+- [ ] **Overlapping-notch / notch-on-corner check** — the notch-hygiene validator across all pieces
+- [ ] **Piece-name / cut-count completeness** — flag any piece missing its nomenclature before export
+- [ ] **Units & scale integrity check** — verify every piece shares the project unit + scale before a plot
+- [ ] **Seam-partner completeness** — flag any finished edge with no assigned seam partner or finish
+- [ ] **Round-trip export/import validator** — export then re-import a pattern and diff to prove no data loss
+
+### CC. Advanced curve / surface math (pure, unit-testable)
+- [ ] **Arc-length parameterization** — reparameterize a curve by true arc length so notches/ease sit at real distances
+- [ ] **Curve fairing / minimum-energy smoothing** — smooth a curve to minimum bending energy within an endpoint/tolerance constraint
+- [ ] **Offset with self-intersection removal** — a robust curve offset that trims the loops a naive offset creates on tight curves
+- [ ] **Developable-surface flattening** — flatten a ruled/developable 3D strip to 2D with zero stretch (collars, facings)
+- [ ] **Least-distortion flattening (ARAP)** — as-rigid-as-possible flatten a doubly-curved 3D panel with a strain readout
+- [ ] **Geodesic seam paths** — compute a seam that follows a geodesic on the 3D surface for a clean sew line
+- [ ] **Dart-from-Gaussian-curvature** — place/size darts from the surface's curvature so the flatten has no stretch
+- [ ] **Ease-along-curve solver** — distribute a length difference (cap ease) along a curve by a chosen easing profile
+- [ ] **Point-in-polygon + area/centroid** — the pure geometry kernel (area, perimeter, centroid, containment) every piece op needs
+- [ ] **Boolean ops on pieces** — union/subtract/intersect piece outlines (cut a window, merge a yoke) robustly
 
 ---
 
