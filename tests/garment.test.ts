@@ -99,6 +99,15 @@ describe('garment registry + factory', () => {
     expect(specs('pants').length).toBe(2) // two legs
   })
 
+  it('the hijab under-cap is a snug open-face crown cap in jersey', () => {
+    const u = getGarment('undercap')
+    expect(u.name).toMatch(/under-cap|undercap/i)
+    const head = u.pieces.find((p) => p.kind === 'headTube')
+    expect(head?.kind === 'headTube' && head.anchor).toBe('crown')
+    expect(head?.kind === 'headTube' && head.face).toBe('open-face') // open face, covers the hair
+    expect(u.defaultFabric).toBe('jersey-knit') // soft cotton jersey underscarf
+  })
+
   it('the satin bonnet is a crown-anchored headwear garment that defaults to satin + loft', () => {
     const b = getGarment('bonnet')
     expect(b.name).toMatch(/bonnet/i)

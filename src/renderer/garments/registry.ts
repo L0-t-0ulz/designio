@@ -559,6 +559,19 @@ export const GARMENTS: GarmentDefinition[] = [
     defaultFabric: 'spandex'
   },
   {
+    id: 'undercap',
+    name: 'Hijab under-cap',
+    category: 'outerwear',
+    icon: 'top',
+    // the underscarf worn beneath a hijab — a snug soft-cotton-jersey cap that holds
+    // the hairline with an open face and a little neck coverage (the open-face crown
+    // block, worn snug in jersey rather than the helmet-liner's spandex)
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.28, dropLo: 0.34, topScale: 0.12, botScale: 0.86, face: 'open-face' }],
+    supports: { faceStyle: true, length: true, ease: true },
+    defaults: { length: 0.52, ease: 0.002, flare: 0 },
+    defaultFabric: 'jersey-knit'
+  },
+  {
     id: 'gaiter',
     name: 'Neck gaiter',
     category: 'outerwear',
