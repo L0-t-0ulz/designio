@@ -101,6 +101,7 @@ import { saveFile, openFile } from './export/save'
 import { createControlPanel, type DesignMode, type ExportFormat, type GarmentState } from './ui/panel'
 import { showStartPage } from './start/StartPage'
 import { TEXTILE_PATTERNS, type TextilePattern } from './fabric/textile'
+import { TARTAN_KINDS, type TartanKind } from './fabric/tartan'
 import { OMBRE_DIRECTIONS, type OmbreDirection } from './fabric/ombre'
 import { WEAR_KINDS, type WearKind } from './fabric/wear'
 import { demoSwatchCanvas } from './fabric/swatch'
@@ -2082,6 +2083,13 @@ function initStudio(
         stack.refreshDesign(stack.active)
       }
     },
+    tartan: {
+      get: () => stack.active.data.tartan,
+      set: (t) => {
+        stack.active.data.tartan = t
+        stack.refreshDesign(stack.active)
+      }
+    },
     ombre: {
       get: () => stack.active.data.ombre,
       set: (d) => {
@@ -2169,7 +2177,7 @@ function initStudio(
           id: cw.id,
           name: cw.name,
           color: cw.color,
-          tag: [cw.textile, cw.ombre && 'ombré', cw.wear, cw.sparkle, cw.iridescent, cw.quilt, cw.lace && 'lace', cw.fur, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
+          tag: [cw.textile, cw.tartan && 'tartan', cw.ombre && 'ombré', cw.wear, cw.sparkle, cw.iridescent, cw.quilt, cw.lace && 'lace', cw.fur, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
         })),
       add: () => {
         pushUndo()
@@ -2532,6 +2540,8 @@ if (skipStart) {
   if (entryParams.get('princess')) cfg.princess = true
   const tx = entryParams.get('textile')
   if (tx && (TEXTILE_PATTERNS as string[]).includes(tx)) cfg.textile = tx as TextilePattern
+  const tar = entryParams.get('tartan')
+  if (tar && (TARTAN_KINDS as string[]).includes(tar)) cfg.tartan = tar as TartanKind
   const omb = entryParams.get('ombre')
   if (omb && (OMBRE_DIRECTIONS as string[]).includes(omb)) cfg.ombre = omb as OmbreDirection
   const wr = entryParams.get('wear')
