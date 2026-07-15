@@ -559,6 +559,19 @@ export const GARMENTS: GarmentDefinition[] = [
     defaultFabric: 'spandex'
   },
   {
+    id: 'durag',
+    name: 'Durag',
+    category: 'outerwear',
+    icon: 'top',
+    // the silky skull wrap — a snug open-face crown cap in satin, with a long flap
+    // draping the nape (the `back-flap` hem drops the centre-back). The long tie tails
+    // are a follow-up; the cap + flap is the worn silhouette
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.24, dropLo: 0.3, topScale: 0.12, botScale: 0.9, face: 'open-face' }],
+    supports: { faceStyle: true, length: true, ease: true, hemShape: true },
+    defaults: { length: 0.5, ease: 0.003, flare: 0, hemShape: 'back-flap' },
+    defaultFabric: 'satin'
+  },
+  {
     id: 'undercap',
     name: 'Hijab under-cap',
     category: 'outerwear',

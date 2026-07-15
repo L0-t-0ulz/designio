@@ -221,8 +221,8 @@ export function openSeamColumn(nx: number): number {
 }
 
 /** Hem shapes — how the bottom edge curves (front = angle π/2). */
-export type HemShape = 'straight' | 'high-low' | 'shirttail' | 'handkerchief' | 'ear-flap' | 'point-front'
-export const HEM_SHAPES: HemShape[] = ['straight', 'high-low', 'shirttail', 'handkerchief', 'ear-flap', 'point-front']
+export type HemShape = 'straight' | 'high-low' | 'shirttail' | 'handkerchief' | 'ear-flap' | 'point-front' | 'back-flap'
+export const HEM_SHAPES: HemShape[] = ['straight', 'high-low', 'shirttail', 'handkerchief', 'ear-flap', 'point-front', 'back-flap']
 
 /** Per-angle hem height: straight, a high-low sweep (front lifts, back trails),
  *  shirttail side vents, or handkerchief points hanging at the diagonals. */
@@ -237,6 +237,7 @@ export function bottomEdge(spec: TubeSpec, angle: number): number {
   else if (shape === 'shirttail') y += h * 0.16 * Math.abs(Math.cos(angle)) ** 1.5
   else if (shape === 'ear-flap') y -= h * 0.42 * Math.abs(Math.cos(angle)) ** 3 // deep side flaps (a chullo's ears)
   else if (shape === 'point-front') y -= h * 0.5 * front ** 2.5 // one triangle point at centre-front (a bandana)
+  else if (shape === 'back-flap') y -= h * 0.7 * back ** 2 // a long flap draping the nape (a durag)
   else y -= h * 0.14 * Math.abs(Math.sin(2 * angle)) ** 1.2 // handkerchief points
   return Math.max(0.05, y)
 }
