@@ -7,8 +7,8 @@ import * as THREE from 'three'
  * The wear field is pure value-noise (deterministic — no `Math.random`) so it
  * tiles/samples identically each bake and is unit-tested.
  */
-export type WearKind = 'faded' | 'acid-wash' | 'distressed'
-export const WEAR_KINDS: WearKind[] = ['faded', 'acid-wash', 'distressed']
+export type WearKind = 'faded' | 'acid-wash' | 'distressed' | 'adaptive'
+export const WEAR_KINDS: WearKind[] = ['faded', 'acid-wash', 'distressed', 'adaptive']
 
 const fract = (x: number): number => x - Math.floor(x)
 const hash = (i: number, j: number): number => fract(Math.sin(i * 127.1 + j * 311.7) * 43758.5453)
@@ -47,6 +47,14 @@ export function wearValue(kind: WearKind, u: number, v: number): number {
       // streaky vertical abrasion — high-freq in u, stretched in v, only the peaks
       const n = vnoise(u, v * 0.25, 26)
       return n > 0.62 ? Math.min(1, (n - 0.62) * 3.4) : 0
+    }
+    case 'adaptive': {
+      // wear where a garment actually wears: concentrated at the hem (bottom) + the
+      // vertical edges (side seams), over a light all-over abrasion
+      const hem = Math.pow(Math.max(0, (v - 0.55) / 0.45), 1.6) // ramps up over the bottom ~45%
+      const edge = Math.pow(Math.max(0, Math.abs(u - 0.5) * 2 - 0.72) / 0.28, 2) // near u=0 / u=1
+      const abrasion = vnoise(u, v * 0.5, 18)
+      return Math.min(1, (hem + edge) * (0.55 + abrasion * 0.5) + abrasion * 0.12)
     }
     default: {
       // faded: soft, broad vintage lightening (two smooth octaves, gentle)
