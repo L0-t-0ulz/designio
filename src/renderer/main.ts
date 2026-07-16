@@ -57,6 +57,7 @@ import { lineupCells, lineupHues } from './studio/lineup'
 import { renderGiftFold } from './studio/giftFold'
 import { contactGrid, contactViews } from './studio/contactSheet'
 import { sizeRunPlan, headwearSizeRunPlan } from './studio/sizeRunStrip'
+import { twoAvatarPlan, twoAvatarCells } from './studio/twoAvatar'
 import { anatomyShots } from './studio/anatomyShots'
 import { buildHangerProp, hangerCapsule } from './studio/hangerShot'
 import { openDrapeComparator } from './ui/drapeComparator'
@@ -1725,6 +1726,61 @@ function initStudio(
     statusHandles?.setSelection(`Size-run strip — ${plan.length} sizes`)
   }
 
+  // Two-avatar scene — the design on two figures side by side. The body + cloth sim
+  // is a singleton, so (like the line-up) it swaps the body preset, re-settles + snaps
+  // each avatar, then composites them.
+  async function exportTwoAvatarScene(): Promise<void> {
+    const plan = twoAvatarPlan()
+    const cellW = 560
+    const origBody = { ...bodySize } // save the working body
+    const urls: string[] = []
+    for (const slot of plan) {
+      const preset = getBodyPreset(slot.bodyPreset)
+      if (preset) {
+        Object.assign(bodySize, preset.shape)
+        setBody(bodySize)
+      }
+      for (let i = 0; i < 150; i++) stack.step(1 / 60) // settle the fresh drape headlessly
+      stack.updateMeshes()
+      urls.push(viewport.renderStill(cellW))
+    }
+    Object.assign(bodySize, origBody) // restore the working body
+    setBody(bodySize)
+    for (let i = 0; i < 150; i++) stack.step(1 / 60)
+    stack.updateMeshes()
+    const load = (u: string): Promise<HTMLImageElement> =>
+      new Promise((res, rej) => {
+        const im = new Image()
+        im.onload = () => res(im)
+        im.onerror = () => rej(new Error('image decode failed'))
+        im.src = u
+      })
+    const imgs = await Promise.all(urls.map(load))
+    const cellH = imgs[0]?.height ?? cellW
+    const labelH = 30
+    const { totalW, xs } = twoAvatarCells(cellW, 0)
+    const canvas = document.createElement('canvas')
+    canvas.width = totalW
+    canvas.height = cellH + labelH
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = '#101014'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.font = '600 15px system-ui, sans-serif'
+    ctx.textAlign = 'center'
+    imgs.forEach((im, i) => {
+      ctx.drawImage(im, xs[i], 0)
+      ctx.fillStyle = '#c9cbd4'
+      ctx.fillText(plan[i].label, xs[i] + cellW / 2, cellH + labelH * 0.7)
+    })
+    const b64 = canvas.toDataURL('image/png').split(',')[1] ?? ''
+    const bin = atob(b64)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    const safe = projectName.replace(/[^\w.-]+/g, '-').slice(0, 40) || 'two-avatar'
+    await saveFile(`${safe}-two-avatar.png`, bytes, [{ name: 'PNG image', extensions: ['png'] }])
+    statusHandles?.setSelection('Two-avatar scene')
+  }
+
   // Multi-angle contact sheet — the classic product-turnaround grid: the garment
   // shot from N angles around the current view, labelled + composited into one PNG.
   async function exportContactSheet(): Promise<void> {
@@ -2143,6 +2199,7 @@ function initStudio(
     onScarfGiftFold: () => void exportScarfGiftFold().catch((err) => showToast('Gift-fold failed: ' + (err as Error).message, 'error')),
     onContactSheet: () => void exportContactSheet().catch((err) => showToast('Contact sheet failed: ' + (err as Error).message, 'error')),
     onSizeRunStrip: () => void exportSizeRunStrip().catch((err) => showToast('Size-run strip failed: ' + (err as Error).message, 'error')),
+    onTwoAvatarScene: () => void exportTwoAvatarScene().catch((err) => showToast('Two-avatar scene failed: ' + (err as Error).message, 'error')),
     onViewer360: () => void exportViewer360().catch((err) => showToast('360° viewer failed: ' + (err as Error).message, 'error')),
     onLineSheet: () => void exportLineSheet().catch((err) => showToast('Line sheet failed: ' + (err as Error).message, 'error')),
     onQcSheet: () => void exportQcSheet().catch((err) => showToast('QC sheet failed: ' + (err as Error).message, 'error')),
