@@ -79,8 +79,22 @@ describe('textileValue — repeating textile pattern tones', () => {
   })
 
   it('exposes exactly the advertised pattern set', () => {
-    const expected: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo', 'herringbone', 'houndstooth', 'chevron']
+    const expected: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo', 'herringbone', 'houndstooth', 'chevron', 'argyle', 'pinstripe', 'windowpane', 'glen-check', 'dot-grid', 'basketweave', 'diagonal-stripe']
     expect([...TEXTILE_PATTERNS].sort()).toEqual([...expected].sort())
+  })
+
+  it('the added patterns are real, varied motifs (not flat fields)', () => {
+    for (const p of ['argyle', 'pinstripe', 'windowpane', 'glen-check', 'dot-grid', 'basketweave', 'diagonal-stripe'] as TextilePattern[]) {
+      const seen = new Set<number>()
+      for (let i = 0; i < 24; i++) for (let j = 0; j < 24; j++) seen.add(textileValue(p, i / 24, j / 24))
+      expect(seen.size, `${p} should vary across the tile`).toBeGreaterThanOrEqual(2)
+    }
+    // pinstripe is a thin vertical stripe (ground most of the tile), windowpane adds the horizontal rule
+    expect(textileValue('pinstripe', 0.02, 0.5)).toBe(1)
+    expect(textileValue('pinstripe', 0.3, 0.5)).toBe(0)
+    expect(textileValue('windowpane', 0.3, 0.02)).toBe(1) // a horizontal rule pinstripe wouldn't draw
+    // diagonal-stripe runs on the bias — moving along the diagonal crosses stripes
+    expect(textileValue('diagonal-stripe', 0.05, 0.05)).not.toBe(textileValue('diagonal-stripe', 0.05, 0.25))
   })
 
   it('chevron / herringbone / houndstooth are two-tone motifs that vary across the tile', () => {
