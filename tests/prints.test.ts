@@ -110,6 +110,11 @@ describe('placed prints (multiple logos + text)', () => {
     expect(printIsRaised({ ...newTextPrint('X'), style: 'enamel-pin' })).toBe(true) // a hard raised disc
   })
 
+  it('the woven digital print is a flat print (ink absorbed into the weave, no relief)', () => {
+    expect(PRINT_STYLES).toContain('woven')
+    expect(printIsRaised({ ...newTextPrint('X'), style: 'woven' })).toBe(false) // flat, texture not relief
+  })
+
   it('foilTone lifts a print colour toward a bright metallic sheen', () => {
     const lum = (c: number): number => 0.2126 * ((c >> 16) & 255) + 0.7152 * ((c >> 8) & 255) + 0.0722 * (c & 255)
     for (const base of [0xd4af37, 0x8a1538, 0x0d2b1a, 0x101014]) {

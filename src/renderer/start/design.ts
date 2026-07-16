@@ -146,8 +146,8 @@ export type PrintPart = 'body' | 'sleeves' | 'legs'
  * (bleaches the fabric to a pale tone where it prints), or a **foil** print (a
  * bright metallic transfer). The raised styles (embroidery · appliqué · puff) paint
  * a bump map so they catch the light. */
-export type PrintStyle = 'flat' | 'embroidery' | 'applique' | 'puff' | 'discharge' | 'foil' | 'enamel-pin'
-export const PRINT_STYLES: PrintStyle[] = ['flat', 'embroidery', 'applique', 'puff', 'discharge', 'foil', 'enamel-pin']
+export type PrintStyle = 'flat' | 'embroidery' | 'applique' | 'puff' | 'discharge' | 'foil' | 'enamel-pin' | 'woven'
+export const PRINT_STYLES: PrintStyle[] = ['flat', 'embroidery', 'applique', 'puff', 'discharge', 'foil', 'enamel-pin', 'woven']
 
 /** The bright metallic transfer tone for a foil print — the print's hue lifted toward
  *  a light metallic sheen. Pure so it's unit-tested. */
@@ -346,6 +346,24 @@ function paintAlbedoMotif(ctx: CanvasRenderingContext2D, p: Print, size: number)
     // discharge print bleaches the dye where it prints — screen a pale tone onto the fabric
     ctx.globalCompositeOperation = 'screen'
     drawMotifShape(ctx, p, size, shade(p.color, 0.55)) // a pale, washed-out motif
+    return
+  }
+  if (p.style === 'woven') {
+    // a digital textile print absorbed into the weave: the motif ink with a fine
+    // warp/weft hatch multiplied onto JUST the ink, so the cloth grain shows through
+    const tmp = document.createElement('canvas')
+    tmp.width = tmp.height = size
+    const tc = tmp.getContext('2d')!
+    tc.translate(size / 2, size / 2)
+    drawMotifShape(tc, p, size, hex(p.color))
+    tc.globalCompositeOperation = 'source-atop' // grain only where there is ink
+    const step = Math.max(2, size * 0.009)
+    tc.lineWidth = 1
+    tc.strokeStyle = 'rgba(0,0,0,0.16)' // weft (horizontal) shadow threads
+    for (let y = -size / 2; y < size / 2; y += step) { tc.beginPath(); tc.moveTo(-size / 2, y); tc.lineTo(size / 2, y); tc.stroke() }
+    tc.strokeStyle = 'rgba(255,255,255,0.1)' // warp (vertical) highlight threads
+    for (let x = -size / 2; x < size / 2; x += step) { tc.beginPath(); tc.moveTo(x, -size / 2); tc.lineTo(x, size / 2); tc.stroke() }
+    ctx.drawImage(tmp, -size / 2, -size / 2)
     return
   }
   // foil = a bright metallic transfer tone; flat / embroidery / puff draw the plain graphic
