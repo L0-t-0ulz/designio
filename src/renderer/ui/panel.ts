@@ -1460,7 +1460,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // A distressed / washed / faded wear finish bleached into the albedo.
-  const WEAR_LABELS: Record<WearKind, string> = { faded: 'Faded', 'acid-wash': 'Acid-wash', distressed: 'Distressed', adaptive: 'Adaptive' }
+  const WEAR_LABELS: Record<WearKind, string> = { faded: 'Faded', 'acid-wash': 'Acid-wash', distressed: 'Distressed', adaptive: 'Adaptive', 'stone-wash': 'Stone-wash', 'enzyme-wash': 'Enzyme-wash', 'tie-dye': 'Tie-dye', shibori: 'Shibori', batik: 'Batik' }
   function wearControls(w: NonNullable<PanelOptions['wear']>): HTMLElement {
     const wrap = el('div')
     const row = el('div', 'dio-seg dio-seg-wrap')

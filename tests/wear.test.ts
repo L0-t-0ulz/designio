@@ -53,6 +53,19 @@ describe('distressed / washed / faded wear finish', () => {
     expect(wearValue('adaptive', 0.5, 0.05)).toBeLessThan(0.2)
   })
 
+  it('the added wash/dye finishes (stone-wash, enzyme-wash, tie-dye, shibori, batik) stay in [0,1] + vary', () => {
+    for (const k of ['stone-wash', 'enzyme-wash', 'tie-dye', 'shibori', 'batik'] as const) {
+      expect(WEAR_KINDS).toContain(k)
+      const s = sampleStats(k)
+      expect(s.min).toBeGreaterThanOrEqual(0)
+      expect(s.max).toBeLessThanOrEqual(1)
+      expect(s.max - s.min, `${k} should vary`).toBeGreaterThan(0.05)
+      expect(wearValue(k, 0.37, 0.61)).toBe(wearValue(k, 0.37, 0.61)) // deterministic
+    }
+    // a gentle enzyme-wash bleaches less overall than a heavy stone-wash
+    expect(sampleStats('enzyme-wash').mean).toBeLessThan(sampleStats('stone-wash').mean)
+  })
+
   it('the worn tone is lighter + less saturated than the base', () => {
     const base = 0x2b3a67 // deep indigo (denim)
     const b = { h: 0, s: 0, l: 0 }

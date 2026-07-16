@@ -420,7 +420,7 @@ exports a PNG **with alpha**) · `?neckline=<scoop|crew|v|one-shoulder|strapless
 back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo|herringbone|houndstooth|chevron|argyle|pinstripe|windowpane|glen-check|dot-grid|basketweave|diagonal-stripe>` (a repeating pattern tiled across
 the garment, behind the prints; `?textileScale=<0.25..4>&textileRotation=<deg>` resize + rotate the motif) · `?tartan=<black-watch|royal-stewart|hunting|dress-blue|camel-check|grey|macleod|buffalo-plaid|prince-of-wales|gingham>`
 (a real tartan sett — thread-count stripes woven in 2/2 twill) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
-into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
+into the albedo) · `?wear=<faded|acid-wash|distressed|adaptive|stone-wash|enzyme-wash|tie-dye|shibori|batik>` (a distressed / washed / faded / resist-dye finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
 `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
 procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone|3-3-twill|rosepath|huck-lace|waffle>` (a **weave draft** —
 threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·

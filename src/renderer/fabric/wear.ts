@@ -7,8 +7,8 @@ import * as THREE from 'three'
  * The wear field is pure value-noise (deterministic — no `Math.random`) so it
  * tiles/samples identically each bake and is unit-tested.
  */
-export type WearKind = 'faded' | 'acid-wash' | 'distressed' | 'adaptive'
-export const WEAR_KINDS: WearKind[] = ['faded', 'acid-wash', 'distressed', 'adaptive']
+export type WearKind = 'faded' | 'acid-wash' | 'distressed' | 'adaptive' | 'stone-wash' | 'enzyme-wash' | 'tie-dye' | 'shibori' | 'batik'
+export const WEAR_KINDS: WearKind[] = ['faded', 'acid-wash', 'distressed', 'adaptive', 'stone-wash', 'enzyme-wash', 'tie-dye', 'shibori', 'batik']
 
 const fract = (x: number): number => x - Math.floor(x)
 const hash = (i: number, j: number): number => fract(Math.sin(i * 127.1 + j * 311.7) * 43758.5453)
@@ -55,6 +55,35 @@ export function wearValue(kind: WearKind, u: number, v: number): number {
       const edge = Math.pow(Math.max(0, Math.abs(u - 0.5) * 2 - 0.72) / 0.28, 2) // near u=0 / u=1
       const abrasion = vnoise(u, v * 0.5, 18)
       return Math.min(1, (hem + edge) * (0.55 + abrasion * 0.5) + abrasion * 0.12)
+    }
+    case 'stone-wash': {
+      // broad lightening with abrasion blotches — stones tumble the whole surface pale
+      const n = vnoise(u, v, 4) * 0.6 + vnoise(u + 2.1, v + 3.3, 10) * 0.4
+      return Math.min(1, 0.32 + n * 0.55)
+    }
+    case 'enzyme-wash': {
+      // a gentle, even soften — a light overall fade with only faint variation
+      return Math.min(1, 0.22 + vnoise(u, v, 3) * 0.28)
+    }
+    case 'tie-dye': {
+      // a spiral of concentric bleach rings from the twisted centre
+      const dx = u - 0.5
+      const dy = v - 0.5
+      const a = Math.atan2(dy, dx)
+      const r = Math.hypot(dx, dy)
+      return 0.5 + 0.5 * Math.sin(r * 22 + a * 3)
+    }
+    case 'shibori': {
+      // fold-resist: the flat exposed cells bleach, the folded creases resist (stay dark)
+      const gx = Math.abs(fract(u * 5) - 0.5) * 2
+      const gy = Math.abs(fract(v * 5) - 0.5) * 2
+      return Math.max(0, 1 - Math.hypot(gx, gy))
+    }
+    case 'batik': {
+      // wax-resist: waxed blocks keep the dye out (dark) while crackle veins let it seep
+      const block = vnoise(u * 2.5, v * 2.5, 6)
+      const crackle = Math.abs(Math.sin((u + v) * 40))
+      return block > 0.5 ? Math.min(1, 0.15 + crackle * 0.25) : 0.65
     }
     default: {
       // faded: soft, broad vintage lightening (two smooth octaves, gentle)
