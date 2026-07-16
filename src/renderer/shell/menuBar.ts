@@ -61,6 +61,7 @@ export interface MenuActions {
   onLessons: () => void
   onChallenges: () => void
   onReview: () => void
+  onTutorial: () => void
   onAbout: () => void
 }
 
@@ -224,6 +225,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
   ])
   menu('Help', [
     { label: 'Take the tour', run: a.onTour },
+    { label: 'Interactive tutorial', run: a.onTutorial },
     { label: 'Keyboard shortcuts (?)', run: a.onShortcuts },
     { label: 'Term glossary', run: a.onGlossary },
     { label: 'Pattern-making lessons', run: a.onLessons },
