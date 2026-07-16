@@ -103,6 +103,7 @@ import { openRepeatPreview } from './ui/repeatPreview'
 import { pomTable } from './export/pom'
 import { bodyToMeasurements, setMeasurement } from './avatar/measure'
 import { parseScanOBJ, scanToMeasurements } from './avatar/bodyScan'
+import { parseBVH, bvhJointNames, bvhDuration } from './avatar/mocap'
 import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
 import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost } from './export/cost'
@@ -784,6 +785,17 @@ function initStudio(
           )
         : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
   // Read a DXF pattern file → parse → preview in the 2D pane (round-trips the export).
+  async function importMocap(): Promise<void> {
+    const r = await openFile([{ name: 'BVH mocap', extensions: ['bvh'] }])
+    if (!r) return
+    const clip = parseBVH(r.content)
+    if (!clip) {
+      showToast('That file is not a valid BVH mocap clip.', 'error')
+      return
+    }
+    const names = bvhJointNames(clip)
+    showToast(`Mocap loaded — ${names.length} joints · ${clip.frames.length} frames · ${bvhDuration(clip).toFixed(1)}s (retarget coming soon)`, 'success')
+  }
   async function importBodyScan(): Promise<void> {
     const r = await openFile([{ name: 'OBJ scan', extensions: ['obj'] }])
     if (!r) return
@@ -2044,6 +2056,7 @@ function initStudio(
     onOpenProject: () => void openProject(),
     onImportPattern: () => void importPattern(),
     onImportScan: () => void importBodyScan(),
+    onImportMocap: () => void importMocap(),
     onExport: (fmt) => void doExport(fmt).catch(exportError),
     onRecordTurntable: recordTurntableSpin,
     onRecordTurntableSocial: (name) => recordTurntableSpin(name),
