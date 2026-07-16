@@ -141,6 +141,7 @@ import { loadProject, saveProjectRecord, snapshotProject, listSnapshots, restore
 import { portfolioHtml } from './export/portfolio'
 import { configuratorHtml } from './export/configurator'
 import { tryOnWidgetHtml } from './export/tryOn'
+import { mobileCompanionHTML } from './export/mobile'
 import { separationsHTML } from './export/separations'
 import { bagSpec, bagCutSheetHTML } from './export/bag'
 import { shoeLast, shoeCutSheetHTML } from './export/shoe'
@@ -1526,6 +1527,20 @@ function initStudio(
         const inp: ListingInput = { name: projectName !== 'Untitled' ? projectName : def.name, fabricName: l.fabric.name, fibre: label.fibre, colours, sizes: [...SIZES], priceUsd: priceFromCost({ cost: cost.total }).retail, careLines: label.care }
         await saveFile('try-on-widget.html', new TextEncoder().encode(tryOnWidgetHtml(inp, viewport.renderStill(720), { shareUrl: shareUrl(currentDoc(), location.href) })), [{ name: 'HTML', extensions: ['html'] }])
         statusHandles?.setSelection('Try-on widget exported — embed via <iframe>')
+        break
+      }
+      case 'mobile': {
+        // a phone-first, installable (PWA) companion viewer of the active design
+        const l = stack.active
+        const def = getGarment(l.data.garmentType)
+        const cw = stack.colorways()
+        const colours = (cw.length ? cw.map((c) => c.color) : [l.data.color]).map((hex) => ({ label: colorRefLabel(hex).replace(/^TR-\d+\s*/, '') || 'Colour', hex: '#' + hex.toString(16).padStart(6, '0') }))
+        const label = careLabel(l.fabric)
+        const metrics = activeMetrics(l)
+        const cost = costRollup({ fabricM: metrics.fabricM2 / 1.4, pricePerM: estimatedFabricPrice(l.fabric), threadM: threadMetres(metrics.seamCm), labourMin: estimateLabourMinutes(metrics.seamCm), labourRate: 15 })
+        const inp: ListingInput = { name: projectName !== 'Untitled' ? projectName : def.name, fabricName: l.fabric.name, fibre: label.fibre, colours, sizes: [...SIZES], priceUsd: priceFromCost({ cost: cost.total }).retail, careLines: label.care }
+        await saveFile('mobile-companion.html', new TextEncoder().encode(mobileCompanionHTML(inp, viewport.renderStill(720), { shareUrl: shareUrl(currentDoc(), location.href) })), [{ name: 'HTML', extensions: ['html'] }])
+        statusHandles?.setSelection('Mobile companion exported — installable PWA')
         break
       }
       case 'size-set': {
