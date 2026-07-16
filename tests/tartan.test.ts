@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { expandSett, tartanColorAt, TARTAN_SETTS, TARTAN_KINDS, type TartanSett } from '../src/renderer/fabric/tartan'
+import { expandSett, tartanColorAt, TARTAN_SETTS, TARTAN_KINDS, type TartanSett, type TartanKind } from '../src/renderer/fabric/tartan'
 
 const A = 0x111111
 const B = 0x222222
@@ -75,5 +75,16 @@ describe('tartan presets', () => {
       }
       expect(expandSett(sett).length).toBeGreaterThan(8) // a usable repeat
     }
+  })
+
+  it('registers the added setts (MacLeod, buffalo plaid, Prince of Wales, gingham)', () => {
+    for (const k of ['macleod', 'buffalo-plaid', 'prince-of-wales', 'gingham'] as TartanKind[]) {
+      expect(TARTAN_KINDS).toContain(k)
+      expect(TARTAN_SETTS[k].stripes.length).toBeGreaterThan(0)
+      expect(expandSett(TARTAN_SETTS[k]).length).toBeGreaterThan(8)
+    }
+    // buffalo plaid + gingham are simple two-colour even checks
+    expect(new Set(TARTAN_SETTS['buffalo-plaid'].stripes.map((st) => st.color)).size).toBe(2)
+    expect(new Set(TARTAN_SETTS.gingham.stripes.map((st) => st.color)).size).toBe(2)
   })
 })
