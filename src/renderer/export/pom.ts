@@ -43,7 +43,7 @@ const tolFor = (label: string): number => (/length|inseam|sleeve/i.test(label) ?
  * The graded POM sheet for a garment: each `garmentMetrics` row measured across the
  * full size run. Preserves the row order of the base spec.
  */
-export function pomTable(def: GarmentDefinition, data: GarmentLayerData, m: Measurements, colliders: Capsule[]): PomSheet {
+export function pomTable(def: GarmentDefinition, data: GarmentLayerData, m: Measurements, colliders: Capsule[], hairStyle?: import('../avatar/face').Hairstyle): PomSheet {
   const rows: PomRow[] = []
   const byLabel = new Map<string, PomRow>()
   for (const size of SIZES) {
@@ -60,5 +60,6 @@ export function pomTable(def: GarmentDefinition, data: GarmentLayerData, m: Meas
   }
   // Headwear (a head/neck tube) also carries a head-circumference size run + ear fit.
   const crownTube = def.pieces.find((p) => p.kind === 'headTube' && p.anchor === 'crown') as { dropLo: number } | undefined
-  return { sizes: SIZES, rows, head: crownTube ? headSizing(m.headR, crownTube.dropLo) : def.pieces.some((p) => p.kind === 'headTube') ? headSizing(m.headR) : undefined }
+  const isHeadwear = def.pieces.some((p) => p.kind === 'headTube')
+  return { sizes: SIZES, rows, head: isHeadwear ? headSizing(m.headR, crownTube?.dropLo, hairStyle) : undefined }
 }

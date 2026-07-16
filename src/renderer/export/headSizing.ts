@@ -3,6 +3,8 @@
  * the head collider radius) mapped to a standard hat **size run** (XS–XL / cm). Pure
  * (no DOM) so it's unit-tested; the manufacturing pack renders it for headwear garments.
  */
+import { hairVolumeCm } from '../avatar/hairVolume'
+import type { Hairstyle } from '../avatar/face'
 
 export interface HatSize {
   label: string
@@ -45,6 +47,11 @@ export interface HeadSizing {
   earClearanceCm?: number
   /** A human-readable ear-fit note (present with earClearanceCm). */
   earFit?: string
+  /** Extra girth (cm) the hairstyle adds under the hat (present when hair adds volume). */
+  hairVolumeCm?: number
+  /** The circumference + hair, and the size it recommends (may be a size up). */
+  withHairCircCm?: number
+  withHairSize?: string
 }
 
 /** The ears sit roughly this many head-radii below the crown. */
@@ -71,15 +78,24 @@ export function earFitLabel(clearanceCm: number): string {
 /**
  * The full head-sizing readout for a head radius (m): circumference, its size, + the
  * run. When the covering's `dropLoM` (crown-anchor bottom drop) is given, also reports
- * the ear clearance/fit.
+ * the ear clearance/fit; when a `hairStyle` is given, the size accounting for hair
+ * volume (thick hair may push the fit up a size).
  */
-export function headSizing(headR: number, dropLoM?: number): HeadSizing {
+export function headSizing(headR: number, dropLoM?: number, hairStyle?: Hairstyle): HeadSizing {
   const circCm = headCircumferenceCm(headR)
   const base: HeadSizing = { circCm, size: hatSizeFor(circCm), run: HAT_SIZE_RUN }
   if (dropLoM !== undefined) {
     const ear = earClearanceCm(dropLoM, headR)
     base.earClearanceCm = ear
     base.earFit = earFitLabel(ear)
+  }
+  if (hairStyle) {
+    const hv = hairVolumeCm(hairStyle)
+    if (hv > 0) {
+      base.hairVolumeCm = hv
+      base.withHairCircCm = Math.round((circCm + hv) * 10) / 10
+      base.withHairSize = hatSizeFor(circCm + hv)
+    }
   }
   return base
 }
