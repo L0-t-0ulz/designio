@@ -121,6 +121,7 @@ import { WEAR_KINDS, type WearKind } from './fabric/wear'
 import { DUOTONE_KINDS, type DuotoneKind } from './fabric/duotone'
 import { demoSwatchCanvas } from './fabric/swatch'
 import { SPARKLE_KINDS, type SparkleKind } from './fabric/sparkle'
+import { getPartyFinish, applyPartyFinish } from './fabric/partyFinishes'
 import { IRIDESCENT_KINDS, type IridescentKind } from './fabric/iridescent'
 import { QUILT_PATTERNS, type QuiltPattern } from './fabric/quilt'
 import { LACE_PATTERNS, type LacePattern } from './fabric/lace'
@@ -2821,6 +2822,11 @@ if (skipStart) {
   if (wr && (WEAR_KINDS as string[]).includes(wr)) cfg.wear = wr as WearKind
   const duo = entryParams.get('duotone')
   if (duo && (DUOTONE_KINDS as string[]).includes(duo)) cfg.duotone = duo as DuotoneKind
+  const party = entryParams.get('partyFinish')
+  if (party) {
+    const preset = getPartyFinish(party)
+    if (preset) applyPartyFinish(cfg, preset)
+  }
   const spk = entryParams.get('sparkle')
   if (spk && (SPARKLE_KINDS as string[]).includes(spk)) cfg.sparkle = spk as SparkleKind
   const iri = entryParams.get('iridescent')

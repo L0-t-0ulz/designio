@@ -427,7 +427,8 @@ cells replacing the preset weave maps) ·
 `?colourwork=<fairisle|argyle|zigzag|heart|star|skull|flame|frost>` (**intarsia / colourwork** — a fair-isle jacquard tiled
 allover or a placed intarsia chest block, painted into the albedo behind the prints) ·
 `?yarn=<lace|fingering|dk|worsted|chunky|single-ply|crepe>` (the **yarn** the fabric is spun from —
-count/ply/twist adjust the fabric's hand: drape + surface together) · `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
+count/ply/twist adjust the fabric's hand: drape + surface together) · `?partyFinish=<disco|gold-glam|tinsel|neon|frost>` (**party headwear finishes** — one-click festive looks combining sparkle + iridescent + a festive colour; `fabric/partyFinishes`) ·
+`?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
 `?quilt=<channel|diamond|box>` (a quilted-loft finish) ·
 `?lace=<chantilly|geometric|fishnet>` (a sheer alpha-cutout lace finish) ·
