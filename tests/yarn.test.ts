@@ -11,6 +11,19 @@ describe('yarn validation + presets', () => {
     for (const p of YARN_PRESETS) expect(validateYarn(p.yarn), p.id).toBeNull()
   })
 
+  it('registers the added novelty yarns (mohair-brushed, slub, bouclé, metallic-blend)', () => {
+    for (const id of ['mohair-brushed', 'slub', 'boucle', 'metallic-blend']) {
+      const p = yarnPreset(id)
+      expect(p, `${id} should be registered`).toBeTruthy()
+      expect(validateYarn(p!.yarn), id).toBeNull()
+    }
+    // the brushed mohair is a soft low-twist halo; bouclé is the thickest of the four
+    expect(yarnPreset('mohair-brushed')!.yarn.twist).toBeLessThan(0.4)
+    expect(yarnPreset('boucle')!.yarn.tex).toBeGreaterThan(yarnPreset('slub')!.yarn.tex)
+    // the metallic blend is a crisper high-twist spin
+    expect(yarnPreset('metallic-blend')!.yarn.twist).toBeGreaterThan(0.6)
+  })
+
   it('rejects out-of-range specs', () => {
     expect(validateYarn({ ...dk, tex: 5 })).toMatch(/count/)
     expect(validateYarn({ ...dk, ply: 0 })).toMatch(/ply/)

@@ -428,7 +428,7 @@ threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·
 cells replacing the preset weave maps) ·
 `?colourwork=<fairisle|argyle|zigzag|heart|star|skull|flame|frost|snowflake|reindeer|checkerboard|lightning-bolt>` (**intarsia / colourwork** — a fair-isle jacquard tiled
 allover or a placed intarsia chest block, painted into the albedo behind the prints) ·
-`?yarn=<lace|fingering|dk|worsted|chunky|single-ply|crepe>` (the **yarn** the fabric is spun from —
+`?yarn=<lace|fingering|dk|worsted|chunky|single-ply|crepe|mohair-brushed|slub|boucle|metallic-blend>` (the **yarn** the fabric is spun from —
 count/ply/twist adjust the fabric's hand: drape + surface together) · `?partyFinish=<disco|gold-glam|tinsel|neon|frost>` (**party headwear finishes** — one-click festive looks combining sparkle + iridescent + a festive colour; `fabric/partyFinishes`) ·
 `?sparkle=<sequins|beading|foil>` (an eveningwear sparkle finish) ·
 `?iridescent=<iridescent|holographic|oil-slick>` (a colour-shifting thin-film finish) ·
