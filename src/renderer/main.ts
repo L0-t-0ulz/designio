@@ -52,7 +52,7 @@ import { parsePatternDXF, importedPatternToSVG, patternSummary, type ImportedPat
 import { lineupCells, lineupHues } from './studio/lineup'
 import { renderGiftFold } from './studio/giftFold'
 import { contactGrid, contactViews } from './studio/contactSheet'
-import { sizeRunPlan } from './studio/sizeRunStrip'
+import { sizeRunPlan, headwearSizeRunPlan } from './studio/sizeRunStrip'
 import { anatomyShots } from './studio/anatomyShots'
 import { buildHangerProp, hangerCapsule } from './studio/hangerShot'
 import { openDrapeComparator } from './ui/drapeComparator'
@@ -1565,7 +1565,9 @@ function initStudio(
     const l = stack.active
     const origSize = l.data.size
     const cellW = 520
-    const plan = sizeRunPlan()
+    // headwear is fit by head circumference, so its run is labelled by the hat size run
+    const isHeadwear = getGarment(l.data.garmentType).pieces.some((p) => p.kind === 'headTube')
+    const plan = isHeadwear ? headwearSizeRunPlan() : sizeRunPlan()
     const urls: string[] = []
     for (const cell of plan) {
       l.data.size = cell.size
