@@ -438,6 +438,12 @@ Tailoring & finishes shipped alongside — the three classic **lapel gorges** (n
 | --- | --- | --- |
 | ![A blazer with peaked lapels sweeping up to the shoulders](docs/lapel-peak.png) | ![A gold-rimmed enamel star pin on a blazer](docs/enamel-pin.png) | ![A beanie in a disco party finish — sequins + holographic shimmer](docs/party-finish.png) |
 
+Studio tools & fit — an in-app **vector print editor** (compose a graphic from shapes, no upload), an **interactive tutorial** checklist, a resolvable **design-review** panel, and **petite/tall/plus auto-proportioning** that resizes the body + regrades the garment in one setting:
+
+| Vector print editor | Interactive tutorial + review | Tall auto-proportioning |
+| --- | --- | --- |
+| ![The vector print editor composing a star-over-badge graphic](docs/vector-editor.png) | ![The interactive first-design tutorial checklist](docs/tutorial.png) | ![A tall figure block — an elongated body with a proportionally longer dress](docs/auto-proportion.png) |
+
 ---
 
 ## Real 3D cloth simulation
