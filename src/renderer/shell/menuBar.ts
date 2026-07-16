@@ -48,6 +48,7 @@ export interface MenuActions {
   onScarfGiftFold: () => void
   onContactSheet: () => void
   onSizeRunStrip: () => void
+  onTwoAvatarScene: () => void
   onViewer360: () => void
   onLineSheet: () => void
   onQcSheet: () => void
@@ -174,6 +175,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Export scarf gift-fold (PNG)', run: a.onScarfGiftFold },
     { label: 'Export contact sheet — multi-angle (PNG)', run: a.onContactSheet },
     { label: 'Export size-run strip — XS→XXL (PNG)', run: a.onSizeRunStrip },
+    { label: 'Export two-avatar scene (PNG)', run: a.onTwoAvatarScene },
     { label: 'Export 360° viewer (HTML)', run: a.onViewer360 },
     { label: 'Export line sheet (HTML)', run: a.onLineSheet },
     { label: 'Export QC inspection sheet (HTML)', run: a.onQcSheet },
