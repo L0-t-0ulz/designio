@@ -28,8 +28,8 @@ export interface ManufactureLayer {
   parts?: { part: string; fabric: string }[]
   /** Contrast trim fabric/colour, if any. */
   trim?: string
-  /** Metal hardware trims (rivets / eyelets / snaps) as BOM lines. */
-  hardware?: import('../garments/hardware').HardwareBOMLine[]
+  /** Metal hardware trims (rivets / eyelets / snaps / belt buckle) as BOM lines. */
+  hardware?: { label: string }[]
   /** Seam allowance (mm). */
   seam?: number
   /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
