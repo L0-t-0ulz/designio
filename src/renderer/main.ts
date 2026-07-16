@@ -82,6 +82,7 @@ import { demoStyleLines } from './pattern/styleLines'
 import { demoInternalShapes } from './pattern/panelFeatures'
 import { parseStitchParams, stitchSummary, SEAM_TYPES } from './garment/stitchTypes'
 import { zipperSpecFor, zipperSummary } from './garment/zipper'
+import { fashioningPlan, isFullyFashioned, fashioningSummary } from './garment/fullyFashioned'
 import { parsePhysicalParams, physicalDefaults, physicalSummary } from './fabric/physicalProps'
 import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
@@ -1953,6 +1954,16 @@ function initStudio(
           stitch: l.data.stitch ? { summary: stitchSummary(l.data.stitch), spec: l.data.stitch } : undefined,
           // a zip closure resolves to a full zipper spec (gauge from weight, length from category)
           zipper: l.data.closure && (def.closureStyle ?? 'button') === 'zip' ? zipperSummary(zipperSpecFor(def.category, l.fabric.gsm)) : undefined,
+          // a knit garment that tapers chest→waist is fully-fashioned (shaped by decreases)
+          fullyFashioned: (() => {
+            if (l.fabric.family !== 'knit') return undefined
+            const chest = metrics.rows.find((r) => r.label === 'Chest')?.cm
+            const waist = metrics.rows.find((r) => r.label === 'Waist')?.cm
+            const length = metrics.rows.find((r) => r.label === 'Length')?.cm ?? 60
+            if (chest == null || waist == null) return undefined
+            const plan = fashioningPlan(chest, waist, length)
+            return isFullyFashioned(plan) ? fashioningSummary(plan) : undefined
+          })(),
           physical: l.data.physicalFabric ? physicalSummary(l.data.physicalFabric) : undefined,
           fibre: label.fibre,
           care: label.care,
