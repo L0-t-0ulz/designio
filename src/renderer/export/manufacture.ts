@@ -40,6 +40,8 @@ export interface ManufactureLayer {
   fullyFashioned?: string
   /** Fleece lining + reveal note (present for a lined garment). */
   fleeceLining?: string
+  /** Convertible details this construction supports (roll-up sleeve, zip-off leg…). */
+  convertible?: string
   /** Physical fabric override in real units (one-line spec). */
   physical?: string
   /** Auto-generated care label — fibre content + laundering instructions. */
@@ -220,6 +222,7 @@ function layerSection(l: ManufactureLayer): string {
             ${l.zipper ? `<tr><td>Zipper</td><td colspan="2">${esc(l.zipper)}</td></tr>` : ''}
             ${l.fullyFashioned ? `<tr><td>Knit shaping</td><td colspan="2">${esc(l.fullyFashioned)}</td></tr>` : ''}
             ${l.fleeceLining ? `<tr><td>Lining</td><td colspan="2">${esc(l.fleeceLining)}</td></tr>` : ''}
+            ${l.convertible ? `<tr><td>Convertible</td><td colspan="2">${esc(l.convertible)}</td></tr>` : ''}
             ${l.physical ? `<tr><td>Fabric spec (measured)</td><td colspan="2">${esc(l.physical)}</td></tr>` : ''}
             <tr><td>Cloth area</td><td colspan="2">${l.metrics.fabricM2.toFixed(2)} m²</td></tr>
             ${
