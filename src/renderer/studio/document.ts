@@ -92,6 +92,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     scarfKnot: l.scarfKnot,
     scarfDouble: l.scarfDouble,
     scarfBlanket: l.scarfBlanket,
+    scarfTuck: l.scarfTuck,
     gaiterWorn: l.gaiterWorn,
     snoodWorn: l.snoodWorn,
     collar: l.collar,
@@ -187,6 +188,8 @@ export interface GarmentLayerData {
   scarfDouble?: boolean
   /** Worn as a blanket-scarf shoulder drape (ruana). */
   scarfBlanket?: boolean
+  /** Worn tucked into a coat (short tails pulled to centre, pressed to the chest). */
+  scarfTuck?: boolean
   /** Gaiter worn state — bunched at the neck or pulled over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Cowl-to-hood worn state — around the neck or pulled up over the crown. */
@@ -479,6 +482,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     scarfKnot: c.scarfKnot,
     scarfDouble: c.scarfDouble,
     scarfBlanket: c.scarfBlanket,
+    scarfTuck: c.scarfTuck,
     gaiterWorn: c.gaiterWorn,
     snoodWorn: c.snoodWorn,
     pomScale: c.pomScale,

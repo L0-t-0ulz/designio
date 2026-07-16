@@ -59,6 +59,7 @@ export interface GarmentParams {
   scarfDouble?: boolean
   /** Wear the (blanket) scarf draped over both shoulders like a ruana (wins over knot/double). */
   scarfBlanket?: boolean
+  scarfTuck?: boolean
   /** Where the pin sits, 0.02 (at the tail ends) … 0.45 (up by the wrap). */
   pinAt?: number
   /** Gaiter worn state — bunched at the neck (default) or pulled up over the nose. */
