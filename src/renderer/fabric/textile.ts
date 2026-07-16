@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 
 /** Repeating textile patterns that tile across the whole garment. */
-export type TextilePattern = 'stripe' | 'plaid' | 'check' | 'gingham' | 'polka' | 'camo' | 'herringbone' | 'houndstooth' | 'chevron'
-export const TEXTILE_PATTERNS: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo', 'herringbone', 'houndstooth', 'chevron']
+export type TextilePattern = 'stripe' | 'plaid' | 'check' | 'gingham' | 'polka' | 'camo' | 'herringbone' | 'houndstooth' | 'chevron' | 'argyle' | 'pinstripe' | 'windowpane' | 'glen-check' | 'dot-grid' | 'basketweave' | 'diagonal-stripe'
+export const TEXTILE_PATTERNS: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo', 'herringbone', 'houndstooth', 'chevron', 'argyle', 'pinstripe', 'windowpane', 'glen-check', 'dot-grid', 'basketweave', 'diagonal-stripe']
 
 /**
  * The pattern's tonal value at a normalized position within one repeat tile —
@@ -59,6 +59,42 @@ export function textileValue(pattern: TextilePattern, u: number, v: number): num
         [0, 0, 1, 1]
       ]
       return HT[Math.floor(v * 4) % 4][Math.floor(u * 4) % 4]
+    }
+    case 'argyle': {
+      // a diamond lattice (both diagonals) crossed by thin argyle lines → three tones
+      const s = Math.floor((u + v) * 6)
+      const d = Math.floor((u - v) * 6)
+      const line = (((s % 3) + 3) % 3 === 0 || ((d % 3) + 3) % 3 === 0) ? 1 : 0
+      return line ? 1 : ((s + d) % 2 + 2) % 2 ? 0.55 : 0
+    }
+    case 'pinstripe': {
+      // thin, widely-spaced vertical stripes
+      return Math.floor(u * 8) % 4 === 0 ? 1 : 0
+    }
+    case 'windowpane': {
+      // a thin line grid — horizontal + vertical rules, widely spaced
+      return Math.floor(u * 8) % 4 === 0 || Math.floor(v * 8) % 4 === 0 ? 1 : 0
+    }
+    case 'glen-check': {
+      // Prince-of-Wales — a small check layered over a large one (three tones)
+      const small = Math.floor(u * 8) % 2 !== Math.floor(v * 8) % 2 ? 1 : 0
+      const large = Math.floor(u * 3) % 2 !== Math.floor(v * 3) % 2 ? 1 : 0
+      return (small + large) / 2
+    }
+    case 'dot-grid': {
+      // a fine micro-polka: a small contrast dot at each cell centre
+      const fu = u * 6 - Math.floor(u * 6) - 0.5
+      const fv = v * 6 - Math.floor(v * 6) - 0.5
+      return fu * fu + fv * fv < 0.03 ? 1 : 0
+    }
+    case 'basketweave': {
+      // over-under woven blocks — the fine rib direction flips per block
+      const block = ((Math.floor(u * 4) + Math.floor(v * 4)) % 2 + 2) % 2
+      return block === 0 ? Math.floor(v * 16) % 2 : Math.floor(u * 16) % 2
+    }
+    case 'diagonal-stripe': {
+      // simple bias stripes running on the diagonal
+      return (Math.floor((u + v) * 6) % 2 + 2) % 2
     }
     default: {
       // camo — irregular tonal patches (3 tones). Angular frequencies are integer
