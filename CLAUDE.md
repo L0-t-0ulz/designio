@@ -417,7 +417,7 @@ features — brows/eyes/lips) ·
 **product-white** = flat white no-floor product sweep, **transparent** = no backdrop → the Render tab
 exports a PNG **with alpha**) · `?neckline=<scoop|crew|v|one-shoulder|strapless>` (**one-shoulder** = the asymmetric-fit neckline — `topEdge` breaks mirror symmetry; the flat pattern follows) · `?text=<print>`
 (+ `?textX=<0..1>&textY=<0..1>` to place it; `x≈0.25` front, `0.75` back — back prints render on a
-back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo>` (a repeating pattern tiled across
+back-fabric panel) · `?textile=<stripe|plaid|check|gingham|polka|camo|herringbone|houndstooth|chevron>` (a repeating pattern tiled across
 the garment, behind the prints; `?textileScale=<0.25..4>&textileRotation=<deg>` resize + rotate the motif) · `?tartan=<black-watch|royal-stewart|hunting|dress-blue|camel-check|grey>`
 (a real tartan sett — thread-count stripes woven in 2/2 twill) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
 into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
