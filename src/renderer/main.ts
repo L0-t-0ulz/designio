@@ -70,6 +70,7 @@ import { HEM_SHAPES, type HemShape, type NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { pocketPlacements } from './garments/decor'
 import { hardwarePlacements, hardwareBOM } from './garments/hardware'
+import { beltHardwareBOM } from './garments/strapHardware'
 import { PatternController } from './pattern/PatternController'
 import { DEFAULT_PATTERN } from './pattern/pattern'
 import { openSketchPad, sketchPadOpen, closeSketchPad } from './pattern/SketchPad'
@@ -1842,7 +1843,7 @@ function initStudio(
         const m = mannequin.measurements
         const heavy = l.fabric.gsm >= 280
         const hasLegs = def.pieces.some((p) => p.kind === 'legTubes')
-        const hardware = hardwareBOM(
+        const hardware: { label: string }[] = hardwareBOM(
           hardwarePlacements({
             pockets: hasLegs ? pocketPlacements(def, m) : [],
             rivet: heavy && hasLegs,
@@ -1854,6 +1855,8 @@ function initStudio(
             hemY: m.hipY - 0.05
           })
         )
+        // a belted garment (waistband) draws its buckle from the strap hardware library
+        if (l.data.waistband) hardware.push(...beltHardwareBOM(40))
         return {
           name: def.name,
           size: l.data.size,
