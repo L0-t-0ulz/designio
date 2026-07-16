@@ -12,6 +12,7 @@ export interface WrapTarget {
   scarfKnot?: boolean
   scarfDouble?: boolean
   scarfBlanket?: boolean
+  scarfTuck?: boolean
   scarfPin?: boolean
   pinAt?: number
   scarfWidth?: number
@@ -29,7 +30,8 @@ export const WRAP_PRESETS: WrapPreset[] = [
   { name: 'parisian', label: 'Parisian knot', target: { scarfKnot: true } },
   { name: 'infinity', label: 'Infinity loop', target: { scarfDouble: true, scarfWidth: 0.9 } },
   { name: 'blanket', label: 'Blanket ruana', target: { scarfBlanket: true, scarfWidth: 1.6 } },
-  { name: 'ascot', label: 'Ascot (pinned)', target: { scarfPin: true, pinAt: 0.1, scarfWidth: 0.75 } }
+  { name: 'ascot', label: 'Ascot (pinned)', target: { scarfPin: true, pinAt: 0.1, scarfWidth: 0.75 } },
+  { name: 'tucked', label: 'Tucked into a coat', target: { scarfTuck: true, scarfWidth: 0.85 } }
 ]
 
 export const WRAP_PRESET_NAMES: string[] = WRAP_PRESETS.map((p) => p.name)
@@ -47,6 +49,7 @@ export function applyWrapPreset(t: WrapTarget, preset: WrapPreset): void {
   t.scarfKnot = g.scarfKnot
   t.scarfDouble = g.scarfDouble
   t.scarfBlanket = g.scarfBlanket
+  t.scarfTuck = g.scarfTuck
   t.scarfPin = g.scarfPin
   t.pinAt = g.pinAt
   t.scarfWidth = g.scarfWidth

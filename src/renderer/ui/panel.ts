@@ -106,6 +106,8 @@ export interface GarmentState {
   scarfDouble?: boolean
   /** Worn as a blanket-scarf shoulder drape (ruana). */
   scarfBlanket?: boolean
+  /** Worn tucked into a coat. */
+  scarfTuck?: boolean
   /** Gaiter worn state — bunched at the neck or pulled over the nose. */
   gaiterWorn?: import('../garments/schema').GaiterWorn
   /** Cowl-to-hood worn state — around the neck or pulled up over the crown. */

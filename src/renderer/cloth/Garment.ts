@@ -529,6 +529,9 @@ export interface ScarfSpec {
   /** The blanket-scarf shoulder drape — an oversized square draped over both shoulders,
    *  hanging down front + back like a ruana (overrides knot/double). */
   blanket?: boolean
+  /** Tuck-into-coat — the tails go down the front, tucked short + pulled toward centre,
+   *  pressed against the chest (as if tucked inside a coat). */
+  tuck?: boolean
 }
 
 // The wrap (collar) occupies the middle of the length; the two ends are the front tails.
@@ -557,6 +560,27 @@ function scarfCentre(u: number, s: ScarfSpec, out: THREE.Vector3): THREE.Vector3
     s.tailZ + (ez - s.tailZ) * s01 // tip well in front of the chest (clear of the torso)
   )
 }
+/**
+ * Tuck-into-coat centreline: the collar wraps as normal, but each tail is SHORT,
+ * pulled toward centre-front and pressed close to the chest (small z) — tucked in as
+ * if into a coat, instead of hanging forward + spread. Pure.
+ */
+export function tuckCentre(u: number, s: ScarfSpec, out: THREE.Vector3): THREE.Vector3 {
+  if (u >= WRAP_A && u <= WRAP_B) {
+    const th = wrapTheta(u)
+    return out.set(Math.sin(th) * s.wrapR, s.neckY, Math.cos(th) * s.wrapR)
+  }
+  const left = u < WRAP_A
+  const th = wrapTheta(left ? WRAP_A : WRAP_B)
+  const ex = Math.sin(th) * s.wrapR
+  const ez = Math.cos(th) * s.wrapR
+  const s01 = left ? u / WRAP_A : (1 - u) / (1 - WRAP_B) // 1 at the join … 0 at the tip
+  const tuckLen = s.tailLen * 0.5 // tucked short
+  const tipX = (left ? -1 : 1) * s.wrapR * 0.25 // toward centre-front
+  const tipZ = s.wrapR * 0.9 // pressed close to the chest (vs the draped tailZ, well forward)
+  return out.set(tipX + (ex - tipX) * s01, s.neckY - tuckLen + tuckLen * s01, tipZ + (ez - tipZ) * s01)
+}
+
 /** Width direction at `u`: vertical on the collar (band height), horizontal on the tails
  *  (flat hanging ribbon), smoothly blended between — robust, never degenerate. */
 function scarfWidthDir(u: number, out: THREE.Vector3): THREE.Vector3 {
@@ -703,6 +727,9 @@ export function fillScarf(positions: Float32Array, s: ScarfSpec): void {
       doubleCentre(u, s, _sp)
       const flat = Math.min(1, Math.max(0, Math.max((DBL_A - u) / 0.06, (u - DBL_B) / 0.06)))
       _sw.set(flat, 1 - flat, 0).normalize()
+    } else if (s.tuck) {
+      tuckCentre(u, s, _sp)
+      scarfWidthDir(u, _sw)
     } else {
       scarfCentre(u, s, _sp)
       scarfWidthDir(u, _sw)
@@ -773,7 +800,9 @@ export function buildScarf(s: ScarfSpec): TubeBuild {
     if (s.knot) inCollar = t > KNOT_FB + 0.02 && t < KNOT_FB + KNOT_WK - 0.02
     else if (s.double) inCollar = u >= DBL_A && u <= DBL_B && doubleCentre(u, s, _pc).z < 0
     else inCollar = Math.abs(u - 0.5) < 0.26
-    if (inCollar) for (let iy = 0; iy < s.ny; iy++) pinned.push(iy * s.nx + ix)
+    // the tuck also pins its short tail TIPS so they stay tucked against the chest
+    const tuckTip = s.tuck && (u < 0.05 || u > 0.95)
+    if (inCollar || tuckTip) for (let iy = 0; iy < s.ny; iy++) pinned.push(iy * s.nx + ix)
   }
   return finishPanel(positions, s.nx, s.ny, pinned)
 }
