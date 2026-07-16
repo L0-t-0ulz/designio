@@ -58,6 +58,7 @@ export interface MenuActions {
   onShortcuts: () => void
   onTour: () => void
   onGlossary: () => void
+  onVectorEditor: () => void
   onLessons: () => void
   onChallenges: () => void
   onReview: () => void
@@ -184,7 +185,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('tryon-widget', 'Export virtual try-on widget (HTML)'),
     ex('separations', 'Export print separations + registration (HTML)'),
     ex('bag-pattern', 'Export bag pattern — tote / handbag (HTML)'),
-    ex('shoe-pattern', 'Export shoe upper pattern (HTML)')
+    ex('shoe-pattern', 'Export shoe upper pattern (HTML)'),
+    { label: 'Vector print editor…', run: a.onVectorEditor }
   ])
   menu('Edit', [
     { label: 'Undo', run: a.onUndo, enabled: a.canUndo },
