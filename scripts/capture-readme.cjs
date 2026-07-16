@@ -96,7 +96,14 @@ const shots = [
   // New cloth-sim headwear
   ['docs/durag.png', 8000, 'garment=durag&closeup=head&headDist=0.6&start=0'],
   ['docs/bonnet.png', 8000, 'garment=bonnet&closeup=head&headDist=0.6&start=0'],
-  ['docs/undercap.png', 8000, 'garment=undercap&closeup=head&headDist=0.6&start=0']
+  ['docs/undercap.png', 8000, 'garment=undercap&closeup=head&headDist=0.6&start=0'],
+  // More headwear, tailoring & finishes
+  ['docs/hijab-khimar.png', 9000, 'garment=khimar&fabric=chiffon&closeup=head&headDist=1.7&start=0'],
+  ['docs/turban.png', 8500, 'garment=dress&fabric=silk-charmeuse&accessories=turban&turbanWraps=6&closeup=head&headDist=1.4&start=0'],
+  ['docs/sunglasses.png', 8000, 'garment=dress&fabric=denim&accessories=sunglasses,cap&closeup=head&headDist=1.4&start=0'],
+  ['docs/lapel-peak.png', 8000, 'garment=blazer&fabric=camel-check&collar=1&collarStyle=peak&closeup=head&headDist=1.9&start=0'],
+  ['docs/enamel-pin.png', 8000, 'garment=blazer&fabric=wool-flannel&prints=enamel-pin&closeup=1&start=0'],
+  ['docs/party-finish.png', 8000, 'garment=beanie&fabric=rib-knit&partyFinish=disco&closeup=head&headDist=1.3&start=0']
 ]
 
 let failed = 0

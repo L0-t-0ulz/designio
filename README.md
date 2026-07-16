@@ -426,6 +426,18 @@ One scarf, many **worn-states** — each a distinct cloth spawn + pinning, not a
 | ![An oversized blanket scarf draped over both shoulders like a ruana](docs/scarf-blanket.png) | ![A scarf wound twice around the neck](docs/scarf-double.png) | ![A knit snood pulled up over the crown into a hood](docs/cowl-hood.png) |
 | oversized square over the shoulders (ruana) | spiralled twice around the neck | a snood pulled up over the crown, with a face opening |
 
+More head coverings — the **hijab style set** (al-amira + the longer cape-like khimar, framing the face and draping onto the shoulders), a wrapped **turban** with a designer-set wrap count, and **sunglasses** that ride the face frame so they wear together with any hat:
+
+| Khimar (hijab set) | Wrapped turban | Sunglasses + a cap |
+| --- | --- | --- |
+| ![A flowing khimar framing the face and caping over the shoulders](docs/hijab-khimar.png) | ![A wrapped turban of stacked cloth bands doming the crown](docs/turban.png) | ![Sunglasses worn together with a cap](docs/sunglasses.png) |
+
+Tailoring & finishes shipped alongside — the three classic **lapel gorges** (notch / peak / shawl), a hard **enamel-pin** print badge, and one-click **party finishes**:
+
+| Peak lapel | Enamel-pin badge | Party finish |
+| --- | --- | --- |
+| ![A blazer with peaked lapels sweeping up to the shoulders](docs/lapel-peak.png) | ![A gold-rimmed enamel star pin on a blazer](docs/enamel-pin.png) | ![A beanie in a disco party finish — sequins + holographic shimmer](docs/party-finish.png) |
+
 ---
 
 ## Real 3D cloth simulation
