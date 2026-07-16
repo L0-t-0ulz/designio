@@ -14,6 +14,7 @@ import { ReviewStore } from './studio/reviewPins'
 import { openReview } from './ui/reviewOverlay'
 import { openTutorial } from './ui/tutorialOverlay'
 import type { TutorialContext } from './ui/tutorial'
+import { openVectorEditor } from './ui/vectorEditor'
 import { openLessons } from './ui/lessonsOverlay'
 import { openChallenges } from './ui/challengesOverlay'
 import { openTemplates } from './ui/templatesOverlay'
@@ -2109,6 +2110,7 @@ function initStudio(
     onShortcuts: toggleShortcuts,
     onTour: () => startTour(),
     onGlossary: openGlossary,
+    onVectorEditor: openVectorEditor,
     onReview: () => openReview(reviewStore),
     onTutorial: () => openTutorial(getTutorialContext),
     onLessons: openLessons,
@@ -2640,6 +2642,7 @@ function initStudio(
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
   if (params.get('review') === '1') window.setTimeout(() => openReview(reviewStore), 500) // open the design-review panel
   if (params.get('tutorial') === '1') window.setTimeout(() => openTutorial(getTutorialContext), 500) // open the interactive tutorial
+  if (params.get('vectorEditor') === '1') window.setTimeout(() => openVectorEditor(), 500) // open the vector print editor
   if (params.get('lessons') === '1') window.setTimeout(() => openLessons(), 500) // open pattern-making lessons
   if (params.get('challenges') === '1') window.setTimeout(() => openChallenges(), 500) // open community challenges
   if (params.get('templates') === '1') window.setTimeout(() => openTemplates(), 500) // open the template gallery
