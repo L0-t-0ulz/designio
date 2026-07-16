@@ -98,6 +98,19 @@ describe('FABRIC_LIBRARY', () => {
     expect(getFabric('cavalry-twill').transmission).toBe(0)
   })
 
+  it('includes the added silks, double-cloths + knits with unique ids', () => {
+    const added = ['habotai-silk', 'crepe-back-satin', 'matelasse', 'cloque', 'terry-towelling', 'interlock-knit', 'milano-rib', 'ottoman-rib', 'boucle', 'mohair']
+    for (const id of added) {
+      const f = getFabric(id)
+      expect(f.id, `${id} should be registered`).toBe(id)
+      expect(f.name.length).toBeGreaterThan(0)
+    }
+    expect(new Set(FABRIC_LIBRARY.map((f) => f.id)).size).toBe(FABRIC_LIBRARY.length) // unique
+    // the ribbed knits stretch; terry towelling is heavy + matte
+    expect(getFabric('milano-rib').stretch).toBeGreaterThan(0.3)
+    expect(getFabric('terry-towelling').gsm).toBeGreaterThan(300)
+  })
+
   it('getFabric falls back to the first entry for unknown ids', () => {
     expect(getFabric('nope')).toBe(FABRIC_LIBRARY[0])
     expect(getFabric('denim').id).toBe('denim')
