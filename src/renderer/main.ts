@@ -139,6 +139,7 @@ import { configuratorHtml } from './export/configurator'
 import { tryOnWidgetHtml } from './export/tryOn'
 import { separationsHTML } from './export/separations'
 import { bagSpec, bagCutSheetHTML } from './export/bag'
+import { shoeLast, shoeCutSheetHTML } from './export/shoe'
 import { getWrapPreset, applyWrapPreset } from './avatar/wrapPresets'
 import { openVersionHistory } from './ui/versionHistory'
 import { diffDocs } from './studio/diffDoc'
@@ -1439,6 +1440,15 @@ function initStudio(
         const inp: ListingInput = { name: projectName !== 'Untitled' ? projectName : def.name, fabricName: l.fabric.name, fibre: label.fibre, colours, sizes: [...SIZES], priceUsd: priceFromCost({ cost: cost.total }).retail, careLines: label.care }
         await saveFile('configurator.html', new TextEncoder().encode(configuratorHtml(inp, { shareUrl: shareUrl(currentDoc(), location.href) })), [{ name: 'HTML', extensions: ['html'] }])
         statusHandles?.setSelection('Made-to-order configurator exported')
+        break
+      }
+      case 'shoe-pattern': {
+        // a parametric shoe upper cut sheet (last + upper panels)
+        const styleP = entryParams.get('shoe') ?? 'oxford'
+        const shoeStyle = (['oxford', 'derby', 'sneaker', 'boot', 'loafer'].includes(styleP) ? styleP : 'oxford') as import('./export/shoe').ShoeStyle
+        const size = Math.max(30, Math.min(50, parseInt(entryParams.get('shoeSize') ?? '42', 10) || 42))
+        await saveFile(`${shoeStyle}-eu${size}-upper.html`, new TextEncoder().encode(shoeCutSheetHTML(shoeStyle, shoeLast(size))), [{ name: 'HTML', extensions: ['html'] }])
+        statusHandles?.setSelection(`Shoe upper — ${shoeStyle} EU ${size}`)
         break
       }
       case 'bag-pattern': {
