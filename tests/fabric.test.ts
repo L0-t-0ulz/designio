@@ -84,6 +84,20 @@ describe('FABRIC_LIBRARY', () => {
     }
   })
 
+  it('includes the added wovens/silks/shirtings with unique ids', () => {
+    const added = ['seersucker', 'ripstop-nylon', 'cavalry-twill', 'hopsack', 'birdseye-suiting', 'sharkskin', 'moleskin', 'cotton-drill', 'cotton-voile', 'cotton-lawn', 'batiste', 'broadcloth', 'dupioni-silk', 'shantung-silk', 'silk-georgette']
+    for (const id of added) {
+      const f = getFabric(id)
+      expect(f.id, `${id} should be registered`).toBe(id)
+      expect(f.name.length).toBeGreaterThan(0)
+    }
+    // ids are unique across the whole library
+    expect(new Set(FABRIC_LIBRARY.map((f) => f.id)).size).toBe(FABRIC_LIBRARY.length)
+    // sheers read as sheer (transmission), suitings as opaque
+    expect(getFabric('silk-georgette').transmission).toBeGreaterThan(0.2)
+    expect(getFabric('cavalry-twill').transmission).toBe(0)
+  })
+
   it('getFabric falls back to the first entry for unknown ids', () => {
     expect(getFabric('nope')).toBe(FABRIC_LIBRARY[0])
     expect(getFabric('denim').id).toBe('denim')
