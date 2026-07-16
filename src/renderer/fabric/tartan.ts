@@ -24,8 +24,8 @@ export interface TartanSett {
   symmetric?: boolean
 }
 
-export type TartanKind = 'black-watch' | 'royal-stewart' | 'hunting' | 'dress-blue' | 'camel-check' | 'grey'
-export const TARTAN_KINDS: TartanKind[] = ['black-watch', 'royal-stewart', 'hunting', 'dress-blue', 'camel-check', 'grey']
+export type TartanKind = 'black-watch' | 'royal-stewart' | 'hunting' | 'dress-blue' | 'camel-check' | 'grey' | 'macleod' | 'buffalo-plaid' | 'prince-of-wales' | 'gingham'
+export const TARTAN_KINDS: TartanKind[] = ['black-watch', 'royal-stewart', 'hunting', 'dress-blue', 'camel-check', 'grey', 'macleod', 'buffalo-plaid', 'prince-of-wales', 'gingham']
 
 // Conventional tartan palette (sRGB).
 const NAVY = 0x1e2a44
@@ -50,7 +50,15 @@ export const TARTAN_SETTS: Record<TartanKind, TartanSett> = {
   hunting: { stripes: [s(GREEN, 40), s(BLACK, 6), s(NAVY, 16), s(GREEN, 6), s(RED, 4), s(GREEN, 6)] },
   'dress-blue': { stripes: [s(NAVY, 32), s(WHITE, 6), s(AZURE, 16), s(WHITE, 6), s(BLACK, 4)] },
   'camel-check': { stripes: [s(CAMEL, 40), s(WHITE, 4), s(BLACK, 8), s(CAMEL, 4), s(RED, 4), s(BLACK, 8)] },
-  grey: { stripes: [s(GREY, 28), s(CHARCOAL, 8), s(WHITE, 4), s(CHARCOAL, 8)] }
+  grey: { stripes: [s(GREY, 28), s(CHARCOAL, 8), s(WHITE, 4), s(CHARCOAL, 8)] },
+  // the loud MacLeod — a bright yellow ground barred with black + a red overcheck
+  macleod: { stripes: [s(YELLOW, 36), s(BLACK, 8), s(YELLOW, 4), s(BLACK, 8), s(RED, 4), s(BLACK, 8)] },
+  // buffalo plaid — the big even red/black lumberjack check
+  'buffalo-plaid': { stripes: [s(RED, 32), s(BLACK, 32)] },
+  // Prince of Wales — a fine grey/charcoal glen-check with a faint azure overcheck
+  'prince-of-wales': { stripes: [s(GREY, 16), s(BLACK, 4), s(WHITE, 4), s(BLACK, 4), s(CHARCOAL, 12), s(AZURE, 2)] },
+  // gingham as a tartan sett — an even white/navy check
+  gingham: { stripes: [s(WHITE, 16), s(NAVY, 16)] }
 }
 
 /**

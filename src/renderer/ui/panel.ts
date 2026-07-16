@@ -1419,7 +1419,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
 
   // A real tartan sett (thread-count stripes woven in 2/2 twill) across the garment.
   const TARTAN_LABELS: Record<TartanKind, string> = {
-    'black-watch': 'Black Watch', 'royal-stewart': 'Royal Stewart', hunting: 'Hunting', 'dress-blue': 'Dress Blue', 'camel-check': 'Camel check', grey: 'Grey'
+    'black-watch': 'Black Watch', 'royal-stewart': 'Royal Stewart', hunting: 'Hunting', 'dress-blue': 'Dress Blue', 'camel-check': 'Camel check', grey: 'Grey', macleod: 'MacLeod', 'buffalo-plaid': 'Buffalo plaid', 'prince-of-wales': 'Prince of Wales', gingham: 'Gingham'
   }
   function tartanControls(t: NonNullable<PanelOptions['tartan']>): HTMLElement {
     const wrap = el('div')
