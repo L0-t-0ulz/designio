@@ -97,6 +97,34 @@ export function weaveHeight(weave: WeaveType, u: number, v: number, threads: num
       }
       return 0.25 * weftRidge // the recessed purl gutter between cables
     }
+    case 'basketweave': {
+      // 2×2 basket — pairs of warp/weft float together into a chunky checker; the two
+      // blocks sit at slightly different heights so the basket reads even flat-on
+      const block = (((cu >> 1) + (cv >> 1)) & 1) === 0
+      return block ? 0.28 + 0.72 * warpRidge : 0.14 + 0.72 * weftRidge
+    }
+    case 'houndstooth': {
+      // dogtooth interlacement — a broken twill, the 4×4 houndstooth tile in relief
+      const HT = [
+        [1, 1, 1, 0],
+        [1, 1, 0, 0],
+        [1, 0, 0, 1],
+        [0, 0, 1, 1]
+      ]
+      const warpOnTop = HT[((cv % 4) + 4) % 4][((cu % 4) + 4) % 4] === 1
+      return warpOnTop ? 0.3 + 0.7 * warpRidge : 0.7 * weftRidge
+    }
+    case 'birdseye-dobby': {
+      // bird's-eye dobby — a plain ground with a small raised "eye" figure every 4 threads
+      const ground = ((cu + cv) & 1) === 0 ? warpRidge : weftRidge
+      const eye = ((cu % 4) + 4) % 4 === 1 && ((cv % 4) + 4) % 4 === 1
+      return eye ? 0.9 : 0.3 + 0.4 * ground
+    }
+    case 'pique': {
+      // piqué knit — fine raised rounded bumps on alternating cells (a polo texture)
+      const raised = ((cu + cv) & 1) === 0
+      return raised ? 0.3 + 0.7 * bump(tu) * bump(tv) : 0.15 + 0.2 * weftRidge
+    }
     default:
       return 0.5
   }
