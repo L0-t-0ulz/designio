@@ -12,6 +12,8 @@ import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOv
 import { openGlossary } from './ui/glossaryOverlay'
 import { ReviewStore } from './studio/reviewPins'
 import { openReview } from './ui/reviewOverlay'
+import { openTutorial } from './ui/tutorialOverlay'
+import type { TutorialContext } from './ui/tutorial'
 import { openLessons } from './ui/lessonsOverlay'
 import { openChallenges } from './ui/challengesOverlay'
 import { openTemplates } from './ui/templatesOverlay'
@@ -201,6 +203,20 @@ function initStudio(
 
   // The multi-garment stack (each layer = its own material · controller · fabric).
   const stack = new GarmentStack(viewport.scene, mannequin.colliders, mannequin.measurements, mannequin.bodyCollider, () => mannequin.anchors())
+  // Interactive tutorial: a live snapshot of what the user has done in the studio.
+  let hasExported = false
+  const getTutorialContext = (): TutorialContext => {
+    const l = stack.active
+    const d = l.data
+    const def = getGarment(d.garmentType)
+    return {
+      fabricChosen: d.fabricId !== def.defaultFabric,
+      prints: l.prints.length,
+      hasFinish: !!(d.textile || d.ombre || d.wear || d.sparkle || d.iridescent || d.duotone || d.tartan || d.colourwork || d.quilt || d.lace || d.fur),
+      colorways: stack.colorways().length,
+      exported: hasExported
+    }
+  }
   // When the body swaps (the async GLB avatar arrives, or the toggle), re-drape every
   // garment so its pins re-bind to the new body's anchors instead of the old one's.
   // Body swap (async GLB load / toggle): REBUILD, don't just redrape — a redrape
@@ -1324,6 +1340,7 @@ function initStudio(
     }
   }
   async function doExport(fmt: ExportFormat): Promise<void> {
+    hasExported = true // tutorial: the "export your design" task
     const meshes = mode === 'templates' ? stack.getMeshesAll() : (patternCtl?.getMeshes() ?? [])
     const dims = { bust: patternParams.bust, length: patternParams.length }
     const l = stack.active
@@ -2067,6 +2084,7 @@ function initStudio(
     onTour: () => startTour(),
     onGlossary: openGlossary,
     onReview: () => openReview(reviewStore),
+    onTutorial: () => openTutorial(getTutorialContext),
     onLessons: openLessons,
     onChallenges: () => openChallenges((gid) => { garment.type = gid as GarmentType; Object.assign(garment, getGarment(gid).defaults); api.syncGarment(); applyGarmentEdit() }),
     onAbout: () =>
@@ -2595,6 +2613,7 @@ function initStudio(
   if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
   if (params.get('review') === '1') window.setTimeout(() => openReview(reviewStore), 500) // open the design-review panel
+  if (params.get('tutorial') === '1') window.setTimeout(() => openTutorial(getTutorialContext), 500) // open the interactive tutorial
   if (params.get('lessons') === '1') window.setTimeout(() => openLessons(), 500) // open pattern-making lessons
   if (params.get('challenges') === '1') window.setTimeout(() => openChallenges(), 500) // open community challenges
   if (params.get('templates') === '1') window.setTimeout(() => openTemplates(), 500) // open the template gallery
