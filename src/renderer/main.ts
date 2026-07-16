@@ -586,6 +586,12 @@ function initStudio(
       onCompare: (snapId) => {
         const doc = restoreSnapshot(pid, snapId) // returns the snapshot doc (no side effects)
         return doc ? diffDocs(doc, currentDoc()) : []
+      },
+      onCompareTwo: (aId, bId) => {
+        // version-to-version diff: how version A differs from version B (both by id)
+        const da = restoreSnapshot(pid, aId)
+        const db = restoreSnapshot(pid, bId)
+        return da && db ? diffDocs(db, da) : []
       }
     })
   }

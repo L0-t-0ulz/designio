@@ -11,6 +11,20 @@ describe('version compare (doc diff)', () => {
     expect(diffSummary(base(), base())).toBe('No changes')
   })
 
+  it('compares any two versions (not just vs current) — version-to-version diff', () => {
+    // two saved versions, neither the working design: v1 (denim) vs v2 (satin + collar)
+    const v1 = base()
+    v1.layers[0].fabricId = 'denim'
+    const v2 = base()
+    v2.layers[0].fabricId = 'satin'
+    v2.layers[0].collar = true
+    const d = diffDocs(v1, v2) // how v2 differs from v1
+    expect(d.some((l) => l.includes('fabric:') && l.includes('satin'))).toBe(true)
+    expect(d).toContain('Layer 1 collar: — → on')
+    // the reverse direction is also meaningful
+    expect(diffDocs(v2, v1).some((l) => l.includes('denim'))).toBe(true)
+  })
+
   it('reports a fabric + colour change on a layer', () => {
     const a = base()
     const b = base()

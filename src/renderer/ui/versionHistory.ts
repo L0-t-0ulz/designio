@@ -16,6 +16,8 @@ export interface VersionHistoryOpts {
   onDelete: (id: string) => void
   /** Diff a snapshot against the working design → human-readable change lines. */
   onCompare?: (id: string) => string[]
+  /** Diff one snapshot against another (version-to-version) → change lines. */
+  onCompareTwo?: (aId: string, bId: string) => string[]
 }
 
 let overlay: HTMLElement | null = null
@@ -89,10 +91,15 @@ export function openVersionHistory(opts: VersionHistoryOpts, now = Date.now()): 
         li.remove()
       })
       li.append(meta, restore, del)
-      if (opts.onCompare) {
+      if (opts.onCompare || opts.onCompareTwo) {
         const cmp = document.createElement('button')
         cmp.className = 'dio-btn'
         cmp.textContent = 'Compare'
+        // "Compare with" — the current design, or any OTHER saved version
+        const against = document.createElement('select')
+        against.className = 'dio-history-against'
+        against.append(new Option('the current design', '__current__'))
+        if (opts.onCompareTwo) for (const other of opts.items) if (other.id !== it.id) against.append(new Option(other.label, other.id))
         const diff = document.createElement('ul')
         diff.className = 'dio-history-diff'
         cmp.addEventListener('click', () => {
@@ -100,14 +107,18 @@ export function openVersionHistory(opts: VersionHistoryOpts, now = Date.now()): 
             diff.replaceChildren()
             return
           }
-          const lines = opts.onCompare!(it.id)
-          for (const line of lines.length ? lines : ['No changes vs the current design']) {
+          const target = against.value
+          const lines = target === '__current__' ? (opts.onCompare?.(it.id) ?? []) : (opts.onCompareTwo?.(it.id, target) ?? [])
+          const empty = target === '__current__' ? 'No changes vs the current design' : 'No changes vs that version'
+          for (const line of lines.length ? lines : [empty]) {
             const d = document.createElement('li')
             d.textContent = line
             diff.appendChild(d)
           }
         })
-        li.append(cmp)
+        // changing the comparison target clears a shown diff so it re-computes
+        against.addEventListener('change', () => diff.replaceChildren())
+        li.append(cmp, against)
         li.appendChild(diff)
       }
       list.appendChild(li)
