@@ -79,6 +79,7 @@ import { demoArrangement } from './pattern/arrangement'
 import { demoStyleLines } from './pattern/styleLines'
 import { demoInternalShapes } from './pattern/panelFeatures'
 import { parseStitchParams, stitchSummary, SEAM_TYPES } from './garment/stitchTypes'
+import { zipperSpecFor, zipperSummary } from './garment/zipper'
 import { parsePhysicalParams, physicalDefaults, physicalSummary } from './fabric/physicalProps'
 import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
@@ -1870,6 +1871,8 @@ function initStudio(
           // no explicit allowance → the seam type's recommended one (french/flat-fell need more)
           seam: l.data.seam ?? (l.data.stitch ? SEAM_TYPES[l.data.stitch.seamType].allowanceMm : 10),
           stitch: l.data.stitch ? { summary: stitchSummary(l.data.stitch), spec: l.data.stitch } : undefined,
+          // a zip closure resolves to a full zipper spec (gauge from weight, length from category)
+          zipper: l.data.closure && (def.closureStyle ?? 'button') === 'zip' ? zipperSummary(zipperSpecFor(def.category, l.fabric.gsm)) : undefined,
           physical: l.data.physicalFabric ? physicalSummary(l.data.physicalFabric) : undefined,
           fibre: label.fibre,
           care: label.care,

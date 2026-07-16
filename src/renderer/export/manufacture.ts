@@ -34,6 +34,8 @@ export interface ManufactureLayer {
   seam?: number
   /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
   stitch?: { summary: string; spec: import('../garment/stitchTypes').StitchSpec }
+  /** Zipper spec summary (present when the closure is a zip). */
+  zipper?: string
   /** Physical fabric override in real units (one-line spec). */
   physical?: string
   /** Auto-generated care label — fibre content + laundering instructions. */
@@ -211,6 +213,7 @@ function layerSection(l: ManufactureLayer): string {
             ${(l.hardware ?? []).map((h) => `<tr><td>Hardware</td><td colspan="2">${esc(h.label)}</td></tr>`).join('')}
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
             ${l.stitch ? `<tr><td>Seams &amp; stitching</td><td colspan="2">${esc(l.stitch.summary)}</td></tr>` : ''}
+            ${l.zipper ? `<tr><td>Zipper</td><td colspan="2">${esc(l.zipper)}</td></tr>` : ''}
             ${l.physical ? `<tr><td>Fabric spec (measured)</td><td colspan="2">${esc(l.physical)}</td></tr>` : ''}
             <tr><td>Cloth area</td><td colspan="2">${l.metrics.fabricM2.toFixed(2)} m²</td></tr>
             ${
