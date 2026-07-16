@@ -84,6 +84,7 @@ import { parseStitchParams, stitchSummary, SEAM_TYPES } from './garment/stitchTy
 import { zipperSpecFor, zipperSummary } from './garment/zipper'
 import { fashioningPlan, isFullyFashioned, fashioningSummary } from './garment/fullyFashioned'
 import { fleeceRevealZones, fleeceLiningNote } from './fabric/fleeceLining'
+import { convertibleDetailsFor, convertibleNote } from './garment/convertibleDetails'
 import { parsePhysicalParams, physicalDefaults, physicalSummary } from './fabric/physicalProps'
 import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
@@ -1970,6 +1971,20 @@ function initStudio(
           })(),
           // a lined garment shows its fleece lining where it opens / folds back
           fleeceLining: l.data.lined ? fleeceLiningNote(fleeceRevealZones({ open: l.data.closureOpen, cuff: l.data.cuff, collar: l.data.collar, collarStyle: l.data.collarStyle })) : undefined,
+          // convertible construction options for outerwear (roll-up/collar) + trousers (zip-off)
+          convertible: (() => {
+            const outer = def.category === 'outerwear'
+            const bottom = def.category === 'bottom'
+            if (!outer && !bottom) return undefined
+            const note = convertibleNote(
+              convertibleDetailsFor({
+                hasSleeves: outer && def.pieces.some((p) => p.kind === 'sleeves'),
+                hasLegs: bottom && def.pieces.some((p) => p.kind === 'legTubes'),
+                collar: outer && !!l.data.collar
+              })
+            )
+            return note || undefined
+          })(),
           physical: l.data.physicalFabric ? physicalSummary(l.data.physicalFabric) : undefined,
           fibre: label.fibre,
           care: label.care,
