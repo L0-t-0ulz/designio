@@ -37,6 +37,7 @@ import { POSE_NAMES, type PoseName } from './avatar/poses'
 import { POSTURES, type PostureName } from './avatar/posture'
 import { WALK_STYLE_NAMES, type WalkStyleName } from './avatar/walkStyles'
 import { getBodyPreset } from './avatar/bodyPresets'
+import { FIGURE_BLOCKS, figureBlockGrade, applyFigureBlockToConfig, type FigureBlock } from './studio/figureBlock'
 import { getKidsBlock } from './avatar/kidsSizes'
 import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
 import { CROWN_STYLES, type CrownStyle } from './avatar/crown'
@@ -1104,6 +1105,17 @@ function initStudio(
   const bpParam = params.get('bodyPreset')
   if (bpParam) {
     const preset = getBodyPreset(bpParam)
+    if (preset) {
+      Object.assign(bodySize, preset.shape)
+      bodyChanged = true
+    }
+  }
+  // ?block= — petite/tall/plus auto-proportioning: set the matching body-shape preset
+  // (the garment length/ease grade is applied to the config in the entry parsing)
+  const blockParam = params.get('block')
+  if (blockParam && (FIGURE_BLOCKS as string[]).includes(blockParam)) {
+    const bp = figureBlockGrade(blockParam as FigureBlock).bodyPreset
+    const preset = bp ? getBodyPreset(bp) : undefined
     if (preset) {
       Object.assign(bodySize, preset.shape)
       bodyChanged = true
@@ -2836,6 +2848,9 @@ if (skipStart) {
   }
   const easeM = parseFloat(entryParams.get('ease') ?? '')
   if (Number.isFinite(easeM)) cfg.ease = Math.max(-0.03, Math.min(0.12, easeM))
+  // ?block= — petite/tall/plus auto-proportioning: scale the garment length + ease
+  const blockP = entryParams.get('block')
+  if (blockP && (FIGURE_BLOCKS as string[]).includes(blockP)) applyFigureBlockToConfig(cfg, blockP as FigureBlock)
   if (entryParams.get('breath') === '1') cfg.breath = true
   if (entryParams.get('distressed') === '1') cfg.distressed = true
   const cvw = entryParams.get('convertibleWorn')
