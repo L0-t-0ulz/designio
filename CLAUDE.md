@@ -424,7 +424,7 @@ into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed 
 `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
 procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone|3-3-twill|rosepath|huck-lace|waffle>` (a **weave draft** —
 threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·
-`?knitChart=<stockinette|garter|rib-1x1|rib-2x2|seed|cable>` (a **knit stitch chart** — knit/purl/cable
+`?knitChart=<stockinette|garter|rib-1x1|rib-2x2|seed|cable|moss|basketweave|chevron|bobble>` (a **knit stitch chart** — knit/purl/cable
 cells replacing the preset weave maps) ·
 `?colourwork=<fairisle|argyle|zigzag|heart|star|skull|flame|frost>` (**intarsia / colourwork** — a fair-isle jacquard tiled
 allover or a placed intarsia chest block, painted into the albedo behind the prints) ·
