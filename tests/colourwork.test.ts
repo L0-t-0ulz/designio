@@ -33,6 +33,17 @@ describe('colourwork presets', () => {
     }
   })
 
+  it('registers the added colourwork (snowflake, reindeer, checkerboard, lightning-bolt)', () => {
+    for (const id of ['snowflake', 'reindeer', 'checkerboard', 'lightning-bolt']) {
+      const p = colourworkPreset(id)
+      expect(p, `${id} should be registered`).toBeTruthy()
+      expect(validateColourwork(p!.chart), id).toBeNull()
+    }
+    expect(colourworkPreset('snowflake')!.chart.mode).toBe('fairisle')
+    expect(colourworkPreset('lightning-bolt')!.chart.mode).toBe('intarsia')
+    expect(new Set(colourworkPreset('lightning-bolt')!.chart.cells.flat()).has(0)).toBe(true) // transparent ground
+  })
+
   it('the heart motif is horizontally symmetric', () => {
     const c = heart()
     for (const row of c.cells) expect(row).toEqual([...row].reverse())
