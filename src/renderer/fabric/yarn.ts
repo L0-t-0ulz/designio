@@ -89,7 +89,7 @@ export function yarnAdjustedFabric(f: Fabric, y?: YarnSpec): Fabric {
 
 // ---- presets — the hand-knitting weights + spin styles, as data ----
 
-export type YarnPresetId = 'lace' | 'fingering' | 'dk' | 'worsted' | 'chunky' | 'single-ply' | 'crepe'
+export type YarnPresetId = 'lace' | 'fingering' | 'dk' | 'worsted' | 'chunky' | 'single-ply' | 'crepe' | 'mohair-brushed' | 'slub' | 'boucle' | 'metallic-blend'
 
 export interface YarnPreset {
   id: YarnPresetId
@@ -105,7 +105,13 @@ export const YARN_PRESETS: YarnPreset[] = [
   { id: 'chunky', name: 'Chunky', yarn: { tex: 200, ply: 3, twist: 0.35 } },
   // spin styles at DK weight — the soft halo single vs the springy crepe
   { id: 'single-ply', name: 'Single-ply (soft)', yarn: { tex: 60, ply: 1, twist: 0.2 } },
-  { id: 'crepe', name: 'Crepe (springy)', yarn: { tex: 45, ply: 2, twist: 0.9 } }
+  { id: 'crepe', name: 'Crepe (springy)', yarn: { tex: 45, ply: 2, twist: 0.9 } },
+  // textured novelty spins — a light brushed-mohair halo, a thick-thin slub, a nubby
+  // bouclé, and a crisp metallic-blend that catches the light
+  { id: 'mohair-brushed', name: 'Mohair-brushed (halo)', yarn: { tex: 35, ply: 2, twist: 0.25 } },
+  { id: 'slub', name: 'Slub (thick-thin)', yarn: { tex: 85, ply: 2, twist: 0.3 } },
+  { id: 'boucle', name: 'Bouclé (nubby)', yarn: { tex: 130, ply: 3, twist: 0.3 } },
+  { id: 'metallic-blend', name: 'Metallic-blend', yarn: { tex: 50, ply: 3, twist: 0.75 } }
 ]
 
 export const yarnPreset = (id: string): YarnPreset | undefined => YARN_PRESETS.find((p) => p.id === id)
