@@ -18,6 +18,7 @@ import type { Measurements } from '../avatar/Mannequin'
 import type { GarmentDefinition } from '../garments/schema'
 import { garmentMetrics } from './garmentMetrics'
 import { headSizing, type HeadSizing } from './headSizing'
+import { bandGripKpa } from '../cloth/elasticBand'
 import { SIZES, gradeParams, type GarmentLayerData, type SizeLabel } from '../studio/document'
 
 export interface PomRow {
@@ -61,5 +62,12 @@ export function pomTable(def: GarmentDefinition, data: GarmentLayerData, m: Meas
   // Headwear (a head/neck tube) also carries a head-circumference size run + ear fit.
   const crownTube = def.pieces.find((p) => p.kind === 'headTube' && p.anchor === 'crown') as { dropLo: number } | undefined
   const isHeadwear = def.pieces.some((p) => p.kind === 'headTube')
-  return { sizes: SIZES, rows, head: isHeadwear ? headSizing(m.headR, crownTube?.dropLo, hairStyle) : undefined }
+  const head = isHeadwear ? headSizing(m.headR, crownTube?.dropLo, hairStyle) : undefined
+  if (head) {
+    // the elastic band grip: the cuff is drafted by the layer's ease (negative = snug),
+    // so its rest girth is the head circ + ease; the stretch → grip pressure
+    const grip = bandGripKpa(head.circCm + (data.ease ?? 0) * 100, head.circCm, m.headR)
+    if (grip > 0) head.bandGripKpa = grip
+  }
+  return { sizes: SIZES, rows, head }
 }

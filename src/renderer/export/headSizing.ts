@@ -52,6 +52,8 @@ export interface HeadSizing {
   /** The circumference + hair, and the size it recommends (may be a size up). */
   withHairCircCm?: number
   withHairSize?: string
+  /** Elastic band grip pressure (kPa) when the band is drafted snug; 0/absent if loose. */
+  bandGripKpa?: number
 }
 
 /** The ears sit roughly this many head-radii below the crown. */

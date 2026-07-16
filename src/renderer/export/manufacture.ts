@@ -124,7 +124,8 @@ function headSizingSection(h?: PomSheet['head']): string {
       : h.hairVolumeCm
         ? ` · +${h.hairVolumeCm.toFixed(1)} cm hair (same size)`
         : ''
-  return `<h3>Head sizing <span style="font-weight:400;opacity:.6">(fitted: ${h.circCm.toFixed(1)} cm → size ${esc(h.size)}${earNote}${hairNote})</span></h3>
+  const gripNote = h.bandGripKpa ? ` · elastic grip ${h.bandGripKpa.toFixed(1)} kPa` : ''
+  return `<h3>Head sizing <span style="font-weight:400;opacity:.6">(fitted: ${h.circCm.toFixed(1)} cm → size ${esc(h.size)}${earNote}${hairNote}${gripNote})</span></h3>
     <table class="pom">
       <thead><tr><th>Hat size</th>${cells}</tr></thead>
       <tbody><tr><td>Head circ (cm)</td>${spans}</tr></tbody>
