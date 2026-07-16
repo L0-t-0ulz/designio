@@ -2698,6 +2698,9 @@ if (skipStart) {
   if (entryParams.get('prints') === 'enamel-pin') {
     cfg.prints.push({ ...newTextPrint('★'), x: 0.28, y: 0.34, scale: 0.42, color: 0x1d4e89, style: 'enamel-pin' })
   }
+  if (entryParams.get('prints') === 'woven') {
+    cfg.prints.push({ ...newTextPrint('WOVEN'), x: 0.25, y: 0.36, scale: 0.6, color: 0xb5432f, style: 'woven' })
+  }
   if (entryParams.get('prints') === 'blend') {
     // a translucent multiply print (tints into the weave) beside a 60%-opacity one
     cfg.prints.push({ ...newTextPrint('FADED'), x: 0.25, y: 0.34, scale: 0.55, color: 0x101014, blend: 'multiply' })

@@ -1873,7 +1873,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       {
         const cur = p.get(id)?.style ?? 'flat'
         const row = el('div', 'dio-seg dio-seg-wrap')
-        for (const [label, st] of [['Flat', 'flat'], ['Embroidery', 'embroidery'], ['Appliqué', 'applique'], ['Enamel pin', 'enamel-pin']] as [string, PrintStyle][]) {
+        for (const [label, st] of [['Flat', 'flat'], ['Woven', 'woven'], ['Embroidery', 'embroidery'], ['Appliqué', 'applique'], ['Enamel pin', 'enamel-pin']] as [string, PrintStyle][]) {
           const b = el('button', 'dio-seg-btn' + (cur === st ? ' on' : ''), label)
           b.setAttribute('type', 'button')
           b.addEventListener('click', () => { p.update(id, { style: st }); renderEditor() })
