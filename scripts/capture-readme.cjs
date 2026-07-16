@@ -103,7 +103,12 @@ const shots = [
   ['docs/sunglasses.png', 8000, 'garment=dress&fabric=denim&accessories=sunglasses,cap&closeup=head&headDist=1.4&start=0'],
   ['docs/lapel-peak.png', 8000, 'garment=blazer&fabric=camel-check&collar=1&collarStyle=peak&closeup=head&headDist=1.9&start=0'],
   ['docs/enamel-pin.png', 8000, 'garment=blazer&fabric=wool-flannel&prints=enamel-pin&closeup=1&start=0'],
-  ['docs/party-finish.png', 8000, 'garment=beanie&fabric=rib-knit&partyFinish=disco&closeup=head&headDist=1.3&start=0']
+  ['docs/party-finish.png', 8000, 'garment=beanie&fabric=rib-knit&partyFinish=disco&closeup=head&headDist=1.3&start=0'],
+  // Studio tools + auto-proportioning
+  ['docs/vector-editor.png', 6500, 'garment=dress&fabric=jersey&vectorEditor=1&start=0'],
+  ['docs/tutorial.png', 6500, 'garment=dress&fabric=satin&tutorial=1&start=0'],
+  ['docs/review-panel.png', 6500, 'garment=dress&fabric=denim&review=1&start=0'],
+  ['docs/auto-proportion.png', 8000, 'garment=dress&fabric=satin&block=tall&start=0']
 ]
 
 let failed = 0
