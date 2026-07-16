@@ -90,7 +90,7 @@ export function cloneColourwork(c: ColourworkChart): ColourworkChart {
 
 // ---- presets — classic colourwork, as data ----
 
-export type ColourworkPresetId = 'fairisle' | 'argyle' | 'zigzag' | 'heart' | 'star' | 'skull' | 'flame' | 'frost'
+export type ColourworkPresetId = 'fairisle' | 'argyle' | 'zigzag' | 'heart' | 'star' | 'skull' | 'flame' | 'frost' | 'snowflake' | 'reindeer' | 'checkerboard' | 'lightning-bolt'
 
 export interface ColourworkPreset {
   id: ColourworkPresetId
@@ -238,6 +238,42 @@ export const COLOURWORK_PRESETS: ColourworkPreset[] = [
         '001101100',
         '011000110'
       ])
+    }
+  },
+  {
+    id: 'snowflake',
+    name: 'Nordic snowflake',
+    chart: {
+      mode: 'fairisle',
+      palette: [0xe8e0cf, 0x2f4160], // cream ground · Nordic blue
+      cells: rows(['00011000', '10011001', '01011010', '00111100', '11111111', '00111100', '01011010', '10011001', '00011000'])
+    }
+  },
+  {
+    id: 'reindeer',
+    name: 'Reindeer',
+    chart: {
+      mode: 'fairisle',
+      palette: [0xe8e0cf, 0x8a2f2f], // cream ground · deep red
+      cells: rows(['00010001000', '00111011100', '01010101010', '00011111000', '01111111110', '11111111111', '00100100100', '00100100100'])
+    }
+  },
+  {
+    id: 'checkerboard',
+    name: 'Checkerboard',
+    chart: {
+      mode: 'intarsia',
+      palette: [0x000000, 0x2f4160, 0xe8e0cf], // transparent ground · navy · cream
+      cells: rows(['00000000', '01212120', '02121210', '01212120', '02121210', '01212120', '02121210', '00000000'])
+    }
+  },
+  {
+    id: 'lightning-bolt',
+    name: 'Lightning bolt',
+    chart: {
+      mode: 'intarsia',
+      palette: [0x000000, 0xf0c674], // transparent ground · gold bolt
+      cells: rows(['00011100', '00111000', '01110000', '01111100', '00011100', '00111000', '01110000', '01100000'])
     }
   }
 ]

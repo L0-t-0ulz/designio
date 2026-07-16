@@ -426,7 +426,7 @@ procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone|3
 threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·
 `?knitChart=<stockinette|garter|rib-1x1|rib-2x2|seed|cable|moss|basketweave|chevron|bobble>` (a **knit stitch chart** — knit/purl/cable
 cells replacing the preset weave maps) ·
-`?colourwork=<fairisle|argyle|zigzag|heart|star|skull|flame|frost>` (**intarsia / colourwork** — a fair-isle jacquard tiled
+`?colourwork=<fairisle|argyle|zigzag|heart|star|skull|flame|frost|snowflake|reindeer|checkerboard|lightning-bolt>` (**intarsia / colourwork** — a fair-isle jacquard tiled
 allover or a placed intarsia chest block, painted into the albedo behind the prints) ·
 `?yarn=<lace|fingering|dk|worsted|chunky|single-ply|crepe>` (the **yarn** the fabric is spun from —
 count/ply/twist adjust the fabric's hand: drape + surface together) · `?partyFinish=<disco|gold-glam|tinsel|neon|frost>` (**party headwear finishes** — one-click festive looks combining sparkle + iridescent + a festive colour; `fabric/partyFinishes`) ·
