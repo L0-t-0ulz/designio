@@ -83,6 +83,7 @@ import { demoInternalShapes } from './pattern/panelFeatures'
 import { parseStitchParams, stitchSummary, SEAM_TYPES } from './garment/stitchTypes'
 import { zipperSpecFor, zipperSummary } from './garment/zipper'
 import { fashioningPlan, isFullyFashioned, fashioningSummary } from './garment/fullyFashioned'
+import { fleeceRevealZones, fleeceLiningNote } from './fabric/fleeceLining'
 import { parsePhysicalParams, physicalDefaults, physicalSummary } from './fabric/physicalProps'
 import { drapeBench, benchSummary } from './fabric/drapeBench'
 import { draftPreset, cloneDraft } from './fabric/weaveDraft'
@@ -1964,6 +1965,8 @@ function initStudio(
             const plan = fashioningPlan(chest, waist, length)
             return isFullyFashioned(plan) ? fashioningSummary(plan) : undefined
           })(),
+          // a lined garment shows its fleece lining where it opens / folds back
+          fleeceLining: l.data.lined ? fleeceLiningNote(fleeceRevealZones({ open: l.data.closureOpen, cuff: l.data.cuff, collar: l.data.collar, collarStyle: l.data.collarStyle })) : undefined,
           physical: l.data.physicalFabric ? physicalSummary(l.data.physicalFabric) : undefined,
           fibre: label.fibre,
           care: label.care,
