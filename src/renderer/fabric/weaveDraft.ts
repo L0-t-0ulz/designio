@@ -159,7 +159,7 @@ export function draftNormal(
 
 // ---- presets — the classic drafts, as data ----
 
-export type DraftPresetId = 'plain' | 'basket' | 'twill' | 'denim' | 'satin' | 'herringbone'
+export type DraftPresetId = 'plain' | 'basket' | 'twill' | 'denim' | 'satin' | 'herringbone' | '3-3-twill' | 'rosepath' | 'huck-lace' | 'waffle'
 
 export interface DraftPreset {
   id: DraftPresetId
@@ -182,7 +182,15 @@ export const DRAFT_PRESETS: DraftPreset[] = [
   // 5-end satin — each end bound once per 5 picks, binding points scattered (step 2)
   { id: 'satin', name: '5-end satin', draft: { shafts: 5, treadles: 5, threading: seq(5), tieUp: seq(5).map((t) => lifts(5, seq(5).filter((s) => s !== (2 * t) % 5))), treadling: seq(5) } },
   // point-threaded 2/2 twill — the chevron zigzag
-  { id: 'herringbone', name: 'Herringbone', draft: { shafts: 4, treadles: 4, threading: [0, 1, 2, 3, 2, 1], tieUp: seq(4).map((t) => lifts(4, [t, (t + 1) % 4])), treadling: seq(4) } }
+  { id: 'herringbone', name: 'Herringbone', draft: { shafts: 4, treadles: 4, threading: [0, 1, 2, 3, 2, 1], tieUp: seq(4).map((t) => lifts(4, [t, (t + 1) % 4])), treadling: seq(4) } },
+  // 3/3 twill — a bold balanced diagonal (each end lifts three adjacent shafts)
+  { id: '3-3-twill', name: '3/3 twill', draft: { shafts: 6, treadles: 6, threading: seq(6), tieUp: seq(6).map((t) => lifts(6, [t, (t + 1) % 6, (t + 2) % 6])), treadling: seq(6) } },
+  // rosepath — a point threading treadled as a point too → diamond "roses"
+  { id: 'rosepath', name: 'Rosepath', draft: { shafts: 4, treadles: 4, threading: [0, 1, 2, 3, 2, 1], tieUp: seq(4).map((t) => lifts(4, [t, (t + 1) % 4])), treadling: [0, 1, 2, 3, 2, 1] } },
+  // huck lace — plain-weave ground with float spots that pucker into a lace texture
+  { id: 'huck-lace', name: 'Huck lace', draft: { shafts: 4, treadles: 4, threading: [0, 2, 0, 2, 1, 3], tieUp: [lifts(4, [0, 2]), lifts(4, [1]), lifts(4, [1, 3]), lifts(4, [3])], treadling: [0, 1, 0, 2, 3, 2] } },
+  // waffle — nested point threading + treadling → deep honeycomb cells
+  { id: 'waffle', name: 'Waffle', draft: { shafts: 5, treadles: 5, threading: [0, 1, 2, 3, 4, 3, 2, 1], tieUp: [lifts(5, [0]), lifts(5, [0, 1]), lifts(5, [0, 1, 2]), lifts(5, [0, 1, 2, 3]), lifts(5, [4])], treadling: [0, 1, 2, 3, 4, 3, 2, 1] } }
 ]
 
 export const draftPreset = (id: string): DraftPreset | undefined => DRAFT_PRESETS.find((p) => p.id === id)

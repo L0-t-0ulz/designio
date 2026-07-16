@@ -29,6 +29,17 @@ describe('weave draft presets', () => {
     }
   })
 
+  it('registers the added drafts (3/3 twill, rosepath, huck lace, waffle)', () => {
+    for (const id of ['3-3-twill', 'rosepath', 'huck-lace', 'waffle']) {
+      const p = draftPreset(id)
+      expect(p, `${id} should be registered`).toBeTruthy()
+      expect(validateDraft(p!.draft), id).toBeNull()
+    }
+    // the 3/3 twill lifts three of its six shafts each pick
+    const dd = drawdown(draftPreset('3-3-twill')!.draft)
+    expect(dd.up[0].filter(Boolean).length).toBe(3)
+  })
+
   it('plain weave is the over-under checkerboard', () => {
     const dd = drawdown(plain())
     expect(dd.ends).toBe(2)

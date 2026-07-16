@@ -422,7 +422,7 @@ the garment, behind the prints; `?textileScale=<0.25..4>&textileRotation=<deg>` 
 (a real tartan sett — thread-count stripes woven in 2/2 twill) · `?ombre=<top-down|bottom-up|radial>` (a dip-dye / ombré gradient baked
 into the albedo) · `?wear=<faded|acid-wash|distressed>` (a distressed / washed / faded finish) · `?pilling=<0..1>` (**pilling & fuzz aging** — hashed pill-bobble normal field + matte fuzz lift, `fabric/pilling`) ·
 `?swatch=demo` (import-a-fabric-photo → tiling PBR, exercised with a
-procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone>` (a **weave draft** —
+procedural swatch) · `?weaveDraft=<plain|basket|twill|denim|satin|herringbone|3-3-twill|rosepath|huck-lace|waffle>` (a **weave draft** —
 threading/tie-up/treadling drawdown replacing the fabric's preset weave maps) ·
 `?knitChart=<stockinette|garter|rib-1x1|rib-2x2|seed|cable>` (a **knit stitch chart** — knit/purl/cable
 cells replacing the preset weave maps) ·
