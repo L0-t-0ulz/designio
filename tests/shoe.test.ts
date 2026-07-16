@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { shoeLast, upperPanels, upperMaterialM2, shoeSummary, shoeCutSheetHTML } from '../src/renderer/export/shoe'
+import { shoeLast, upperPanels, upperMaterialM2, shoeSummary, shoeCutSheetHTML, soleSpecFor, treadDepthMm, soleAreaCm2, treadValue, soleSummary } from '../src/renderer/export/shoe'
+import type { TreadPattern } from '../src/renderer/export/shoe'
 
 describe('shoe last + upper designer', () => {
   it('sizes a plausible last from an EU size', () => {
@@ -29,11 +30,45 @@ describe('shoe last + upper designer', () => {
     expect(upperMaterialM2('oxford', shoeLast(42))).toBeGreaterThan(0)
   })
 
-  it('summarises + renders a valid cut sheet', () => {
+  it('summarises + renders a valid cut sheet incl. the sole', () => {
     expect(shoeSummary('oxford', shoeLast(42))).toContain('EU 42')
-    const html = shoeCutSheetHTML('oxford', shoeLast(42))
+    const html = shoeCutSheetHTML('boot', shoeLast(43))
     expect(html).toContain('<!doctype html>')
     expect(html).toContain('Vamp')
-    expect(html).toContain('Upper leather')
+    expect(html).toContain('Sole')
+    expect(html).toContain('lug tread') // a boot gets a lug sole
+  })
+})
+
+describe('sole & tread designer', () => {
+  it('picks a sole per style — a boot lugs, a dress shoe is flat', () => {
+    expect(soleSpecFor('boot').tread).toBe('lug')
+    expect(soleSpecFor('oxford').tread).toBe('flat')
+    expect(soleSpecFor('sneaker').outsoleMm).toBeGreaterThan(soleSpecFor('oxford').outsoleMm) // chunkier
+  })
+
+  it('tread depth: flat is smooth, lug is the deepest', () => {
+    expect(treadDepthMm('flat')).toBe(0)
+    expect(treadDepthMm('lug')).toBeGreaterThan(treadDepthMm('ripple'))
+    expect(treadDepthMm('cup')).toBeGreaterThan(0)
+  })
+
+  it('the tread field is in [0,1], deterministic, and flat is uniformly smooth', () => {
+    const patterns: TreadPattern[] = ['flat', 'lug', 'ripple', 'herringbone', 'cup']
+    for (const p of patterns)
+      for (const [u, v] of [[0.1, 0.2], [0.5, 0.5], [0.9, 0.77]] as const) {
+        const t = treadValue(u, v, p)
+        expect(t).toBeGreaterThanOrEqual(0)
+        expect(t).toBeLessThanOrEqual(1)
+        expect(treadValue(u, v, p)).toBe(t) // deterministic
+      }
+    expect(treadValue(0.3, 0.7, 'flat')).toBe(0) // smooth
+    // a patterned tread has relief variation across the sole
+    expect(treadValue(0.5, 0.1, 'ripple')).not.toBe(treadValue(0.5, 0.15, 'ripple'))
+  })
+
+  it('footprint area grows with the last; the sole summary reads sensibly', () => {
+    expect(soleAreaCm2(shoeLast(45))).toBeGreaterThan(soleAreaCm2(shoeLast(38)))
+    expect(soleSummary('sneaker', shoeLast(42))).toContain('cup tread')
   })
 })
