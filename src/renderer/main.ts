@@ -101,7 +101,8 @@ import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { strainTint } from './fabric/heatmap'
 import { openRepeatPreview } from './ui/repeatPreview'
 import { pomTable } from './export/pom'
-import { bodyToMeasurements } from './avatar/measure'
+import { bodyToMeasurements, setMeasurement } from './avatar/measure'
+import { parseScanOBJ, scanToMeasurements } from './avatar/bodyScan'
 import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
 import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost } from './export/cost'
@@ -783,6 +784,25 @@ function initStudio(
           )
         : patternToSVG({ bust: patternParams.bust, length: patternParams.length })
   // Read a DXF pattern file → parse → preview in the 2D pane (round-trips the export).
+  async function importBodyScan(): Promise<void> {
+    const r = await openFile([{ name: 'OBJ scan', extensions: ['obj'] }])
+    if (!r) return
+    const verts = parseScanOBJ(r.content)
+    if (verts.length < 100) {
+      showToast('That OBJ has too few vertices to read a body from.', 'error')
+      return
+    }
+    const scan = scanToMeasurements(verts)
+    // apply the derived measurements to the mannequin (real cm → body multipliers)
+    let bp = { ...bodySize }
+    bp = setMeasurement(bp, 'height', scan.heightCm)
+    bp = setMeasurement(bp, 'bust', scan.chestCm)
+    bp = setMeasurement(bp, 'waist', scan.waistCm)
+    bp = setMeasurement(bp, 'hips', scan.hipCm)
+    Object.assign(bodySize, bp)
+    setBody(bodySize)
+    showToast(`Scan applied — ${scan.heightCm} cm · chest ${scan.chestCm} · waist ${scan.waistCm} · hip ${scan.hipCm}`, 'success')
+  }
   async function importPattern(): Promise<void> {
     const r = await openFile([{ name: 'DXF pattern', extensions: ['dxf'] }])
     if (!r) return
@@ -2023,6 +2043,7 @@ function initStudio(
     },
     onOpenProject: () => void openProject(),
     onImportPattern: () => void importPattern(),
+    onImportScan: () => void importBodyScan(),
     onExport: (fmt) => void doExport(fmt).catch(exportError),
     onRecordTurntable: recordTurntableSpin,
     onRecordTurntableSocial: (name) => recordTurntableSpin(name),

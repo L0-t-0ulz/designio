@@ -13,6 +13,7 @@ export interface MenuActions {
   onShareLink: () => void
   onOpenProject: () => void
   onImportPattern: () => void
+  onImportScan: () => void
   onExport: (fmt: ExportFormat) => void
   onRecordTurntable: () => void
   onRecordTurntableSocial: (preset: string) => void
@@ -150,6 +151,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Copy share link', run: a.onShareLink },
     { label: 'Open project (.dio)…', run: a.onOpenProject },
     { label: 'Import pattern (.dxf)…', run: a.onImportPattern },
+    { label: 'Import body scan (.obj)…', run: a.onImportScan },
     { sep: true },
     ex('glb', 'Export 3D — glTF (.glb)'),
     ex('usdz', 'Export 3D — USDZ (AR · iOS)'),
