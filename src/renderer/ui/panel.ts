@@ -1385,7 +1385,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   // ---- appearance ----
   // A repeating textile pattern (stripe/plaid/check/…) tiled across the whole garment.
   const TEXTILE_LABELS: Record<TextilePattern, string> = {
-    stripe: 'Stripe', plaid: 'Plaid', check: 'Check', gingham: 'Gingham', polka: 'Polka', camo: 'Camo'
+    stripe: 'Stripe', plaid: 'Plaid', check: 'Check', gingham: 'Gingham', polka: 'Polka', camo: 'Camo', herringbone: 'Herringbone', houndstooth: 'Houndstooth', chevron: 'Chevron'
   }
   function textileControls(t: NonNullable<PanelOptions['textile']>): HTMLElement {
     const wrap = el('div')

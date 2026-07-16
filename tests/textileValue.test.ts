@@ -79,8 +79,20 @@ describe('textileValue — repeating textile pattern tones', () => {
   })
 
   it('exposes exactly the advertised pattern set', () => {
-    const expected: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo']
+    const expected: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo', 'herringbone', 'houndstooth', 'chevron']
     expect([...TEXTILE_PATTERNS].sort()).toEqual([...expected].sort())
+  })
+
+  it('chevron / herringbone / houndstooth are two-tone motifs that vary across the tile', () => {
+    for (const p of ['chevron', 'herringbone', 'houndstooth'] as TextilePattern[]) {
+      const seen = new Set<number>()
+      for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) seen.add(textileValue(p, i / 8, j / 8))
+      expect(seen).toEqual(new Set([0, 1])) // crisp two-tone weave
+      expect(seen.size).toBe(2) // actually patterned, not a flat field
+    }
+    // houndstooth's 4×4 dogtooth tile: the corner cell is set, its right neighbour clear
+    expect(textileValue('houndstooth', 0.05, 0.05)).toBe(1)
+    expect(textileValue('houndstooth', 0.95, 0.05)).toBe(0)
   })
 })
 

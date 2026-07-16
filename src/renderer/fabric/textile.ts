@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 
 /** Repeating textile patterns that tile across the whole garment. */
-export type TextilePattern = 'stripe' | 'plaid' | 'check' | 'gingham' | 'polka' | 'camo'
-export const TEXTILE_PATTERNS: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo']
+export type TextilePattern = 'stripe' | 'plaid' | 'check' | 'gingham' | 'polka' | 'camo' | 'herringbone' | 'houndstooth' | 'chevron'
+export const TEXTILE_PATTERNS: TextilePattern[] = ['stripe', 'plaid', 'check', 'gingham', 'polka', 'camo', 'herringbone', 'houndstooth', 'chevron']
 
 /**
  * The pattern's tonal value at a normalized position within one repeat tile —
@@ -37,6 +37,28 @@ export function textileValue(pattern: TextilePattern, u: number, v: number): num
       if (bu || bv) return 0.66
       if (thin(u) || thin(v)) return 0.33
       return 0
+    }
+    case 'chevron': {
+      // zigzag stripes — wide diagonal bands that reverse direction each row block
+      const band = Math.floor(v * 3) % 2
+      const diag = Math.floor((band === 0 ? u + v : u - v) * 6)
+      return ((diag % 2) + 2) % 2 // crisp two-tone, floor-based (seam-robust)
+    }
+    case 'herringbone': {
+      // broken twill — finer diagonal stripes reversing direction every narrow band
+      const band = Math.floor(v * 6) % 2
+      const diag = Math.floor((band === 0 ? u + v : u - v) * 6)
+      return ((diag % 2) + 2) % 2
+    }
+    case 'houndstooth': {
+      // the classic dogtooth 4×4 tessellation (two tones, tiles into 4-point stars)
+      const HT = [
+        [1, 1, 1, 0],
+        [1, 1, 0, 0],
+        [1, 0, 0, 1],
+        [0, 0, 1, 1]
+      ]
+      return HT[Math.floor(v * 4) % 4][Math.floor(u * 4) % 4]
     }
     default: {
       // camo — irregular tonal patches (3 tones). Angular frequencies are integer
