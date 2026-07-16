@@ -68,6 +68,77 @@ export function shoeSummary(style: ShoeStyle, last: ShoeLast): string {
   return `${style} · EU ${last.sizeEU} · last ${last.footLengthCm} cm · ${upperPanels(style, last).length} upper panels · ${upperMaterialM2(style, last).toFixed(3)} m²`
 }
 
+// ---- Sole & tread designer ----
+
+export type TreadPattern = 'flat' | 'lug' | 'ripple' | 'herringbone' | 'cup'
+
+export interface SoleSpec {
+  /** Heel height (mm). */
+  heelMm: number
+  /** Outsole thickness at the ball (mm). */
+  outsoleMm: number
+  tread: TreadPattern
+}
+
+const SOLE_BY_STYLE: Record<ShoeStyle, SoleSpec> = {
+  oxford: { heelMm: 25, outsoleMm: 6, tread: 'flat' },
+  derby: { heelMm: 22, outsoleMm: 7, tread: 'ripple' },
+  sneaker: { heelMm: 28, outsoleMm: 12, tread: 'cup' },
+  boot: { heelMm: 30, outsoleMm: 10, tread: 'lug' },
+  loafer: { heelMm: 18, outsoleMm: 5, tread: 'flat' }
+}
+
+/** The sole a style is built with. Pure. */
+export function soleSpecFor(style: ShoeStyle): SoleSpec {
+  return SOLE_BY_STYLE[style]
+}
+
+/** Tread depth (mm) — how deep the pattern is cut into the outsole. Pure. */
+export function treadDepthMm(tread: TreadPattern): number {
+  return { flat: 0, ripple: 1.5, herringbone: 2, cup: 3, lug: 5 }[tread]
+}
+
+/** Footprint area (cm²) of the sole for a last — a foot is ~an ellipse-ish. Pure. */
+export function soleAreaCm2(last: ShoeLast): number {
+  return Math.round(last.footLengthCm * last.footWidthCm * 0.72 * 10) / 10
+}
+
+const fract = (x: number): number => x - Math.floor(x)
+
+/**
+ * The tread relief `0→1` at (u,v) across the sole — a deterministic procedural
+ * field (like the fabric finishes) the outsole normal map bakes: flat is smooth, lug
+ * is deep blocks, ripple is transverse waves, herringbone a diagonal zigzag, cup a
+ * concentric ring pattern. Pure + unit-tested.
+ */
+export function treadValue(u: number, v: number, pattern: TreadPattern): number {
+  switch (pattern) {
+    case 'lug': {
+      const bx = Math.floor(u * 6) % 2
+      const by = Math.floor(v * 10) % 2
+      return bx === by ? 1 : 0.15 // blocky studs
+    }
+    case 'ripple':
+      return 0.5 + 0.5 * Math.sin(v * Math.PI * 20) // transverse waves
+    case 'herringbone': {
+      const dir = Math.floor(v * 8) % 2 === 0 ? u + v : u - v
+      return 0.5 + 0.5 * Math.sin(dir * Math.PI * 22)
+    }
+    case 'cup': {
+      const r = Math.hypot(u - 0.5, (v - 0.5) * 0.4)
+      return 0.5 + 0.5 * Math.sin(r * Math.PI * 30) // concentric rings
+    }
+    default:
+      return fract(u * 0) // flat: smooth (0)
+  }
+}
+
+/** One-line sole summary. Pure. */
+export function soleSummary(style: ShoeStyle, last: ShoeLast): string {
+  const s = soleSpecFor(style)
+  return `${s.tread} tread (${treadDepthMm(s.tread)} mm) · outsole ${s.outsoleMm} mm · heel ${s.heelMm} mm · footprint ${soleAreaCm2(last)} cm²`
+}
+
 const esc = (s: string): string => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
 
 /** A printable shoe upper cut sheet as HTML. Pure. */
@@ -84,5 +155,7 @@ export function shoeCutSheetHTML(style: ShoeStyle, last: ShoeLast): string {
 <p>Upper leather: ${upperMaterialM2(style, last).toFixed(3)} m²</p>
 <h3>Upper — cut panels (cm)</h3>
 <table><thead><tr><th>Panel</th><th>W × H</th><th>Qty</th></tr></thead><tbody>${rows}</tbody></table>
+<h3>Sole &amp; tread</h3>
+<p>${esc(soleSummary(style, last))}</p>
 </body></html>`
 }
