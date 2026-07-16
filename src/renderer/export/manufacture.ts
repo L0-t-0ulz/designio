@@ -118,7 +118,13 @@ function headSizingSection(h?: PomSheet['head']): string {
   const cells = h.run.map((s) => `<th${s.label === h.size ? ' style="background:#eee7ff"' : ''}>${esc(s.label)}</th>`).join('')
   const spans = h.run.map((s) => `<td>${s.minCm.toFixed(1)}–${s.maxCm.toFixed(1)}</td>`).join('')
   const earNote = h.earFit ? ` · ${esc(h.earFit)}` : ''
-  return `<h3>Head sizing <span style="font-weight:400;opacity:.6">(fitted: ${h.circCm.toFixed(1)} cm → size ${esc(h.size)}${earNote})</span></h3>
+  const hairNote =
+    h.withHairSize && h.withHairSize !== h.size
+      ? ` · with hair: size ${esc(h.withHairSize)} (+${h.hairVolumeCm!.toFixed(1)} cm)`
+      : h.hairVolumeCm
+        ? ` · +${h.hairVolumeCm.toFixed(1)} cm hair (same size)`
+        : ''
+  return `<h3>Head sizing <span style="font-weight:400;opacity:.6">(fitted: ${h.circCm.toFixed(1)} cm → size ${esc(h.size)}${earNote}${hairNote})</span></h3>
     <table class="pom">
       <thead><tr><th>Hat size</th>${cells}</tr></thead>
       <tbody><tr><td>Head circ (cm)</td>${spans}</tr></tbody>

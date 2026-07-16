@@ -1719,7 +1719,7 @@ function initStudio(
   async function exportQcSheet(): Promise<void> {
     const l = stack.active
     const def = getGarment(l.data.garmentType)
-    const pom = pomTable(def, l.data, mannequin.measurements, mannequin.colliders)
+    const pom = pomTable(def, l.data, mannequin.measurements, mannequin.colliders, faceRig.getHairstyle())
     const html = qcSheetHTML({
       name: def.name,
       styleRef: projectName || 'Untitled',
@@ -1849,7 +1849,7 @@ function initStudio(
           care: label.care,
           careSymbols: careSymbols(careInstructions(l.fabric)),
           metrics,
-          pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders),
+          pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders, faceRig.getHairstyle()),
           marker: markerLayout,
           cost: costRollup({
             fabricM: headwear
@@ -2142,7 +2142,7 @@ function initStudio(
     onDrop: () => (mode === 'templates' ? stack.redrapeActive() : patternCtl?.resew()),
     recommendSize: () => {
       const l = stack.active
-      const pom = pomTable(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders)
+      const pom = pomTable(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders, faceRig.getHairstyle())
       return recommendSize(bodyToMeasurements(bodySize), pom.rows).size
     },
     heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
