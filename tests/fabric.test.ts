@@ -204,6 +204,25 @@ describe('weave texture math', () => {
     expect(h1).not.toBeCloseTo(h2, 3)
   })
 
+  it('the added weave types render a varied height field in [0,1]', () => {
+    for (const w of ['basketweave', 'houndstooth', 'birdseye-dobby', 'pique'] as const) {
+      const seen = new Set<number>()
+      // sample on a 17×17 grid (coprime with the 16 threads) so mid-thread values show
+      for (let i = 0; i < 17; i++)
+        for (let j = 0; j < 17; j++) {
+          const h = weaveHeight(w, (i + 0.5) / 17, (j + 0.5) / 17, 16)
+          expect(h, w).toBeGreaterThanOrEqual(0)
+          expect(h, w).toBeLessThanOrEqual(1)
+          seen.add(Math.round(h * 100))
+        }
+      expect(seen.size, `${w} should vary`).toBeGreaterThan(2)
+    }
+    // the fabrics I set up wear the new weaves
+    expect(getFabric('hopsack').weave).toBe('basketweave')
+    expect(getFabric('houndstooth-wool').weave).toBe('houndstooth')
+    expect(getFabric('birdseye-suiting').weave).toBe('birdseye-dobby')
+  })
+
   it('satin is float-dominant with only a shallow binding dip (no hard dot grid)', () => {
     // Satin gets its smooth luster from long high floats bound only occasionally; the
     // binding point must dip only shallowly, or the baked normal map beads into a
