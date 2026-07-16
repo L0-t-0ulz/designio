@@ -20,7 +20,46 @@
     "golden": "npm run build && electron scripts/golden.cjs --check",
     "golden:update": "npm run build && electron scripts/golden.cjs --update",
     "capture": "npm run build && node scripts/capture-readme.cjs",
-    "render": "node scripts/render.cjs"
+    "render": "node scripts/render.cjs",
+    "dist": "npm run build && electron-builder",
+    "dist:dir": "npm run build && electron-builder --dir"
+  },
+  "build": {
+    "appId": "com.zayankhan.designio",
+    "productName": "DesignIO",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "out/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://updates.designio.app/${channel}"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Graphics"
+    }
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",

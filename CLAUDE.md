@@ -18,7 +18,15 @@ npm run build       # bundle main/preload/renderer into ./out
 npm test            # vitest — headless solver/geometry/export math
 npm run typecheck   # tsc --noEmit (strict)
 npm run snapshot    # render the built app offscreen to docs/preview.png
+npm run dist        # package installers via electron-builder (needs: npm i -D electron-builder)
 ```
+
+**Packaging & auto-update:** `build` in package.json is the electron-builder config
+(mac dmg/zip · win nsis · linux AppImage; `publish` → a generic update feed). The
+pure, tested update-decision logic lives in `src/main/update.ts` (`compareVersions`
+· `isUpdateAvailable` · `releaseChannel` · `shouldOfferUpdate` — a stable user is
+never pushed a prerelease). The Electron main process feeds these `app.getVersion()`
+and the feed's latest version; the update *server* + code signing are external infra.
 
 Render an arbitrary state to a PNG (used for verification):
 `node scripts/capture.cjs <out.png> <waitMs> "<querystring>"` (run via the local `electron` binary).
