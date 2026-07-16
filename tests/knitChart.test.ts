@@ -31,6 +31,17 @@ describe('knit chart presets', () => {
     for (const p of KNIT_PRESETS) expect(validateChart(p.chart), p.id).toBeNull()
   })
 
+  it('registers the added charts (moss, basketweave, chevron, bobble)', () => {
+    for (const id of ['moss', 'basketweave', 'chevron', 'bobble']) {
+      const p = knitPreset(id)
+      expect(p, `${id} should be registered`).toBeTruthy()
+      expect(validateChart(p!.chart), id).toBeNull()
+      // each mixes knit + purl (a real texture, not a flat field)
+      const flat = p!.chart.rows.flat()
+      expect(flat.includes('k') && flat.includes('p'), id).toBe(true)
+    }
+  })
+
   it('rib is columnar: knit wales stay high, purl wales stay low, along the full course', () => {
     const c = rib()
     const { tU, tV } = tiles(c)

@@ -106,7 +106,7 @@ export function knitNormal(
 
 // ---- presets — the classic stitch patterns, as data ----
 
-export type KnitPresetId = 'stockinette' | 'garter' | 'rib-1x1' | 'rib-2x2' | 'seed' | 'cable'
+export type KnitPresetId = 'stockinette' | 'garter' | 'rib-1x1' | 'rib-2x2' | 'seed' | 'cable' | 'moss' | 'basketweave' | 'chevron' | 'bobble'
 
 export interface KnitPreset {
   id: KnitPresetId
@@ -140,7 +140,15 @@ export const KNIT_PRESETS: KnitPreset[] = [
       ['p', 'p', 'cr', 'cr', 'cl', 'cl', 'p', 'p'],
       ['p', 'p', 'k', 'k', 'k', 'k', 'p', 'p']
     ])
-  }
+  },
+  // moss (double seed) — seed worked two courses at a time, so the k/p checker doubles up
+  { id: 'moss', name: 'Moss', chart: rows(['kp', 'kp', 'pk', 'pk']) },
+  // basketweave — knit/purl blocks alternating every two courses → a woven look
+  { id: 'basketweave', name: 'Basketweave', chart: rows(['kkpp', 'kkpp', 'ppkk', 'ppkk']) },
+  // chevron — knit stitches zigzag through a purl ground into a V
+  { id: 'chevron', name: 'Chevron', chart: rows(['kpppppk', 'pkpppkp', 'ppkpkpp', 'pppkppp', 'ppkpkpp', 'pkpppkp']) },
+  // bobble — raised purl clusters (bobbles) scattered on a stockinette ground
+  { id: 'bobble', name: 'Bobble', chart: rows(['kppkkk', 'kppkkk', 'kkkkkk', 'kkkkpp', 'kkkkpp', 'kkkkkk']) }
 ]
 
 export const knitPreset = (id: string): KnitPreset | undefined => KNIT_PRESETS.find((p) => p.id === id)
