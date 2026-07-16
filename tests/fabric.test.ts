@@ -111,6 +111,15 @@ describe('FABRIC_LIBRARY', () => {
     expect(getFabric('terry-towelling').gsm).toBeGreaterThan(300)
   })
 
+  it('includes the added luxury knits + suiting wools with unique ids', () => {
+    const added = ['cashmere-knit', 'angora', 'harris-tweed', 'houndstooth-wool', 'herringbone-wool', 'brushed-flannel', 'jacquard-brocade']
+    for (const id of added) expect(getFabric(id).id, `${id} should be registered`).toBe(id)
+    expect(new Set(FABRIC_LIBRARY.map((f) => f.id)).size).toBe(FABRIC_LIBRARY.length) // still unique
+    // the suiting wools are heavy + crisp; the soft knits stretch
+    expect(getFabric('harris-tweed').gsm).toBeGreaterThan(300)
+    expect(getFabric('cashmere-knit').stretch).toBeGreaterThan(0.3)
+  })
+
   it('getFabric falls back to the first entry for unknown ids', () => {
     expect(getFabric('nope')).toBe(FABRIC_LIBRARY[0])
     expect(getFabric('denim').id).toBe('denim')
