@@ -138,6 +138,7 @@ import { portfolioHtml } from './export/portfolio'
 import { configuratorHtml } from './export/configurator'
 import { tryOnWidgetHtml } from './export/tryOn'
 import { separationsHTML } from './export/separations'
+import { bagSpec, bagCutSheetHTML } from './export/bag'
 import { getWrapPreset, applyWrapPreset } from './avatar/wrapPresets'
 import { openVersionHistory } from './ui/versionHistory'
 import { diffDocs } from './studio/diffDoc'
@@ -1438,6 +1439,15 @@ function initStudio(
         const inp: ListingInput = { name: projectName !== 'Untitled' ? projectName : def.name, fabricName: l.fabric.name, fibre: label.fibre, colours, sizes: [...SIZES], priceUsd: priceFromCost({ cost: cost.total }).retail, careLines: label.care }
         await saveFile('configurator.html', new TextEncoder().encode(configuratorHtml(inp, { shareUrl: shareUrl(currentDoc(), location.href) })), [{ name: 'HTML', extensions: ['html'] }])
         statusHandles?.setSelection('Made-to-order configurator exported')
+        break
+      }
+      case 'bag-pattern': {
+        // a parametric bag pattern cut sheet (panels + material + hardware from the strap library)
+        const styleParam = entryParams.get('bag') ?? 'tote'
+        const style = (['tote', 'handbag', 'crossbody', 'clutch'].includes(styleParam) ? styleParam : 'tote') as import('./export/bag').BagStyle
+        const spec = bagSpec(style)
+        await saveFile(`${spec.style}-bag-pattern.html`, new TextEncoder().encode(bagCutSheetHTML(spec)), [{ name: 'HTML', extensions: ['html'] }])
+        statusHandles?.setSelection(`Bag pattern — ${spec.style}`)
         break
       }
       case 'separations': {
