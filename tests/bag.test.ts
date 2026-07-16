@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { bagSpec, bagPanels, bagMaterialM2, bagHardware, bagCutSheetHTML } from '../src/renderer/export/bag'
+import { bagSpec, bagPanels, bagMaterialM2, bagHardware, bagCutSheetHTML, bagPockets, bagLiningPanels, bagLiningM2 } from '../src/renderer/export/bag'
 
 describe('handbag / tote builder', () => {
   it('a style resolves to sensible default dimensions, overridable', () => {
@@ -37,8 +37,37 @@ describe('handbag / tote builder', () => {
   it('renders a valid cut sheet listing panels + hardware', () => {
     const html = bagCutSheetHTML(bagSpec('tote'))
     expect(html).toContain('<!doctype html>')
-    expect(html).toContain('Cut panels')
     expect(html).toContain('Gusset')
     expect(html).toContain('Hardware')
+  })
+})
+
+describe('bag lining + pocket layout', () => {
+  it('lays out a slip pocket + a secured zip pocket on opposite walls', () => {
+    const p = bagPockets(bagSpec('tote'))
+    expect(p.find((x) => x.type === 'slip')!.wall).toBe('front')
+    const zip = p.find((x) => x.type === 'zip')!
+    expect(zip.wall).toBe('back') // the secured pocket faces the body
+    // pockets are sized to the bag
+    expect(zip.wCm).toBeLessThan(bagSpec('tote').widthCm)
+    // a clutch gets a card slip instead of a zip pocket
+    expect(bagPockets(bagSpec('clutch')).some((x) => x.name === 'Card slip')).toBe(true)
+    expect(bagPockets(bagSpec('clutch')).some((x) => x.type === 'zip')).toBe(false)
+  })
+
+  it('lines the body + gusset (not the handles) and totals lining material', () => {
+    const lining = bagLiningPanels(bagSpec('tote'))
+    expect(lining.some((p) => p.name === 'Handle')).toBe(false) // handles aren't lined
+    expect(lining.some((p) => p.name.startsWith('Body'))).toBe(true)
+    expect(bagLiningM2(bagSpec('tote'))).toBeGreaterThan(0)
+    // a bigger bag needs more lining
+    expect(bagLiningM2(bagSpec('tote', { widthCm: 60 }))).toBeGreaterThan(bagLiningM2(bagSpec('tote')))
+  })
+
+  it('the cut sheet now shows lining panels + interior pockets', () => {
+    const html = bagCutSheetHTML(bagSpec('tote'))
+    expect(html).toContain('Lining')
+    expect(html).toContain('Interior pockets')
+    expect(html).toContain('Zip pocket')
   })
 })
