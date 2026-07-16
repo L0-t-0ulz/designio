@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { headCircumferenceCm, hatSizeFor, headSizing, HAT_SIZE_RUN } from '../src/renderer/export/headSizing'
+import { headCircumferenceCm, hatSizeFor, headSizing, HAT_SIZE_RUN, earClearanceCm, earFitLabel } from '../src/renderer/export/headSizing'
 
 describe('headCircumferenceCm', () => {
   it('gives a plausible adult head circumference from the head radius', () => {
@@ -42,5 +42,31 @@ describe('headSizing', () => {
     expect(h.circCm).toBe(headCircumferenceCm(0.095))
     expect(h.size).toBe(hatSizeFor(h.circCm))
     expect(h.run).toBe(HAT_SIZE_RUN)
+    expect(h.earClearanceCm).toBeUndefined() // no ear fit without a coverage drop
+  })
+
+  it('reports ear fit when the covering drop is given', () => {
+    const shallow = headSizing(0.095, 0.05) // barely drops → clears the ears
+    expect(shallow.earClearanceCm).toBeGreaterThan(0)
+    expect(shallow.earFit).toContain('clears the ears')
+    const deep = headSizing(0.095, 0.2) // comes down well past the ears
+    expect(deep.earClearanceCm).toBeLessThan(0)
+    expect(deep.earFit).toContain('covers the ears')
+  })
+})
+
+describe('earClearance', () => {
+  it('is positive when the brim sits above the ears, negative when it covers them', () => {
+    const R = 0.095
+    expect(earClearanceCm(0.02, R)).toBeGreaterThan(0) // a shallow cap clears the ears
+    expect(earClearanceCm(0.25, R)).toBeLessThan(0) // a deep beanie covers them
+    // deeper coverage → less clearance
+    expect(earClearanceCm(0.05, R)).toBeGreaterThan(earClearanceCm(0.15, R))
+  })
+
+  it('labels the fit readably around the ear line', () => {
+    expect(earFitLabel(2.5)).toContain('clears the ears')
+    expect(earFitLabel(-2.5)).toContain('covers the ears')
+    expect(earFitLabel(0.1)).toBe('sits at the ears')
   })
 })

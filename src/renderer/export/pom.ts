@@ -58,7 +58,7 @@ export function pomTable(def: GarmentDefinition, data: GarmentLayerData, m: Meas
       row.bySize[size] = r.cm
     }
   }
-  // Headwear (a head/neck tube) also carries a head-circumference size run.
-  const isHeadwear = def.pieces.some((p) => p.kind === 'headTube')
-  return { sizes: SIZES, rows, head: isHeadwear ? headSizing(m.headR) : undefined }
+  // Headwear (a head/neck tube) also carries a head-circumference size run + ear fit.
+  const crownTube = def.pieces.find((p) => p.kind === 'headTube' && p.anchor === 'crown') as { dropLo: number } | undefined
+  return { sizes: SIZES, rows, head: crownTube ? headSizing(m.headR, crownTube.dropLo) : def.pieces.some((p) => p.kind === 'headTube') ? headSizing(m.headR) : undefined }
 }

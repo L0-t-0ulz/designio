@@ -41,10 +41,45 @@ export interface HeadSizing {
   /** The hat size that circumference falls in. */
   size: string
   run: HatSize[]
+  /** Ear clearance (cm): +ve = the brim sits above the ears, −ve = it covers them. */
+  earClearanceCm?: number
+  /** A human-readable ear-fit note (present with earClearanceCm). */
+  earFit?: string
 }
 
-/** The full head-sizing readout for a head radius (m): circumference, its size, + the run. */
-export function headSizing(headR: number): HeadSizing {
+/** The ears sit roughly this many head-radii below the crown. */
+const EAR_DROP_RADII = 1.15
+
+/**
+ * Ear clearance (cm) for a crown-anchored head covering: how far the brim's bottom
+ * edge clears the ears. `dropLoM` is how far below the crown the edge reaches; the
+ * ears are ~1.15 head-radii down. +ve → the edge sits above the ears (they show),
+ * −ve → the covering comes down over them. Pure.
+ */
+export function earClearanceCm(dropLoM: number, headR: number): number {
+  const earDrop = EAR_DROP_RADII * Math.max(0, headR)
+  return Math.round((earDrop - dropLoM) * 100 * 10) / 10
+}
+
+/** A readable ear-fit note from the clearance (cm). Pure. */
+export function earFitLabel(clearanceCm: number): string {
+  if (clearanceCm >= 0.5) return `clears the ears (${clearanceCm.toFixed(1)} cm above)`
+  if (clearanceCm <= -0.5) return `covers the ears (${(-clearanceCm).toFixed(1)} cm below)`
+  return 'sits at the ears'
+}
+
+/**
+ * The full head-sizing readout for a head radius (m): circumference, its size, + the
+ * run. When the covering's `dropLoM` (crown-anchor bottom drop) is given, also reports
+ * the ear clearance/fit.
+ */
+export function headSizing(headR: number, dropLoM?: number): HeadSizing {
   const circCm = headCircumferenceCm(headR)
-  return { circCm, size: hatSizeFor(circCm), run: HAT_SIZE_RUN }
+  const base: HeadSizing = { circCm, size: hatSizeFor(circCm), run: HAT_SIZE_RUN }
+  if (dropLoM !== undefined) {
+    const ear = earClearanceCm(dropLoM, headR)
+    base.earClearanceCm = ear
+    base.earFit = earFitLabel(ear)
+  }
+  return base
 }
