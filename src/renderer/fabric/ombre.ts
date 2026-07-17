@@ -2,14 +2,15 @@ import * as THREE from 'three'
 import { bayerDither } from './dither'
 
 /** Dip-dye / ombré gradient direction across the garment. */
-export type OmbreDirection = 'top-down' | 'bottom-up' | 'radial'
-export const OMBRE_DIRECTIONS: OmbreDirection[] = ['top-down', 'bottom-up', 'radial']
+export type OmbreDirection = 'top-down' | 'bottom-up' | 'radial' | 'diagonal'
+export const OMBRE_DIRECTIONS: OmbreDirection[] = ['top-down', 'bottom-up', 'radial', 'diagonal']
 
 /**
  * The blend factor `0→1` (base colour → dipped tone) at a normalized canvas
  * position `(u, v)`. Pure + unit-tested; the renderer bakes it into the albedo.
  * `top-down` fades base→dip from top edge to hem, `bottom-up` the reverse,
- * `radial` base at the centre → dip at the edges.
+ * `radial` base at the centre → dip at the edges, `diagonal` base at the
+ * top-left corner → dip at the bottom-right (a 45° sweep across the panel).
  */
 export function ombreT(direction: OmbreDirection, u: number, v: number): number {
   switch (direction) {
@@ -17,6 +18,8 @@ export function ombreT(direction: OmbreDirection, u: number, v: number): number 
       return v
     case 'bottom-up':
       return 1 - v
+    case 'diagonal':
+      return (u + v) / 2
     default: {
       const dx = u - 0.5
       const dy = v - 0.5
