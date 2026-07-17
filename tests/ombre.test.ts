@@ -24,6 +24,14 @@ describe('ombré / dip-dye gradient', () => {
     expect(ombreT('radial', 0, 0)).toBe(1) // corner clamps to dip, not >1
   })
 
+  it('diagonal sweeps base (top-left) → dip (bottom-right) at 45°', () => {
+    expect(ombreT('diagonal', 0, 0)).toBe(0) // top-left corner = base
+    expect(ombreT('diagonal', 1, 1)).toBe(1) // bottom-right corner = dip
+    expect(ombreT('diagonal', 0.5, 0.5)).toBeCloseTo(0.5, 10) // centre = midpoint
+    // the anti-diagonal is iso-tone (constant blend), so it reads as a 45° sweep
+    expect(ombreT('diagonal', 1, 0)).toBeCloseTo(ombreT('diagonal', 0, 1), 10)
+  })
+
   it('the dipped tone is deeper (lower lightness) than the base', () => {
     const base = 0x8ab4d8 // a mid blue
     const dip = ombreDip(base)
@@ -52,7 +60,7 @@ describe('ombré / dip-dye gradient', () => {
     expect(base.ombre).toBe('bottom-up') // original untouched
   })
 
-  it('exposes exactly the three directions', () => {
-    expect(OMBRE_DIRECTIONS).toEqual(['top-down', 'bottom-up', 'radial'])
+  it('exposes exactly the four directions', () => {
+    expect(OMBRE_DIRECTIONS).toEqual(['top-down', 'bottom-up', 'radial', 'diagonal'])
   })
 })

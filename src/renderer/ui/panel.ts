@@ -1422,7 +1422,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // A dip-dye / ombré gradient baked into the albedo (base → a deeper dipped tone).
-  const OMBRE_LABELS: Record<OmbreDirection, string> = { 'top-down': 'Top-down', 'bottom-up': 'Bottom-up', radial: 'Radial' }
+  const OMBRE_LABELS: Record<OmbreDirection, string> = { 'top-down': 'Top-down', 'bottom-up': 'Bottom-up', radial: 'Radial', diagonal: 'Diagonal' }
   function ombreControls(o: NonNullable<PanelOptions['ombre']>): HTMLElement {
     const wrap = el('div')
     const row = el('div', 'dio-seg dio-seg-wrap')
