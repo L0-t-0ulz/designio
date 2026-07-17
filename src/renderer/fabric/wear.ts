@@ -4,13 +4,14 @@ import * as THREE from 'three'
  * Distressed / washed / faded finishes — a procedural **wear map** baked into the
  * albedo that bleaches the base colour toward a lighter, desaturated tone: an
  * overall vintage `faded`, blotchy `acid-wash`, streaky `distressed` abrasion, an
- * `adaptive` wear concentrated at the hem + seams, or a soft cloudy all-over
- * `stone-wash` (denim tumbled with pumice). The wear field is pure value-noise
+ * `adaptive` wear concentrated at the hem + seams, a soft cloudy all-over
+ * `stone-wash` (denim tumbled with pumice), or a smooth even `enzyme-wash`
+ * (bio-polished, the most uniform softening). The wear field is pure value-noise
  * (deterministic — no `Math.random`) so it tiles/samples identically each bake
  * and is unit-tested.
  */
-export type WearKind = 'faded' | 'acid-wash' | 'distressed' | 'adaptive' | 'stone-wash'
-export const WEAR_KINDS: WearKind[] = ['faded', 'acid-wash', 'distressed', 'adaptive', 'stone-wash']
+export type WearKind = 'faded' | 'acid-wash' | 'distressed' | 'adaptive' | 'stone-wash' | 'enzyme-wash'
+export const WEAR_KINDS: WearKind[] = ['faded', 'acid-wash', 'distressed', 'adaptive', 'stone-wash', 'enzyme-wash']
 
 const fract = (x: number): number => x - Math.floor(x)
 const hash = (i: number, j: number): number => fract(Math.sin(i * 127.1 + j * 311.7) * 43758.5453)
@@ -63,6 +64,13 @@ export function wearValue(kind: WearKind, u: number, v: number): number {
       // (min > 0) but gentler + more textured than the high-contrast acid-wash
       const n = vnoise(u, v, 8) * 0.55 + vnoise(u + 4.7, v + 2.9, 17) * 0.45
       return Math.min(1, 0.15 + n * 0.55)
+    }
+    case 'enzyme-wash': {
+      // enzyme (bio-polish) wash — enzymes eat the surface fuzz evenly, so it's the
+      // smoothest, most uniform all-over softening: a single low-freq octave, tight
+      // range (wears everywhere, barely varies — no clumps, streaks or mottle)
+      const n = vnoise(u, v, 2)
+      return 0.3 + n * 0.18
     }
     default: {
       // faded: soft, broad vintage lightening (two smooth octaves, gentle)
