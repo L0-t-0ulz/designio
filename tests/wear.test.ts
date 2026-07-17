@@ -53,6 +53,14 @@ describe('distressed / washed / faded wear finish', () => {
     expect(wearValue('adaptive', 0.5, 0.05)).toBeLessThan(0.2)
   })
 
+  it('stone-wash is a soft cloudy all-over wash — everywhere but higher-contrast than faded', () => {
+    const stone = sampleStats('stone-wash')
+    const faded = sampleStats('faded')
+    expect(stone.min).toBeGreaterThan(0) // tumbled all over, no untouched cloth
+    // more textured than the broad faded — a wider spread between light + heavy wear
+    expect(stone.max - stone.min).toBeGreaterThan(faded.max - faded.min)
+  })
+
   it('the worn tone is lighter + less saturated than the base', () => {
     const base = 0x2b3a67 // deep indigo (denim)
     const b = { h: 0, s: 0, l: 0 }
