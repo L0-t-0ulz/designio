@@ -2,12 +2,12 @@ import * as THREE from 'three'
 
 /**
  * Colour-shifting eveningwear finishes — thin-film **iridescence** (soap-bubble /
- * hologram / oil-slick), beyond the sequin/foil sparkle. Each maps to a
- * `MeshPhysicalMaterial` recipe (iridescence + a metallic/gloss base); the recipe
- * is pure so it's unit-tested and the stack just applies it in `applyLook`.
+ * hologram / oil-slick / pearlescent nacre), beyond the sequin/foil sparkle. Each
+ * maps to a `MeshPhysicalMaterial` recipe (iridescence + a metallic/gloss base);
+ * the recipe is pure so it's unit-tested and the stack just applies it in `applyLook`.
  */
-export type IridescentKind = 'iridescent' | 'holographic' | 'oil-slick'
-export const IRIDESCENT_KINDS: IridescentKind[] = ['iridescent', 'holographic', 'oil-slick']
+export type IridescentKind = 'iridescent' | 'holographic' | 'oil-slick' | 'pearlescent'
+export const IRIDESCENT_KINDS: IridescentKind[] = ['iridescent', 'holographic', 'oil-slick', 'pearlescent']
 
 export interface IridescentParams {
   iridescence: number
@@ -29,6 +29,10 @@ export function iridescentParams(kind: IridescentKind): IridescentParams {
     case 'oil-slick':
       // dark, saturated oil-on-water swirl (metallic-ombré feel)
       return { iridescence: 1, iridescenceIOR: 1.8, thicknessRange: [300, 1200], metalness: 0.9, roughness: 0.22, clearcoat: 0.3, clearcoatRoughness: 0.2, envMapIntensity: 1.3 }
+    case 'pearlescent':
+      // soft mother-of-pearl nacre — a pale, gentle colour shift under a glossy
+      // clearcoat over a near-white low-metal base (satin pearl, not a hard hologram)
+      return { iridescence: 0.5, iridescenceIOR: 1.4, thicknessRange: [120, 420], metalness: 0.15, roughness: 0.18, clearcoat: 0.8, clearcoatRoughness: 0.12, envMapIntensity: 1.3 }
     default:
       // subtle soap-bubble sheen sitting on the fabric
       return { iridescence: 0.7, iridescenceIOR: 1.3, thicknessRange: [100, 500], metalness: 0.2, roughness: 0.3, clearcoat: 0.2, clearcoatRoughness: 0.25, envMapIntensity: 1.2 }
@@ -44,7 +48,7 @@ export function iridescentParams(kind: IridescentKind): IridescentParams {
  * that three.js reads (green channel) to lerp the `thicknessRange`.
  */
 export function iridescentThickness(kind: IridescentKind, u: number, v: number): number {
-  const f = kind === 'oil-slick' ? 7 : kind === 'holographic' ? 5.5 : 4
+  const f = kind === 'oil-slick' ? 7 : kind === 'holographic' ? 5.5 : kind === 'pearlescent' ? 3 : 4
   const a = Math.sin((u * f + Math.sin(v * f * 0.7) * 2) * Math.PI)
   const b = Math.sin((v * f * 1.3 + Math.sin(u * f * 0.5) * 2) * Math.PI)
   const c = Math.sin((u + v) * f * 0.9 * Math.PI)

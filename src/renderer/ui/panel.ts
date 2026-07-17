@@ -1500,7 +1500,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // A colour-shifting iridescent finish — soap-bubble / holographic / oil-slick.
-  const IRIDESCENT_LABELS: Record<IridescentKind, string> = { iridescent: 'Iridescent', holographic: 'Holographic', 'oil-slick': 'Oil-slick' }
+  const IRIDESCENT_LABELS: Record<IridescentKind, string> = { iridescent: 'Iridescent', holographic: 'Holographic', 'oil-slick': 'Oil-slick', pearlescent: 'Pearlescent' }
   function iridescentControls(ir: NonNullable<PanelOptions['iridescent']>): HTMLElement {
     const wrap = el('div')
     const row = el('div', 'dio-seg dio-seg-wrap')
