@@ -88,6 +88,7 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [x] **Prints on the 2D pattern + tech pack** — placed logos/text show on the exported flat-pattern panels + the manufacturing pack, mapped to the right piece (front/back/sleeve/leg) and positioned to scale (dashed placement box + label; DXF PRINT layer) — PR #114
 - [x] **Embroidery & appliqué** — placed motifs get a finish (flat · raised embroidery · appliqué patch); the raised styles paint a bump relief so stitched thread + patches sit proud of the cloth and catch the light (follows the drape) — PR #116
 - [x] **Sequins, beading & metallic foil** — a sparkle finish for eveningwear: faceted normal maps + a metallic recipe so hundreds of facets glint (foil = mirror + anisotropic streak · beading = glassy beads · sequins = metallic discs) — PR #118
+- [x] **Glitter sparkle finish** — a dense micro-glitter: many more, smaller facets (cells 40 / repeat 6, fully metallic) each tilted harder + more randomly than the sequin discs; `?sparkle=glitter`, `SparkleKind` unit-tested — PR #725
 - [x] **Quilting — channel · diamond · box loft** — a quilting finish for puffers/jackets: the fabric lofts between stitch lines via a baked pillow-normal map (channel tubes · diamond cross-hatch · box grid) — PR #120
 - [x] **Per-panel physics** — the front vs back of a garment drape with their own stiffness + mass (per-constraint region params in the XPBD solver), driven by the per-panel fabric — a stiff back holds an A-line while a soft front clings — PR #121
 - [x] **Colorways** — save colour/fabric variants of a design (appearance only, not shape) + compare them side-by-side in a swatch grid; click a swatch to apply, saved with the `.dio` project — PR #124
@@ -112,7 +113,9 @@ storm wind, walk styles, posture presets, shortcut editor + a bug sweep._
 - [x] **Turntable spin + AR export** — one-click File → "Record turntable spin" orbits the camera a full turn → a WebM clip (pure `turntablePose` + `recordTurntable`); + **USDZ** export (iOS AR Quick Look) alongside GLB — PR #157
 - [x] **Dip-dye / ombré gradient** — a top-down · bottom-up · radial colour gradient baked into the albedo (base → a deeper dipped tone; derived so it tracks a recolour); pure `ombreT`/`ombreDip` unit-tested (`?ombre=`) — PR #158
 - [x] **Iridescent / holographic finish** — colour-shifting thin-film eveningwear shaders (iridescent · holographic · oil-slick) driving `MeshPhysicalMaterial.iridescence`; pure `iridescentParams` unit-tested (`?iridescent=`) — PR #159
+- [x] **Pearlescent iridescent finish** — a soft mother-of-pearl nacre: the gentlest colour shift of the family, glossy clearcoat over a near-white low-metal base + a low-frequency thickness swirl for a broad satin sheen; `?iridescent=pearlescent`, unit-tested — PR #726
 - [x] **Distressed / washed / faded finish** — a procedural wear map (faded · acid-wash · distressed) bleached into the albedo; pure value-noise `wearValue` + `wearTone` unit-tested (`?wear=`) — PR #160
+- [x] **Stone-wash wear finish** — a soft cloudy all-over denim wash (pumice-tumbled): medium-frequency `wearValue` mottling that wears everywhere but gentler + more textured than acid-wash; `?wear=stone-wash`, unit-tested — PR #724
 - [x] **Care-label & content generator** — auto fibre content % + laundering instructions per fabric, folded into the manufacturing pack (HTML + JSON); pure `fibreContent`/`careInstructions` unit-tested — PR #161
 - [x] **Skin-tone & complexion picker** — 8 skin tones (fair→deep) × warm/neutral/cool undertones for the default avatar; pure `skinLook` unit-tested, applied to the shared body/GLB material (`?skin=&undertone=`) — PR #162
 - [x] **Lace & broderie** — sheer alpha-cutout lace (chantilly · geometric · fishnet) with a scalloped edge; real see-through via `alphaTest` (lining dropped); pure `laceAlpha`/`scallopValue` unit-tested (`?lace=`) — PR #163
@@ -441,7 +444,8 @@ fit & physics 0/10 · materials & production 0/10)_
 
 **Materials & finish controls** _(refine PRs #108 · #110 · #116 · #118 · #120 · #158 · #159 · #160 · #163 · #164)_
 - [x] **Per-fabric environment reflectivity** — pure `envIntensityForFabric` sets `MeshPhysicalMaterial.envMapIntensity` from the surface: a smooth silk/satin/leather catches the studio IBL and glistens, a matte cotton/wool/canvas barely reflects — completes the roughness-map + sheen + anisotropy material realism; unit-tested — PR #231
-- [ ] **Ombré: pick the dip colour + a diagonal direction** — not just a derived tone / vertical-radial only
+- [x] **Ombré: diagonal direction** — a 45° dip-dye sweep (base top-left → dip bottom-right) alongside top-down · bottom-up · radial; pure `ombreT` unit-tested, `?ombre=diagonal` — PR #723
+- [ ] **Ombré: pick the dip colour** — a user-chosen dip tone, not just the derived one
 - [x] **Textile pattern scale + rotation** — resize/rotate stripes & plaids: pure `textileTiles` maps a **motif scale** (0.25…4×; >1 = bigger, fewer repeats) to the tile count, and `paintTextile` rotates the whole repeat via `CanvasPattern.setTransform` (stripes/plaids on the bias); per-layer `textileScale`/`textileRotation` threaded through the finish wiring, **Motif scale** + **Motif angle** sliders under the textile picker, `.dio` + colorways, `?textileScale=&textileRotation=`; `textileTiles` unit-tested; verified (4× stripe = wide bands, plaid at 45°). _(grainline-align to the cut piece deferred as a separate follow-up.)_
 - [ ] **Textile: pick both tones** — choose the pattern's two colours instead of deriving from the base
 - [ ] **Lace as a trim band** — apply lace to just the hem/yoke, not the whole garment; + a motif-scale slider
@@ -456,6 +460,7 @@ fit & physics 0/10 · materials & production 0/10)_
 **Prints & graphics** _(refine PRs #51 · #112 · #114 · #116)_
 - [ ] **Prints warp with the drape** — logos/text distort over folds (currently flat on the albedo)
 - [x] **Print opacity + blend mode** — semi-transparent / multiply onto the fabric: each `Print` carries `opacity` (0…1) + `blend` (normal · multiply · screen); the pure `resolvePrintPaint` maps them to canvas `globalAlpha` + `globalCompositeOperation`, applied in `paintAlbedoMotif` (appliqué patches stay opaque — a physical patch). Per-print **Opacity** slider + **Blend** picker in the Prints manager; serialises in the `.dio` (via `PrintSpec`); `?prints=blend` demo; `resolvePrintPaint` unit-tested
+- [x] **Overlay print blend mode** — a contrast-boosting blend (multiplies the shadows + screens the highlights) so the weave shows through while the print keeps its own contrast; adds `'overlay'` to `PrintBlend`/`PRINT_BLENDS` (canvas `overlay` composite), auto-surfaced by the blend picker; `resolvePrintPaint` unit-tested — PR #727
 - [ ] **Arched / curved text** — bend text along an arc (team-jersey style)
 - [ ] **All-over repeat of a placed print** — tile one motif across the whole garment
 - [ ] **Per-print recolour** — recolour a single print, not just the whole design at once
