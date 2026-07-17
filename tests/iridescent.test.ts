@@ -26,8 +26,18 @@ describe('iridescent / holographic finish', () => {
     expect(iridescentParams('oil-slick').metalness).toBeGreaterThan(iridescentParams('holographic').metalness)
   })
 
-  it('exposes exactly the three kinds', () => {
-    expect(IRIDESCENT_KINDS).toEqual(['iridescent', 'holographic', 'oil-slick'])
+  it('pearlescent is a soft pale nacre — gentlest shift, glossy clearcoat, least metallic', () => {
+    const pearl = iridescentParams('pearlescent')
+    // the subtlest colour shift of the family (a pale sheen, not a hard hologram)
+    for (const k of ['holographic', 'oil-slick'] as IridescentKind[]) {
+      expect(pearl.iridescence).toBeLessThan(iridescentParams(k).iridescence)
+      expect(pearl.metalness).toBeLessThan(iridescentParams(k).metalness)
+    }
+    expect(pearl.clearcoat).toBeGreaterThan(0.5) // glossy pearl coat
+  })
+
+  it('exposes exactly the four kinds', () => {
+    expect(IRIDESCENT_KINDS).toEqual(['iridescent', 'holographic', 'oil-slick', 'pearlescent'])
   })
 
   it('the thickness field stays in [0,1], varies across the surface, and differs by kind', () => {
