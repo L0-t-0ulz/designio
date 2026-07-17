@@ -3,12 +3,14 @@ import * as THREE from 'three'
 /**
  * Distressed / washed / faded finishes — a procedural **wear map** baked into the
  * albedo that bleaches the base colour toward a lighter, desaturated tone: an
- * overall vintage `faded`, blotchy `acid-wash`, or streaky `distressed` abrasion.
- * The wear field is pure value-noise (deterministic — no `Math.random`) so it
- * tiles/samples identically each bake and is unit-tested.
+ * overall vintage `faded`, blotchy `acid-wash`, streaky `distressed` abrasion, an
+ * `adaptive` wear concentrated at the hem + seams, or a soft cloudy all-over
+ * `stone-wash` (denim tumbled with pumice). The wear field is pure value-noise
+ * (deterministic — no `Math.random`) so it tiles/samples identically each bake
+ * and is unit-tested.
  */
-export type WearKind = 'faded' | 'acid-wash' | 'distressed' | 'adaptive'
-export const WEAR_KINDS: WearKind[] = ['faded', 'acid-wash', 'distressed', 'adaptive']
+export type WearKind = 'faded' | 'acid-wash' | 'distressed' | 'adaptive' | 'stone-wash'
+export const WEAR_KINDS: WearKind[] = ['faded', 'acid-wash', 'distressed', 'adaptive', 'stone-wash']
 
 const fract = (x: number): number => x - Math.floor(x)
 const hash = (i: number, j: number): number => fract(Math.sin(i * 127.1 + j * 311.7) * 43758.5453)
@@ -55,6 +57,12 @@ export function wearValue(kind: WearKind, u: number, v: number): number {
       const edge = Math.pow(Math.max(0, Math.abs(u - 0.5) * 2 - 0.72) / 0.28, 2) // near u=0 / u=1
       const abrasion = vnoise(u, v * 0.5, 18)
       return Math.min(1, (hem + edge) * (0.55 + abrasion * 0.5) + abrasion * 0.12)
+    }
+    case 'stone-wash': {
+      // soft cloudy all-over abrasion — medium-freq mottling, wears everywhere
+      // (min > 0) but gentler + more textured than the high-contrast acid-wash
+      const n = vnoise(u, v, 8) * 0.55 + vnoise(u + 4.7, v + 2.9, 17) * 0.45
+      return Math.min(1, 0.15 + n * 0.55)
     }
     default: {
       // faded: soft, broad vintage lightening (two smooth octaves, gentle)
