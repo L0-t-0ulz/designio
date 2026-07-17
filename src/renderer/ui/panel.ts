@@ -1480,7 +1480,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // A sparkle finish for eveningwear — sequins / beading / metallic foil.
-  const SPARKLE_LABELS: Record<SparkleKind, string> = { sequins: 'Sequins', beading: 'Beading', foil: 'Foil' }
+  const SPARKLE_LABELS: Record<SparkleKind, string> = { sequins: 'Sequins', beading: 'Beading', foil: 'Foil', glitter: 'Glitter' }
   function sparkleControls(sp: NonNullable<PanelOptions['sparkle']>): HTMLElement {
     const wrap = el('div')
     const row = el('div', 'dio-seg dio-seg-wrap')

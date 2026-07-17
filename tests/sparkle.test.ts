@@ -71,8 +71,28 @@ describe('sparkle finishes — sequins · beading · foil', () => {
     }
   })
 
+  it('glitter is a dense scatter of tiny hard-tilted metallic flecks', () => {
+    const glit = sparkleParams('glitter')
+    const seq = sparkleParams('sequins')
+    expect(glit.cells).toBeGreaterThan(seq.cells) // many more, smaller facets
+    expect(glit.metalness).toBe(1)
+    expect(glit.roughness).toBeLessThan(0.35) // shiny flecks
+    // its flecks tilt harder than sequins on average → a busier glint field
+    const spread = (k: SparkleKind): number => {
+      let sum = 0
+      const cells = 8
+      for (let cu = 0; cu < cells; cu++)
+        for (let cv = 0; cv < cells; cv++) {
+          const n = sparkleNormal(k, (cu + 0.5) / cells, (cv + 0.5) / cells, cells)
+          sum += Math.hypot(n[0], n[1])
+        }
+      return sum
+    }
+    expect(spread('glitter')).toBeGreaterThan(spread('sequins'))
+  })
+
   it('exposes exactly the advertised finishes', () => {
-    const expected: SparkleKind[] = ['sequins', 'beading', 'foil']
+    const expected: SparkleKind[] = ['sequins', 'beading', 'foil', 'glitter']
     expect([...SPARKLE_KINDS].sort()).toEqual([...expected].sort())
   })
 })

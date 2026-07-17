@@ -7,8 +7,8 @@ import * as THREE from 'three'
  * The facet math is pure (unit-tested); the renderer bakes it into a tiling
  * normal map.
  */
-export type SparkleKind = 'sequins' | 'beading' | 'foil'
-export const SPARKLE_KINDS: SparkleKind[] = ['sequins', 'beading', 'foil']
+export type SparkleKind = 'sequins' | 'beading' | 'foil' | 'glitter'
+export const SPARKLE_KINDS: SparkleKind[] = ['sequins', 'beading', 'foil', 'glitter']
 
 const fract = (x: number): number => x - Math.floor(x)
 /** Deterministic hash of a cell → [0,1) (so a sequin's tilt is stable per frame). */
@@ -51,9 +51,13 @@ export function sparkleNormal(kind: SparkleKind, u: number, v: number, cells: nu
       ny = fv * 2.2
       nz = Math.sqrt(Math.max(0.05, 1 - nx * nx - ny * ny))
     } else {
-      // sequin: a flat disc tilted a hashed direction + amount
+      // sequin / glitter: a flat disc tilted a hashed direction + amount. Glitter
+      // tilts harder + more randomly (tiny flecks throwing light every which way)
+      // and packs many more facets per tile (see sparkleParams.cells).
       const a = hash(cu, cv) * Math.PI * 2
-      const tilt = 0.3 + 0.55 * hash(cu + 7, cv + 3)
+      const tiltBase = kind === 'glitter' ? 0.5 : 0.3
+      const tiltVar = kind === 'glitter' ? 0.85 : 0.55
+      const tilt = tiltBase + tiltVar * hash(cu + 7, cv + 3)
       nx = Math.cos(a) * tilt
       ny = Math.sin(a) * tilt
       nz = 1
@@ -85,6 +89,10 @@ export function sparkleParams(kind: SparkleKind): SparkleParams {
     case 'beading':
       // glassy beads — a clearcoat over a slightly metallic base
       return { metalness: 0.35, roughness: 0.14, envMapIntensity: 1.35, anisotropy: 0, clearcoat: 1, clearcoatRoughness: 0.12, normalStrength: 1, cells: 22, repeat: 5 }
+    case 'glitter':
+      // dense micro-glitter — a fine scatter of tiny metallic flecks, each glinting
+      // independently (many more, smaller facets than the sequin discs)
+      return { metalness: 1, roughness: 0.2, envMapIntensity: 1.6, anisotropy: 0.1, clearcoat: 0.15, clearcoatRoughness: 0.3, normalStrength: 1, cells: 40, repeat: 6 }
     default:
       // sequins — many small metallic discs that glint independently
       return { metalness: 0.9, roughness: 0.24, envMapIntensity: 1.5, anisotropy: 0.15, clearcoat: 0.2, clearcoatRoughness: 0.25, normalStrength: 1, cells: 16, repeat: 4 }
