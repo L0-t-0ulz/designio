@@ -18,6 +18,7 @@ describe('resolvePrintPaint — print opacity + blend', () => {
     expect(resolvePrintPaint({ blend: 'normal' }).composite).toBe('source-over')
     expect(resolvePrintPaint({ blend: 'multiply' }).composite).toBe('multiply')
     expect(resolvePrintPaint({ blend: 'screen' }).composite).toBe('screen')
+    expect(resolvePrintPaint({ blend: 'overlay' }).composite).toBe('overlay')
   })
 
   it('every listed blend resolves to a real, distinct-from-default-when-not-normal composite', () => {
