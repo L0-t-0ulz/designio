@@ -161,17 +161,19 @@ export function foilTone(color: number): number {
 }
 
 /** How a print blends onto the fabric beneath it — opaque, multiplied (tints into the
- *  weave, like a screen print), screened (lightens), or overlaid (contrast-boosting:
+ *  weave, like a screen print), screened (lightens), overlaid (contrast-boosting:
  *  multiplies the shadows + screens the highlights, so the weave shows through while
- *  the print's own contrast is preserved). */
-export type PrintBlend = 'normal' | 'multiply' | 'screen' | 'overlay'
-export const PRINT_BLENDS: PrintBlend[] = ['normal', 'multiply', 'screen', 'overlay']
+ *  the print's own contrast is preserved), or darkened (keeps whichever is darker
+ *  per channel, so the print only ever deepens the fabric — never lightens it). */
+export type PrintBlend = 'normal' | 'multiply' | 'screen' | 'overlay' | 'darken'
+export const PRINT_BLENDS: PrintBlend[] = ['normal', 'multiply', 'screen', 'overlay', 'darken']
 
 const BLEND_COMPOSITE: Record<PrintBlend, GlobalCompositeOperation> = {
   normal: 'source-over',
   multiply: 'multiply',
   screen: 'screen',
-  overlay: 'overlay'
+  overlay: 'overlay',
+  darken: 'darken'
 }
 
 /** Resolve a print's opacity + blend to canvas paint params. Pure + unit-tested. */
