@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import * as THREE from 'three'
-import { distanceCm, midpoint, formatCm, MeasureStore } from '../src/renderer/studio/measure'
+import { distanceCm, midpoint, formatCm, MeasureStore ,
+  SNAP_RADIUS_M,
+  nearestPoint,
+  snapPoint
+} from '../src/renderer/studio/measure'
 
 const v = (x: number, y: number, z: number): THREE.Vector3 => new THREE.Vector3(x, y, z)
 
@@ -56,5 +60,61 @@ describe('measure & annotate tool', () => {
     s.addMeasurement(a, v(0, 1, 0))
     a.set(9, 9, 9)
     expect(s.measurements[0].a.x).toBe(0)
+  })
+})
+
+describe('measurement snapping', () => {
+  const v = (x: number, y = 0, z = 0): THREE.Vector3 => new THREE.Vector3(x, y, z)
+
+  it('takes the nearest candidate inside the radius', () => {
+    expect(nearestPoint(v(0.002), [v(0), v(0.05)])!.x).toBeCloseTo(0)
+  })
+
+  it('leaves a point alone when nothing is close enough', () => {
+    // a click in the middle of a panel must stay exactly where it was put
+    expect(nearestPoint(v(0.5), [v(0), v(1)])).toBeNull()
+    expect(snapPoint(v(0.5), [v(0), v(1)]).x).toBeCloseTo(0.5)
+  })
+
+  it('snaps exactly onto the vertex, so two readings of one corner agree', () => {
+    const corner = v(0.1234, 0.5678, 0.9012)
+    const first = snapPoint(v(0.1236, 0.5679, 0.9011), [corner])
+    const second = snapPoint(v(0.1232, 0.5677, 0.9013), [corner])
+    expect(first.equals(second)).toBe(true)
+    expect(distanceCm(first, second)).toBe(0)
+  })
+
+  it('respects the radius boundary', () => {
+    expect(nearestPoint(v(SNAP_RADIUS_M), [v(0)])).not.toBeNull() // exactly on it still snaps
+    expect(nearestPoint(v(SNAP_RADIUS_M * 1.01), [v(0)])).toBeNull()
+  })
+
+  it('honours a caller-supplied radius', () => {
+    expect(nearestPoint(v(0.5), [v(0)], 1)).not.toBeNull()
+    expect(nearestPoint(v(0.5), [v(0)], 0.1)).toBeNull()
+  })
+
+  it('never snaps when the radius is zero or negative', () => {
+    for (const r of [0, -1]) expect(nearestPoint(v(0), [v(0)], r)).toBeNull()
+    expect(snapPoint(v(0.5), [v(0.5)], 0).x).toBeCloseTo(0.5)
+  })
+
+  it('copes with no candidates at all', () => {
+    expect(nearestPoint(v(1), [])).toBeNull()
+    expect(snapPoint(v(1), []).x).toBeCloseTo(1)
+  })
+
+  it('breaks ties deterministically, taking the earlier candidate', () => {
+    const a = v(0, 0.001)
+    const b = v(0, -0.001)
+    expect(nearestPoint(v(0), [a, b])!.y).toBeCloseTo(0.001)
+    expect(nearestPoint(v(0), [a, b])!.equals(nearestPoint(v(0), [a, b])!)).toBe(true)
+  })
+
+  it('returns a copy, so the mesh geometry cannot be mutated through the result', () => {
+    const corner = v(1, 2, 3)
+    const snapped = snapPoint(v(1.001, 2, 3), [corner])
+    snapped.set(9, 9, 9)
+    expect(corner.x).toBe(1)
   })
 })

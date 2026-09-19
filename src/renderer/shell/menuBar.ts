@@ -47,6 +47,7 @@ export interface MenuActions {
   onDrapeComparator: () => void
   onTogglePress: () => void
   onClearMeasure: () => void
+  onToggleMeasureSnap: () => void
   onRunwayLineup: () => void
   onScarfGiftFold: () => void
   onContactSheet: () => void
@@ -228,6 +229,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { sep: true },
     { label: 'Measure distances', run: a.onMeasure },
     { label: 'Add annotation', run: a.onAnnotate },
+    { label: 'Snap measurements to vertices', run: a.onToggleMeasureSnap },
     { label: 'Clear measurements', run: a.onClearMeasure },
     { label: 'Design review…', run: a.onReview },
     { sep: true },

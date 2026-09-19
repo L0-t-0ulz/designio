@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { MeasureStore, distanceCm, formatCm, midpoint } from './measure'
+import { MeasureStore, distanceCm, formatCm, midpoint, snapPoint } from './measure'
 
 export type MeasureMode = 'off' | 'measure' | 'annotate'
 
@@ -7,6 +7,25 @@ const LINE_MAT = new THREE.LineBasicMaterial({ color: 0x7c6ff0, depthTest: false
 const POINT_MAT = new THREE.MeshBasicMaterial({ color: 0x7c6ff0, depthTest: false })
 const PIN_MAT = new THREE.MeshBasicMaterial({ color: 0xffb347, depthTest: false })
 const DOT_GEO = new THREE.SphereGeometry(0.012, 12, 12)
+
+/**
+ * The world-space corners of the triangle a raycast landed on.
+ *
+ * The hit already names the face, so the only vertices worth considering are its
+ * three — no spatial index, and the cost does not grow with the mesh. Cloth deforms
+ * every frame, so positions are read live from the attribute and pushed through the
+ * object's current world matrix rather than cached.
+ */
+function faceVertices(hit: THREE.Intersection): THREE.Vector3[] {
+  const mesh = hit.object as THREE.Mesh
+  const face = hit.face
+  const position = mesh.geometry?.getAttribute?.('position')
+  if (!face || !position) return []
+  mesh.updateWorldMatrix(true, false)
+  return [face.a, face.b, face.c]
+    .filter((i) => i < position.count)
+    .map((i) => new THREE.Vector3().fromBufferAttribute(position as THREE.BufferAttribute, i).applyMatrix4(mesh.matrixWorld))
+}
 
 /**
  * The **measure & annotate** tool: click two points on the garment/body to drop a
@@ -17,6 +36,9 @@ const DOT_GEO = new THREE.SphereGeometry(0.012, 12, 12)
 export class MeasureTool {
   readonly store = new MeasureStore()
   private mode: MeasureMode = 'off'
+  /** Snap picks to the nearest mesh vertex — on by default, because two readings of
+   *  the same corner disagreeing is worse than a point moving a millimetre. */
+  private snap = true
   private readonly group = new THREE.Group()
   private readonly overlay: HTMLElement
   private readonly ray = new THREE.Raycaster()
@@ -52,6 +74,14 @@ export class MeasureTool {
     this.canvas.style.cursor = mode === 'off' ? '' : 'crosshair'
     this.rebuild()
   }
+  setSnap(on: boolean): void {
+    this.snap = on
+  }
+
+  getSnap(): boolean {
+    return this.snap
+  }
+
   getMode(): MeasureMode {
     return this.mode
   }
@@ -114,7 +144,10 @@ export class MeasureTool {
     const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1)
     this.ray.setFromCamera(ndc, this.camera)
     const hits = this.ray.intersectObjects(this.getTargets(), true)
-    return hits.length ? hits[0].point.clone() : null
+    const hit = hits[0]
+    if (!hit) return null
+    const point = hit.point.clone()
+    return this.snap ? snapPoint(point, faceVertices(hit)) : point
   }
 
   /** Rebuild the 3D gizmos + HTML labels from the store (+ the pending point). */
