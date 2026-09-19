@@ -2097,7 +2097,8 @@ function initStudio(
     duplicate: duplicateGarment,
     save: saveProject,
     open: openProject,
-    delete: deleteGarment
+    delete: deleteGarment,
+    glossary: openGlossary
   }
   function onKey(e: KeyboardEvent): void {
     const t = e.target as HTMLElement | null

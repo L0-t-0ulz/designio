@@ -1,13 +1,13 @@
 /**
- * **Rebindable keyboard shortcuts** — the studio's keymap as data. Every editing
- * shortcut (undo · redo · copy · cut · paste · duplicate · save · open · delete) is a
- * `Binding` the user can rebind from the shortcuts overlay (press `?`, click a key,
- * press the new combo). Persisted in localStorage; unknown/invalid saved data falls
+ * **Rebindable keyboard shortcuts** — the studio's keymap as data. Every shortcut —
+ * the editing ones (undo · redo · copy · cut · paste · duplicate · save · open · delete)
+ * and the panels they sit alongside (glossary) — is a `Binding` the user can rebind from
+ * the shortcuts overlay (press `?`, click a key, press the new combo). Persisted in localStorage; unknown/invalid saved data falls
  * back per-action to the defaults. The pure helpers (match / capture / format /
  * parse / conflicts) are unit-tested; only load/save touch the DOM's storage.
  */
 
-export type KeyAction = 'undo' | 'redo' | 'copy' | 'cut' | 'paste' | 'duplicate' | 'save' | 'open' | 'delete'
+export type KeyAction = 'undo' | 'redo' | 'copy' | 'cut' | 'paste' | 'duplicate' | 'save' | 'open' | 'delete' | 'glossary'
 
 /** One shortcut: a normalized `key` (lowercase; backspace ⇒ 'delete') + modifiers.
  *  `mod` = ⌘ on mac / Ctrl elsewhere. */
@@ -34,7 +34,8 @@ export const KEY_ACTIONS: KeyActionDef[] = [
   { id: 'duplicate', label: 'Duplicate garment', prevent: true },
   { id: 'save', label: 'Save project', prevent: true },
   { id: 'open', label: 'Open project', prevent: true },
-  { id: 'delete', label: 'Delete garment', prevent: false }
+  { id: 'delete', label: 'Delete garment', prevent: false },
+  { id: 'glossary', label: 'Term glossary', prevent: true }
 ]
 
 export type Keymap = Record<KeyAction, Binding>
@@ -48,7 +49,9 @@ export const DEFAULT_KEYMAP: Keymap = {
   duplicate: { key: 'd', mod: true },
   save: { key: 's', mod: true },
   open: { key: 'o', mod: true },
-  delete: { key: 'delete', mod: false }
+  delete: { key: 'delete', mod: false },
+  // G for glossary; free of the editing map and of the app menu's roles
+  glossary: { key: 'g', mod: true }
 }
 
 /** Normalize an event key for binding/matching: lowercase, backspace ⇒ delete, ' ' ⇒ space. */
