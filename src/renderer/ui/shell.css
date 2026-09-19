@@ -813,3 +813,56 @@
   outline-offset: 2px;
   border-radius: 8px;
 }
+
+/* ---- Strain-view legend ----------------------------------------------------
+   Floats bottom-left over the viewport while a strain view is on. The bar is a
+   gradient built from the same colour functions the mesh is shaded with. */
+.dio-legend-host {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 5;
+  pointer-events: none;
+}
+.dio-legend {
+  /* wide enough that the last interior tick and the right-anchored end label do not
+     run into each other — at 190px "100%" and "over" collided into "100%over" */
+  min-width: 232px;
+  padding: 8px 10px 6px;
+  border-radius: var(--r-sm);
+  background: var(--glass);
+  border: 1px solid var(--hairline);
+  backdrop-filter: blur(8px);
+  font-size: 11px;
+  color: var(--fg-0);
+}
+.dio-legend-title {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.dio-legend-bar {
+  height: 9px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+}
+.dio-legend-scale {
+  position: relative;
+  height: 14px;
+  margin-top: 2px;
+}
+.dio-legend-tick {
+  position: absolute;
+  font-size: 10px;
+  color: var(--fg-1);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* only the interior ticks are centred on their position; the ends are anchored
+   to the edges so they cannot hang outside the panel */
+.dio-legend-tick-mid {
+  transform: translateX(-50%);
+}
+.dio-legend-note {
+  color: var(--fg-2);
+  font-size: 10px;
+}
