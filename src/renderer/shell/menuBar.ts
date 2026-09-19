@@ -61,6 +61,7 @@ export interface MenuActions {
   onShortcuts: () => void
   onTour: () => void
   onGlossary: () => void
+  onWhatsNew: () => void
   onVectorEditor: () => void
   onLessons: () => void
   onChallenges: () => void
@@ -239,6 +240,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Interactive tutorial', run: a.onTutorial },
     { label: 'Keyboard shortcuts (?)', run: a.onShortcuts },
     { label: 'Term glossary', run: a.onGlossary },
+    { label: 'What’s new', run: a.onWhatsNew },
     { label: 'Pattern-making lessons', run: a.onLessons },
     { label: 'Community challenges', run: a.onChallenges },
     { sep: true },
