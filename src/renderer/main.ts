@@ -124,7 +124,7 @@ import { parseScanOBJ, scanToMeasurements } from './avatar/bodyScan'
 import { parseBVH, bvhJointNames, bvhDuration } from './avatar/mocap'
 import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
-import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost } from './export/cost'
+import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost, DEFAULT_FREIGHT_PER_UNIT, DEFAULT_APPAREL_DUTY_PCT } from './export/cost'
 import { shopifyCsv, type ListingInput } from './export/listing'
 import { productPageHtml } from './export/productPage'
 import { APPROVAL_STATUSES, type ApprovalStatus } from './export/approval'
@@ -2121,6 +2121,8 @@ function initStudio(
           pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders, faceRig.getHairstyle()),
           marker: markerLayout,
           cost: costRollup({
+            freightPerUnit: DEFAULT_FREIGHT_PER_UNIT,
+            dutyPct: DEFAULT_APPAREL_DUTY_PCT,
             fabricM: headwear
               ? headwearFabricM(metrics.fabricM2)
               : markerLayout

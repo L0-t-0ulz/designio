@@ -152,7 +152,11 @@ function markerSection(m?: MarkerLayout): string {
     <div class="marker">${markerSVG(m)}</div>`
 }
 
-/** Landed-cost breakdown table (fabric + thread + trims + labour + overhead → cost/unit). */
+/**
+ * Landed-cost breakdown. The FOB line is always shown, because that is the number a
+ * factory invoices and a customs form declares; freight and duty appear only when
+ * they were costed, so an ex-works quote is not padded with $0.00 rows.
+ */
 function costSection(c?: CostBreakdown): string {
   if (!c) return ''
   const usd = (v: number): string => `$${v.toFixed(2)}`
@@ -164,6 +168,9 @@ function costSection(c?: CostBreakdown): string {
             ${c.trims > 0 ? `<tr><td>Trims / notions</td><td colspan="2">${usd(c.trims)}</td></tr>` : ''}
             <tr><td>Labour</td><td colspan="2">${usd(c.labour)}</td></tr>
             <tr><td>Overhead / waste</td><td colspan="2">${usd(c.overhead)}</td></tr>
+            <tr><td>Ex-works (FOB) — declared customs value</td><td colspan="2">${usd(c.fob)}</td></tr>
+            ${c.freight > 0 ? `<tr><td>Inbound freight</td><td colspan="2">${usd(c.freight)}</td></tr>` : ''}
+            ${c.duty > 0 ? `<tr><td>Import duty</td><td colspan="2">${usd(c.duty)}</td></tr>` : ''}
             <tr><td><strong>Landed cost / unit</strong></td><td colspan="2"><strong>${usd(c.total)} ${c.currency}</strong></td></tr>
           </tbody>
         </table>

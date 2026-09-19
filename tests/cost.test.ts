@@ -118,3 +118,80 @@ describe('estimatedFabricPrice', () => {
     }
   })
 })
+
+describe('freight and duty (landed cost)', () => {
+  const base = { fabricM: 2, pricePerM: 10, threadM: 0, labourMin: 60, labourRate: 15, overheadPct: 0 }
+
+  it('is unchanged when neither is costed — an ex-works quote stays ex-works', () => {
+    const c = costRollup(base)
+    expect(c.freight).toBe(0)
+    expect(c.duty).toBe(0)
+    expect(c.total).toBe(c.fob)
+    expect(c.fob).toBe(35) // 20 fabric + 15 labour, no overhead
+  })
+
+  it('exposes FOB as the declared customs value — production plus overhead, nothing else', () => {
+    const c = costRollup({ ...base, overheadPct: 0.1, freightPerUnit: 5, dutyPct: 0.2 })
+    expect(c.fob).toBe(38.5) // 35 + 10%
+    expect(c.fob).toBe(c.fabric + c.thread + c.trims + c.labour + c.overhead)
+  })
+
+  it('adds freight without marking it up', () => {
+    // freight is a shipping charge, not a production cost; the overhead markup
+    // must not compound onto it
+    const c = costRollup({ ...base, overheadPct: 0.5, freightPerUnit: 4 })
+    expect(c.freight).toBe(4)
+    expect(c.total).toBe(c.fob + 4)
+  })
+
+  it('charges duty on FOB by default, the way US customs assesses it', () => {
+    const c = costRollup({ ...base, freightPerUnit: 10, dutyPct: 0.1 })
+    expect(c.duty).toBe(3.5) // 10% of 35, NOT of 45
+    expect(c.total).toBe(35 + 10 + 3.5)
+  })
+
+  it('charges duty on FOB + freight when the basis is CIF, as the EU and UK do', () => {
+    const c = costRollup({ ...base, freightPerUnit: 10, dutyPct: 0.1, dutyBasis: 'cif' })
+    expect(c.duty).toBe(4.5) // 10% of 45
+    expect(c.total).toBe(35 + 10 + 4.5)
+  })
+
+  it('CIF is never cheaper than FOB for the same rate', () => {
+    for (const freight of [0, 1, 7.5, 100]) {
+      const fob = costRollup({ ...base, freightPerUnit: freight, dutyPct: 0.12 })
+      const cif = costRollup({ ...base, freightPerUnit: freight, dutyPct: 0.12, dutyBasis: 'cif' })
+      expect(cif.duty).toBeGreaterThanOrEqual(fob.duty)
+    }
+  })
+
+  it('duty of zero costs nothing, whatever the basis', () => {
+    for (const dutyBasis of ['fob', 'cif'] as const) {
+      expect(costRollup({ ...base, freightPerUnit: 9, dutyPct: 0, dutyBasis }).duty).toBe(0)
+    }
+  })
+
+  it('refuses negative freight or duty rather than crediting the sheet', () => {
+    const c = costRollup({ ...base, freightPerUnit: -20, dutyPct: -0.5 })
+    expect(c.freight).toBe(0)
+    expect(c.duty).toBe(0)
+    expect(c.total).toBe(c.fob)
+  })
+
+  it('the total is always the sum of its parts', () => {
+    for (const opts of [
+      {},
+      { freightPerUnit: 3 },
+      { dutyPct: 0.15 },
+      { freightPerUnit: 3, dutyPct: 0.15 },
+      { freightPerUnit: 3, dutyPct: 0.15, dutyBasis: 'cif' as const }
+    ]) {
+      const c = costRollup({ ...base, ...opts })
+      expect(c.total).toBeCloseTo(c.fob + c.freight + c.duty, 2)
+    }
+  })
+
+  it('rounds to whole cents', () => {
+    const c = costRollup({ ...base, freightPerUnit: 1.005, dutyPct: 0.0333 })
+    for (const v of [c.fob, c.freight, c.duty, c.total]) expect(v).toBe(Math.round(v * 100) / 100)
+  })
+})
