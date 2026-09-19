@@ -37,6 +37,7 @@ import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
 import { utilisationColor, stretchUtilisation } from '../fabric/stretchUtilisation'
 import { strainLegend, type Legend } from '../fabric/legend'
+import { sumContactAreas, type ContactAreaResult } from './contactArea'
 import { pressureColor } from '../fabric/pressure'
 import { makePillNormalMap } from '../fabric/pilling'
 import { buttonCount, buttonScale } from './closureDesign'
@@ -1650,6 +1651,11 @@ export class GarmentStack {
   get utilisation(): boolean {
     return this.strainView === 'utilisation'
   }
+  /** Body-contact area across every visible layer, area-weighted. */
+  contactArea(): ContactAreaResult {
+    return sumContactAreas(this.layers.filter((l) => l.data.visible).map((l) => l.controller.contactArea()))
+  }
+
   /** The legend for whatever strain view is active, scaled to the active layer's
    *  fabric — null when no view is on. */
   strainLegend(): Legend | null {
