@@ -5,6 +5,7 @@ import { FABRIC_FAMILIES, FABRIC_LIBRARY } from '../fabric/FabricLibrary'
 import { GARMENT_SIL, fabricSwatchCanvas } from '../ui/thumbnails'
 import { PRESETS, type Preset } from '../start/presets'
 import { matchesFabric, type FabricFilter, type WeightBucket, type StretchBucket } from './libraryFilter'
+import { loadFavourites, pruneFavourites, saveFavourites, toggleFavourite } from '../fabric/favourites'
 
 type Tab = 'garments' | 'fabrics' | 'avatars' | 'presets'
 
@@ -44,6 +45,9 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
   let tab: Tab = 'garments'
   let query = ''
   // Structured fabric filters (family / weight / stretch), driven by the chip bar.
+  // Starred fabrics, pruned against the live catalogue so a retired fabric can't
+  // leave a star pointing at nothing.
+  let favourites = pruneFavourites(loadFavourites(), FABRIC_LIBRARY.map((f) => f.id))
   let famFilter = 'all'
   let weightFilter: WeightBucket = 'any'
   let stretchFilter: StretchBucket = 'any'
@@ -111,6 +115,33 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
     return node
   }
 
+  /** The star pip on a fabric tile. Toggling must not also select the fabric, hence
+   *  the stopPropagation — the tile behind it is the selector. */
+  const starFor = (id: string): HTMLElement => {
+    const on = favourites.includes(id)
+    const b = el('button', 'dio-lib-star' + (on ? ' on' : ''), on ? '\u2605' : '\u2606')
+    b.type = 'button'
+    b.title = on ? 'Remove from favourites' : 'Add to favourites'
+    b.setAttribute('aria-pressed', String(on))
+    b.setAttribute('aria-label', b.title)
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const next = toggleFavourite(favourites, id)
+      if (next === favourites) return // at the cap — say nothing rather than half-act
+      favourites = next
+      saveFavourites(favourites)
+      render()
+    })
+    return b
+  }
+
+  /** One fabric tile, starrable. */
+  const fabricItem = (f: (typeof FABRIC_LIBRARY)[number]): HTMLElement => {
+    const node = item(f.name, f.id === a.currentFabric(), (n) => n.append(fabricSwatchCanvas(f)), () => a.selectFabric(f.id))
+    node.append(starFor(f.id))
+    return node
+  }
+
   function render(): void {
     body.replaceChildren()
     search.style.display = tab === 'avatars' ? 'none' : ''
@@ -133,6 +164,18 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
       }
     } else if (tab === 'fabrics') {
       const flt = fabricFilter()
+      // Starred fabrics first, in the order they were starred — the point of the
+      // feature is not scrolling to them. They still appear under their family below,
+      // so the catalogue stays complete rather than having holes punched in it.
+      const faves = favourites
+        .map((id) => FABRIC_LIBRARY.find((f) => f.id === id))
+        .filter((f): f is (typeof FABRIC_LIBRARY)[number] => !!f && matchesFabric(f, flt))
+      if (faves.length) {
+        body.append(cat('\u2605 Favourites'))
+        const g = grid()
+        for (const f of faves) g.append(fabricItem(f))
+        body.append(g)
+      }
       for (const fam of FABRIC_FAMILIES) {
         const items = FABRIC_LIBRARY.filter((f) => f.family === fam.id && matchesFabric(f, flt))
         if (!items.length) continue
@@ -140,9 +183,7 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
         const g = grid()
         for (const f of items) {
           g.append(
-            item(f.name, f.id === a.currentFabric(), (n) => n.append(fabricSwatchCanvas(f)), () =>
-              a.selectFabric(f.id)
-            )
+            fabricItem(f)
           )
         }
         body.append(g)
