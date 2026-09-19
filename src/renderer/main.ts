@@ -107,6 +107,7 @@ import { SOCIAL_PRESETS } from './studio/socialPresets'
 import { patternToSVG, patternToDXF } from './export/patternExport'
 import { panelsToDXF, garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
 import { patternPieceCount } from './export/patternPieces'
+import { patternToHPGL } from './export/plotter'
 import { skuAndBarcode } from './export/sku'
 import { nearestNamedColor } from './fabric/namedColors'
 import { trimCard, type TrimLine } from './export/trimCard'
@@ -1488,6 +1489,17 @@ function initStudio(
             ? garmentPatternDXF(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders, l.prints)
             : patternToDXF(dims)
         await saveFile('pattern.dxf', dxf, [{ name: 'DXF', extensions: ['dxf'] }])
+        break
+      }
+      case 'plt': {
+        // HPGL plots the real panel outlines, so it is only meaningful for the
+        // per-garment draft; the sewn-pattern mode has no panel geometry to send.
+        if (mode !== 'templates') {
+          showToast('Plotter export needs a garment pattern — switch to Templates mode', 'info')
+          break
+        }
+        const { panels } = garmentToPanels(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+        await saveFile('pattern.plt', patternToHPGL(panels), [{ name: 'HPGL plotter', extensions: ['plt', 'hpgl'] }])
         break
       }
       case 'pattern-tiled': {
