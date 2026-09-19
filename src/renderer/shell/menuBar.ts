@@ -70,6 +70,7 @@ export interface MenuActions {
   onWhatsNew: () => void
   onCommandPalette: () => void
   onResetConstruction: () => void
+  onSurpriseMe: () => void
   onVectorEditor: () => void
   onLessons: () => void
   onChallenges: () => void
@@ -215,6 +216,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { sep: true },
     { label: 'Delete garment', run: a.onDelete, enabled: a.canModifyLayers },
     { sep: true },
+    { label: 'Surprise me (random design)', run: a.onSurpriseMe },
     { label: 'Reset construction to defaults', run: a.onResetConstruction },
     { sep: true },
     { label: 'Find anything… (⌘K)', run: a.onCommandPalette }
