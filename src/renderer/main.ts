@@ -108,6 +108,7 @@ import { patternToSVG, patternToDXF } from './export/patternExport'
 import { panelsToDXF, garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
 import { patternPieceCount } from './export/patternPieces'
 import { patternToHPGL, patternToRollHPGL } from './export/plotter'
+import { alignNest, nestSVG } from './export/gradeNest'
 import { skuAndBarcode } from './export/sku'
 import { checkGrainlines } from './export/grainline'
 import { symmetryDeviation, symmetrySummary, symmetryVerdict } from './export/symmetry'
@@ -1534,6 +1535,26 @@ function initStudio(
         const plot = patternToRollHPGL(panels, ROLL_WIDTH_CM)
         await saveFile(`pattern-roll-${plot.widthCm}cm.plt`, plot.hpgl, [{ name: 'HPGL plotter', extensions: ['plt', 'hpgl'] }])
         showToast(`Nested to ${plot.widthCm} cm — ${(plot.lengthCm / 100).toFixed(2)} m at ${(plot.efficiency * 100).toFixed(0)}% efficiency`, 'success')
+        break
+      }
+      case 'grade-nest': {
+        if (mode !== 'templates') {
+          showToast('Grade nest needs a garment pattern — switch to Templates mode', 'info')
+          break
+        }
+        // Re-draft each size through the real grading path, so the nest shows the
+        // grade the factory will actually cut rather than a scaled picture of one size.
+        const def = getGarment(l.data.garmentType)
+        const nest = SIZES.map((size) => ({
+          size,
+          outline: garmentToPanels(def, gradeParams({ ...l.data, size }), mannequin.measurements, mannequin.colliders).panels[0]?.outline ?? []
+        })).filter((n) => n.outline.length > 0)
+        if (!nest.length) {
+          showToast('This garment has no graded panels to nest', 'info')
+          break
+        }
+        const svg = nestSVG(alignNest(nest), { label: `${def.name} — grade nest` })
+        await saveFile('grade-nest.svg', svg, [{ name: 'SVG', extensions: ['svg'] }])
         break
       }
       case 'pattern-tiled':

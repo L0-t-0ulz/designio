@@ -165,7 +165,7 @@ export interface GarmentState {
 }
 
 export type DesignMode = 'templates' | 'pattern'
-export type ExportFormat = 'glb' | 'glb-draco' | 'usdz' | 'obj' | 'stl' | 'svg' | 'dxf' | 'plt' | 'plt-roll' | 'pattern-tiled' | 'pattern-tiled-a3' | 'pattern-tiled-a2' | 'techpack' | 'json' | 'manufacture' | 'factory-json' | 'size-set' | 'listing' | 'product-page' | 'portfolio' | 'configurator' | 'tryon-widget' | 'separations' | 'bag-pattern' | 'shoe-pattern' | 'mobile'
+export type ExportFormat = 'glb' | 'glb-draco' | 'usdz' | 'obj' | 'stl' | 'svg' | 'dxf' | 'plt' | 'plt-roll' | 'grade-nest' | 'pattern-tiled' | 'pattern-tiled-a3' | 'pattern-tiled-a2' | 'techpack' | 'json' | 'manufacture' | 'factory-json' | 'size-set' | 'listing' | 'product-page' | 'portfolio' | 'configurator' | 'tryon-widget' | 'separations' | 'bag-pattern' | 'shoe-pattern' | 'mobile'
 
 /** A placed print (logo/text) as shown in the Prints manager. */
 export interface PrintItem {
