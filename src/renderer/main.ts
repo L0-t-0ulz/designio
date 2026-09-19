@@ -2242,6 +2242,10 @@ function initStudio(
     onToggleWireframeOverlay: () => stack.setWireframeOverlay(!stack.wireframeOverlay),
     onStandardView: applyStandardView,
     onZoomToFit: zoomToFit,
+    onToggleDensity: () => {
+      shell.toggleDensity()
+      showToast(shell.density() === 'compact' ? 'Compact panels' : 'Comfortable panels', 'info')
+    },
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
     onMeasure: () => setMeasureMode(measureTool?.getMode() === 'measure' ? 'off' : 'measure'),
     onAnnotate: () => setMeasureMode(measureTool?.getMode() === 'annotate' ? 'off' : 'annotate'),

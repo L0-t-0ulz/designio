@@ -2134,3 +2134,28 @@ canvas {
   background: none;
   cursor: pointer;
 }
+
+/* ---- Compact panel density -------------------------------------------------
+   One class on the shell root tightens every docked panel, so a short screen
+   fits more without each control knowing anything about density. Only spacing
+   and label size change — hit targets on the actual inputs are left alone. */
+.dio-compact .dio-row {
+  gap: 4px 8px;
+  margin: 5px 0;
+}
+.dio-compact .dio-section-body {
+  padding: 6px 10px 8px;
+}
+.dio-compact .dio-section-head {
+  padding: 5px 10px;
+}
+.dio-compact .dio-field-label {
+  margin: 6px 0 3px;
+}
+.dio-compact .dio-row label,
+.dio-compact .dio-field-label {
+  font-size: 11px;
+}
+.dio-compact .dio-cw-grid {
+  gap: 5px;
+}

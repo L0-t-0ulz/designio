@@ -1,4 +1,9 @@
 /** Persisted studio-shell layout (pure serialize/parse — no DOM, so it's testable). */
+/** How tightly the docked panels pack their controls. */
+export type PanelDensity = 'comfortable' | 'compact'
+
+export const PANEL_DENSITIES: PanelDensity[] = ['comfortable', 'compact']
+
 export interface ShellLayout {
   /** [left %, centre %, right %] weights (normalised to the visible columns at build). */
   sizes: [number, number, number]
@@ -6,11 +11,15 @@ export interface ShellLayout {
   leftVisible: boolean
   /** Right dock visible. */
   rightVisible: boolean
+  /** Control spacing in the docked panels — 'compact' fits more on a short screen. */
+  density: PanelDensity
 }
 
-export const DEFAULT_LAYOUT: ShellLayout = { sizes: [18, 56, 26], leftVisible: true, rightVisible: true }
+export const DEFAULT_LAYOUT: ShellLayout = { sizes: [18, 56, 26], leftVisible: true, rightVisible: true, density: 'comfortable' }
 
 const LS_KEY = 'dio-shell-v2'
+
+const isDensity = (d: unknown): d is PanelDensity => PANEL_DENSITIES.includes(d as PanelDensity)
 
 const validSizes = (s: unknown): s is [number, number, number] =>
   Array.isArray(s) && s.length === 3 && s.every((n) => typeof n === 'number' && n > 0 && n < 100)
@@ -23,7 +32,9 @@ export function parseLayout(raw: string | null): ShellLayout {
     return {
       sizes: validSizes(o.sizes) ? [o.sizes[0], o.sizes[1], o.sizes[2]] : [...DEFAULT_LAYOUT.sizes],
       leftVisible: o.leftVisible !== false,
-      rightVisible: o.rightVisible !== false
+      rightVisible: o.rightVisible !== false,
+      // a layout saved before density existed, or with a junk value, gets the default
+      density: isDensity(o.density) ? o.density : DEFAULT_LAYOUT.density
     }
   } catch {
     return clone(DEFAULT_LAYOUT)
@@ -35,7 +46,7 @@ export function serializeLayout(l: ShellLayout): string {
 }
 
 function clone(l: ShellLayout): ShellLayout {
-  return { sizes: [...l.sizes], leftVisible: l.leftVisible, rightVisible: l.rightVisible }
+  return { sizes: [...l.sizes], leftVisible: l.leftVisible, rightVisible: l.rightVisible, density: l.density }
 }
 
 /** Read/write the layout from localStorage (browser only). */
