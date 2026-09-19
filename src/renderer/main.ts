@@ -107,6 +107,8 @@ import { SOCIAL_PRESETS } from './studio/socialPresets'
 import { patternToSVG, patternToDXF } from './export/patternExport'
 import { panelsToDXF, garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
 import { patternPieceCount } from './export/patternPieces'
+import { skuAndBarcode } from './export/sku'
+import { nearestNamedColor } from './fabric/namedColors'
 import { tiledPatternHTML } from './export/tiledPrint'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
@@ -2013,6 +2015,11 @@ function initStudio(
         const panels = garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels
         const markerLayout = nestMarker(panels, 140)
         const pieceCount = patternPieceCount(panels)
+        const identifiers = skuAndBarcode({
+          style: getGarment(l.data.garmentType).name,
+          colour: nearestNamedColor(l.data.color).code,
+          size: l.data.size
+        })
         // metal hardware trims implied by the construction: rivets on heavy hip-pocketed
         // (workwear) cloth, eyelets for a drawstring, snaps on a heavy front-closure placket
         const m = mannequin.measurements
@@ -2045,6 +2052,7 @@ function initStudio(
           // no explicit allowance → the seam type's recommended one (french/flat-fell need more)
           seam: l.data.seam ?? (l.data.stitch ? SEAM_TYPES[l.data.stitch.seamType].allowanceMm : 10),
           pieceCount,
+          identifiers,
           stitch: l.data.stitch ? { summary: stitchSummary(l.data.stitch), spec: l.data.stitch } : undefined,
           // a zip closure resolves to a full zipper spec (gauge from weight, length from category)
           zipper: l.data.closure && (def.closureStyle ?? 'button') === 'zip' ? zipperSummary(zipperSpecFor(def.category, l.fabric.gsm)) : undefined,

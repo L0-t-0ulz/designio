@@ -35,6 +35,8 @@ export interface ManufactureLayer {
   seam?: number
   /** Pattern pieces drafted vs physical pieces to cut (mirrors counted). */
   pieceCount?: import('./patternPieces').PatternPieceCount
+  /** Style identifiers — a human SKU and an internal EAN-13. */
+  identifiers?: { sku: string; barcode: string }
   /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
   stitch?: { summary: string; spec: import('../garment/stitchTypes').StitchSpec }
   /** Zipper spec summary (present when the closure is a zip). */
@@ -207,6 +209,7 @@ function layerSection(l: ManufactureLayer): string {
       <div>
         <h3>Spec sheet</h3>
         <table>
+          ${l.identifiers ? `<tr><td>SKU</td><td colspan="2"><code>${esc(l.identifiers.sku)}</code></td></tr><tr><td>Barcode (EAN-13, internal)</td><td colspan="2"><code>${esc(l.identifiers.barcode)}</code></td></tr>` : ''}
           <thead><tr><th>Measurement</th><th>cm</th><th>in</th></tr></thead>
           <tbody>${specRows(l.metrics)}</tbody>
         </table>
