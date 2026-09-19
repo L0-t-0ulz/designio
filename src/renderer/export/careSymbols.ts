@@ -8,8 +8,9 @@
 import type { CareInstructions } from './careLabel'
 
 export interface CareSymbol {
-  /** Which of the five basic symbols. */
-  key: 'wash' | 'bleach' | 'dry' | 'iron' | 'pro'
+  /** Which symbol. `dry` is natural drying, `tumble` is machine drying — ISO 3758
+   *  treats them as two symbols, and a garment can carry both. */
+  key: 'wash' | 'bleach' | 'dry' | 'tumble' | 'iron' | 'pro'
   /** The drawn variant (temperature / prohibition / method). */
   variant: string
   /** Human caption. */
@@ -19,17 +20,54 @@ export interface CareSymbol {
 const washVariant = (t: string): string =>
   /do not wash/i.test(t) ? 'no' : /hand wash/i.test(t) ? 'hand' : /warm/i.test(t) ? 'warm' : /cool/i.test(t) ? 'cool' : 'cold'
 const bleachVariant = (t: string): string => (/do not bleach/i.test(t) ? 'no' : /non-chlorine/i.test(t) ? 'nonchlorine' : 'any')
-const dryVariant = (t: string): string =>
-  /flat/i.test(t) ? 'flat' : /line dry/i.test(t) ? 'line' : /do not tumble/i.test(t) ? 'no' : /tumble dry low/i.test(t) ? 'tumble-low' : /tumble/i.test(t) ? 'tumble-med' : 'flat'
+/**
+ * The **natural-drying** symbol (the plain square). Null when the care text gives no
+ * natural-drying instruction — a tumble-dried garment says nothing about how to hang
+ * it, and an empty square asserting otherwise is noise on the label.
+ */
+const dryVariant = (t: string): string | null =>
+  /flat/i.test(t) ? 'flat' : /line dry|hang/i.test(t) ? 'line' : null
+
+/**
+ * The **tumble-drying** symbol (the circle in a square), which ISO 3758 treats as its
+ * own symbol rather than a variant of natural drying.
+ *
+ * That distinction is the point: "Dry flat, do not tumble" is *two* instructions, and
+ * folding them into one slot meant the prohibition was dropped whenever a natural-dry
+ * instruction was also present — which is every wool garment.
+ *
+ * Returns null when the care text says nothing about machine drying, so the symbol is
+ * simply absent rather than guessing a permission nobody gave.
+ */
+const tumbleVariant = (t: string): string | null => {
+  if (/do not tumble|no tumble/i.test(t)) return 'no'
+  if (/tumble dry low|tumble low/i.test(t)) return 'low'
+  if (/tumble/i.test(t)) return 'medium'
+  return null
+}
 const ironVariant = (t: string): string => (/do not iron/i.test(t) ? 'no' : /hot/i.test(t) ? 'hot' : /medium/i.test(t) ? 'medium' : 'cool')
 const proVariant = (t: string): string => (/do not dry clean/i.test(t) ? 'no' : 'dryclean')
 
-/** The five ISO care symbols for a garment's care instructions. */
+/** The natural-drying symbol, or nothing when the text gives no such instruction. */
+function drySymbol(dry: string): CareSymbol[] {
+  const variant = dryVariant(dry)
+  return variant === null ? [] : [{ key: 'dry', variant, label: variant === 'flat' ? 'Dry flat' : 'Line dry' }]
+}
+
+/** The tumble symbol, or nothing when the care text is silent about machine drying. */
+function tumbleSymbol(dry: string): CareSymbol[] {
+  const variant = tumbleVariant(dry)
+  return variant === null ? [] : [{ key: 'tumble', variant, label: variant === 'no' ? 'Do not tumble' : 'Tumble dry' }]
+}
+
+/** The ISO care symbols for a garment's care instructions. Natural drying and tumble
+ *  drying are separate symbols, so a garment may yield five or six. */
 export function careSymbols(c: CareInstructions): CareSymbol[] {
   return [
     { key: 'wash', variant: washVariant(c.wash), label: 'Wash' },
     { key: 'bleach', variant: bleachVariant(c.bleach), label: 'Bleach' },
-    { key: 'dry', variant: dryVariant(c.dry), label: 'Dry' },
+    ...drySymbol(c.dry),
+    ...tumbleSymbol(c.dry),
     { key: 'iron', variant: ironVariant(c.iron), label: 'Iron' },
     { key: 'pro', variant: proVariant(c.professional), label: 'Dry clean' }
   ]
@@ -54,13 +92,20 @@ function bleachGlyph(v: string): string {
   if (v === 'nonchlorine') return tri + `<line x1="15" y1="32" x2="21" y2="20" stroke="${S}" stroke-width="1.8"/><line x1="21" y1="32" x2="27" y2="20" stroke="${S}" stroke-width="1.8"/>`
   return tri
 }
+/** Natural drying — the plain square, with a line saying how to hang it: horizontal
+ *  for **dry flat**, vertical for line dry. */
 function dryGlyph(v: string): string {
   const sq = `<rect x="7" y="9" width="30" height="30" rx="1.5" ${stroke}/>`
-  if (v === 'flat') return sq + `<line x1="14" y1="24" x2="30" y2="24" stroke="${S}" stroke-width="2.2"/>`
   if (v === 'line') return sq + `<line x1="22" y1="14" x2="22" y2="34" stroke="${S}" stroke-width="2.2"/>`
+  return sq + `<line x1="14" y1="24" x2="30" y2="24" stroke="${S}" stroke-width="2.2"/>`
+}
+
+/** Tumble drying — the circle in a square; dots are the heat setting, a cross forbids it. */
+function tumbleGlyph(v: string): string {
+  const sq = `<rect x="7" y="9" width="30" height="30" rx="1.5" ${stroke}/>`
   const circ = `<circle cx="22" cy="24" r="10.5" ${stroke}/>`
   if (v === 'no') return sq + circ + cross
-  return sq + circ + dots(v === 'tumble-low' ? 1 : 2, 24)
+  return sq + circ + dots(v === 'low' ? 1 : 2, 24)
 }
 function ironGlyph(v: string): string {
   const iron = `<path d="M6,32 L38,32 L33,24 L15,24 Q9,24 6,31 Z" ${stroke}/><path d="M15,24 Q19,18 31,21" ${stroke} stroke-width="1.6"/>`
@@ -73,7 +118,7 @@ function proGlyph(v: string): string {
   return circ + `<text x="22" y="24" font-size="15" font-family="serif" text-anchor="middle" dominant-baseline="central" fill="${S}">P</text>`
 }
 
-const GLYPH: Record<CareSymbol['key'], (v: string) => string> = { wash: washGlyph, bleach: bleachGlyph, dry: dryGlyph, iron: ironGlyph, pro: proGlyph }
+const GLYPH: Record<CareSymbol['key'], (v: string) => string> = { wash: washGlyph, bleach: bleachGlyph, dry: dryGlyph, tumble: tumbleGlyph, iron: ironGlyph, pro: proGlyph }
 
 /** Render the care symbols as a row of captioned SVG glyphs (an HTML fragment). */
 export function careSymbolsSVG(symbols: CareSymbol[]): string {
