@@ -15,6 +15,7 @@ import { loadSeenRelease, shouldAutoOpen } from './ui/whatsNew'
 import { openCommandPalette, commandPaletteOpen, closeCommandPalette } from './ui/commandPaletteOverlay'
 import { standardView, standardViews, type StandardViewId } from './studio/standardViews'
 import { fitPose, visibleBounds } from './studio/zoomToFit'
+import { moveItem, selectionAfterMove } from './studio/reorder'
 import { ReviewStore } from './studio/reviewPins'
 import { openReview } from './ui/reviewOverlay'
 import { openTutorial } from './ui/tutorialOverlay'
@@ -2706,16 +2707,27 @@ function initStudio(
     },
     onAdd: addGarment,
     onDuplicate: duplicateGarment,
-    onDelete: deleteGarment
+    onDelete: deleteGarment,
+    onReorder: reorderLayers
   })
   shell.right.appendChild(panel)
 
   /**
-   * The command palette, over the same actions the Library tabs and the template
-   * gallery already use — so finding a thing by name and clicking it in a tab end up
-   * in exactly the same place. Declared as a function so the shortcut dispatcher and
-   * the menu, both built above, can reach it.
+   * Move a garment up or down the stack — layer order is wearing order, so this is
+   * what puts a jacket over a shirt rather than under it. The selection follows the
+   * row that was dragged, which is what the designer is looking at.
    */
+  function reorderLayers(from: number, to: number): void {
+    const doc = currentDoc()
+    const moved = moveItem(doc.layers, from, to)
+    if (moved === doc.layers) return // out of range, or dropped where it started
+    doc.layers = moved
+    doc.activeIndex = selectionAfterMove(doc.activeIndex, from, to)
+    pushUndo()
+    applyDoc(doc)
+    syncBrowsers()
+  }
+
   /** Put the active layer's shape + construction back to the garment's defaults,
    *  keeping its fabric, colour, prints and saved colourways. Undoable like any edit. */
   function resetActiveConstruction(): void {
@@ -2729,6 +2741,12 @@ function initStudio(
     showToast('Construction reset to defaults', 'success')
   }
 
+  /**
+   * The command palette, over the same actions the Library tabs and the template
+   * gallery already use — so finding a thing by name and clicking it in a tab end up
+   * in exactly the same place. Declared as a function so the shortcut dispatcher and
+   * the menu, both built above, can reach it.
+   */
   function showCommandPalette(): void {
     openCommandPalette({
       selectGarment: (id) => {

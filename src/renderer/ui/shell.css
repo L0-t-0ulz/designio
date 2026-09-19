@@ -451,6 +451,17 @@
   border-color: var(--accent-line);
   background: var(--accent-soft);
 }
+/* Drag-to-reorder in the Object Browser: the row being dragged fades, and the drop
+   target shows an insertion line on the side the item will land. */
+.dio-obj-item.dragging {
+  opacity: 0.45;
+}
+.dio-obj-item.drop-before {
+  box-shadow: inset 0 2px 0 0 var(--accent-line);
+}
+.dio-obj-item.drop-after {
+  box-shadow: inset 0 -2px 0 0 var(--accent-line);
+}
 /* The 2D pattern's grid toggle, sitting inline in the caption strip. */
 .dio-pattern-grid-btn {
   margin-left: 6px;
