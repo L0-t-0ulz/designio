@@ -120,6 +120,7 @@ import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack
 import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
 import { strainTint } from './fabric/heatmap'
+import { legendHTML } from './fabric/legend'
 import { openRepeatPreview } from './ui/repeatPreview'
 import { pomTable } from './export/pom'
 import { bodyToMeasurements, setMeasurement } from './avatar/measure'
@@ -1454,6 +1455,21 @@ function initStudio(
       bodyColor: d.color
     })
   }
+  /**
+   * The strain-view legend, floated over the viewport. Rebuilt from the stack rather
+   * than cached, so switching fabric or view can never leave a legend describing a
+   * scale the garment is no longer drawn on.
+   */
+  const legendEl = document.createElement('div')
+  legendEl.className = 'dio-legend-host'
+  shell.center.appendChild(legendEl)
+  function syncLegend(): void {
+    const legend = stack.strainLegend()
+    legendEl.innerHTML = legend ? legendHTML(legend) : ''
+    legendEl.style.display = legend ? '' : 'none'
+  }
+  syncLegend()
+
   /** The bolt width the marker nesting and the yardage estimate already assume. */
   const ROLL_WIDTH_CM = 140
 
@@ -2529,10 +2545,10 @@ function initStudio(
       const pom = pomTable(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders, faceRig.getHairstyle())
       return sizeRecommendationReadout(recommendSize(bodyToMeasurements(bodySize), pom.rows))
     },
-    heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
-    stress: { get: () => stack.stress, set: (on) => stack.setStress(on) },
-    pressure: { get: () => stack.pressure, set: (on) => stack.setPressure(on) },
-    utilisation: { get: () => stack.utilisation, set: (on) => stack.setUtilisation(on) },
+    heatmap: { get: () => stack.heatmap, set: (on) => { stack.setHeatmap(on); syncLegend() } },
+    stress: { get: () => stack.stress, set: (on) => { stack.setStress(on); syncLegend() } },
+    pressure: { get: () => stack.pressure, set: (on) => { stack.setPressure(on); syncLegend() } },
+    utilisation: { get: () => stack.utilisation, set: (on) => { stack.setUtilisation(on); syncLegend() } },
     tearing: { get: () => stack.tearing, set: (on) => stack.setTearing(on) },
     slip: { get: () => slipLayerRef !== null, set: (on) => setSlip(on) },
     wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },

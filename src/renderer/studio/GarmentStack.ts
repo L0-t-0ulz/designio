@@ -36,6 +36,7 @@ import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
 import { utilisationColor, stretchUtilisation } from '../fabric/stretchUtilisation'
+import { strainLegend, type Legend } from '../fabric/legend'
 import { pressureColor } from '../fabric/pressure'
 import { makePillNormalMap } from '../fabric/pilling'
 import { buttonCount, buttonScale } from './closureDesign'
@@ -1648,6 +1649,12 @@ export class GarmentStack {
   }
   get utilisation(): boolean {
     return this.strainView === 'utilisation'
+  }
+  /** The legend for whatever strain view is active, scaled to the active layer's
+   *  fabric — null when no view is on. */
+  strainLegend(): Legend | null {
+    if (this.strainView === 'none') return null
+    return strainLegend(this.strainView, this.active.fabric.stretch)
   }
   redrapeAll(): void {
     for (const l of this.layers) l.controller.redrape()
