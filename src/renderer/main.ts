@@ -1179,6 +1179,7 @@ function initStudio(
   if (params.get('heatmap') === '1') stack.setHeatmap(true)
   if (params.get('stress') === '1') stack.setStress(true)
   if (params.get('pressure') === '1') stack.setPressure(true)
+  if (params.get('utilisation') === '1') stack.setUtilisation(true)
   if (params.get('tearing') === '1') stack.setTearing(true)
   // closure-designer deep-links (?buttons= ?buttonMm= ?buttonColor= ?zipColor=)
   {
@@ -2514,6 +2515,7 @@ function initStudio(
     heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
     stress: { get: () => stack.stress, set: (on) => stack.setStress(on) },
     pressure: { get: () => stack.pressure, set: (on) => stack.setPressure(on) },
+    utilisation: { get: () => stack.utilisation, set: (on) => stack.setUtilisation(on) },
     tearing: { get: () => stack.tearing, set: (on) => stack.setTearing(on) },
     slip: { get: () => slipLayerRef !== null, set: (on) => setSlip(on) },
     wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },
