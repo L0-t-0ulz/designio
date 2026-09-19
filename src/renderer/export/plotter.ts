@@ -1,4 +1,5 @@
 import type { PatternPanel } from './garmentPattern'
+import { nestMarker } from './marker'
 
 /**
  * **HPGL / PLT plotter output** — the language garment CAD plotters (Gerber, Lectra,
@@ -129,4 +130,52 @@ export function layoutPanelsInRow(panels: readonly PatternPanel[], gapMm = 20, m
 export function patternToHPGL(panels: readonly PatternPanel[]): string {
   const { placed, heightMm } = layoutPanelsInRow(panels)
   return panelsToHPGL(placed, { sheetHeightMm: heightMm })
+}
+
+// ---- roll-width nesting ------------------------------------------------------
+
+/** Standard bolt widths, cm. A roll export is only useful if it matches real stock. */
+export const ROLL_WIDTHS_CM = [90, 110, 140, 150, 160, 180] as const
+
+export interface RollPlot {
+  /** The roll this was nested for, cm. */
+  widthCm: number
+  /** Marker length the nest consumes, cm. */
+  lengthCm: number
+  /** Fraction of the strip covered by pattern, 0…1. */
+  efficiency: number
+  /** The HPGL document. */
+  hpgl: string
+}
+
+/**
+ * Nest the pattern across a fabric roll and emit it as HPGL, so the plot can be laid
+ * straight onto the goods.
+ *
+ * This is the counterpart to `patternToHPGL`, and the difference is the point: that
+ * one plots the draft in order for a pattern cutter, this one packs the pieces to
+ * waste as little fabric as possible for a cutting room. Same panels, different job.
+ *
+ * Nesting is reused from `nestMarker` rather than reimplemented, so the plot and the
+ * yardage figure on the cost sheet can never disagree about how the pieces lie.
+ */
+export function patternToRollHPGL(panels: readonly PatternPanel[], rollWidthCm: number, gapCm = 1): RollPlot {
+  const layout = nestMarker([...panels], Math.max(1, rollWidthCm), gapCm)
+  const heightMm = layout.lengthCm * 10
+  const placedPanels: PlacedPanel[] = layout.placements.map((pl) => {
+    const panel = panels[pl.panel]
+    const b = bounds(panel.outline)
+    // The nest works in bounding boxes; the plot needs the real outline moved to where
+    // the box landed. A rotated piece is turned about its own origin first, so the
+    // offset has to compensate for where that puts the shape.
+    const dx = pl.rot ? pl.x * 10 + b.maxY : pl.x * 10 - b.minX
+    const dy = pl.rot ? pl.y * 10 - b.minX : pl.y * 10 - b.minY
+    return { name: pl.name, outline: panel.outline, dx, dy, rotated: pl.rot }
+  })
+  return {
+    widthCm: layout.widthCm,
+    lengthCm: layout.lengthCm,
+    efficiency: layout.efficiency,
+    hpgl: panelsToHPGL(placedPanels, { sheetHeightMm: heightMm })
+  }
 }

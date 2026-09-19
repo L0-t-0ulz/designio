@@ -15,6 +15,9 @@ import { escapeHtml as esc } from './html'
 
 export interface MarkerPlacement {
   name: string
+  /** Index into the `panels` array this placement came from, so a caller can get back
+   *  to the real outline rather than only its bounding box (the plotter export does). */
+  panel: number
   /** Top-left in cm, origin top-left of the marker strip. */
   x: number
   y: number
@@ -54,9 +57,9 @@ function polyAreaCm2(o: Pt[]): number {
  * pieces.
  */
 export function nestMarker(panels: PatternPanel[], widthCm: number, gapCm = 1): MarkerLayout {
-  const pieces: { name: string; w: number; h: number; rot: boolean; area: number }[] = []
+  const pieces: { name: string; panel: number; w: number; h: number; rot: boolean; area: number }[] = []
   let panelAreaCm2 = 0
-  for (const p of panels) {
+  for (const [index, p] of panels.entries()) {
     const area = polyAreaCm2(p.outline)
     const wcm = p.wmm / 10
     const hcm = p.hmm / 10
@@ -71,7 +74,7 @@ export function nestMarker(panels: PatternPanel[], widthCm: number, gapCm = 1): 
       rot = false
     }
     for (let i = 0; i < Math.max(1, p.cut); i++) {
-      pieces.push({ name: p.name, w, h, rot, area })
+      pieces.push({ name: p.name, panel: index, w, h, rot, area })
       panelAreaCm2 += area
     }
   }
@@ -89,7 +92,7 @@ export function nestMarker(panels: PatternPanel[], widthCm: number, gapCm = 1): 
       shelf = { y, height: pc.h, x: 0 }
       shelves.push(shelf)
     }
-    placements.push({ name: pc.name, x: shelf.x, y: shelf.y, w: pc.w, h: pc.h, rot: pc.rot })
+    placements.push({ name: pc.name, panel: pc.panel, x: shelf.x, y: shelf.y, w: pc.w, h: pc.h, rot: pc.rot })
     shelf.x += pc.w + gapCm
   }
   const lengthCm = shelves.length ? Math.max(...shelves.map((s) => s.y + s.height)) : 0
