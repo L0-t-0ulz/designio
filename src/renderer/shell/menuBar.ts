@@ -176,6 +176,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('plt', 'Export pattern — HPGL / PLT (plotter)'),
     ex('plt-roll', 'Export pattern — plotter, nested to a 140 cm roll'),
     ex('pattern-tiled', 'Print pattern — tiled A4 (to scale)'),
+    ex('pattern-tiled-a3', 'Print pattern — tiled A3 (to scale)'),
+    ex('pattern-tiled-a2', 'Print pattern — tiled A2 (to scale)'),
     ex('techpack', 'Export tech-pack (HTML)'),
     ex('json', 'Export design (JSON)'),
     { sep: true },
