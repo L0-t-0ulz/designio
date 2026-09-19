@@ -1212,6 +1212,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const accRow = el('div', 'dio-actions')
   accRow.style.flexWrap = 'wrap'
   const ACC_LABELS: Record<AccessoryKind, string> = {
+    anklet: 'Anklet',
     shoes: 'Shoes',
     belt: 'Belt',
     hat: 'Hat',

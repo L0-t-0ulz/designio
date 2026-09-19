@@ -24,8 +24,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
+export type AccessoryKind = 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -42,6 +42,59 @@ export interface AccessoryAnchors {
   footL: THREE.Vector3
   footR: THREE.Vector3
   handL: THREE.Vector3
+  /**
+   * Limb landmarks, derived from the capsule geometry rather than guessed.
+   *
+   * A limb capsule is a shaft with hemispherical end caps, so its `b` point is the
+   * *centre* of the end cap — the middle of the hand, or of the foot — and the joint
+   * itself sits one radius back along the axis, where the shaft ends. That single
+   * rule gives the wrist and the ankle without inventing anthropometric ratios, and
+   * it keeps working when the body is resized, since the radius scales with it.
+   */
+  wristL: THREE.Vector3
+  wristR: THREE.Vector3
+  handR: THREE.Vector3
+  ankleL: THREE.Vector3
+  ankleR: THREE.Vector3
+  /** Radii at those landmarks, for sizing a cuff, a strap or a sock. */
+  wristR_: number
+  ankleR_: number
+  /** Limb axis directions (unit, pointing distally) — a strap must sit square to these. */
+  foreArmDirL: THREE.Vector3
+  foreArmDirR: THREE.Vector3
+  lowerLegDirL: THREE.Vector3
+  lowerLegDirR: THREE.Vector3
+  /** Outer ear positions (world), on the head sphere. */
+  earL: THREE.Vector3
+  earR: THREE.Vector3
+  /** Shoulder tips (world) + the span between them. */
+  shoulderL: THREE.Vector3
+  shoulderR: THREE.Vector3
+  /** Upper-chest centre, where a tie or a bib sits. */
+  chest: THREE.Vector3
+  chestR: number
+}
+
+/**
+ * The joint end of a limb capsule: one radius back from the distal cap centre.
+ *
+ * `b` is the centre of the hemispherical cap, so the shaft — the limb proper — ends
+ * a radius earlier. That is the wrist on a forearm and the ankle on a lower leg.
+ * Clamped to the capsule so a very short or very fat segment cannot invert.
+ */
+export function jointEnd(cap: Capsule): THREE.Vector3 {
+  const axis = cap.b.clone().sub(cap.a)
+  const len = axis.length()
+  if (len < 1e-6) return cap.b.clone()
+  const back = Math.min(cap.radius, len * 0.5)
+  return cap.b.clone().addScaledVector(axis.divideScalar(len), -back)
+}
+
+/** Unit direction along a capsule, pointing from `a` toward `b` (distally). */
+export function limbDirection(cap: Capsule): THREE.Vector3 {
+  const axis = cap.b.clone().sub(cap.a)
+  const len = axis.length()
+  return len < 1e-6 ? new THREE.Vector3(0, -1, 0) : axis.divideScalar(len)
 }
 
 /** Key attach points (world) derived from the live body capsules. Pure. */
@@ -53,6 +106,8 @@ export function accessoryAnchors(c: Capsule[]): AccessoryAnchors {
   const legL = c[8] // left lower leg (b = foot)
   const legR = c[12] // right lower leg (b = foot)
   const foreL = c[6] // left forearm (b = hand)
+  const foreR = c[10] // right forearm (b = hand)
+  const shoulder = c[3] // shoulder line (a = left tip, b = right tip)
   const hipCenter = hip.a.clone().add(hip.b).multiplyScalar(0.5)
   const hf = headFrame(c) // orthonormal head basis (turns with the body)
   return {
@@ -68,7 +123,26 @@ export function accessoryAnchors(c: Capsule[]): AccessoryAnchors {
     waistR: torso.radius,
     footL: legL.b.clone(),
     footR: legR.b.clone(),
-    handL: foreL.b.clone()
+    handL: foreL.b.clone(),
+    handR: foreR.b.clone(),
+    wristL: jointEnd(foreL),
+    wristR: jointEnd(foreR),
+    ankleL: jointEnd(legL),
+    ankleR: jointEnd(legR),
+    wristR_: foreL.radius,
+    ankleR_: legL.radius,
+    foreArmDirL: limbDirection(foreL),
+    foreArmDirR: limbDirection(foreR),
+    lowerLegDirL: limbDirection(legL),
+    lowerLegDirR: limbDirection(legR),
+    // The ear sits on the side of the head sphere, a little behind the lateral axis
+    // and below its centre — measured in the head frame so it turns with the head.
+    earL: head.b.clone().addScaledVector(hf.up, head.radius * (HC - 0.55)).addScaledVector(hf.right, -head.radius * 0.98).addScaledVector(hf.forward, -head.radius * 0.1),
+    earR: head.b.clone().addScaledVector(hf.up, head.radius * (HC - 0.55)).addScaledVector(hf.right, head.radius * 0.98).addScaledVector(hf.forward, -head.radius * 0.1),
+    shoulderL: shoulder.a.clone(),
+    shoulderR: shoulder.b.clone(),
+    chest: torso.b.clone(),
+    chestR: torso.radius
   }
 }
 
@@ -79,6 +153,8 @@ const knit = (color: number): THREE.MeshStandardMaterial => new THREE.MeshStanda
 const felt = (color: number): THREE.MeshStandardMaterial => new THREE.MeshStandardMaterial({ color, roughness: 0.82, metalness: 0, side: THREE.DoubleSide })
 
 const TAU = Math.PI * 2
+/** The +y axis a limb-worn ring is authored around before being turned onto the limb. */
+const UP = new THREE.Vector3(0, 1, 0)
 /** Visual head-sphere centre in the unit head frame (origin = the head collider's `b`,
  *  +y up, 1 unit = head radius). The metaball cranium sits ~0.35 radii *above* the
  *  collider point, so headwear caps from here (not from the collider point itself). */
@@ -105,6 +181,7 @@ export class Accessories {
   constructor() {
     this.group.name = 'accessories'
     this.items.push(
+      this.buildAnklet(),
       this.buildShoes(),
       this.buildBelt(),
       this.buildHat(),
@@ -896,6 +973,34 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(dome, holder, band)
     return this.headItem('sunhat', obj)
+  }
+
+  /**
+   * A fine chain sitting on the ankle — the joint end of the lower-leg capsule, not
+   * the foot centre, so it rides the narrowest point rather than floating over the
+   * instep. Oriented square to the leg axis, which matters as soon as the avatar
+   * walks and the shin swings out of vertical.
+   */
+  private buildAnklet(): Item {
+    const obj = new THREE.Group()
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.055, 8, 32), METAL)
+    ring.rotation.x = Math.PI / 2 // lies in the plane perpendicular to +y before orienting
+    obj.add(ring)
+    // a small drop charm hanging on the outer side
+    const charm = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), METAL)
+    charm.position.set(0.98, -0.16, 0)
+    obj.add(charm)
+    return {
+      kind: 'anklet',
+      obj,
+      place: (a) => {
+        // the ankle is slightly wider than the shaft, so the chain rides just above it
+        const r = a.ankleR_ * 1.06
+        obj.scale.setScalar(r)
+        obj.position.copy(a.ankleL)
+        obj.quaternion.setFromUnitVectors(UP, a.lowerLegDirL)
+      }
+    }
   }
 
   private buildNecklace(): Item {
