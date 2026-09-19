@@ -469,6 +469,26 @@ canvas {
 .dio-cw:hover .dio-cw-rm {
   opacity: 1;
 }
+/* Duplicate — same treatment as the delete pip, tucked in beside it. */
+.dio-cw-dup {
+  position: absolute;
+  top: 2px;
+  right: 21px;
+  width: 16px;
+  height: 16px;
+  line-height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-fast);
+}
+.dio-cw:hover .dio-cw-dup {
+  opacity: 1;
+}
 .dio-cw-name {
   font-size: 10px;
   color: var(--dio-muted);

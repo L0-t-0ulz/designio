@@ -355,6 +355,44 @@ const clonePartFabrics = (pf?: PartFabrics): PartFabrics | undefined =>
     : undefined
 
 /** Snapshot a layer's current appearance as a colorway (shape fields excluded). */
+/**
+ * A name for a copy of `base` that nothing else in `existing` is already using —
+ * "Navy copy", then "Navy copy 2", "Navy copy 3"…
+ *
+ * Colourways are picked from a grid of swatches with the name underneath, so two
+ * identically-named entries are genuinely ambiguous rather than merely untidy.
+ */
+export function uniqueColorwayName(base: string, existing: string[]): string {
+  const taken = new Set(existing)
+  const first = `${base} copy`
+  if (!taken.has(first)) return first
+  for (let n = 2; ; n++) {
+    const candidate = `${first} ${n}`
+    if (!taken.has(candidate)) return candidate
+  }
+}
+
+/**
+ * `list` with a copy of colourway `id` inserted directly after it, so the copy lands
+ * next to the thing it was copied from rather than at the far end of the grid.
+ *
+ * Returns the list unchanged when the id is unknown. The copy is deep — a colourway
+ * carries nested weave drafts, knit charts, colourwork and per-part fabrics, and a
+ * shallow copy would leave the duplicate editing the original's.
+ *
+ * `structuredClone` rather than a field-by-field copy on purpose: a `Colorway` is
+ * plain serialisable data (it already round-trips through the save file), and a
+ * hand-written clone silently stops copying any field added later.
+ */
+export function duplicateColorway(list: Colorway[], id: string): Colorway[] {
+  const at = list.findIndex((cw) => cw.id === id)
+  if (at === -1) return list
+  const copy: Colorway = structuredClone(list[at])
+  copy.id = newColorwayId()
+  copy.name = uniqueColorwayName(list[at].name, list.map((cw) => cw.name))
+  return [...list.slice(0, at + 1), copy, ...list.slice(at + 1)]
+}
+
 export function captureColorway(l: GarmentLayerData, name: string): Colorway {
   return {
     id: newColorwayId(),
