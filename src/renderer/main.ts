@@ -16,6 +16,7 @@ import { openCommandPalette, commandPaletteOpen, closeCommandPalette } from './u
 import { standardView, standardViews, type StandardViewId } from './studio/standardViews'
 import { fitPose, visibleBounds } from './studio/zoomToFit'
 import { moveItem, selectionAfterMove } from './studio/reorder'
+import { randomDesign, seededRandom } from './studio/randomDesign'
 import { ReviewStore } from './studio/reviewPins'
 import { openReview } from './ui/reviewOverlay'
 import { openTutorial } from './ui/tutorialOverlay'
@@ -2296,6 +2297,7 @@ function initStudio(
     onWhatsNew: openWhatsNew,
     onCommandPalette: showCommandPalette,
     onResetConstruction: resetActiveConstruction,
+    onSurpriseMe: () => surpriseMe(),
     onVectorEditor: openVectorEditor,
     onReview: () => openReview(reviewStore),
     onTutorial: () => openTutorial(getTutorialContext),
@@ -2716,7 +2718,8 @@ function initStudio(
     onAdd: addGarment,
     onDuplicate: duplicateGarment,
     onDelete: deleteGarment,
-    onReorder: reorderLayers
+    onReorder: reorderLayers,
+    onSurprise: () => surpriseMe()
   })
   shell.right.appendChild(panel)
 
@@ -2734,6 +2737,31 @@ function initStudio(
     pushUndo()
     applyDoc(doc)
     syncBrowsers()
+  }
+
+  /**
+   * Replace the active layer with a random but wearable design. Seeded so a result
+   * can be reproduced — the seed goes in the toast and `?surprise=<seed>` replays it.
+   * Built on `defaultLayer`, so the garment's own defaults fill in everything the
+   * randomiser does not touch and the layer is always valid for its garment.
+   */
+  function surpriseMe(seed = Math.floor(Math.random() * 0xffffffff)): void {
+    const choice = randomDesign(seededRandom(seed), [...GARMENT_IDS], FABRIC_LIBRARY.map((f) => f.id))
+    if (!choice) return
+    const doc = currentDoc()
+    const at = doc.activeIndex
+    const fresh = defaultLayer(choice.garmentType as GarmentType)
+    fresh.fabricId = choice.fabricId
+    fresh.color = choice.color
+    fresh.length = choice.length
+    fresh.ease = choice.ease
+    fresh.flare = choice.flare
+    fresh.neckline = choice.neckline
+    fresh.visible = doc.layers[at]?.visible ?? true
+    doc.layers[at] = fresh
+    pushUndo()
+    applyDoc(doc)
+    showToast(`Surprise — ${getGarment(choice.garmentType as GarmentType).name} (seed ${seed})`, 'success')
   }
 
   /** Put the active layer's shape + construction back to the garment's defaults,
@@ -2919,6 +2947,13 @@ function initStudio(
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
   if (params.get('whatsnew') === '1') window.setTimeout(() => openWhatsNew(), 500) // open the release feed
   if (params.get('palette') === '1') window.setTimeout(() => showCommandPalette(), 500) // open the command palette
+  {
+    const surprise = params.get('surprise')
+    if (surprise !== null) {
+      const seed = Number.parseInt(surprise, 10)
+      if (Number.isFinite(seed)) surpriseMe(seed) // replay an exact random design
+    }
+  }
   if (params.get('review') === '1') window.setTimeout(() => openReview(reviewStore), 500) // open the design-review panel
   if (params.get('tutorial') === '1') window.setTimeout(() => openTutorial(getTutorialContext), 500) // open the interactive tutorial
   if (params.get('vectorEditor') === '1') window.setTimeout(() => openVectorEditor(), 500) // open the vector print editor

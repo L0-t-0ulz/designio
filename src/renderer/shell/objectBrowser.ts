@@ -1,4 +1,4 @@
-import { createElement, Copy, Eye, EyeOff, Plus, Trash2 } from 'lucide'
+import { createElement, Copy, Eye, EyeOff, Plus, Shuffle, Trash2 } from 'lucide'
 import { el } from '../ui/controls'
 import type { LayerSummary } from '../studio/GarmentStack'
 import { dropIndex } from '../studio/reorder'
@@ -19,6 +19,8 @@ export interface ObjBrowserActions {
   onDelete: () => void
   /** Move the layer at `from` to `to` (drag-to-reorder changes wearing order). */
   onReorder: (from: number, to: number) => void
+  /** Replace the selected garment with a random but wearable design. */
+  onSurprise: () => void
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
@@ -44,6 +46,7 @@ export function buildObjectBrowser(host: HTMLElement, a: ObjBrowserActions): Obj
   tools.append(
     toolBtn(Plus, 'Add garment', a.onAdd),
     toolBtn(Copy, 'Duplicate selected', a.onDuplicate),
+    toolBtn(Shuffle, 'Surprise me — random design', a.onSurprise),
     toolBtn(Trash2, 'Delete selected', a.onDelete)
   )
   head.append(tools)
