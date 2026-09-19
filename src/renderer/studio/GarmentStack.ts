@@ -38,6 +38,7 @@ import { stressColor, stressThreshold } from '../fabric/stress'
 import { utilisationColor, stretchUtilisation } from '../fabric/stretchUtilisation'
 import { strainLegend, type Legend } from '../fabric/legend'
 import { sumContactAreas, type ContactAreaResult } from './contactArea'
+import { wrinkleColor } from '../fabric/wrinkleDensity'
 import { pressureColor } from '../fabric/pressure'
 import { makePillNormalMap } from '../fabric/pilling'
 import { buttonCount, buttonScale } from './closureDesign'
@@ -1603,11 +1604,12 @@ export class GarmentStack {
   // Strain overlay: a per-vertex colouring of the cloth by solver strain — the fit
   // heatmap (loose→tight), the stress check (fit-failure) or the pressure map
   // (body-contact force). Mutually exclusive.
-  private strainView: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation' = 'none'
+  private strainView: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle' = 'none'
   /** The strain→colour fn for a layer — stress is fabric-aware (a stretchy fabric reds
    *  out at higher strain than a rigid one), the heatmap is a fixed tension ramp, the
    *  pressure map a cold→hot contact ramp. */
   private layerColorFn(l: StackLayer): (s: number) => [number, number, number] {
+    if (this.strainView === 'wrinkle') return wrinkleColor
     if (this.strainView === 'pressure') return pressureColor
     if (this.strainView === 'utilisation') {
       // normalised by the fabric's own usable stretch, so the same colour means the
@@ -1620,10 +1622,12 @@ export class GarmentStack {
     return (s) => stressColor(s, T)
   }
   /** Which per-particle field the overlay bakes: contact push-out for the pressure map, strain otherwise. */
-  private strainSource(): 'strain' | 'contact' {
-    return this.strainView === 'pressure' ? 'contact' : 'strain'
+  private strainSource(): 'strain' | 'contact' | 'wrinkle' {
+    if (this.strainView === 'pressure') return 'contact'
+    if (this.strainView === 'wrinkle') return 'wrinkle'
+    return 'strain'
   }
-  private setStrainView(mode: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation'): void {
+  private setStrainView(mode: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle'): void {
     this.strainView = mode
     for (const l of this.layers) this.applyStrainViewTo(l)
   }
@@ -1639,6 +1643,9 @@ export class GarmentStack {
   setUtilisation(on: boolean): void {
     this.setStrainView(on ? 'utilisation' : 'none')
   }
+  setWrinkleMap(on: boolean): void {
+    this.setStrainView(on ? 'wrinkle' : 'none')
+  }
   get heatmap(): boolean {
     return this.strainView === 'heatmap'
   }
@@ -1650,6 +1657,9 @@ export class GarmentStack {
   }
   get utilisation(): boolean {
     return this.strainView === 'utilisation'
+  }
+  get wrinkleMap(): boolean {
+    return this.strainView === 'wrinkle'
   }
   /** Body-contact area across every visible layer, area-weighted. */
   contactArea(): ContactAreaResult {

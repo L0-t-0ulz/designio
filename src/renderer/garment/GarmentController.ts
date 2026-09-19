@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { contactArea as contactAreaOf, sumContactAreas, type ContactAreaResult } from '../studio/contactArea'
+import { wrinkleDensity } from '../fabric/wrinkleDensity'
 import type { Capsule } from '../avatar/colliders'
 import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
@@ -318,13 +319,19 @@ export class GarmentController {
   private strainScratch: Float32Array | null = null
   /** Bake each piece's cloth **strain** (or body-**contact pressure**) into its geometry
    *  vertex colours (fit heatmap / stress check / pressure map). */
-  updateHeatmap(colorFn: (strain: number) => [number, number, number], source: 'strain' | 'contact' = 'strain'): void {
+  updateHeatmap(colorFn: (strain: number) => [number, number, number], source: 'strain' | 'contact' | 'wrinkle' = 'strain'): void {
     for (const p of this.pieces) {
       const n = p.solver.count
       if (!this.strainScratch || this.strainScratch.length < n) this.strainScratch = new Float32Array(n)
       const strain = this.strainScratch
       if (source === 'contact') p.solver.contactPressure(strain)
-      else p.solver.strain(strain)
+      else if (source === 'wrinkle') {
+        // curvature comes from the mesh, not the solver: a wrinkle is a fold in the
+        // surface, which the particle state alone does not describe
+        const index = p.geometry.getIndex()
+        const d = index ? wrinkleDensity(p.positions, index.array as ArrayLike<number>, n) : new Float32Array(n)
+        strain.set(d.subarray(0, n))
+      } else p.solver.strain(strain)
       let attr = p.geometry.getAttribute('color') as THREE.BufferAttribute | undefined
       if (!attr || attr.count !== n) {
         attr = new THREE.BufferAttribute(new Float32Array(n * 3), 3)
