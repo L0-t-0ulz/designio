@@ -80,7 +80,7 @@ If you are unsure whether something is allowed, **ask first.**
 | **Surface** | textiles · ombré · distressing · sequins · iridescence · quilting · lace · faux-fur · wet look · thermochromic · reflective piping · photo→PBR swatch |
 | **Customize** | skin tones · hair · face · body presets · lookbook poses · accessories · headwear & neckwear |
 | **Studio** | dockable CAD shell · 3D + 2D pattern + Render tabs · lighting & backdrop presets · fit / stress / pressure maps |
-| **Output** | glTF · OBJ · USDZ (AR) · SVG/DXF pattern · tech-pack · manufacturing pack · PNG stills · WebM clips |
+| **Output** | glTF (+Draco) · OBJ · STL · USDZ (AR) · SVG/DXF/HPGL pattern · tech-pack · manufacturing pack · PNG stills · WebM clips |
 
 ---
 
@@ -542,6 +542,16 @@ See how a garment actually fits:
 - **Pressure / contact fit map** — a cold→hot ramp of where the garment actually **presses into the
   body** (from the solver's real collision push-out): a hanging skirt reads blue, a snug bodice bearing
   on the bust and waist reads yellow→red — real contact-force fit analysis, distinct from strain.
+- **Stretch utilisation** — strain as a fraction of the fabric's *own* usable stretch, so the colour means
+  the same thing on denim and on a power knit. 6% strain is nothing in a power knit and past the limit in
+  a rigid woven; this is the view that says which. Over-limit reads magenta — the garment is asking for
+  more elongation than the cloth has.
+- **Wrinkle density** — the mean curvature of the draped surface, so it sees *folds* rather than tension.
+  Cloth can be under strain and perfectly smooth, or slack and deeply creased; no strain view can tell
+  those apart and this one can.
+- **A legend on every view** — built from the same colour functions the mesh is shaded with, so it can't
+  drift from what you're looking at, and scaled to the actual fabric (a stress ramp fails at 22% strain on
+  a rigid woven and far later on a knit).
 - **Strain-driven micro-wrinkles** — a shader crease perturbation that nucleates real wrinkles where the
   cloth is under strain.
 - **Compression fit** — Looseness goes **negative** (to −3 cm): activewear (sports bra · swimsuit ·
@@ -553,6 +563,14 @@ See how a garment actually fits:
 | Fit / tension heatmap | Pressure / contact fit map | Strain-driven micro-wrinkles |
 | --- | --- | --- |
 | ![A dress with a fit/tension heatmap](docs/heatmap.png) | ![A gown with a pressure/contact fit map](docs/pressure.png) | ![A dress with strain-driven micro-wrinkles](docs/wrinkles.png) |
+
+| Stretch utilisation | Wrinkle density |
+| --- | --- |
+| ![A denim dress showing stretch utilisation, the bodice over the fabric's limit](docs/utilisation.png) | ![A satin gown showing wrinkle density from surface curvature](docs/wrinkle-density.png) |
+
+The utilisation shot is denim, which gives only ~3% usable stretch: the fitted bodice is **over the
+fabric's limit** (magenta) while the skirt hangs slack. The wrinkle-density shot is the same gown as the
+pressure map — the gathered waist and fold lines light up, the smooth skirt panels stay dark.
 
 ---
 
@@ -618,8 +636,13 @@ brim wire) and a small-panel fabric yield.
 | **glTF · OBJ** | the simulated 3D garment |
 | **USDZ** | iOS **AR Quick Look** |
 | **SVG · DXF** | the real per-garment flat pattern (with placed prints mapped to scale); DXF round-trips back in |
-| **Tech-pack (HTML + JSON)** | live measurement spec |
-| **Manufacturing pack (HTML + JSON)** | spec sheet + fabric BOM + care & content + marker + embedded patterns |
+| **STL** | geometry-only mesh for 3D print / CAD |
+| **glTF (Draco)** | the same 3D garment, Draco-compressed — 80–95% smaller for a web viewer or a client |
+| **HPGL / PLT** | the pattern for a cutting-room plotter, laid out in draft order or nested to a fabric roll |
+| **Grade nest (SVG)** | every size overlaid from a common reference point, the way a grader reads a grade |
+| **Tiled print** | the pattern at true 1:1 across A4, A3, A2 or Letter — A2 turns a 30-page tape-up into 8 |
+| **Tech-pack (HTML + JSON)** | live measurement spec, trim card, grading table and colourway page |
+| **Manufacturing pack (HTML + JSON)** | spec sheet (SKU + barcode, pattern-piece count, grainline and symmetry checks) + fabric BOM + itemised trims + landed cost with freight and duty + care & content + marker + embedded patterns |
 | **PNG** | supersampled Render-tab stills (HD / 2K / 4K, optional alpha) |
 | **WebM** | turntable spins + timeline clips |
 | **ZIP** | batch render — one PNG per colourway (a lookbook set) |

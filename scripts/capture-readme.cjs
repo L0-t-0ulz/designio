@@ -82,6 +82,10 @@ const shots = [
   // Analysis & fit tools
   ['docs/heatmap.png', 6000, 'garment=dress&fabric=denim&heatmap=1&start=0'],
   ['docs/pressure.png', 9000, 'garment=gown&fabric=satin&pressure=1&start=0'],
+  // denim gives only ~3% usable stretch, so a fitted bodice reads over-limit — the
+  // clearest demonstration of what the utilisation view is for
+  ['docs/utilisation.png', 6000, 'garment=dress&fabric=denim&utilisation=1&start=0'],
+  ['docs/wrinkle-density.png', 7000, 'garment=gown&fabric=satin&wrinklemap=1&start=0'],
   ['docs/wrinkles.png', 6000, 'garment=dress&fabric=linen&wrinkles=1&start=0'],
   // Motion & shots
   ['docs/render-tab.png', 5000, 'garment=gown&fabric=satin&light=runway&view=render&start=0'],
