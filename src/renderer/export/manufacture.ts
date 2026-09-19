@@ -6,6 +6,7 @@
  * Pure string builders (no DOM), so they're unit-testable.
  */
 import type { GarmentMetrics } from './garmentMetrics'
+import { pieceCountSummary } from './patternPieces'
 import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
 import { threadMetres } from './thread'
@@ -32,6 +33,8 @@ export interface ManufactureLayer {
   hardware?: { label: string }[]
   /** Seam allowance (mm). */
   seam?: number
+  /** Pattern pieces drafted vs physical pieces to cut (mirrors counted). */
+  pieceCount?: import('./patternPieces').PatternPieceCount
   /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
   stitch?: { summary: string; spec: import('../garment/stitchTypes').StitchSpec }
   /** Zipper spec summary (present when the closure is a zip). */
@@ -218,6 +221,7 @@ function layerSection(l: ManufactureLayer): string {
             ${l.trim ? `<tr><td>Trim</td><td colspan="2">${esc(l.trim)}</td></tr>` : ''}
             ${(l.hardware ?? []).map((h) => `<tr><td>Hardware</td><td colspan="2">${esc(h.label)}</td></tr>`).join('')}
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
+            ${l.pieceCount ? `<tr><td>Pattern pieces</td><td colspan="2">${esc(pieceCountSummary(l.pieceCount))}</td></tr>` : ''}
             ${l.stitch ? `<tr><td>Seams &amp; stitching</td><td colspan="2">${esc(l.stitch.summary)}</td></tr>` : ''}
             ${l.zipper ? `<tr><td>Zipper</td><td colspan="2">${esc(l.zipper)}</td></tr>` : ''}
             ${l.fullyFashioned ? `<tr><td>Knit shaping</td><td colspan="2">${esc(l.fullyFashioned)}</td></tr>` : ''}
