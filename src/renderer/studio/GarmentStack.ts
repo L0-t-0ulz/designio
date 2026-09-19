@@ -39,7 +39,7 @@ import { pressureColor } from '../fabric/pressure'
 import { makePillNormalMap } from '../fabric/pilling'
 import { buttonCount, buttonScale } from './closureDesign'
 import { wrinkleAmount, installWrinkle, uninstallWrinkle } from '../fabric/wrinkle'
-import { layerShown, gradeParams, captureColorway, applyColorway, type GarmentLayerData, type Colorway } from './document'
+import { layerShown, gradeParams, captureColorway, applyColorway, duplicateColorway, type GarmentLayerData, type Colorway } from './document'
 
 /** A no-art input — drops a part's design map (no prints, no textile). */
 const EMPTY_ART: DesignArtInput = { color: 0xffffff, prints: [] }
@@ -540,6 +540,12 @@ export class GarmentStack {
     l.fabric = yarnAdjustedFabric({ ...getFabric(l.data.fabricId), color: l.data.color }, y)
     this.applyLook(l)
     l.controller.setFabricPhysics() // the hand changed → re-derive the drape
+  }
+
+  /** Duplicate a saved colorway, placing the copy next to the original. */
+  duplicateColorway(id: string): void {
+    const l = this.active
+    if (l.data.colorways) l.data.colorways = duplicateColorway(l.data.colorways, id)
   }
 
   /** Apply a saved colorway to the active layer — appearance + drape, not construction. */

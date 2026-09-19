@@ -2660,6 +2660,10 @@ function initStudio(
         api.refreshMetrics()
         syncBrowsers()
       },
+      duplicate: (id) => {
+        pushUndo()
+        stack.duplicateColorway(id)
+      },
       remove: (id) => {
         pushUndo()
         stack.deleteColorway(id)

@@ -327,6 +327,7 @@ export interface PanelOptions {
     list: () => ColorwayItem[]
     add: () => void
     apply: (id: string) => void
+    duplicate: (id: string) => void
     remove: (id: string) => void
   }
   /** Live measurements of the active garment (for the Measurements readout). */
@@ -1763,6 +1764,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         chip.title = `Apply "${it.name}"${it.tag ? ` · ${it.tag}` : ''}`
         chip.setAttribute('type', 'button')
         chip.addEventListener('click', () => cw.apply(it.id))
+        const dup = el('button', 'dio-cw-dup', '⧉')
+        dup.title = `Duplicate "${it.name}"`
+        dup.addEventListener('click', (e) => {
+          e.stopPropagation() // the chip behind it applies the colorway
+          cw.duplicate(it.id)
+          render()
+        })
         const rm = el('button', 'dio-cw-rm', '×')
         rm.title = 'Delete colorway'
         rm.addEventListener('click', (e) => {
@@ -1770,7 +1778,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
           cw.remove(it.id)
           render()
         })
-        chip.append(rm)
+        chip.append(dup, rm)
         const name = el('div', 'dio-cw-name', it.name + (it.tag ? ` · ${it.tag}` : ''))
         cell.append(chip, name)
         grid.append(cell)
