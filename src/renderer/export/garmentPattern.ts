@@ -8,6 +8,7 @@
  * viewing/printing, DXF for CAD/cutters.
  */
 import type { Capsule } from '../avatar/colliders'
+import { patternGridSVG } from './patternGrid'
 import type { Measurements } from '../avatar/Mannequin'
 import type { GarmentParams } from '../garment/templates'
 import type { GarmentDefinition } from '../garments/schema'
@@ -592,7 +593,7 @@ export interface PatternNote {
   text: string
 }
 
-export function panelsToSVG(res: PatternResult, opts: { tints?: Record<string, string>; tintNote?: string; notes?: PatternNote[] } = {}): string {
+export function panelsToSVG(res: PatternResult, opts: { tints?: Record<string, string>; tintNote?: string; notes?: PatternNote[]; grid?: boolean } = {}): string {
   const { panels, seam } = res
   const margin = 24
   const gap = 34
@@ -682,6 +683,7 @@ export function panelsToSVG(res: PatternResult, opts: { tints?: Record<string, s
 <svg xmlns="http://www.w3.org/2000/svg" width="${totalW.toFixed(0)}mm" height="${totalH.toFixed(0)}mm"
   viewBox="0 0 ${totalW.toFixed(0)} ${totalH.toFixed(0)}">
   <rect width="${totalW.toFixed(0)}" height="${totalH.toFixed(0)}" fill="#fff"/>
+  ${opts.grid ? patternGridSVG(totalW, totalH) : ''}
   ${(opts.notes ?? [])
     .map(
       (n) => `<g><circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="4" fill="#6b5bd6"/><line x1="${n.x.toFixed(1)}" y1="${n.y.toFixed(1)}" x2="${(n.x + 14).toFixed(1)}" y2="${(n.y - 14).toFixed(1)}" stroke="#6b5bd6" stroke-width="1.2"/><text x="${(n.x + 17).toFixed(1)}" y="${(n.y - 17).toFixed(1)}" font-family="sans-serif" font-size="12" fill="#4b3fb3">${xmlEscape(n.text)}</text></g>`
@@ -743,7 +745,7 @@ export function garmentPatternSVG(
   m: Measurements,
   colliders: Capsule[],
   prints: PatternPrintInput[] = [],
-  tints?: { tints?: Record<string, string>; tintNote?: string; notes?: PatternNote[] }
+  tints?: { tints?: Record<string, string>; tintNote?: string; notes?: PatternNote[]; grid?: boolean }
 ): string {
   return panelsToSVG(garmentToPanels(def, params, m, colliders, undefined, prints), tints)
 }

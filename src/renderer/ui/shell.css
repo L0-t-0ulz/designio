@@ -451,6 +451,16 @@
   border-color: var(--accent-line);
   background: var(--accent-soft);
 }
+/* The 2D pattern's grid toggle, sitting inline in the caption strip. */
+.dio-pattern-grid-btn {
+  margin-left: 6px;
+  padding: 1px 8px;
+  font-size: 11px;
+}
+.dio-pattern-grid-btn.on {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
 /* Quick camera framings — a tight segmented group of single-letter buttons. */
 .dio-status-views {
   display: inline-flex;
