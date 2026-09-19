@@ -71,7 +71,7 @@ const RES: { label: string; width: number }[] = [
  */
 export function buildCenterTabs(
   center: HTMLElement,
-  patternSvg: () => string,
+  patternSvg: (opts?: { grid?: boolean }) => string,
   edit?: PatternEditor,
   render?: RenderApi
 ): CenterTabsHandle {
@@ -88,6 +88,19 @@ export function buildCenterTabs(
   const pane = el('div', 'dio-pattern-pane dio-hidden')
   const inner = el('div', 'dio-pattern-inner')
   const caption = el('div', 'dio-pattern-cap', 'Edit above — 3D + 2D update live · export SVG / DXF from the File menu.')
+
+  // Measured background, off by default so the sheet stays clean for a screenshot.
+  let gridOn = false
+  const gridBtn = el('button', 'dio-status-btn dio-pattern-grid-btn', 'Grid')
+  gridBtn.title = 'Show a centimetre grid and ruler behind the panels'
+  gridBtn.setAttribute('aria-pressed', 'false')
+  gridBtn.addEventListener('click', () => {
+    gridOn = !gridOn
+    gridBtn.setAttribute('aria-pressed', String(gridOn))
+    gridBtn.classList.toggle('on', gridOn)
+    renderPattern()
+  })
+  caption.append(document.createTextNode(' '), gridBtn)
   pane.append(inner, caption)
 
   // ---- Render pane: a high-res still of the current view + resolution + save ----
@@ -277,7 +290,7 @@ export function buildCenterTabs(
   }
 
   const renderPattern = (): void => {
-    inner.innerHTML = patternSvg()
+    inner.innerHTML = patternSvg({ grid: gridOn })
     renderTools()
   }
 
@@ -333,7 +346,7 @@ export function buildCenterTabs(
   return {
     refresh: () => {
       renderTools()
-      if (!pane.classList.contains('dio-hidden')) inner.innerHTML = patternSvg()
+      if (!pane.classList.contains('dio-hidden')) inner.innerHTML = patternSvg({ grid: gridOn })
     },
     show,
     pathTrace: (quality?: PathTraceQuality) => {

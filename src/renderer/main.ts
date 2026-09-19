@@ -775,7 +775,7 @@ function initStudio(
   }
   // Templates → the real per-garment flat pattern; Pattern mode → the sewn top;
   // an imported DXF (if present) takes over the 2D preview.
-  const patternSVG = (): string =>
+  const patternSVG = (viewOpts?: { grid?: boolean }): string =>
     importedPattern
       ? importedPatternToSVG(importedPattern)
       : mode === 'templates'
@@ -786,6 +786,7 @@ function initStudio(
             mannequin.colliders,
             stack.active.prints,
             {
+              grid: viewOpts?.grid,
               notes: stack.active.data.patternNotes,
               ...(stack.heatmap || stack.stress
                 ? {
