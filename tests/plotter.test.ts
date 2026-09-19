@@ -7,8 +7,11 @@ import {
   patternToHPGL,
   placePoint,
   toPlotterUnits,
+  patternToRollHPGL,
+  ROLL_WIDTHS_CM,
   type PlacedPanel
 } from '../src/renderer/export/plotter'
+import { nestMarker } from '../src/renderer/export/marker'
 import type { PatternPanel } from '../src/renderer/export/garmentPattern'
 
 const square = (size: number) => [
@@ -157,5 +160,92 @@ describe('end to end', () => {
   it('keeps every coordinate positive — a plotter cannot reach behind its origin', () => {
     const plt = patternToHPGL([panel('Front', 300), panel('Sleeve', 150, 2)])
     for (const n of plt.match(/-?\d+/g) ?? []) expect(Number(n)).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('roll-width nesting', () => {
+  const rectPanel = (name: string, wmm: number, hmm: number, cut = 1): PatternPanel =>
+    ({
+      name,
+      cut,
+      outline: [{ x: 0, y: 0 }, { x: wmm, y: 0 }, { x: wmm, y: hmm }, { x: 0, y: hmm }],
+      grain: [{ x: 0, y: 0 }, { x: 0, y: hmm }],
+      notches: [],
+      wmm,
+      hmm
+    }) as PatternPanel
+
+  /** Pull every coordinate pair back out of the emitted HPGL. */
+  const coordsOf = (hpgl: string): { x: number; y: number }[] => {
+    const out: { x: number; y: number }[] = []
+    for (const cmd of hpgl.match(/P[UD][-\d,]+;/g) ?? []) {
+      const nums = (cmd.slice(2, -1).match(/-?\d+/g) ?? []).map(Number)
+      for (let i = 0; i + 1 < nums.length; i += 2) out.push({ x: nums[i], y: nums[i + 1] })
+    }
+    return out
+  }
+
+  const panels = [rectPanel('Front', 400, 700), rectPanel('Back', 400, 700), rectPanel('Sleeve', 200, 500, 2)]
+
+  it('reports the roll it nested for, and a real length', () => {
+    const plot = patternToRollHPGL(panels, 140)
+    expect(plot.widthCm).toBe(140)
+    expect(plot.lengthCm).toBeGreaterThan(0)
+    expect(plot.efficiency).toBeGreaterThan(0)
+    expect(plot.efficiency).toBeLessThanOrEqual(1)
+  })
+
+  it('keeps every plotted point inside the roll — the check on the rotation offset', () => {
+    // a wrong offset for a rotated piece puts it off the goods, which is the bug
+    // most likely to survive review and waste a whole cut
+    for (const width of [90, 140, 160]) {
+      const plot = patternToRollHPGL(panels, width)
+      const maxX = toPlotterUnits(width * 10)
+      const maxY = toPlotterUnits(plot.lengthCm * 10)
+      for (const c of coordsOf(plot.hpgl)) {
+        expect(c.x).toBeGreaterThanOrEqual(0)
+        expect(c.x).toBeLessThanOrEqual(maxX)
+        expect(c.y).toBeGreaterThanOrEqual(0)
+        expect(c.y).toBeLessThanOrEqual(maxY)
+      }
+    }
+  })
+
+  it('plots every piece, counting cut quantities', () => {
+    const plot = patternToRollHPGL(panels, 140)
+    // 1 Front + 1 Back + 2 Sleeves = 4 pen-up moves
+    expect((plot.hpgl.match(/PU-?\d+,-?\d+;/g) ?? [])).toHaveLength(4)
+  })
+
+  it('a narrower roll needs more length for the same pattern', () => {
+    expect(patternToRollHPGL(panels, 90).lengthCm).toBeGreaterThanOrEqual(patternToRollHPGL(panels, 180).lengthCm)
+  })
+
+  it('agrees with the marker nesting the cost sheet uses', () => {
+    // the plot and the yardage figure must not describe different layouts
+    const plot = patternToRollHPGL(panels, 140)
+    const marker = nestMarker([...panels], 140)
+    expect(plot.lengthCm).toBe(marker.lengthCm)
+    expect(plot.efficiency).toBe(marker.efficiency)
+  })
+
+  it('offers real bolt widths', () => {
+    expect(ROLL_WIDTHS_CM).toContain(140)
+    for (const w of ROLL_WIDTHS_CM) expect(w).toBeGreaterThan(0)
+  })
+
+  it('survives a nonsense roll width rather than dividing by zero', () => {
+    for (const w of [0, -50]) {
+      const plot = patternToRollHPGL(panels, w)
+      expect(plot.widthCm).toBeGreaterThan(0)
+      expect(Number.isFinite(plot.lengthCm)).toBe(true)
+    }
+  })
+
+  it('handles an empty pattern', () => {
+    const plot = patternToRollHPGL([], 140)
+    expect(plot.lengthCm).toBe(0)
+    expect(plot.hpgl).toContain('IN;')
+    expect(plot.hpgl).not.toContain('PD')
   })
 })

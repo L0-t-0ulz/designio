@@ -174,6 +174,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('svg', 'Export pattern — SVG'),
     ex('dxf', 'Export pattern — DXF'),
     ex('plt', 'Export pattern — HPGL / PLT (plotter)'),
+    ex('plt-roll', 'Export pattern — plotter, nested to a 140 cm roll'),
     ex('pattern-tiled', 'Print pattern — tiled A4 (to scale)'),
     ex('techpack', 'Export tech-pack (HTML)'),
     ex('json', 'Export design (JSON)'),

@@ -107,7 +107,7 @@ import { SOCIAL_PRESETS } from './studio/socialPresets'
 import { patternToSVG, patternToDXF } from './export/patternExport'
 import { panelsToDXF, garmentPatternSVG, garmentPatternDXF, garmentToPanels } from './export/garmentPattern'
 import { patternPieceCount } from './export/patternPieces'
-import { patternToHPGL } from './export/plotter'
+import { patternToHPGL, patternToRollHPGL } from './export/plotter'
 import { skuAndBarcode } from './export/sku'
 import { nearestNamedColor } from './fabric/namedColors'
 import { trimCard, type TrimLine } from './export/trimCard'
@@ -1451,6 +1451,9 @@ function initStudio(
       bodyColor: d.color
     })
   }
+  /** The bolt width the marker nesting and the yardage estimate already assume. */
+  const ROLL_WIDTH_CM = 140
+
   async function doExport(fmt: ExportFormat): Promise<void> {
     hasExported = true // tutorial: the "export your design" task
     const meshes = mode === 'templates' ? stack.getMeshesAll() : (patternCtl?.getMeshes() ?? [])
@@ -1500,6 +1503,17 @@ function initStudio(
         }
         const { panels } = garmentToPanels(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
         await saveFile('pattern.plt', patternToHPGL(panels), [{ name: 'HPGL plotter', extensions: ['plt', 'hpgl'] }])
+        break
+      }
+      case 'plt-roll': {
+        if (mode !== 'templates') {
+          showToast('Plotter export needs a garment pattern — switch to Templates mode', 'info')
+          break
+        }
+        const { panels } = garmentToPanels(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
+        const plot = patternToRollHPGL(panels, ROLL_WIDTH_CM)
+        await saveFile(`pattern-roll-${plot.widthCm}cm.plt`, plot.hpgl, [{ name: 'HPGL plotter', extensions: ['plt', 'hpgl'] }])
+        showToast(`Nested to ${plot.widthCm} cm — ${(plot.lengthCm / 100).toFixed(2)} m at ${(plot.efficiency * 100).toFixed(0)}% efficiency`, 'success')
         break
       }
       case 'pattern-tiled': {
