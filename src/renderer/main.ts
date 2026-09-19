@@ -2246,6 +2246,10 @@ function initStudio(
       shell.toggleDensity()
       showToast(shell.density() === 'compact' ? 'Compact panels' : 'Comfortable panels', 'info')
     },
+    onToggleTheme: () => {
+      shell.toggleTheme()
+      showToast(shell.theme() === 'light' ? 'Light theme' : 'Dark theme', 'info')
+    },
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
     onMeasure: () => setMeasureMode(measureTool?.getMode() === 'measure' ? 'off' : 'measure'),
     onAnnotate: () => setMeasureMode(measureTool?.getMode() === 'annotate' ? 'off' : 'annotate'),

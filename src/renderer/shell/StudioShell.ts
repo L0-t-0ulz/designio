@@ -1,6 +1,6 @@
 import Split from 'split.js'
 import { el } from '../ui/controls'
-import { clearLayout, loadLayout, saveLayout, type PanelDensity, type ShellLayout } from './layoutStore'
+import { clearLayout, loadLayout, saveLayout, type PanelDensity, type ShellLayout, type Theme } from './layoutStore'
 
 /**
  * The professional studio shell: a menu bar, a resizable body (left Library ·
@@ -23,6 +23,10 @@ export interface StudioShell {
   density(): PanelDensity
   setDensity(d: PanelDensity): void
   toggleDensity(): void
+  /** Colour scheme. */
+  theme(): Theme
+  setTheme(t: Theme): void
+  toggleTheme(): void
   resetLayout(): void
   dispose(): void
 }
@@ -102,6 +106,13 @@ export function createStudioShell(onLayout: () => void): StudioShell {
   }
   applyDensity()
 
+  /** The theme goes on the document element, not the shell root: overlays (glossary,
+   *  command palette, what's-new) mount to document.body, outside the shell. */
+  const applyTheme = (): void => {
+    document.documentElement.dataset.theme = layout.theme
+  }
+  applyTheme()
+
   return {
     root,
     menubar,
@@ -119,6 +130,15 @@ export function createStudioShell(onLayout: () => void): StudioShell {
     },
     toggleDensity() {
       this.setDensity(layout.density === 'compact' ? 'comfortable' : 'compact')
+    },
+    theme: () => layout.theme,
+    setTheme(t: Theme) {
+      layout.theme = t
+      applyTheme()
+      persist()
+    },
+    toggleTheme() {
+      this.setTheme(layout.theme === 'light' ? 'dark' : 'light')
     },
     toggleLeft() {
       captureSizes()
