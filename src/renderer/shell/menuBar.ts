@@ -37,6 +37,7 @@ export interface MenuActions {
   onToggleWireframeOverlay: () => void
   onStandardView: (id: 'front' | 'back' | 'left' | 'right') => void
   onZoomToFit: () => void
+  onToggleDensity: () => void
   onToggleMannequin: () => void
   onMeasure: () => void
   onAnnotate: () => void
@@ -251,6 +252,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Left side view', run: () => a.onStandardView('left') },
     { label: 'Right side view', run: () => a.onStandardView('right') },
     { label: 'Zoom to fit', run: a.onZoomToFit },
+    { sep: true },
+    { label: 'Compact panel density', run: a.onToggleDensity },
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }
   ])
   menu('Help', [

@@ -1,6 +1,6 @@
 import Split from 'split.js'
 import { el } from '../ui/controls'
-import { clearLayout, loadLayout, saveLayout, type ShellLayout } from './layoutStore'
+import { clearLayout, loadLayout, saveLayout, type PanelDensity, type ShellLayout } from './layoutStore'
 
 /**
  * The professional studio shell: a menu bar, a resizable body (left Library ·
@@ -19,6 +19,10 @@ export interface StudioShell {
   toggleRight(): void
   leftVisible(): boolean
   rightVisible(): boolean
+  /** Control spacing in the docked panels. */
+  density(): PanelDensity
+  setDensity(d: PanelDensity): void
+  toggleDensity(): void
   resetLayout(): void
   dispose(): void
 }
@@ -91,6 +95,13 @@ export function createStudioShell(onLayout: () => void): StudioShell {
   const onWinResize = (): void => onLayout()
   window.addEventListener('resize', onWinResize)
 
+  /** The density lives as a class on the shell root, so every docked panel inherits
+   *  it from one place rather than each control knowing about it. */
+  const applyDensity = (): void => {
+    root.classList.toggle('dio-compact', layout.density === 'compact')
+  }
+  applyDensity()
+
   return {
     root,
     menubar,
@@ -100,6 +111,15 @@ export function createStudioShell(onLayout: () => void): StudioShell {
     statusbar,
     leftVisible: () => layout.leftVisible,
     rightVisible: () => layout.rightVisible,
+    density: () => layout.density,
+    setDensity(d: PanelDensity) {
+      layout.density = d
+      applyDensity()
+      persist()
+    },
+    toggleDensity() {
+      this.setDensity(layout.density === 'compact' ? 'comfortable' : 'compact')
+    },
     toggleLeft() {
       captureSizes()
       layout.leftVisible = !layout.leftVisible
