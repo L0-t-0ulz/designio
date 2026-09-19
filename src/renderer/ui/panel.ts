@@ -228,6 +228,7 @@ export interface PanelOptions {
   viewport: Viewport
   /** Wireframe over the active/all garment material(s). */
   wireframe: { get: () => boolean; set: (v: boolean) => void }
+  wireframeOverlay: { get: () => boolean; set: (v: boolean) => void }
   mannequin: THREE.Object3D
   fabrics: Fabric[]
   current: Fabric
@@ -2356,6 +2357,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       }
     }).row,
     toggle({ label: 'Wireframe', get: () => opts.wireframe.get(), set: (v) => opts.wireframe.set(v) }).row,
+    toggle({ label: 'Wireframe over shaded', get: () => opts.wireframeOverlay.get(), set: (v) => opts.wireframeOverlay.set(v) }).row,
     toggle({ label: 'Show mannequin', get: () => opts.mannequin.visible, set: (v) => (opts.mannequin.visible = v) }).row
   )
 

@@ -6,6 +6,7 @@
  * edit the active layer) and reads it back for save / export.
  */
 import * as THREE from 'three'
+import { hasWireframeOverlay, setWireframeOverlay } from './wireframeOverlay'
 import type { Capsule } from '../avatar/colliders'
 import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
@@ -1668,6 +1669,13 @@ export class GarmentStack {
   }
   get wireframe(): boolean {
     return this.layers.some((l) => l.material.wireframe)
+  }
+  /** Edges drawn *on top of* the shaded surface, rather than instead of it. */
+  setWireframeOverlay(on: boolean): void {
+    setWireframeOverlay(this.getMeshesAll(), on)
+  }
+  get wireframeOverlay(): boolean {
+    return hasWireframeOverlay(this.getMeshesAll())
   }
 
   getMeshesAll(): THREE.Object3D[] {
