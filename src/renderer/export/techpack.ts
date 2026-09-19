@@ -1,6 +1,7 @@
 import type { Measurements } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { trimTotals, type TrimLine } from './trimCard'
+import { formatIncrement, irregularRows, type GradingTable } from './gradingTable'
 
 export interface TechpackData {
   design: string
@@ -10,6 +11,8 @@ export interface TechpackData {
   measurements: Measurements
   /** Everything that isn't fabric — the sourcing page (optional; omitted if empty). */
   trims?: TrimLine[]
+  /** Points of measure across the size run, with grade increments. */
+  grading?: GradingTable
 }
 
 const cm = (m: number): string => `${(m * 100).toFixed(1)} cm`
@@ -44,7 +47,38 @@ function trimCardSection(trims?: TrimLine[]): string {
   </table>`
 }
 
-/** A printable HTML tech-pack: garment spec, fabric, trim card, and body measurements. */
+/**
+ * The **grading table** — every point of measure across the size run, plus the
+ * increment it grades by, which is the column a pattern grader actually works from.
+ *
+ * Rows that do not grade evenly are marked rather than quietly shown with a blank
+ * increment: a non-linear grade is sometimes deliberate and sometimes a mistake, and
+ * either way the grader needs to be told which rows to look at.
+ */
+function gradingSection(g?: GradingTable): string {
+  if (!g?.rows.length) return ''
+  const head = g.sizes.map((s) => `<th class="num">${s}</th>`).join('')
+  const body = g.rows
+    .map(
+      (r) =>
+        `<tr${r.uniform ? '' : ' class="irregular"'}><td>${r.label}${r.uniform ? '' : ' *'}</td>` +
+        g.sizes.map((s) => `<td class="num">${r.bySize[s] === undefined ? '—' : r.bySize[s].toFixed(1)}</td>`).join('') +
+        `<td class="num">${formatIncrement(r.increment)}</td><td class="num muted">±${r.tolCm.toFixed(1)}</td></tr>`
+    )
+    .join('')
+  const odd = irregularRows(g)
+  const note = odd.length
+    ? `<div class="note">* ${odd.length} row${odd.length === 1 ? '' : 's'} do not grade by a constant step — check the grade rules for ${odd.map((r) => r.label).join(', ')}.</div>`
+    : ''
+  return `
+  <h2>Grading table <span class="muted">(cm)</span></h2>
+  <table class="grading">
+    <thead><tr><th>Point of measure</th>${head}<th class="num">Grade</th><th class="num">Tol.</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>${note}`
+}
+
+/** A printable HTML tech-pack: garment spec, fabric, trim card, grading and body measurements. */
 export function techpackHTML(d: TechpackData): string {
   const f = d.fabric
   const m = d.measurements
@@ -60,6 +94,9 @@ export function techpackHTML(d: TechpackData): string {
   letter-spacing:.4px;color:#888}
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .muted{color:#888}
+  table.grading td:first-child{color:#1a1a22;width:auto}
+  tr.irregular td{background:#fff8e6}
+  .note{color:#8a6d1f;font-size:12px;margin-top:6px}
   tfoot td{font-weight:600;border-top:1px solid #ddd} .chip{display:inline-block;width:14px;height:14px;border-radius:3px;
   vertical-align:middle;margin-right:6px;border:1px solid #0002}
 </style></head><body>
@@ -74,6 +111,7 @@ export function techpackHTML(d: TechpackData): string {
     ['Drape (soft)', f.bendiness.toFixed(2)]
   ])}</table>
   ${trimCardSection(d.trims)}
+  ${gradingSection(d.grading)}
   <h2>Body measurements</h2><table>${rows([
     ['Chest radius', cm(m.chestR)],
     ['Waist radius', cm(m.waistR)],

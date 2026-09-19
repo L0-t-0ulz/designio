@@ -110,6 +110,7 @@ import { patternPieceCount } from './export/patternPieces'
 import { skuAndBarcode } from './export/sku'
 import { nearestNamedColor } from './fabric/namedColors'
 import { trimCard, type TrimLine } from './export/trimCard'
+import { gradingTable } from './export/gradingTable'
 import { tiledPatternHTML } from './export/tiledPrint'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
@@ -1418,7 +1419,11 @@ function initStudio(
           : { bust_cm: +(patternParams.bust * 100).toFixed(1), length_cm: +(patternParams.length * 100).toFixed(1) },
       fabric: l.fabric,
       measurements: mannequin.measurements,
-      trims: mode === 'templates' ? activeTrimCard(l) : undefined
+      trims: mode === 'templates' ? activeTrimCard(l) : undefined,
+      grading:
+        mode === 'templates'
+          ? gradingTable(pomTable(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders))
+          : undefined
     }
   }
 
