@@ -38,6 +38,7 @@ export interface MenuActions {
   onStandardView: (id: 'front' | 'back' | 'left' | 'right') => void
   onZoomToFit: () => void
   onToggleDensity: () => void
+  onToggleTheme: () => void
   onToggleMannequin: () => void
   onMeasure: () => void
   onAnnotate: () => void
@@ -254,6 +255,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Zoom to fit', run: a.onZoomToFit },
     { sep: true },
     { label: 'Compact panel density', run: a.onToggleDensity },
+    { label: 'Light / dark theme', run: a.onToggleTheme },
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }
   ])
   menu('Help', [
