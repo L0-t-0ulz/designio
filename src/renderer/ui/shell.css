@@ -451,6 +451,33 @@
   border-color: var(--accent-line);
   background: var(--accent-soft);
 }
+/* The favourite-fabric star, pinned to the corner of a library tile. Always visible
+   when starred, otherwise on hover/focus so the grid stays calm. */
+.dio-lib-item {
+  position: relative;
+}
+.dio-lib-star {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  padding: 0 2px;
+  line-height: 1;
+  font-size: 13px;
+  border: none;
+  background: none;
+  color: var(--fg-1);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-fast);
+}
+.dio-lib-item:hover .dio-lib-star,
+.dio-lib-star:focus-visible,
+.dio-lib-star.on {
+  opacity: 1;
+}
+.dio-lib-star.on {
+  color: #f0b429;
+}
 /* Drag-to-reorder in the Object Browser: the row being dragged fades, and the drop
    target shows an insertion line on the side the item will land. */
 .dio-obj-item.dragging {
