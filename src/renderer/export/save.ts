@@ -3,9 +3,17 @@ export interface SaveFilter {
   extensions: string[]
 }
 
+/**
+ * The preload bridge, described structurally rather than imported, so the renderer
+ * stays decoupled from the preload build. Everything past `saveFile` is optional:
+ * the renderer also runs in a plain browser (dev server, capture harness) where the
+ * bridge is absent entirely.
+ */
 interface DesignioApi {
   saveFile(name: string, data: string | Uint8Array, filters?: SaveFilter[]): Promise<string | null>
   openFile?(filters?: SaveFilter[]): Promise<{ path: string; content: string } | null>
+  /** Draco-compress a binary glTF in the main process (see `src/main/draco.ts`). */
+  compressGLBDraco?(glb: Uint8Array): Promise<{ data: Uint8Array } | { error: string }>
 }
 
 declare global {

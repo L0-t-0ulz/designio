@@ -101,7 +101,7 @@ import { colourworkPreset, cloneColourwork } from './fabric/colourwork'
 import { BALACLAVA_FACES, BALACLAVA_WORN, CONVERTIBLE_WORN, type BalaclavaFace, type BalaclavaWorn, type ConvertibleWorn } from './garments/schema'
 import { yarnPreset } from './fabric/yarn'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
-import { exportGLB, exportOBJ, exportSTL, exportUSDZ } from './export/exporters3d'
+import { exportGLB, exportGLBDraco, exportOBJ, exportSTL, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
 import { SOCIAL_PRESETS } from './studio/socialPresets'
 import { patternToSVG, patternToDXF } from './export/patternExport'
@@ -1426,6 +1426,12 @@ function initStudio(
       case 'glb':
         await saveFile('garment.glb', await exportGLB(meshes), [{ name: 'glTF binary', extensions: ['glb'] }])
         break
+      case 'glb-draco': {
+        const { data, compressed, reason } = await exportGLBDraco(meshes)
+        await saveFile('garment.draco.glb', data, [{ name: 'glTF binary (Draco)', extensions: ['glb'] }])
+        showToast(compressed ? 'Exported Draco-compressed glTF' : `Exported uncompressed glTF — ${reason}`, compressed ? 'success' : 'info')
+        break
+      }
       case 'usdz':
         await saveFile('garment.usdz', await exportUSDZ(meshes), [{ name: 'USDZ (AR)', extensions: ['usdz'] }])
         break

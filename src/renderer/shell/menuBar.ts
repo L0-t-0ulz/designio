@@ -167,6 +167,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Import mocap (.bvh)…', run: a.onImportMocap },
     { sep: true },
     ex('glb', 'Export 3D — glTF (.glb)'),
+    ex('glb-draco', 'Export 3D — glTF, Draco-compressed (.glb)'),
     ex('usdz', 'Export 3D — USDZ (AR · iOS)'),
     ex('obj', 'Export 3D — OBJ'),
     ex('stl', 'Export 3D — STL (3D print / CAD)'),
