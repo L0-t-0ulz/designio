@@ -12,6 +12,41 @@ export interface TrimCost {
   unitCost: number
 }
 
+/** A trim with its line total worked out. */
+export interface CostedTrim extends TrimCost {
+  /** qty × unitCost, rounded to cents. */
+  total: number
+}
+
+/**
+ * First-pass unit costs for the trims the trim card derives, by kind — placeholders
+ * in the same spirit as the fabric prices.
+ *
+ * **Thread is deliberately absent.** It is already costed from seam length as its own
+ * line, and pricing it again here would double-count it on every garment.
+ */
+const TRIM_UNIT_BY_KIND: Record<string, number> = {
+  closure: 0.18,
+  elastic: 0.22,
+  label: 0.09,
+  hardware: 0.11,
+  finish: 0.4
+}
+
+/**
+ * Price the trim card's lines for the cost sheet.
+ *
+ * Metre-based trims are priced per metre and piece-based per piece; both fall out of
+ * the same `qty × unit` because the unit cost is expressed in whatever the line is
+ * measured in. Kinds with no price — thread — are dropped rather than costed at zero,
+ * so they don't appear as free items on a cost sheet.
+ */
+export function priceTrimLines(lines: readonly { kind: string; item: string; qty: number }[]): TrimCost[] {
+  return lines
+    .filter((l) => TRIM_UNIT_BY_KIND[l.kind] !== undefined)
+    .map((l) => ({ name: l.item, qty: Math.max(0, l.qty), unitCost: TRIM_UNIT_BY_KIND[l.kind] }))
+}
+
 export interface CostInputs {
   /** Linear metres of fabric (the nested marker length). */
   fabricM: number
@@ -45,7 +80,10 @@ export type DutyBasis = 'fob' | 'cif'
 export interface CostBreakdown {
   fabric: number
   thread: number
+  /** Trims subtotal — the sum of `trimLines`. */
   trims: number
+  /** Each trim priced out, so the subtotal can be checked rather than trusted. */
+  trimLines: CostedTrim[]
   labour: number
   overhead: number
   /** Ex-works goods value — everything above. This is the declared customs value. */
@@ -101,7 +139,14 @@ export function costRollup(inp: CostInputs): CostBreakdown {
   const round = (v: number): number => Math.round(v * 100) / 100
   const fabric = round(Math.max(0, inp.fabricM) * Math.max(0, inp.pricePerM))
   const thread = round(Math.max(0, inp.threadM) * THREAD_PRICE_PER_M)
-  const trims = round((inp.trims ?? []).reduce((s, t) => s + Math.max(0, t.qty) * Math.max(0, t.unitCost), 0))
+  const trimLines: CostedTrim[] = (inp.trims ?? []).map((t) => {
+    const qty = Math.max(0, t.qty)
+    const unitCost = Math.max(0, t.unitCost)
+    return { name: t.name, qty, unitCost, total: round(qty * unitCost) }
+  })
+  // sum the rounded line totals, not the raw products, so the itemised rows add up to
+  // the subtotal shown beside them rather than being a cent out
+  const trims = round(trimLines.reduce((s, t) => s + t.total, 0))
   const labour = round((Math.max(0, inp.labourMin) / 60) * Math.max(0, inp.labourRate))
   const sub = fabric + thread + trims + labour
   const overhead = round(sub * (inp.overheadPct ?? 0.15))
@@ -109,7 +154,7 @@ export function costRollup(inp: CostInputs): CostBreakdown {
   const freight = round(Math.max(0, inp.freightPerUnit ?? 0))
   const dutyBase = (inp.dutyBasis ?? 'fob') === 'cif' ? fob + freight : fob
   const duty = round(dutyBase * Math.max(0, inp.dutyPct ?? 0))
-  return { fabric, thread, trims, labour, overhead, fob, freight, duty, total: round(fob + freight + duty), currency: 'USD' }
+  return { fabric, thread, trims, trimLines, labour, overhead, fob, freight, duty, total: round(fob + freight + duty), currency: 'USD' }
 }
 
 // ---- headwear cost: small-panel yield + hat-specific trims -------------------
