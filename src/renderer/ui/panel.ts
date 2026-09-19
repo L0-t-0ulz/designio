@@ -69,6 +69,7 @@ import { LACE_PATTERNS, type LacePattern } from '../fabric/lace'
 import { FUR_KINDS, type FurKind } from '../fabric/fur'
 import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
 import { loadQuickColors, pushQuickColor, saveQuickColors } from '../fabric/quickColors'
+import { recordRecentFabric } from '../fabric/recentFabrics'
 import { harmonies } from '../fabric/harmony'
 import { PRINT_BLENDS, type PrintPart, type PrintStyle, type PrintBlend } from '../start/design'
 
@@ -1388,6 +1389,10 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     for (const [fid, node] of swatchEls) node.classList.toggle('selected', fid === id)
   }
   function selectFabric(id: string): void {
+    // The shared path for every route into a fabric change (Library tile, command
+    // palette, colourway, panel), so recording here is what makes the recents row
+    // reflect the whole app rather than only the clicks it saw itself.
+    recordRecentFabric(id)
     opts.onSelectFabric(id)
     selectSwatch(id)
     refreshers.forEach((r) => r.refresh())
