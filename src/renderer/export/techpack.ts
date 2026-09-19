@@ -2,6 +2,7 @@ import type { Measurements } from '../avatar/Mannequin'
 import type { Fabric } from '../fabric/FabricLibrary'
 import { trimTotals, type TrimLine } from './trimCard'
 import { formatIncrement, irregularRows, type GradingTable } from './gradingTable'
+import type { ColourwaySummary } from './colourwayPage'
 
 export interface TechpackData {
   design: string
@@ -13,6 +14,8 @@ export interface TechpackData {
   trims?: TrimLine[]
   /** Points of measure across the size run, with grade increments. */
   grading?: GradingTable
+  /** Saved colour/fabric variants of the design. */
+  colourways?: ColourwaySummary[]
 }
 
 const cm = (m: number): string => `${(m * 100).toFixed(1)} cm`
@@ -78,7 +81,31 @@ function gradingSection(g?: GradingTable): string {
   </table>${note}`
 }
 
-/** A printable HTML tech-pack: garment spec, fabric, trim card, grading and body measurements. */
+/**
+ * The **colourway page** — every saved variant, so a buyer can sign the range off on
+ * one page. Each row leads with the swatch, because that is what the decision is
+ * actually made on.
+ */
+function colourwaySection(cw?: ColourwaySummary[]): string {
+  if (!cw?.length) return ''
+  const body = cw
+    .map(
+      (c) =>
+        `<tr><td><span class="chip" style="background:${c.hex}"></span>${c.name}</td>` +
+        `<td><code>${c.hex}</code></td><td>${c.fabric}</td>` +
+        `<td>${c.trimHex ? `<span class="chip" style="background:${c.trimHex}"></span><code>${c.trimHex}</code>` : '<span class="muted">—</span>'}</td>` +
+        `<td class="muted">${c.finishes.length ? c.finishes.join(' · ') : '—'}</td></tr>`
+    )
+    .join('')
+  return `
+  <h2>Colourways <span class="muted">(${cw.length})</span></h2>
+  <table class="colourways">
+    <thead><tr><th>Colourway</th><th>Colour</th><th>Fabric</th><th>Trim</th><th>Finishes</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`
+}
+
+/** A printable HTML tech-pack: garment spec, fabric, trim card, grading, colourways and body measurements. */
 export function techpackHTML(d: TechpackData): string {
   const f = d.fabric
   const m = d.measurements
@@ -94,7 +121,8 @@ export function techpackHTML(d: TechpackData): string {
   letter-spacing:.4px;color:#888}
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .muted{color:#888}
-  table.grading td:first-child{color:#1a1a22;width:auto}
+  table.grading td:first-child,table.colourways td:first-child{color:#1a1a22;width:auto}
+  code{font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#555}
   tr.irregular td{background:#fff8e6}
   .note{color:#8a6d1f;font-size:12px;margin-top:6px}
   tfoot td{font-weight:600;border-top:1px solid #ddd} .chip{display:inline-block;width:14px;height:14px;border-radius:3px;
@@ -112,6 +140,7 @@ export function techpackHTML(d: TechpackData): string {
   ])}</table>
   ${trimCardSection(d.trims)}
   ${gradingSection(d.grading)}
+  ${colourwaySection(d.colourways)}
   <h2>Body measurements</h2><table>${rows([
     ['Chest radius', cm(m.chestR)],
     ['Waist radius', cm(m.waistR)],

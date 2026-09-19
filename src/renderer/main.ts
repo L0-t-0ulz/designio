@@ -111,6 +111,7 @@ import { skuAndBarcode } from './export/sku'
 import { nearestNamedColor } from './fabric/namedColors'
 import { trimCard, type TrimLine } from './export/trimCard'
 import { gradingTable } from './export/gradingTable'
+import { colourwayPage, colourwayTag } from './export/colourwayPage'
 import { tiledPatternHTML } from './export/tiledPrint'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
@@ -1423,7 +1424,8 @@ function initStudio(
       grading:
         mode === 'templates'
           ? gradingTable(pomTable(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders))
-          : undefined
+          : undefined,
+      colourways: colourwayPage(stack.colorways(), (id) => FABRIC_LIBRARY.find((f) => f.id === id)?.name)
     }
   }
 
@@ -2722,7 +2724,7 @@ function initStudio(
           id: cw.id,
           name: cw.name,
           color: cw.color,
-          tag: [cw.textile, cw.tartan && 'tartan', cw.ombre && 'ombré', cw.wear, cw.sparkle, cw.iridescent, cw.quilt, cw.lace && 'lace', cw.fur, cw.trim ? 'trim' : undefined].filter(Boolean).join(' · ') || undefined
+          tag: colourwayTag(cw)
         })),
       add: () => {
         pushUndo()
