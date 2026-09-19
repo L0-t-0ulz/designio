@@ -250,6 +250,7 @@ export interface PanelOptions {
   onDrawPanel?: () => void
   onDrop: () => void
   /** The size of the graded run that best fits the current body (live size recommendation). */
+  /** A ready-to-show line naming the best size and how sure the pick is. */
   recommendSize?: () => string
   /** Fit / tension heatmap toggle (visualise where a garment is tight vs loose). */
   heatmap?: { get: () => boolean; set: (on: boolean) => void }
@@ -674,7 +675,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sizeBlock = el('div')
   const sizeHint = el('div', 'dio-size-hint')
   const refreshSizeHint = (): void => {
-    sizeHint.textContent = opts.recommendSize ? `Best fit for this body: ${opts.recommendSize()}` : ''
+    // the callback already returns the full readout, confidence and all
+    sizeHint.textContent = opts.recommendSize ? opts.recommendSize() : ''
   }
   sizeBlock.append(el('div', 'dio-field-label', 'Size'), sizeRow, sizeHint)
 
