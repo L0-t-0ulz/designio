@@ -285,6 +285,10 @@ export interface PanelOptions {
   onColor: (hex: number) => void
   /** Which garment part the colour/fabric edits target (Body/Sleeves/Legs/Trim). */
   onSelectPart?: (part: PartId) => void
+  /** Drop every per-part fabric override so the whole garment follows the body. */
+  onMatchPartsToBody?: () => void
+  /** Whether there is any per-part override to drop. */
+  hasPartOverrides?: () => boolean
   /** Add / adjust a printed graphic (PNG) + text on the garment (optional). */
   prints?: PrintControls
   /** The repeating textile pattern tiled across the whole garment (optional). */
@@ -1981,6 +1985,21 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
 
   const partBlock = el('div')
   partBlock.append(el('div', 'dio-field-label', 'Apply colour / fabric to'), partRow)
+  if (opts.onMatchPartsToBody) {
+    const matchBtn = button('\u21ca  Match all parts to body', () => {
+      opts.onMatchPartsToBody!()
+      syncMatchBtn()
+    })
+    matchBtn.title = 'Drop per-part fabric overrides so sleeves, legs and backs follow the body fabric (the contrast trim is left alone)'
+    // Nothing to drop → nothing to press. Registered as a Refreshable so it re-reads
+    // after an undo or a layer switch, like every other control in the panel.
+    const syncMatchBtn = (): void => {
+      matchBtn.disabled = !(opts.hasPartOverrides?.() ?? false)
+    }
+    syncMatchBtn()
+    track({ row: matchBtn, refresh: syncMatchBtn })
+    partBlock.append(matchBtn)
+  }
   const look = section('Appearance')
   look.body.append(
     partBlock,

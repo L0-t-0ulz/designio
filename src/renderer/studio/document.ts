@@ -393,6 +393,32 @@ export function duplicateColorway(list: Colorway[], id: string): Colorway[] {
   return [...list.slice(0, at + 1), copy, ...list.slice(at + 1)]
 }
 
+/**
+ * A copy of `l` with every per-part fabric override dropped, so the whole garment
+ * follows the body fabric again.
+ *
+ * Dropping the overrides rather than writing the body fabric into each one is the
+ * point. An override set to "the same as the body right now" stops matching the
+ * moment the body fabric changes, which is the opposite of what someone asking for
+ * one fabric everywhere wants; with no override, every part keeps following the body
+ * fabric from then on.
+ *
+ * The contrast trim is deliberately left alone. It has its own fabric and colour, it
+ * is not part of `PartFabrics`, and a contrast trim is usually the one thing on the
+ * garment that is *meant* to differ.
+ */
+export function copyFabricToAllParts(l: GarmentLayerData): GarmentLayerData {
+  if (!l.partFabrics) return l
+  const { partFabrics: _dropped, ...rest } = l
+  return rest as GarmentLayerData
+}
+
+/** Whether `l` has any per-part override to clear (drives the button's enabled state). */
+export function hasPartFabricOverrides(l: GarmentLayerData): boolean {
+  const pf = l.partFabrics
+  return !!pf && Object.values(pf).some((v) => v !== undefined)
+}
+
 export function captureColorway(l: GarmentLayerData, name: string): Colorway {
   return {
     id: newColorwayId(),

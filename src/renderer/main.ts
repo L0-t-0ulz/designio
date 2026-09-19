@@ -176,7 +176,9 @@ import {
   type ProjectDoc,
   type GarmentLayerData
 ,
-  resetConstruction
+  resetConstruction,
+  copyFabricToAllParts,
+  hasPartFabricOverrides
 } from './studio/document'
 
 // ---- shared scene (built once) -------------------------------------------
@@ -2348,6 +2350,19 @@ function initStudio(
     wireframe: { get: () => stack.wireframe, set: (v) => stack.setWireframe(v) },
     wireframeOverlay: { get: () => stack.wireframeOverlay, set: (v) => stack.setWireframeOverlay(v) },
     onResetConstruction: resetActiveConstruction,
+    hasPartOverrides: () => hasPartFabricOverrides(stack.active.data),
+    onMatchPartsToBody: () => {
+      const doc = currentDoc()
+      const at = doc.activeIndex
+      const layer = doc.layers[at]
+      if (!layer) return
+      const cleared = copyFabricToAllParts(layer)
+      if (cleared === layer) return // nothing was overridden
+      doc.layers[at] = cleared
+      pushUndo()
+      applyDoc(doc)
+      showToast('All parts follow the body fabric', 'success')
+    },
     mannequin: mannequin.group,
     fabrics: FABRIC_LIBRARY,
     current,
