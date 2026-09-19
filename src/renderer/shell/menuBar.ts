@@ -34,6 +34,7 @@ export interface MenuActions {
   canModifyLayers: () => boolean
   onAnim: (mode: AnimationMode) => void
   onToggleWireframe: () => void
+  onToggleWireframeOverlay: () => void
   onToggleMannequin: () => void
   onMeasure: () => void
   onAnnotate: () => void
@@ -236,6 +237,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Steam & press (drag to relax wrinkles)', run: a.onTogglePress },
     { sep: true },
     { label: 'Wireframe', run: a.onToggleWireframe },
+    { label: 'Wireframe over shaded', run: a.onToggleWireframeOverlay },
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }
   ])
   menu('Help', [
