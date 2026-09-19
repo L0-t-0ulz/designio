@@ -40,6 +40,8 @@ export interface ManufactureLayer {
   identifiers?: { sku: string; barcode: string }
   /** Grainline check against the nested marker. */
   grain?: import('./grainline').GrainReport
+  /** Mirror-symmetry check on the panels cut on the fold. */
+  symmetry?: { name: string; summary: string; ok: boolean }[]
   /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
   stitch?: { summary: string; spec: import('../garment/stitchTypes').StitchSpec }
   /** Zipper spec summary (present when the closure is a zip). */
@@ -252,6 +254,7 @@ function layerSection(l: ManufactureLayer): string {
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
             ${l.pieceCount ? `<tr><td>Pattern pieces</td><td colspan="2">${esc(pieceCountSummary(l.pieceCount))}</td></tr>` : ''}
             ${l.grain ? `<tr><td>Grainline</td><td colspan="2"${l.grain.faults.length ? ' class="warn"' : ''}>${esc(grainSummary(l.grain))}</td></tr>` : ''}
+            ${(l.symmetry ?? []).filter((sy) => !sy.ok).map((sy) => `<tr><td>Symmetry — ${esc(sy.name)}</td><td colspan="2" class="warn">${esc(sy.summary)}</td></tr>`).join('')}
             ${l.stitch ? `<tr><td>Seams &amp; stitching</td><td colspan="2">${esc(l.stitch.summary)}</td></tr>` : ''}
             ${l.zipper ? `<tr><td>Zipper</td><td colspan="2">${esc(l.zipper)}</td></tr>` : ''}
             ${l.fullyFashioned ? `<tr><td>Knit shaping</td><td colspan="2">${esc(l.fullyFashioned)}</td></tr>` : ''}
