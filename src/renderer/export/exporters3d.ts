@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import type {} from './save' // pulls in the `window.designio` global declaration
 
 // The three.js exporters are heavy — each is loaded **lazily** (dynamic import) on the
 // first export of that format, keeping them out of the initial renderer bundle.
@@ -30,6 +31,33 @@ export async function exportGLB(objects: THREE.Object3D[]): Promise<Uint8Array> 
   return new Promise((resolve, reject) => {
     new GLTFExporter().parse(g, (result) => resolve(new Uint8Array(result as ArrayBuffer)), (err) => reject(err), { binary: true })
   })
+}
+
+/**
+ * Export as a **Draco-compressed** binary glTF.
+ *
+ * three's `GLTFExporter` cannot emit Draco, so this exports a plain GLB and hands it
+ * to the main process to re-encode with `KHR_draco_mesh_compression` — the encoder is
+ * a Node-side wasm module, and the renderer runs with `contextIsolation` on and no
+ * Node access.
+ *
+ * Compression is **lossy** (positions are quantised), which is why it is offered
+ * alongside the plain glTF export rather than replacing it. Typically 80–95% smaller
+ * on a garment: cloth is a dense, smooth, highly predictable surface.
+ *
+ * Falls back to the uncompressed GLB when the bridge is missing or the encoder
+ * fails, reporting which happened, so an export never silently produces nothing.
+ */
+export async function exportGLBDraco(objects: THREE.Object3D[]): Promise<{ data: Uint8Array; compressed: boolean; reason?: string }> {
+  const plain = await exportGLB(objects)
+  const bridge = window.designio?.compressGLBDraco
+  if (!bridge) return { data: plain, compressed: false, reason: 'Draco encoder unavailable' }
+  const result = await bridge(plain)
+  if ('error' in result) return { data: plain, compressed: false, reason: result.error }
+  // A "compression" that made the file bigger is not one worth shipping.
+  return result.data.byteLength < plain.byteLength
+    ? { data: result.data, compressed: true }
+    : { data: plain, compressed: false, reason: 'already smaller uncompressed' }
 }
 
 /** Export the objects as a Wavefront OBJ string. Loads the exporter on first use. */

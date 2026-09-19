@@ -24,6 +24,20 @@ function applyProductionCSP(session: Session): void {
   })
 }
 
+/**
+ * Compress a GLB with Draco on behalf of the renderer, which has no Node access.
+ * Errors are returned rather than thrown across the bridge, so the renderer can fall
+ * back to the uncompressed export and say why instead of failing silently.
+ */
+ipcMain.handle('gltf:draco', async (_e, glb: Uint8Array): Promise<{ data: Uint8Array } | { error: string }> => {
+  try {
+    const { compressGLBWithDraco } = await import('./draco')
+    return { data: await compressGLBWithDraco(new Uint8Array(glb)) }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) }
+  }
+})
+
 function buildMenu(): void {
   const isMac = process.platform === 'darwin'
   const template: Electron.MenuItemConstructorOptions[] = [
