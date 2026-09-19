@@ -61,6 +61,16 @@ describe('distressed / washed / faded wear finish', () => {
     expect(stone.max - stone.min).toBeGreaterThan(faded.max - faded.min)
   })
 
+  it('enzyme-wash is the smoothest, most uniform wash — all-over but barely varies', () => {
+    const enzyme = sampleStats('enzyme-wash')
+    const faded = sampleStats('faded')
+    const stone = sampleStats('stone-wash')
+    expect(enzyme.min).toBeGreaterThan(0) // bio-polished everywhere, no untouched cloth
+    // the tightest range of any wash — a smooth even softening, no clumps/streaks/mottle
+    expect(enzyme.max - enzyme.min).toBeLessThan(faded.max - faded.min)
+    expect(enzyme.max - enzyme.min).toBeLessThan(stone.max - stone.min)
+  })
+
   it('the worn tone is lighter + less saturated than the base', () => {
     const base = 0x2b3a67 // deep indigo (denim)
     const b = { h: 0, s: 0, l: 0 }
