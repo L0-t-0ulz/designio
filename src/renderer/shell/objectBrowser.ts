@@ -1,6 +1,7 @@
 import { createElement, Copy, Eye, EyeOff, Plus, Trash2 } from 'lucide'
 import { el } from '../ui/controls'
 import type { LayerSummary } from '../studio/GarmentStack'
+import { dropIndex } from '../studio/reorder'
 
 export interface ObjectBrowserHandle {
   refresh: () => void
@@ -16,6 +17,8 @@ export interface ObjBrowserActions {
   onAdd: () => void
   onDuplicate: () => void
   onDelete: () => void
+  /** Move the layer at `from` to `to` (drag-to-reorder changes wearing order). */
+  onReorder: (from: number, to: number) => void
 }
 
 const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0')
@@ -49,6 +52,17 @@ export function buildObjectBrowser(host: HTMLElement, a: ObjBrowserActions): Obj
   root.append(list)
   host.append(root)
 
+  // Which row is being dragged, for the duration of the drag.
+  let dragFrom: number | null = null
+  const clearDropHints = (): void => {
+    for (const r of list.children) r.classList.remove('drop-before', 'drop-after')
+  }
+  /** Dropped on the lower half of a row → land after it, not before. */
+  const isLowerHalf = (e: DragEvent, row: HTMLElement): boolean => {
+    const box = row.getBoundingClientRect()
+    return e.clientY > box.top + box.height / 2
+  }
+
   const render = (): void => {
     list.replaceChildren()
     const rows = a.list()
@@ -74,6 +88,35 @@ export function buildObjectBrowser(host: HTMLElement, a: ObjBrowserActions): Obj
         a.onToggleVisible(i)
         render()
       })
+      // ---- drag to reorder (wearing order) ----
+      row.draggable = true
+      row.addEventListener('dragstart', (e) => {
+        dragFrom = i
+        row.classList.add('dragging')
+        e.dataTransfer?.setData('text/plain', String(i)) // Firefox needs a payload to start a drag
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+      })
+      row.addEventListener('dragend', () => {
+        dragFrom = null
+        clearDropHints()
+      })
+      row.addEventListener('dragover', (e) => {
+        if (dragFrom === null) return
+        e.preventDefault() // without this the drop never fires
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+        clearDropHints()
+        row.classList.add(isLowerHalf(e, row) ? 'drop-after' : 'drop-before')
+      })
+      row.addEventListener('drop', (e) => {
+        if (dragFrom === null) return
+        e.preventDefault()
+        const to = dropIndex(i, isLowerHalf(e, row), rows.length)
+        const from = dragFrom
+        dragFrom = null
+        clearDropHints()
+        if (from !== to) a.onReorder(from, to)
+      })
+
       row.append(swatch, name, vis)
       list.append(row)
     })
