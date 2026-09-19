@@ -10,6 +10,8 @@ import { showToast } from './ui/toast'
 import { rafCoalesce } from './core/coalesce'
 import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOverlay'
 import { openGlossary } from './ui/glossaryOverlay'
+import { openWhatsNew, whatsNewOpen, closeWhatsNew } from './ui/whatsNewOverlay'
+import { loadSeenRelease, shouldAutoOpen } from './ui/whatsNew'
 import { ReviewStore } from './studio/reviewPins'
 import { openReview } from './ui/reviewOverlay'
 import { openTutorial } from './ui/tutorialOverlay'
@@ -2106,6 +2108,7 @@ function initStudio(
     if (e.key === 'Escape' && shortcutsOpen()) return closeShortcuts()
     if (e.key === 'Escape' && sketchPadOpen()) return closeSketchPad()
     if (e.key === 'Escape' && tourOpen()) return closeTour()
+    if (e.key === 'Escape' && whatsNewOpen()) return closeWhatsNew()
     if (e.key === '?') return e.preventDefault(), toggleShortcuts()
     const action = actionFor(keymap(), { key: e.key, mod: e.metaKey || e.ctrlKey, shift: e.shiftKey })
     if (!action) return
@@ -2261,6 +2264,7 @@ function initStudio(
     onShortcuts: toggleShortcuts,
     onTour: () => startTour(),
     onGlossary: openGlossary,
+    onWhatsNew: openWhatsNew,
     onVectorEditor: openVectorEditor,
     onReview: () => openReview(reviewStore),
     onTutorial: () => openTutorial(getTutorialContext),
@@ -2791,6 +2795,7 @@ function initStudio(
   if (params.get('tour') === '1') window.setTimeout(() => startTour(), 500) // force the tour (verify/share)
   if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
+  if (params.get('whatsnew') === '1') window.setTimeout(() => openWhatsNew(), 500) // open the release feed
   if (params.get('review') === '1') window.setTimeout(() => openReview(reviewStore), 500) // open the design-review panel
   if (params.get('tutorial') === '1') window.setTimeout(() => openTutorial(getTutorialContext), 500) // open the interactive tutorial
   if (params.get('vectorEditor') === '1') window.setTimeout(() => openVectorEditor(), 500) // open the vector print editor
@@ -2807,6 +2812,10 @@ function initStudio(
   // has laid out before the spotlight measures each region.
   if (!skipStart && !hasSeenTour()) {
     window.setTimeout(() => { if (!tourOpen()) startTour() }, 800)
+  } else if (!skipStart && shouldAutoOpen(loadSeenRelease())) {
+    // A returning designer gets the release feed once per update — never on a snapshot
+    // deep-link, and never competing with the first-run tour.
+    window.setTimeout(() => { if (!tourOpen()) openWhatsNew() }, 800)
   }
 }
 
