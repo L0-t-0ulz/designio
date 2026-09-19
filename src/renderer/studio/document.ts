@@ -389,6 +389,34 @@ export function captureColorway(l: GarmentLayerData, name: string): Colorway {
   }
 }
 
+/**
+ * A copy of `l` with its **construction** back at the garment's defaults, keeping
+ * everything that isn't construction.
+ *
+ * "Isn't construction" is not a fresh list invented here: a `Colorway` is already this
+ * codebase's maintained definition of the appearance-only fields, and applying one is
+ * already documented as never touching shape. So the reset is the inverse — take a
+ * fresh `defaultLayer`, put the captured appearance back on it — and any construction
+ * field added to `GarmentLayerData` later is reset correctly without anyone
+ * remembering to update this function.
+ *
+ * Kept alongside the appearance: the layer's visibility, its saved colourways, its
+ * placed prints and its pinned pattern notes. None of those are construction, and
+ * silently binning a designer's prints because they wanted the sleeve length back is
+ * the kind of "reset" that loses work.
+ */
+export function resetConstruction(l: GarmentLayerData): GarmentLayerData {
+  const appearance = captureColorway(l, 'reset')
+  const fresh = defaultLayer(l.garmentType)
+  applyColorway(fresh, appearance)
+  fresh.visible = l.visible
+  fresh.colorways = l.colorways
+  if (l.prints) fresh.prints = l.prints
+  if (l.patternNotes) fresh.patternNotes = l.patternNotes
+  if (l.physicalFabric) fresh.physicalFabric = l.physicalFabric
+  return fresh
+}
+
 /** Apply a colorway to a layer in place — appearance only; construction is untouched. */
 export function applyColorway(l: GarmentLayerData, cw: Colorway): void {
   l.color = cw.color
