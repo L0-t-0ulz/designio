@@ -28,6 +28,7 @@ describe('rebindable keymap', () => {
     expect(actionFor(DEFAULT_KEYMAP, ev('o', true))).toBe('open')
     expect(actionFor(DEFAULT_KEYMAP, ev('Delete'))).toBe('delete')
     expect(actionFor(DEFAULT_KEYMAP, ev('Backspace'))).toBe('delete') // backspace ⇒ delete
+    expect(actionFor(DEFAULT_KEYMAP, ev('g', true))).toBe('glossary')
     expect(actionFor(DEFAULT_KEYMAP, ev('z'))).toBeNull() // bare z types nothing
     expect(actionFor(DEFAULT_KEYMAP, ev('q', true))).toBeNull()
   })
@@ -41,6 +42,25 @@ describe('rebindable keymap', () => {
   it('a custom binding on Y overrides the legacy redo alias', () => {
     const map: Keymap = { ...DEFAULT_KEYMAP, save: { key: 'y', mod: true } }
     expect(actionFor(map, ev('y', true))).toBe('save')
+  })
+
+  it('the glossary opens on ⌘G, is rebindable, and clashes with nothing by default', () => {
+    expect(actionFor(DEFAULT_KEYMAP, ev('G', true))).toBe('glossary') // case-insensitive
+    expect(actionFor(DEFAULT_KEYMAP, ev('g'))).toBeNull() // bare g still types
+    expect(actionFor(DEFAULT_KEYMAP, ev('g', true, true))).toBeNull() // ⌘⇧G is not it
+    expect(conflictsIn(DEFAULT_KEYMAP)).toEqual([])
+
+    // rebindable like any other action, and it frees its old key when moved
+    const map: Keymap = { ...DEFAULT_KEYMAP, glossary: { key: 'f1', mod: false } }
+    expect(actionFor(map, ev('F1'))).toBe('glossary')
+    expect(actionFor(map, ev('g', true))).toBeNull()
+
+    // listed in the overlay, and told to swallow the browser's own ⌘G
+    const def = KEY_ACTIONS.find((d) => d.id === 'glossary')
+    expect(def).toBeDefined()
+    expect(def!.prevent).toBe(true)
+    expect(formatBinding(DEFAULT_KEYMAP.glossary, true)).toBe('⌘G')
+    expect(formatBinding(DEFAULT_KEYMAP.glossary, false)).toBe('Ctrl+G')
   })
 
   it('captureBinding: combos yes; bare modifiers, Escape, ? and unmodified letters no', () => {
