@@ -113,7 +113,7 @@ import { nearestNamedColor } from './fabric/namedColors'
 import { trimCard, type TrimLine } from './export/trimCard'
 import { gradingTable } from './export/gradingTable'
 import { colourwayPage, colourwayTag } from './export/colourwayPage'
-import { tiledPatternHTML } from './export/tiledPrint'
+import { tiledPatternHTML, pageSize } from './export/tiledPrint'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
 import { manufactureHTML, type ManufactureBundle } from './export/manufacture'
@@ -1516,10 +1516,15 @@ function initStudio(
         showToast(`Nested to ${plot.widthCm} cm — ${(plot.lengthCm / 100).toFixed(2)} m at ${(plot.efficiency * 100).toFixed(0)}% efficiency`, 'success')
         break
       }
-      case 'pattern-tiled': {
-        // tile the flat pattern across A4 pages at 1:1 for home printing (Print → Save as PDF)
+      case 'pattern-tiled':
+      case 'pattern-tiled-a3':
+      case 'pattern-tiled-a2': {
+        // tile the flat pattern at 1:1 for printing (Print → Save as PDF). A larger
+        // sheet is the same layout on fewer pages — a copy shop can run A2, which
+        // turns a 30-page tape-up into 8.
+        const id = fmt === 'pattern-tiled-a2' ? 'A2' : fmt === 'pattern-tiled-a3' ? 'A3' : 'A4'
         const res = garmentToPanels(getGarment(l.data.garmentType), gradeParams(l.data), mannequin.measurements, mannequin.colliders)
-        await saveFile('pattern-tiled-A4.html', tiledPatternHTML(res), [{ name: 'HTML', extensions: ['html'] }])
+        await saveFile(`pattern-tiled-${id}.html`, tiledPatternHTML(res, { page: pageSize(id) }), [{ name: 'HTML', extensions: ['html'] }])
         break
       }
       case 'techpack':

@@ -14,8 +14,38 @@ export interface PageSize {
   wMm: number
   hMm: number
 }
+/**
+ * **ISO 216 A-series**, portrait (short edge × long edge), in millimetres.
+ *
+ * The series is defined by two properties: every sheet has the aspect ratio √2, and
+ * A0 has an area of exactly 1 m². Halving a sheet across its long edge therefore
+ * yields the next size down with the same ratio. The published millimetre figures are
+ * that geometry **rounded down** to whole millimetres at each step — which is why
+ * they are not exactly half their parent (A3 is 297 × 420, and half of A2's 594 is
+ * 297 exactly, but A5's 148 is floor(210/√2) = 148, not 148.49).
+ *
+ * These are the standard's own values rather than computed at runtime: rounding down
+ * *at each step* is not the same as rounding a closed-form expression, and a printer
+ * driver expects the published numbers to the millimetre. `tests/tiledPrint` checks
+ * them against the defining properties instead of trusting the table.
+ */
+export const A2: PageSize = { wMm: 420, hMm: 594 }
+export const A3: PageSize = { wMm: 297, hMm: 420 }
 export const A4: PageSize = { wMm: 210, hMm: 297 }
 export const LETTER: PageSize = { wMm: 216, hMm: 279 }
+
+/** The A-series sizes offered for tiled printing, largest first. */
+export const PAGE_SIZES: { id: 'A2' | 'A3' | 'A4' | 'Letter'; label: string; page: PageSize }[] = [
+  { id: 'A2', label: 'A2 (420 × 594 mm)', page: A2 },
+  { id: 'A3', label: 'A3 (297 × 420 mm)', page: A3 },
+  { id: 'A4', label: 'A4 (210 × 297 mm)', page: A4 },
+  { id: 'Letter', label: 'Letter (216 × 279 mm)', page: LETTER }
+]
+
+/** Look a page size up by id; unknown ids fall back to A4 rather than throwing. */
+export function pageSize(id: string): PageSize {
+  return PAGE_SIZES.find((p) => p.id === id)?.page ?? A4
+}
 
 export interface TileOpts {
   page?: PageSize
