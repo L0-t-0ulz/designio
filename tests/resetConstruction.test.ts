@@ -9,7 +9,7 @@ const worked = (): GarmentLayerData => {
   l.length = 0.95
   l.ease = 0.31
   l.flare = 0.44
-  l.neckline = 'vee'
+  l.neckline = 'v'
   l.sleeve = 'long'
   l.collar = true
   l.pleats = true
