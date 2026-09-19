@@ -13,6 +13,7 @@ import { openGlossary } from './ui/glossaryOverlay'
 import { openWhatsNew, whatsNewOpen, closeWhatsNew } from './ui/whatsNewOverlay'
 import { loadSeenRelease, shouldAutoOpen } from './ui/whatsNew'
 import { openCommandPalette, commandPaletteOpen, closeCommandPalette } from './ui/commandPaletteOverlay'
+import { standardView, standardViews, type StandardViewId } from './studio/standardViews'
 import { ReviewStore } from './studio/reviewPins'
 import { openReview } from './ui/reviewOverlay'
 import { openTutorial } from './ui/tutorialOverlay'
@@ -2226,6 +2227,7 @@ function initStudio(
     onAnim: setAnimMode,
     onToggleWireframe: () => stack.setWireframe(!stack.wireframe),
     onToggleWireframeOverlay: () => stack.setWireframeOverlay(!stack.wireframeOverlay),
+    onStandardView: applyStandardView,
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
     onMeasure: () => setMeasureMode(measureTool?.getMode() === 'measure' ? 'off' : 'measure'),
     onAnnotate: () => setMeasureMode(measureTool?.getMode() === 'annotate' ? 'off' : 'annotate'),
@@ -2287,8 +2289,17 @@ function initStudio(
       statusHandles?.setSim(running)
     },
     running,
-    getGarment(stack.active.data.garmentType).name // seed the selection so it never flashes "No selection"
+    getGarment(stack.active.data.garmentType).name, // seed the selection so it never flashes "No selection"
+    standardViews(mannequin.measurements).map((v) => ({ label: v.label, title: v.title, run: () => applyStandardView(v.id) }))
   )
+
+  /** Frame the figure dead-on from one of the four standard elevations. The pose is
+   *  recomputed from the live measurements on every call, so it follows a resize or a
+   *  body-type change instead of freezing at whatever the figure was on startup. */
+  function applyStandardView(id: StandardViewId): void {
+    const view = standardView(mannequin.measurements, id)
+    if (view) viewport.setCameraPose(view.pose)
+  }
 
   // ---- control panel (docked into the right region) ----
   let syncBrowsers: () => void = () => {}

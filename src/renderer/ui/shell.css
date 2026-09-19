@@ -451,6 +451,18 @@
   border-color: var(--accent-line);
   background: var(--accent-soft);
 }
+/* Quick camera framings — a tight segmented group of single-letter buttons. */
+.dio-status-views {
+  display: inline-flex;
+  gap: 3px;
+  margin-right: 8px;
+}
+.dio-status-view {
+  padding: 2px 7px;
+  min-width: 22px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
 .dio-status-item {
   color: var(--fg-1);
   font-variant-numeric: tabular-nums;
