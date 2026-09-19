@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { contactArea as contactAreaOf, sumContactAreas, type ContactAreaResult } from '../studio/contactArea'
 import type { Capsule } from '../avatar/colliders'
 import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
@@ -468,6 +469,25 @@ export class GarmentController {
 
   getMeshes(): THREE.Object3D[] {
     return this.pieces.map((p) => p.mesh)
+  }
+
+  /**
+   * How much of this garment's surface is touching the body, area-weighted across
+   * every piece. Measured on the live simulated positions, so it reflects the drape
+   * as it currently stands rather than the flat pattern.
+   */
+  contactArea(threshold = 0): ContactAreaResult {
+    const scratch = new Float32Array(Math.max(1, ...this.pieces.map((p) => p.solver.count)))
+    return sumContactAreas(
+      this.pieces.map((p) => {
+        const n = p.solver.count
+        const contact = scratch.subarray(0, n)
+        p.solver.contactPressure(contact)
+        const index = p.geometry.getIndex()
+        if (!index) return { contact: 0, total: 0, fraction: 0 }
+        return contactAreaOf(p.positions, index.array as ArrayLike<number>, contact, threshold)
+      })
+    )
   }
 
   updateMeshes(): void {

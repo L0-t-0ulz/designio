@@ -341,6 +341,8 @@ export interface PanelOptions {
   }
   /** Live measurements of the active garment (for the Measurements readout). */
   getMetrics?: () => GarmentMetrics
+  /** How much of the garment is touching the body, measured on the live drape. */
+  getContactArea?: () => { contact: number; total: number; fraction: number }
   /** Chest/waist/hip girth measured on the live *draped* garment (on-body fit). */
   getDrapedFit?: () => GirthRow[]
   bodySize: BodyParams
@@ -2158,6 +2160,13 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
         if (e.easeCm < 0) row.classList.add('dio-metric-neg')
         metricsBody.append(row)
       }
+    }
+    // How much of the garment is actually against the body, area-weighted.
+    const ca = opts.getContactArea?.()
+    if (ca && ca.total > 0) {
+      metricsBody.append(el('div', 'dio-metric-sep'))
+      metricsBody.append(metricLine('Body contact', `${Math.round(ca.fraction * 100)}%`))
+      metricsBody.append(metricLine('Contact area', `${Math.round(ca.contact * 10000).toLocaleString()} cm²`))
     }
     // Girth measured on the live drape — a real hip the flat draft can't give.
     const draped = opts.getDrapedFit?.() ?? []

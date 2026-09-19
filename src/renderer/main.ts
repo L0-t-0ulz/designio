@@ -2818,6 +2818,7 @@ function initStudio(
       }
     },
     getMetrics: () => activeMetrics(),
+    getContactArea: () => stack.contactArea(),
     getDrapedFit: () => drapedFit(),
     bodySize,
     onBodySize: (b) => {
