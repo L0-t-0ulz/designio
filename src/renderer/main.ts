@@ -109,6 +109,7 @@ import { panelsToDXF, garmentPatternSVG, garmentPatternDXF, garmentToPanels } fr
 import { patternPieceCount } from './export/patternPieces'
 import { patternToHPGL, patternToRollHPGL } from './export/plotter'
 import { skuAndBarcode } from './export/sku'
+import { checkGrainlines } from './export/grainline'
 import { nearestNamedColor } from './fabric/namedColors'
 import { trimCard, type TrimLine } from './export/trimCard'
 import { gradingTable } from './export/gradingTable'
@@ -2078,6 +2079,10 @@ function initStudio(
         const panels = garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels
         const markerLayout = nestMarker(panels, 140)
         const pieceCount = patternPieceCount(panels)
+        // check each piece's grain against how the nester actually laid it
+        const grain = checkGrainlines(
+          markerLayout.placements.map((pl) => ({ name: pl.name, grain: panels[pl.panel].grain, rotated: pl.rot }))
+        )
         const identifiers = skuAndBarcode({
           style: getGarment(l.data.garmentType).name,
           colour: nearestNamedColor(l.data.color).code,
@@ -2116,6 +2121,7 @@ function initStudio(
           seam: l.data.seam ?? (l.data.stitch ? SEAM_TYPES[l.data.stitch.seamType].allowanceMm : 10),
           pieceCount,
           identifiers,
+          grain,
           stitch: l.data.stitch ? { summary: stitchSummary(l.data.stitch), spec: l.data.stitch } : undefined,
           // a zip closure resolves to a full zipper spec (gauge from weight, length from category)
           zipper: l.data.closure && (def.closureStyle ?? 'button') === 'zip' ? zipperSummary(zipperSpecFor(def.category, l.fabric.gsm)) : undefined,

@@ -7,6 +7,7 @@
  */
 import type { GarmentMetrics } from './garmentMetrics'
 import { pieceCountSummary } from './patternPieces'
+import { grainSummary } from './grainline'
 import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
 import { threadMetres } from './thread'
@@ -37,6 +38,8 @@ export interface ManufactureLayer {
   pieceCount?: import('./patternPieces').PatternPieceCount
   /** Style identifiers — a human SKU and an internal EAN-13. */
   identifiers?: { sku: string; barcode: string }
+  /** Grainline check against the nested marker. */
+  grain?: import('./grainline').GrainReport
   /** Seam & topstitch spec (one-line summary + the raw spec for JSON). */
   stitch?: { summary: string; spec: import('../garment/stitchTypes').StitchSpec }
   /** Zipper spec summary (present when the closure is a zip). */
@@ -248,6 +251,7 @@ function layerSection(l: ManufactureLayer): string {
             ${(l.hardware ?? []).map((h) => `<tr><td>Hardware</td><td colspan="2">${esc(h.label)}</td></tr>`).join('')}
             <tr><td>Seam allowance</td><td colspan="2">${l.seam ?? 10} mm</td></tr>
             ${l.pieceCount ? `<tr><td>Pattern pieces</td><td colspan="2">${esc(pieceCountSummary(l.pieceCount))}</td></tr>` : ''}
+            ${l.grain ? `<tr><td>Grainline</td><td colspan="2"${l.grain.faults.length ? ' class="warn"' : ''}>${esc(grainSummary(l.grain))}</td></tr>` : ''}
             ${l.stitch ? `<tr><td>Seams &amp; stitching</td><td colspan="2">${esc(l.stitch.summary)}</td></tr>` : ''}
             ${l.zipper ? `<tr><td>Zipper</td><td colspan="2">${esc(l.zipper)}</td></tr>` : ''}
             ${l.fullyFashioned ? `<tr><td>Knit shaping</td><td colspan="2">${esc(l.fullyFashioned)}</td></tr>` : ''}
@@ -310,6 +314,7 @@ export function manufactureHTML(b: ManufactureBundle): string {
   th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #eee; font-variant-numeric: tabular-nums; }
   th { color: #6b7280; font-weight: 600; font-size: 11px; }
   td.indent { padding-left: 20px; color: #4b5563; }
+  td.warn { color: #92400e; background: #fffbeb; }
   .muted { color: #9ca3af; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
   .garment { break-inside: avoid; border-top: 2px solid #f0f0f2; padding-top: 6px; }
