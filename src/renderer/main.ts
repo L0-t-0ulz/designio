@@ -124,7 +124,7 @@ import { parseScanOBJ, scanToMeasurements } from './avatar/bodyScan'
 import { parseBVH, bvhJointNames, bvhDuration } from './avatar/mocap'
 import { recommendSize } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
-import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost, DEFAULT_FREIGHT_PER_UNIT, DEFAULT_APPAREL_DUTY_PCT } from './export/cost'
+import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost, DEFAULT_FREIGHT_PER_UNIT, DEFAULT_APPAREL_DUTY_PCT, priceTrimLines } from './export/cost'
 import { shopifyCsv, type ListingInput } from './export/listing'
 import { productPageHtml } from './export/productPage'
 import { APPROVAL_STATUSES, type ApprovalStatus } from './export/approval'
@@ -2131,7 +2131,9 @@ function initStudio(
             pricePerM: estimatedFabricPrice(l.fabric),
             threadM: threadMetres(metrics.seamCm),
             // a hat's notions: pom (pom beanie / chullo) + a sweatband under a stiff visor
-            trims: headwear ? headwearTrims({ pom: def.pom, sweatband: def.visor }) : undefined,
+            // every garment's trims, priced off the same card the tech pack prints,
+            // plus the hat-specific notions where the garment is headwear
+            trims: [...priceTrimLines(activeTrimCard(l)), ...(headwear ? headwearTrims({ pom: def.pom, sweatband: def.visor }) : [])],
             labourMin: estimateLabourMinutes(metrics.seamCm),
             labourRate: 15
           }),

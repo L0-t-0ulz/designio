@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { costRollup, estimateLabourMinutes, priceFromCost, headwearFabricM, headwearTrims } from '../src/renderer/export/cost'
+import { costRollup, estimateLabourMinutes, priceFromCost, headwearFabricM, headwearTrims, priceTrimLines } from '../src/renderer/export/cost'
 import { estimatedFabricPrice, getFabric } from '../src/renderer/fabric/FabricLibrary'
 
 describe('estimateLabourMinutes', () => {
@@ -193,5 +193,82 @@ describe('freight and duty (landed cost)', () => {
   it('rounds to whole cents', () => {
     const c = costRollup({ ...base, freightPerUnit: 1.005, dutyPct: 0.0333 })
     for (const v of [c.fob, c.freight, c.duty, c.total]) expect(v).toBe(Math.round(v * 100) / 100)
+  })
+})
+
+describe('itemised trims and the subtotal', () => {
+  const base = { fabricM: 1, pricePerM: 10, threadM: 0, labourMin: 0, labourRate: 0, overheadPct: 0 }
+
+  it('itemises each trim with its line total', () => {
+    const c = costRollup({ ...base, trims: [{ name: 'Button', qty: 5, unitCost: 0.2 }, { name: 'Zip', qty: 1, unitCost: 1.4 }] })
+    expect(c.trimLines).toEqual([
+      { name: 'Button', qty: 5, unitCost: 0.2, total: 1 },
+      { name: 'Zip', qty: 1, unitCost: 1.4, total: 1.4 }
+    ])
+  })
+
+  it('the subtotal is exactly the sum of the printed lines', () => {
+    // summing raw products instead of rounded line totals leaves the itemised rows
+    // a cent adrift from the subtotal beside them
+    const c = costRollup({ ...base, trims: [{ name: 'a', qty: 3, unitCost: 0.115 }, { name: 'b', qty: 3, unitCost: 0.115 }] })
+    expect(c.trims).toBe(c.trimLines.reduce((s, t) => s + t.total, 0))
+  })
+
+  it('is empty, not absent, when there are no trims', () => {
+    const c = costRollup(base)
+    expect(c.trimLines).toEqual([])
+    expect(c.trims).toBe(0)
+  })
+
+  it('clamps negative quantities and prices rather than crediting the sheet', () => {
+    const c = costRollup({ ...base, trims: [{ name: 'x', qty: -5, unitCost: 2 }, { name: 'y', qty: 2, unitCost: -3 }] })
+    for (const t of c.trimLines) expect(t.total).toBe(0)
+    expect(c.trims).toBe(0)
+  })
+
+  it('feeds the FOB value like any other production cost', () => {
+    const without = costRollup(base)
+    const with_ = costRollup({ ...base, trims: [{ name: 'Button', qty: 10, unitCost: 0.25 }] })
+    expect(with_.fob - without.fob).toBeCloseTo(2.5, 2)
+  })
+})
+
+describe('pricing the trim card', () => {
+  it('prices each kind it knows', () => {
+    const priced = priceTrimLines([
+      { kind: 'closure', item: 'Shell button, 13 mm', qty: 5 },
+      { kind: 'label', item: 'Brand label', qty: 1 }
+    ])
+    expect(priced.map((p) => p.name)).toEqual(['Shell button, 13 mm', 'Brand label'])
+    for (const p of priced) expect(p.unitCost).toBeGreaterThan(0)
+  })
+
+  it('drops thread — it is already costed from seam length', () => {
+    // pricing it here too would double-count it on every single garment
+    const priced = priceTrimLines([
+      { kind: 'thread', item: 'Sewing thread (tex 40)', qty: 11 },
+      { kind: 'closure', item: 'Zip', qty: 1 }
+    ])
+    expect(priced.map((p) => p.name)).toEqual(['Zip'])
+  })
+
+  it('carries quantity through, clamping negatives', () => {
+    expect(priceTrimLines([{ kind: 'label', item: 'x', qty: 4 }])[0].qty).toBe(4)
+    expect(priceTrimLines([{ kind: 'label', item: 'x', qty: -2 }])[0].qty).toBe(0)
+  })
+
+  it('handles an empty card', () => {
+    expect(priceTrimLines([])).toEqual([])
+  })
+
+  it('round-trips through costRollup to a checkable subtotal', () => {
+    const priced = priceTrimLines([
+      { kind: 'closure', item: 'Shell button, 13 mm', qty: 5 },
+      { kind: 'label', item: 'Care label', qty: 1 },
+      { kind: 'thread', item: 'Thread', qty: 20 }
+    ])
+    const c = costRollup({ fabricM: 0, pricePerM: 0, threadM: 0, labourMin: 0, labourRate: 0, overheadPct: 0, trims: priced })
+    expect(c.trimLines).toHaveLength(2) // thread excluded
+    expect(c.trims).toBeCloseTo(c.trimLines.reduce((s, t) => s + t.total, 0), 2)
   })
 })

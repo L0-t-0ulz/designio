@@ -157,6 +157,22 @@ function markerSection(m?: MarkerLayout): string {
  * factory invoices and a customs form declares; freight and duty appear only when
  * they were costed, so an ex-works quote is not padded with $0.00 rows.
  */
+/**
+ * Trims, itemised with a subtotal. A single lumped "Trims / notions" figure is
+ * impossible to check against a quote; itemising lets a merchandiser see which line
+ * is wrong. Collapses back to nothing when there are no trims.
+ */
+function trimRows(c: CostBreakdown, usd: (v: number) => string): string {
+  if (!c.trimLines.length) return c.trims > 0 ? `<tr><td>Trims / notions</td><td colspan="2">${usd(c.trims)}</td></tr>` : ''
+  const lines = c.trimLines
+    .map(
+      (t) =>
+        `<tr><td class="indent">${esc(t.name)} <span class="muted">× ${t.qty} @ ${usd(t.unitCost)}</span></td><td colspan="2">${usd(t.total)}</td></tr>`
+    )
+    .join('')
+  return `${lines}<tr><td><strong>Trims subtotal</strong></td><td colspan="2"><strong>${usd(c.trims)}</strong></td></tr>`
+}
+
 function costSection(c?: CostBreakdown): string {
   if (!c) return ''
   const usd = (v: number): string => `$${v.toFixed(2)}`
@@ -165,7 +181,7 @@ function costSection(c?: CostBreakdown): string {
           <tbody>
             <tr><td>Fabric</td><td colspan="2">${usd(c.fabric)}</td></tr>
             <tr><td>Thread</td><td colspan="2">${usd(c.thread)}</td></tr>
-            ${c.trims > 0 ? `<tr><td>Trims / notions</td><td colspan="2">${usd(c.trims)}</td></tr>` : ''}
+            ${trimRows(c, usd)}
             <tr><td>Labour</td><td colspan="2">${usd(c.labour)}</td></tr>
             <tr><td>Overhead / waste</td><td colspan="2">${usd(c.overhead)}</td></tr>
             <tr><td>Ex-works (FOB) — declared customs value</td><td colspan="2">${usd(c.fob)}</td></tr>
@@ -293,6 +309,8 @@ export function manufactureHTML(b: ManufactureBundle): string {
   table { border-collapse: collapse; width: 100%; margin-bottom: 6px; }
   th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #eee; font-variant-numeric: tabular-nums; }
   th { color: #6b7280; font-weight: 600; font-size: 11px; }
+  td.indent { padding-left: 20px; color: #4b5563; }
+  .muted { color: #9ca3af; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
   .garment { break-inside: avoid; border-top: 2px solid #f0f0f2; padding-top: 6px; }
   .pattern svg { width: 100%; height: auto; border: 1px solid #eee; border-radius: 8px; }
