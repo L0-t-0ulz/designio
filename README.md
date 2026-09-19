@@ -42,9 +42,9 @@ If you are unsure whether something is allowed, **ask first.**
 - [At a glance](#at-a-glance)
 - [The homepage & "Design your piece"](#the-homepage--design-your-piece)
 - [The professional studio — every panel](#the-professional-studio--every-panel)
-- [The garment catalog — 55 garments](#the-garment-catalog--55-garments)
+- [The garment catalog — 57 garments](#the-garment-catalog--57-garments)
 - [Construction detail](#construction-detail)
-- [The fabric library — 39 fabrics](#the-fabric-library--39-fabrics)
+- [The fabric library — 71 fabrics](#the-fabric-library--71-fabrics)
 - [Surface design & fabric finishes](#surface-design--fabric-finishes)
 - [Per-part & per-panel fabric](#per-part--per-panel-fabric)
 - [Prints, logos & text](#prints-logos--text)
@@ -118,8 +118,8 @@ empty clipboard, last garment).
 
 | Tab | What's in it |
 | --- | --- |
-| **Garments** | the full 55-garment catalog, grouped by category, each a one-click add |
-| **Fabrics** | all 39 fabrics — **filter** by family · weight · stretch, combined with the text search |
+| **Garments** | the full 57-garment catalog, grouped by category, each a one-click add |
+| **Fabrics** | all 71 fabrics — **filter** by family · weight · stretch, combined with the text search |
 | **Avatars** | body type, presets and the mannequin options |
 | **Presets** | curated looks to start from |
 
@@ -159,7 +159,7 @@ once automatically and is always re-openable from **Help → Take the tour**.
 
 ---
 
-## The garment catalog — 55 garments
+## The garment catalog — 57 garments
 
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
 pieces), so breadth comes from data, not bespoke code. **Adding a garment is a data change, not new code.**
@@ -210,7 +210,7 @@ gold topstitch guide inset from each panel's sew line.
 
 ---
 
-## The fabric library — 39 fabrics
+## The fabric library — 71 fabrics
 
 Every fabric carries **physical** properties (weight, stretch, bendiness, friction) that drive the
 **drape**, and **visual** properties (weave, sheen, anisotropy, sheerness, roughness) that drive the
@@ -689,9 +689,9 @@ src/
                 (default realistic avatar) · skin · measure · poses · bodyPresets · accessories · face · colliders
     cloth/      XPBDSolver · ClothCollision (self/inter) · ClothWorld (sewn panels) · Garment · adaptiveMesh
                 · FabricMaterial · fabricPresets · windPresets · simQuality
-    fabric/     FabricLibrary (39 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
+    fabric/     FabricLibrary (71 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
                 · iridescent · quilt · lace · fur · namedColors · heatmap · wrinkle
-    garments/   schema (GarmentDefinition) · registry (the 55-garment catalog, as data) · factory · decor
+    garments/   schema (GarmentDefinition) · registry (the 57-garment catalog, as data) · factory · decor
     garment/    GarmentController (one garment's multi-piece sim, body-anchored) · templates
     studio/     GarmentStack (the live layer stack) · document (.dio, undo, colorways) · projectStore
                 · autosave · timeline + TimelinePlayer · turntable · measure + MeasureTool · lineup
@@ -717,7 +717,7 @@ or a supported detail is a data change, not new code.**
 
 ## Roadmap
 
-**Shipped:** data-driven garment schema + factory · 55-garment catalog (tops · bottoms · dresses ·
+**Shipped:** data-driven garment schema + factory · 57-garment catalog (tops · bottoms · dresses ·
 one-piece · outerwear · **cloth-sim headwear/neckwear**) with a category picker + schema-driven construction
 UI · 29-fabric library by family · **fabric thickness** (two-sided garments with a lining shell) · full
 **construction detail** (collar/cuff/pleats/darts/pockets/hem/closure + lining/interfacing/waistband/…) +

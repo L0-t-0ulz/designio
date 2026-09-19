@@ -1,8 +1,8 @@
 import { animate, stagger } from 'motion'
 import { createElement, Plus, ArrowRight } from 'lucide'
 import { el } from '../ui/controls'
-import { getGarment } from '../garments/registry'
-import { getFabric } from '../fabric/FabricLibrary'
+import { GARMENTS, getGarment } from '../garments/registry'
+import { FABRIC_LIBRARY, getFabric } from '../fabric/FabricLibrary'
 import { GARMENT_SIL } from '../ui/thumbnails'
 import { defaultConfig, type DesignConfig } from './design'
 import { PRESETS, type Preset } from './presets'
@@ -92,9 +92,12 @@ export function showHomepage(opts: HomeActions): void {
 
   // ---- "what you can do" strip ----
   const strip = el('div', 'dio-home-strip dio-home-anim')
+  // Counted from the registries, not written down. These were hardcoded at 16 and 24
+  // and had drifted a long way behind the real catalogue — a number on the homepage
+  // that nothing recomputes is a number that will be wrong again in a month.
   const stats: [string, string][] = [
-    ['16', 'garments'],
-    ['24', 'fabrics'],
+    [String(GARMENTS.length), 'garments'],
+    [String(FABRIC_LIBRARY.length), 'fabrics'],
     ['Real', 'cloth physics'],
     ['4D', 'body animation'],
     ['Export', 'glTF · pattern · tech-pack']
