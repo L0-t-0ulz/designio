@@ -125,7 +125,7 @@ import { pomTable } from './export/pom'
 import { bodyToMeasurements, setMeasurement } from './avatar/measure'
 import { parseScanOBJ, scanToMeasurements } from './avatar/bodyScan'
 import { parseBVH, bvhJointNames, bvhDuration } from './avatar/mocap'
-import { recommendSize } from './avatar/sizeRecommend'
+import { recommendSize, sizeRecommendationReadout } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
 import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost, DEFAULT_FREIGHT_PER_UNIT, DEFAULT_APPAREL_DUTY_PCT, priceTrimLines } from './export/cost'
 import { shopifyCsv, type ListingInput } from './export/listing'
@@ -2527,7 +2527,7 @@ function initStudio(
     recommendSize: () => {
       const l = stack.active
       const pom = pomTable(getGarment(l.data.garmentType), l.data, mannequin.measurements, mannequin.colliders, faceRig.getHairstyle())
-      return recommendSize(bodyToMeasurements(bodySize), pom.rows).size
+      return sizeRecommendationReadout(recommendSize(bodyToMeasurements(bodySize), pom.rows))
     },
     heatmap: { get: () => stack.heatmap, set: (on) => stack.setHeatmap(on) },
     stress: { get: () => stack.stress, set: (on) => stack.setStress(on) },
