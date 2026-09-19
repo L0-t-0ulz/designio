@@ -2,6 +2,7 @@ import { strainToColor } from './heatmap'
 import { pressureColor } from './pressure'
 import { stressColor, stressThreshold } from './stress'
 import { stretchUtilisation, usableStretch, utilisationColor } from './stretchUtilisation'
+import { WRINKLE_SCALE, wrinkleColor } from './wrinkleDensity'
 
 /**
  * **Legend for the strain views** — what each colour on the garment actually means,
@@ -16,7 +17,7 @@ import { stretchUtilisation, usableStretch, utilisationColor } from './stretchUt
  * other reason this cannot be a static image — "red" means 22% strain on a rigid
  * woven and 66% on a power knit.
  */
-export type StrainView = 'heatmap' | 'stress' | 'pressure' | 'utilisation'
+export type StrainView = 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle'
 
 export interface LegendStop {
   /** Position along the ramp, 0…1 — where to place it on the gradient bar. */
@@ -77,6 +78,17 @@ export function strainLegend(view: StrainView, fabricStretch = 0.5): Legend {
         title: 'Contact pressure',
         note: 'how hard the cloth presses the body',
         stops: at.map((a, i) => ({ at: a, label: names[i], color: pressureColor(a * scale, scale) }))
+      }
+    }
+    case 'wrinkle': {
+      // mean curvature, 1/m — a 1 cm-radius crease is 100 m⁻¹, so the scale is set
+      // where a fold becomes visually a crease rather than a soft drape
+      const at = [0, 1 / 3, 2 / 3, 1]
+      const names = ['smooth', 'soft fold', 'crease', 'sharp']
+      return {
+        title: 'Wrinkle density',
+        note: `mean curvature, 0…${WRINKLE_SCALE} m⁻¹`,
+        stops: at.map((a, i) => ({ at: a, label: names[i], color: wrinkleColor(a * WRINKLE_SCALE) }))
       }
     }
     case 'utilisation': {

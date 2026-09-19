@@ -262,6 +262,8 @@ export interface PanelOptions {
   pressure?: { get: () => boolean; set: (on: boolean) => void }
   /** Stretch-utilisation map — strain as a fraction of the fabric's own usable stretch. */
   utilisation?: { get: () => boolean; set: (on: boolean) => void }
+  /** Wrinkle-density map — mean curvature of the draped surface. */
+  wrinkleMap?: { get: () => boolean; set: (on: boolean) => void }
   /** Cloth tearing toggle — seams rip past the fabric's strain tolerance. */
   tearing?: { get: () => boolean; set: (on: boolean) => void }
   /** Smoothing slip — an invisible simulated underlayer outer garments drape over. */
@@ -2454,15 +2456,18 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     stressT?.refresh()
     pressT?.refresh()
     utilT?.refresh()
+    wrinkT?.refresh()
   }
   const heatT = opts.heatmap ? toggle({ label: 'Fit / tension heatmap', get: () => opts.heatmap!.get(), set: (v) => { opts.heatmap!.set(v); syncStrainToggles() } }) : null
   const stressT = opts.stress ? toggle({ label: 'Stress check (fit)', get: () => opts.stress!.get(), set: (v) => { opts.stress!.set(v); syncStrainToggles() } }) : null
   const pressT = opts.pressure ? toggle({ label: 'Pressure map (contact)', get: () => opts.pressure!.get(), set: (v) => { opts.pressure!.set(v); syncStrainToggles() } }) : null
   const utilT = opts.utilisation ? toggle({ label: 'Stretch utilisation', get: () => opts.utilisation!.get(), set: (v) => { opts.utilisation!.set(v); syncStrainToggles() } }) : null
+  const wrinkT = opts.wrinkleMap ? toggle({ label: 'Wrinkle density', get: () => opts.wrinkleMap!.get(), set: (v) => { opts.wrinkleMap!.set(v); syncStrainToggles() } }) : null
   const heatmapRow = heatT ? heatT.row : el('div')
   const stressRow = stressT ? stressT.row : el('div')
   const pressureRow = pressT ? pressT.row : el('div')
   const utilisationRow = utilT ? utilT.row : el('div')
+  const wrinkleMapRow = wrinkT ? wrinkT.row : el('div')
   const wrinkleRow = opts.wrinkles
     ? toggle({ label: 'Micro-wrinkles', get: () => opts.wrinkles!.get(), set: (v) => opts.wrinkles!.set(v) }).row
     : el('div')
@@ -2503,7 +2508,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const sceneGroup = el('div')
   const tlSec = section('Timeline', true)
   if (opts.timeline) tlSec.body.append(timelineControls(opts.timeline))
-  sceneGroup.append(redrapeRow, heatmapRow, stressRow, pressureRow, utilisationRow, wrinkleRow, tearRow, slipRow, opts.sim ? simSec.root : el('div'), env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
+  sceneGroup.append(redrapeRow, heatmapRow, stressRow, pressureRow, utilisationRow, wrinkleMapRow, wrinkleRow, tearRow, slipRow, opts.sim ? simSec.root : el('div'), env.root, animSec.root, opts.timeline ? tlSec.root : el('div'), view.root)
 
   const ctxTabs = el('div', 'dio-ctx-tabs')
   const ctxBtns: Record<'garment' | 'avatar', HTMLButtonElement> = {
