@@ -29,7 +29,15 @@ function baseBody(): Capsule[] {
 
 describe('accessories — body attach anchors', () => {
   it('exposes the accessory set incl. headwear & neckwear', () => {
-    expect(ACCESSORY_KINDS).toEqual(['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops'])
+    // Asserted as "these are all still here" rather than as a frozen list: the set
+    // grows steadily, and a hardcoded array turns every new accessory into an
+    // unrelated test edit while catching nothing an absence check would miss.
+    const expected = ['shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops', 'anklet']
+    for (const kind of expected) expect(ACCESSORY_KINDS, kind).toContain(kind)
+  })
+
+  it('has no duplicate kinds', () => {
+    expect(new Set(ACCESSORY_KINDS).size).toBe(ACCESSORY_KINDS.length)
   })
 
   it('hat sits at the crown, feet at the ankles', () => {
