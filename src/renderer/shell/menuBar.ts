@@ -67,6 +67,7 @@ export interface MenuActions {
   onGlossary: () => void
   onWhatsNew: () => void
   onCommandPalette: () => void
+  onResetConstruction: () => void
   onVectorEditor: () => void
   onLessons: () => void
   onChallenges: () => void
@@ -211,6 +212,8 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Duplicate garment', run: a.onDuplicate },
     { sep: true },
     { label: 'Delete garment', run: a.onDelete, enabled: a.canModifyLayers },
+    { sep: true },
+    { label: 'Reset construction to defaults', run: a.onResetConstruction },
     { sep: true },
     { label: 'Find anything… (⌘K)', run: a.onCommandPalette }
   ])

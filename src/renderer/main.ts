@@ -173,6 +173,8 @@ import {
   SIZES,
   type ProjectDoc,
   type GarmentLayerData
+,
+  resetConstruction
 } from './studio/document'
 
 // ---- shared scene (built once) -------------------------------------------
@@ -2284,6 +2286,7 @@ function initStudio(
     onGlossary: openGlossary,
     onWhatsNew: openWhatsNew,
     onCommandPalette: showCommandPalette,
+    onResetConstruction: resetActiveConstruction,
     onVectorEditor: openVectorEditor,
     onReview: () => openReview(reviewStore),
     onTutorial: () => openTutorial(getTutorialContext),
@@ -2333,6 +2336,7 @@ function initStudio(
     viewport,
     wireframe: { get: () => stack.wireframe, set: (v) => stack.setWireframe(v) },
     wireframeOverlay: { get: () => stack.wireframeOverlay, set: (v) => stack.setWireframeOverlay(v) },
+    onResetConstruction: resetActiveConstruction,
     mannequin: mannequin.group,
     fabrics: FABRIC_LIBRARY,
     current,
@@ -2708,6 +2712,19 @@ function initStudio(
    * in exactly the same place. Declared as a function so the shortcut dispatcher and
    * the menu, both built above, can reach it.
    */
+  /** Put the active layer's shape + construction back to the garment's defaults,
+   *  keeping its fabric, colour, prints and saved colourways. Undoable like any edit. */
+  function resetActiveConstruction(): void {
+    const doc = currentDoc()
+    const at = doc.activeIndex
+    const layer = doc.layers[at] ?? doc.layers[0]
+    if (!layer) return
+    doc.layers[at] = resetConstruction(layer)
+    pushUndo()
+    applyDoc(doc)
+    showToast('Construction reset to defaults', 'success')
+  }
+
   function showCommandPalette(): void {
     openCommandPalette({
       selectGarment: (id) => {

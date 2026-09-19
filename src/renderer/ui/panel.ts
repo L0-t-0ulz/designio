@@ -229,6 +229,8 @@ export interface PanelOptions {
   /** Wireframe over the active/all garment material(s). */
   wireframe: { get: () => boolean; set: (v: boolean) => void }
   wireframeOverlay: { get: () => boolean; set: (v: boolean) => void }
+  /** Put shape + construction back to the garment's defaults (appearance kept). */
+  onResetConstruction: () => void
   mannequin: THREE.Object3D
   fabrics: Fabric[]
   current: Fabric
@@ -917,7 +919,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   stitchBlock.append(el('div', 'dio-field-label', 'Seam & stitching'), seamRow, needleT.row, spiS.row, threadRow)
 
   const construction = section('Construction')
-  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, convBlock, faceBlock, beanieFitBlock, scarfBlock, pinBlock, gaiterBlock, snoodBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock)
+  const resetBtn = button('↺  Reset construction', () => opts.onResetConstruction())
+  resetBtn.title = 'Put shape and construction back to this garment’s defaults — fabric, colour and prints are kept'
+  construction.body.append(sizeBlock, gradeBlock, neckRow, sleeveRow, sleeveShapeBlock, convBlock, faceBlock, beanieFitBlock, scarfBlock, pinBlock, gaiterBlock, snoodBlock, pomBlock, lenS.row, easeS.row, easeChestS.row, easeWaistS.row, easeHipS.row, flareS.row, ...detailRows, collarBlock, pocketBlock, pleatBlock, frillBlock, hemShapeBlock, stitchBlock, resetBtn)
   syncGarment()
 
   // ---- pattern (sew) ----
