@@ -7,8 +7,23 @@ export interface StatusHandles {
   setSim: (running: boolean) => void
 }
 
-/** Bottom status bar: simulate toggle · sim state · selection · units · fps. */
-export function buildStatusBar(host: HTMLElement, onToggleSim: () => void, running: boolean, initialSelection = 'No selection'): StatusHandles {
+/** A one-click camera framing offered as a button in the bar. */
+export interface QuickView {
+  /** Button face — one or two characters; the bar is tight. */
+  label: string
+  /** Tooltip / accessible name. */
+  title: string
+  run: () => void
+}
+
+/** Bottom status bar: simulate toggle · sim state · selection · quick views · units · fps. */
+export function buildStatusBar(
+  host: HTMLElement,
+  onToggleSim: () => void,
+  running: boolean,
+  initialSelection = 'No selection',
+  quickViews: QuickView[] = []
+): StatusHandles {
   host.replaceChildren()
   const simBtn = el('button', 'dio-status-btn')
   const sim = el('span', 'dio-status-item')
@@ -25,7 +40,25 @@ export function buildStatusBar(host: HTMLElement, onToggleSim: () => void, runni
   setSim(running)
   simBtn.addEventListener('click', onToggleSim)
 
-  host.append(simBtn, sim, sel, spacer, units, fps)
+  host.append(simBtn, sim, sel, spacer)
+
+  // Quick camera framings (front / back / sides). Omitted entirely when none are
+  // supplied, so the bar is unchanged for callers that don't offer them.
+  if (quickViews.length) {
+    const group = el('span', 'dio-status-views')
+    group.setAttribute('role', 'group')
+    group.setAttribute('aria-label', 'Camera views')
+    for (const v of quickViews) {
+      const b = el('button', 'dio-status-btn dio-status-view', v.label)
+      b.title = v.title
+      b.setAttribute('aria-label', v.title)
+      b.addEventListener('click', v.run)
+      group.append(b)
+    }
+    host.append(group)
+  }
+
+  host.append(units, fps)
   return {
     setFps: (n) => (fps.textContent = `${Math.round(n)} fps`),
     setSelection: (t) => (sel.textContent = t),

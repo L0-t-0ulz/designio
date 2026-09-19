@@ -35,6 +35,7 @@ export interface MenuActions {
   onAnim: (mode: AnimationMode) => void
   onToggleWireframe: () => void
   onToggleWireframeOverlay: () => void
+  onStandardView: (id: 'front' | 'back' | 'left' | 'right') => void
   onToggleMannequin: () => void
   onMeasure: () => void
   onAnnotate: () => void
@@ -238,6 +239,11 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { sep: true },
     { label: 'Wireframe', run: a.onToggleWireframe },
     { label: 'Wireframe over shaded', run: a.onToggleWireframeOverlay },
+    { sep: true },
+    { label: 'Front view', run: () => a.onStandardView('front') },
+    { label: 'Back view', run: () => a.onStandardView('back') },
+    { label: 'Left side view', run: () => a.onStandardView('left') },
+    { label: 'Right side view', run: () => a.onStandardView('right') },
     { label: 'Show / hide mannequin', run: a.onToggleMannequin }
   ])
   menu('Help', [
