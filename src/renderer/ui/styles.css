@@ -2159,3 +2159,14 @@ canvas {
 .dio-compact .dio-cw-grid {
   gap: 5px;
 }
+
+/* Quick colours — one row of recently-used swatches above the reference library. */
+.dio-quick-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.dio-quick-colors .dio-swatch {
+  width: 20px;
+  height: 20px;
+}

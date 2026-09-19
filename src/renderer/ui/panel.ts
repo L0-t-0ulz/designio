@@ -68,6 +68,7 @@ import { QUILT_PATTERNS, type QuiltPattern } from '../fabric/quilt'
 import { LACE_PATTERNS, type LacePattern } from '../fabric/lace'
 import { FUR_KINDS, type FurKind } from '../fabric/fur'
 import { NAMED_COLORS, nearestNamedColor, isExactNamedColor } from '../fabric/namedColors'
+import { loadQuickColors, pushQuickColor, saveQuickColors } from '../fabric/quickColors'
 import { harmonies } from '../fabric/harmony'
 import { PRINT_BLENDS, type PrintPart, type PrintStyle, type PrintBlend } from '../start/design'
 
@@ -1802,6 +1803,42 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
 
   // A named textile colour library — click a swatch to set the colour; the readout
   // shows the current colour's nearest production reference (exact, or ≈ nearest).
+  /**
+   * The quick-colour row: the colours actually in use, most recent first, above the
+   * 54-chip reference library. Every colour set in the panel goes through
+   * `applyColor`, so the row learns from the library, the harmonies and the native
+   * picker alike rather than only from itself.
+   */
+  let quickColors = loadQuickColors()
+  const quickRow = el('div', 'dio-quick-colors')
+  const renderQuick = (): void => {
+    quickRow.replaceChildren()
+    for (const hex of quickColors) {
+      const chip = el('button', 'dio-swatch')
+      chip.style.background = '#' + hex.toString(16).padStart(6, '0')
+      chip.title = `#${hex.toString(16).padStart(6, '0')}`
+      chip.setAttribute('type', 'button')
+      chip.addEventListener('click', () => applyColor(hex))
+      quickRow.append(chip)
+    }
+  }
+  function applyColor(hex: number): void {
+    const next = pushQuickColor(quickColors, hex)
+    if (next !== quickColors) {
+      quickColors = next
+      saveQuickColors(quickColors)
+      renderQuick()
+    }
+    opts.onColor(hex)
+    refreshAll()
+  }
+  function quickColorRow(): Refreshable {
+    const row = el('div', 'dio-colorlib-row')
+    renderQuick()
+    row.append(el('div', 'dio-field-label', 'Quick colours'), quickRow)
+    return { row, refresh: renderQuick }
+  }
+
   function colorLibrary(): Refreshable {
     const row = el('div', 'dio-colorlib-row')
     const ref = el('div', 'dio-color-ref')
@@ -1811,10 +1848,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       chip.style.background = '#' + nc.hex.toString(16).padStart(6, '0')
       chip.title = `${nc.code} · ${nc.name}`
       chip.setAttribute('type', 'button')
-      chip.addEventListener('click', () => {
-        opts.onColor(nc.hex)
-        refreshAll()
-      })
+      chip.addEventListener('click', () => applyColor(nc.hex))
       grid.append(chip)
     }
     const refresh = (): void => {
@@ -1842,7 +1876,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
           chip.style.background = '#' + hex.toString(16).padStart(6, '0')
           chip.title = 'Apply this harmony colour'
           chip.addEventListener('click', () => {
-            opts.onColor(hex)
+            applyColor(hex)
             refreshAll()
           })
           line.append(chip)
@@ -2007,7 +2041,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     track(toggle({ label: 'Wet look', get: () => !!garment.wet, set: (v) => { garment.wet = v; opts.onGarmentEdit() } })),
     track(slider({ label: 'Pilling (aged knit)', min: 0, max: 1, step: 0.05, get: () => garment.pilling ?? 0, set: (v) => { garment.pilling = v || undefined; opts.onGarmentEdit() } })),
     track(toggle({ label: 'Puffer loft', get: () => !!garment.puff, set: (v) => { garment.puff = v; opts.onGarmentEdit() } })),
-    track(colorField({ label: 'Colour', get: () => current.color, set: (v) => opts.onColor(v) })),
+    track(colorField({ label: 'Colour', get: () => current.color, set: (v) => applyColor(v) })),
+    track(quickColorRow()),
     track(colorLibrary()),
     track(harmonyPicker()),
     track(slider({ label: 'Roughness', min: 0, max: 1, step: 0.01, get: () => current.roughness, set: (v) => { current.roughness = v; opts.onVisualEdit() } })),
