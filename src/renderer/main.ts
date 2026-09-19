@@ -101,7 +101,7 @@ import { colourworkPreset, cloneColourwork } from './fabric/colourwork'
 import { BALACLAVA_FACES, BALACLAVA_WORN, CONVERTIBLE_WORN, type BalaclavaFace, type BalaclavaWorn, type ConvertibleWorn } from './garments/schema'
 import { yarnPreset } from './fabric/yarn'
 import { FABRIC_LIBRARY, getFabric, fabricToSolverParams, estimatedFabricPrice, type Fabric } from './fabric/FabricLibrary'
-import { exportGLB, exportOBJ, exportUSDZ } from './export/exporters3d'
+import { exportGLB, exportOBJ, exportSTL, exportUSDZ } from './export/exporters3d'
 import { recordClip, recordTurntable } from './studio/turntable'
 import { SOCIAL_PRESETS } from './studio/socialPresets'
 import { patternToSVG, patternToDXF } from './export/patternExport'
@@ -1431,6 +1431,9 @@ function initStudio(
         break
       case 'obj':
         await saveFile('garment.obj', await exportOBJ(meshes), [{ name: 'Wavefront OBJ', extensions: ['obj'] }])
+        break
+      case 'stl':
+        await saveFile('garment.stl', await exportSTL(meshes), [{ name: 'STL (3D print)', extensions: ['stl'] }])
         break
       case 'svg': {
         const svg =

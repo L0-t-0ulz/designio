@@ -169,6 +169,7 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     ex('glb', 'Export 3D — glTF (.glb)'),
     ex('usdz', 'Export 3D — USDZ (AR · iOS)'),
     ex('obj', 'Export 3D — OBJ'),
+    ex('stl', 'Export 3D — STL (3D print / CAD)'),
     ex('svg', 'Export pattern — SVG'),
     ex('dxf', 'Export pattern — DXF'),
     ex('pattern-tiled', 'Print pattern — tiled A4 (to scale)'),
