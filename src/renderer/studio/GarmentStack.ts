@@ -35,6 +35,7 @@ import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
+import { utilisationColor, stretchUtilisation } from '../fabric/stretchUtilisation'
 import { pressureColor } from '../fabric/pressure'
 import { makePillNormalMap } from '../fabric/pilling'
 import { buttonCount, buttonScale } from './closureDesign'
@@ -1600,12 +1601,18 @@ export class GarmentStack {
   // Strain overlay: a per-vertex colouring of the cloth by solver strain — the fit
   // heatmap (loose→tight), the stress check (fit-failure) or the pressure map
   // (body-contact force). Mutually exclusive.
-  private strainView: 'none' | 'heatmap' | 'stress' | 'pressure' = 'none'
+  private strainView: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation' = 'none'
   /** The strain→colour fn for a layer — stress is fabric-aware (a stretchy fabric reds
    *  out at higher strain than a rigid one), the heatmap is a fixed tension ramp, the
    *  pressure map a cold→hot contact ramp. */
   private layerColorFn(l: StackLayer): (s: number) => [number, number, number] {
     if (this.strainView === 'pressure') return pressureColor
+    if (this.strainView === 'utilisation') {
+      // normalised by the fabric's own usable stretch, so the same colour means the
+      // same headroom on denim and on a power knit
+      const k = l.fabric.stretch
+      return (strain) => utilisationColor(stretchUtilisation(strain, k))
+    }
     if (this.strainView !== 'stress') return strainToColor
     const T = stressThreshold(l.fabric.stretch)
     return (s) => stressColor(s, T)
@@ -1614,7 +1621,7 @@ export class GarmentStack {
   private strainSource(): 'strain' | 'contact' {
     return this.strainView === 'pressure' ? 'contact' : 'strain'
   }
-  private setStrainView(mode: 'none' | 'heatmap' | 'stress' | 'pressure'): void {
+  private setStrainView(mode: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation'): void {
     this.strainView = mode
     for (const l of this.layers) this.applyStrainViewTo(l)
   }
@@ -1627,6 +1634,9 @@ export class GarmentStack {
   setPressure(on: boolean): void {
     this.setStrainView(on ? 'pressure' : 'none')
   }
+  setUtilisation(on: boolean): void {
+    this.setStrainView(on ? 'utilisation' : 'none')
+  }
   get heatmap(): boolean {
     return this.strainView === 'heatmap'
   }
@@ -1635,6 +1645,9 @@ export class GarmentStack {
   }
   get pressure(): boolean {
     return this.strainView === 'pressure'
+  }
+  get utilisation(): boolean {
+    return this.strainView === 'utilisation'
   }
   redrapeAll(): void {
     for (const l of this.layers) l.controller.redrape()
