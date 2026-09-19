@@ -21,6 +21,39 @@ export function formatCm(cm: number): string {
   return `${cm.toFixed(1)} cm`
 }
 
+/**
+ * How close a vertex has to be to the raw hit, in metres, before snapping takes it.
+ * Roughly a centimetre — tight enough that a point in the middle of a panel is left
+ * where it was put, loose enough to catch the corner you were aiming at.
+ */
+export const SNAP_RADIUS_M = 0.01
+
+/**
+ * The nearest candidate to `p` within `maxDist`, or null if none is close enough.
+ *
+ * This is what makes a measurement reproducible: clicking "the same" hem corner twice
+ * lands on the same vertex both times instead of two points a pixel apart, so the two
+ * readings agree. Ties go to the earlier candidate so the result is deterministic.
+ */
+export function nearestPoint(p: THREE.Vector3, candidates: THREE.Vector3[], maxDist = SNAP_RADIUS_M): THREE.Vector3 | null {
+  if (!(maxDist > 0)) return null
+  let best: THREE.Vector3 | null = null
+  let bestDist = Infinity
+  for (const c of candidates) {
+    const d = p.distanceTo(c)
+    if (d < bestDist && d <= maxDist) {
+      best = c
+      bestDist = d
+    }
+  }
+  return best ? best.clone() : null
+}
+
+/** `p` snapped to the nearest candidate within range, or `p` itself when none is. */
+export function snapPoint(p: THREE.Vector3, candidates: THREE.Vector3[], maxDist = SNAP_RADIUS_M): THREE.Vector3 {
+  return nearestPoint(p, candidates, maxDist) ?? p.clone()
+}
+
 export interface Measurement {
   id: string
   a: THREE.Vector3

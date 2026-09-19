@@ -769,6 +769,14 @@ function initStudio(
     const n = (measureTool?.store.measurements.length ?? 0) + (measureTool?.store.annotations.length ?? 0)
     return n ? `${n} annotation${n === 1 ? '' : 's'} placed` : 'Ready'
   }
+  /** Flip vertex snapping and say which way it went — there is no persistent chrome
+   *  for the measure tool, so the status line is the only feedback available. */
+  function toggleMeasureSnap(): void {
+    if (!measureTool) return
+    const on = !measureTool.getSnap()
+    measureTool.setSnap(on)
+    showToast(on ? 'Measurements snap to vertices' : 'Measurements follow the cursor', 'info')
+  }
   function setMeasureMode(m: MeasureMode): void {
     measureTool?.setMode(m)
     statusHandles?.setSelection(measureLabel())
@@ -2258,6 +2266,7 @@ function initStudio(
     onToggleHanger: () => setHangerShot(!stack.hangerMode),
     onDrapeComparator: () => openDrapeComparator({ current: stack.active.fabric, library: FABRIC_LIBRARY }),
     onTogglePress: () => setPressMode(!pressMode),
+    onToggleMeasureSnap: toggleMeasureSnap,
     onClearMeasure: () => {
       measureTool?.clear()
       setMeasureMode('off')
