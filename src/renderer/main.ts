@@ -12,6 +12,7 @@ import { toggleShortcuts, closeShortcuts, shortcutsOpen } from './ui/shortcutsOv
 import { openGlossary } from './ui/glossaryOverlay'
 import { openWhatsNew, whatsNewOpen, closeWhatsNew } from './ui/whatsNewOverlay'
 import { loadSeenRelease, shouldAutoOpen } from './ui/whatsNew'
+import { openCommandPalette, commandPaletteOpen, closeCommandPalette } from './ui/commandPaletteOverlay'
 import { ReviewStore } from './studio/reviewPins'
 import { openReview } from './ui/reviewOverlay'
 import { openTutorial } from './ui/tutorialOverlay'
@@ -2100,7 +2101,8 @@ function initStudio(
     save: saveProject,
     open: openProject,
     delete: deleteGarment,
-    glossary: openGlossary
+    glossary: openGlossary,
+    palette: showCommandPalette
   }
   function onKey(e: KeyboardEvent): void {
     const t = e.target as HTMLElement | null
@@ -2109,6 +2111,7 @@ function initStudio(
     if (e.key === 'Escape' && sketchPadOpen()) return closeSketchPad()
     if (e.key === 'Escape' && tourOpen()) return closeTour()
     if (e.key === 'Escape' && whatsNewOpen()) return closeWhatsNew()
+    if (e.key === 'Escape' && commandPaletteOpen()) return closeCommandPalette()
     if (e.key === '?') return e.preventDefault(), toggleShortcuts()
     const action = actionFor(keymap(), { key: e.key, mod: e.metaKey || e.ctrlKey, shift: e.shiftKey })
     if (!action) return
@@ -2265,6 +2268,7 @@ function initStudio(
     onTour: () => startTour(),
     onGlossary: openGlossary,
     onWhatsNew: openWhatsNew,
+    onCommandPalette: showCommandPalette,
     onVectorEditor: openVectorEditor,
     onReview: () => openReview(reviewStore),
     onTutorial: () => openTutorial(getTutorialContext),
@@ -2660,6 +2664,39 @@ function initStudio(
   })
   shell.right.appendChild(panel)
 
+  /**
+   * The command palette, over the same actions the Library tabs and the template
+   * gallery already use — so finding a thing by name and clicking it in a tab end up
+   * in exactly the same place. Declared as a function so the shortcut dispatcher and
+   * the menu, both built above, can reach it.
+   */
+  function showCommandPalette(): void {
+    openCommandPalette({
+      selectGarment: (id) => {
+        api.setContext('garment')
+        pushUndo()
+        api.selectGarment(id)
+      },
+      selectFabric: (id) => {
+        pushUndo()
+        api.selectFabric(id)
+      },
+      setFigure: (t) => {
+        api.setContext('avatar')
+        pushUndo()
+        api.setFigure(t)
+      },
+      applyPreset,
+      applyTemplate: (tpl) => {
+        const doc = currentDoc()
+        applyTemplateToLayer(doc.layers[doc.activeIndex] ?? doc.layers[0], tpl)
+        pushUndo()
+        applyDoc(doc)
+        showToast('Applied \u201c' + tpl.name + '\u201d', 'success')
+      }
+    })
+  }
+
   // ---- Library (left): browse + apply to the active layer, in sync with the panel ----
   function applyPreset(p: Preset): void {
     pushUndo()
@@ -2796,6 +2833,7 @@ function initStudio(
   if (params.get('shortcuts') === '1') window.setTimeout(() => toggleShortcuts(), 500) // open the shortcut editor (verify/share)
   if (params.get('glossary') === '1') window.setTimeout(() => openGlossary(), 500) // open the term glossary
   if (params.get('whatsnew') === '1') window.setTimeout(() => openWhatsNew(), 500) // open the release feed
+  if (params.get('palette') === '1') window.setTimeout(() => showCommandPalette(), 500) // open the command palette
   if (params.get('review') === '1') window.setTimeout(() => openReview(reviewStore), 500) // open the design-review panel
   if (params.get('tutorial') === '1') window.setTimeout(() => openTutorial(getTutorialContext), 500) // open the interactive tutorial
   if (params.get('vectorEditor') === '1') window.setTimeout(() => openVectorEditor(), 500) // open the vector print editor

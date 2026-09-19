@@ -62,6 +62,7 @@ export interface MenuActions {
   onTour: () => void
   onGlossary: () => void
   onWhatsNew: () => void
+  onCommandPalette: () => void
   onVectorEditor: () => void
   onLessons: () => void
   onChallenges: () => void
@@ -205,7 +206,9 @@ export function buildMenuBar(host: HTMLElement, a: MenuActions): void {
     { label: 'Paste garment', run: a.onPaste, enabled: a.canPaste },
     { label: 'Duplicate garment', run: a.onDuplicate },
     { sep: true },
-    { label: 'Delete garment', run: a.onDelete, enabled: a.canModifyLayers }
+    { label: 'Delete garment', run: a.onDelete, enabled: a.canModifyLayers },
+    { sep: true },
+    { label: 'Find anything… (⌘K)', run: a.onCommandPalette }
   ])
   menu('Avatar', [
     { label: 'Idle', run: () => a.onAnim('idle') },
