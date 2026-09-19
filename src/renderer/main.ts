@@ -109,6 +109,7 @@ import { panelsToDXF, garmentPatternSVG, garmentPatternDXF, garmentToPanels } fr
 import { patternPieceCount } from './export/patternPieces'
 import { skuAndBarcode } from './export/sku'
 import { nearestNamedColor } from './fabric/namedColors'
+import { trimCard, type TrimLine } from './export/trimCard'
 import { tiledPatternHTML } from './export/tiledPrint'
 import { techpackHTML, techpackJSON, type TechpackData } from './export/techpack'
 import { garmentMetrics } from './export/garmentMetrics'
@@ -1416,8 +1417,31 @@ function initStudio(
             }
           : { bust_cm: +(patternParams.bust * 100).toFixed(1), length_cm: +(patternParams.length * 100).toFixed(1) },
       fabric: l.fabric,
-      measurements: mannequin.measurements
+      measurements: mannequin.measurements,
+      trims: mode === 'templates' ? activeTrimCard(l) : undefined
     }
+  }
+
+  /** The trim card for a layer, derived from its construction so a garment with its
+   *  closure switched off never sources buttons. Thread comes from the same
+   *  `threadMetres` the cost sheet bills, so the two pages cannot disagree. */
+  function activeTrimCard(l: typeof stack.active): TrimLine[] {
+    const metrics = activeMetrics(l)
+    const d = l.data
+    return trimCard({
+      closure: d.closure ? ((getGarment(d.garmentType).closureStyle ?? 'button') as 'button' | 'zip') : undefined,
+      closureDesign: d.closureDesign,
+      seamCm: metrics.seamCm,
+      threadM: threadMetres(metrics.seamCm),
+      drawstring: d.drawstring,
+      waistband: d.waistband,
+      ribbing: d.ribbing,
+      fringe: d.fringe,
+      piping: d.piping,
+      lined: d.lined,
+      trimColor: d.trim ? d.trimColor : undefined,
+      bodyColor: d.color
+    })
   }
   async function doExport(fmt: ExportFormat): Promise<void> {
     hasExported = true // tutorial: the "export your design" task
