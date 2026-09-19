@@ -1,3 +1,5 @@
+import { cleanRecent, pushRecent } from '../core/recentList'
+
 /**
  * **Quick colours** — the small swatch row above the full colour library: the colours
  * this designer has actually been using, most recent first.
@@ -36,9 +38,8 @@ function isColor(c: unknown): c is number {
  * the current colour causes no write.
  */
 export function pushQuickColor(list: number[], hex: number, max = MAX_QUICK_COLORS): number[] {
-  if (!isColor(hex) || max <= 0) return list
-  if (list[0] === hex) return list
-  return [hex, ...list.filter((c) => c !== hex)].slice(0, max)
+  if (!isColor(hex)) return list
+  return pushRecent(list, hex, max)
 }
 
 /** Parse stored JSON into a usable list, dropping anything that isn't a colour. */
@@ -47,7 +48,7 @@ export function parseQuickColors(raw: string | null, max = MAX_QUICK_COLORS): nu
   try {
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return [...QUICK_SEED].slice(0, max)
-    const clean = [...new Set(parsed.filter(isColor))].slice(0, max)
+    const clean = cleanRecent(parsed, max, isColor)
     // an empty or entirely junk list falls back to the seed rather than an empty row
     return clean.length ? clean : [...QUICK_SEED].slice(0, max)
   } catch {

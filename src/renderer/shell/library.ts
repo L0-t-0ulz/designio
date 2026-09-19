@@ -6,6 +6,7 @@ import { GARMENT_SIL, fabricSwatchCanvas } from '../ui/thumbnails'
 import { PRESETS, type Preset } from '../start/presets'
 import { matchesFabric, type FabricFilter, type WeightBucket, type StretchBucket } from './libraryFilter'
 import { loadFavourites, pruneFavourites, saveFavourites, toggleFavourite } from '../fabric/favourites'
+import { loadRecentFabrics, pruneRecentFabrics } from '../fabric/recentFabrics'
 
 type Tab = 'garments' | 'fabrics' | 'avatars' | 'presets'
 
@@ -167,6 +168,19 @@ export function buildLibrary(host: HTMLElement, a: LibraryActions): LibraryHandl
       // Starred fabrics first, in the order they were starred — the point of the
       // feature is not scrolling to them. They still appear under their family below,
       // so the catalogue stays complete rather than having holes punched in it.
+      // Recents first, then favourites: what you just used is the likeliest next
+      // pick, and it is read fresh on every render so a fabric applied from the
+      // command palette or a colourway shows up here too.
+      const known = FABRIC_LIBRARY.map((f) => f.id)
+      const recents = pruneRecentFabrics(loadRecentFabrics(), known)
+        .map((id) => FABRIC_LIBRARY.find((f) => f.id === id))
+        .filter((f): f is (typeof FABRIC_LIBRARY)[number] => !!f && matchesFabric(f, flt))
+      if (recents.length) {
+        body.append(cat('\u21ba Recent'))
+        const g = grid()
+        for (const f of recents) g.append(fabricItem(f))
+        body.append(g)
+      }
       const faves = favourites
         .map((id) => FABRIC_LIBRARY.find((f) => f.id === id))
         .filter((f): f is (typeof FABRIC_LIBRARY)[number] => !!f && matchesFabric(f, flt))
