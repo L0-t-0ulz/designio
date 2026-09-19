@@ -47,7 +47,7 @@ export function buildStatusBar(
   if (quickViews.length) {
     const group = el('span', 'dio-status-views')
     group.setAttribute('role', 'group')
-    group.setAttribute('aria-label', 'Camera views')
+    group.setAttribute('aria-label', 'Camera framing')
     for (const v of quickViews) {
       const b = el('button', 'dio-status-btn dio-status-view', v.label)
       b.title = v.title

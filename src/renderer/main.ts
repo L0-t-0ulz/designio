@@ -14,6 +14,7 @@ import { openWhatsNew, whatsNewOpen, closeWhatsNew } from './ui/whatsNewOverlay'
 import { loadSeenRelease, shouldAutoOpen } from './ui/whatsNew'
 import { openCommandPalette, commandPaletteOpen, closeCommandPalette } from './ui/commandPaletteOverlay'
 import { standardView, standardViews, type StandardViewId } from './studio/standardViews'
+import { fitPose, visibleBounds } from './studio/zoomToFit'
 import { ReviewStore } from './studio/reviewPins'
 import { openReview } from './ui/reviewOverlay'
 import { openTutorial } from './ui/tutorialOverlay'
@@ -2228,6 +2229,7 @@ function initStudio(
     onToggleWireframe: () => stack.setWireframe(!stack.wireframe),
     onToggleWireframeOverlay: () => stack.setWireframeOverlay(!stack.wireframeOverlay),
     onStandardView: applyStandardView,
+    onZoomToFit: zoomToFit,
     onToggleMannequin: () => (mannequin.group.visible = !mannequin.group.visible),
     onMeasure: () => setMeasureMode(measureTool?.getMode() === 'measure' ? 'off' : 'measure'),
     onAnnotate: () => setMeasureMode(measureTool?.getMode() === 'annotate' ? 'off' : 'annotate'),
@@ -2290,7 +2292,10 @@ function initStudio(
     },
     running,
     getGarment(stack.active.data.garmentType).name, // seed the selection so it never flashes "No selection"
-    standardViews(mannequin.measurements).map((v) => ({ label: v.label, title: v.title, run: () => applyStandardView(v.id) }))
+    [
+      ...standardViews(mannequin.measurements).map((v) => ({ label: v.label, title: v.title, run: () => applyStandardView(v.id) })),
+      { label: 'Fit', title: 'Zoom to fit the garment', run: zoomToFit }
+    ]
   )
 
   /** Frame the figure dead-on from one of the four standard elevations. The pose is
@@ -2299,6 +2304,16 @@ function initStudio(
   function applyStandardView(id: StandardViewId): void {
     const view = standardView(mannequin.measurements, id)
     if (view) viewport.setCameraPose(view.pose)
+  }
+
+  /** Pull back until everything worn is in frame, from wherever the camera already is.
+   *  Falls back to framing the figure when nothing is worn, so the button is never a
+   *  no-op that leaves the designer wondering whether it worked. */
+  function zoomToFit(): void {
+    const worn = visibleBounds(stack.getMeshesAll())
+    const box = worn.isEmpty() ? visibleBounds([mannequin.group]) : worn
+    const pose = fitPose(box, viewport.getCameraPose(), viewport.camera.fov, viewport.camera.aspect)
+    if (pose) viewport.setCameraPose(pose)
   }
 
   // ---- control panel (docked into the right region) ----
