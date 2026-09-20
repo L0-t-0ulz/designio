@@ -554,9 +554,13 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
         faceCollider.b.z += 0.55 * r
       }
     }
-    setCap(3, b.lArm, b.rArm) // shoulder line
-    setCap(4, b.lUpLeg, b.rUpLeg) // hip line
-    // Match the procedural left capsules (−x) to whichever GLB side is on −x.
+    // Match the procedural left capsules (−x) to whichever GLB side is on −x. This
+    // has to be settled BEFORE the shoulder and hip lines are set, not after: those
+    // two are the only capsules whose a→b direction is read as a body axis, so
+    // taking their ends from the rig's own Left/Right naming flips the whole frame
+    // on a rig whose `Left` is on +x. `headFrame` derives `right` from the shoulder
+    // line and `forward` from `right`, so a flipped shoulder line puts the face, the
+    // cap bills and everything worn on the chest round the back.
     let negS: 'l' | 'r' = 'l'
     if (b.lArm && b.rArm) {
       b.lArm.getWorldPosition(wp)
@@ -565,6 +569,8 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     }
     const posS: 'l' | 'r' = negS === 'l' ? 'r' : 'l'
     const bn = (s: 'l' | 'r', seg: string): THREE.Object3D | undefined => b[(s + seg) as keyof typeof b]
+    setCap(3, bn(negS, 'Arm'), bn(posS, 'Arm')) // shoulder line: a on −x, b on +x
+    setCap(4, bn(negS, 'UpLeg'), bn(posS, 'UpLeg')) // hip line, same convention
     setCap(5, bn(negS, 'Arm'), bn(negS, 'Fore'))
     setCap(6, bn(negS, 'Fore'), bn(negS, 'Hand'))
     setCap(7, bn(negS, 'UpLeg'), bn(negS, 'Leg'))
