@@ -29,6 +29,7 @@ import {
   tieHalfWidth,
   splineThrough3
 } from './neckwear'
+import { CROWNS, crownRadius, crownHeight, crownFit, crownRise, HAT_LINE_Y, mmToUnits, TASSEL_LENGTH_MM, TASSEL_STRANDS, TASSEL_BUTTON_MM, tasselStrand, type BrimlessStyle } from './brimless'
 import { FRAMES, lensOffset, lensOutline, unitsPerMm, type SunglassesStyle } from './shades'
 import { headFrame, FACE_FRONT_R, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X, EAR_Z } from './face'
 import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, FOOT_LAST, SOCK_INSIDE_SHOE, sockRiseM, type SockHeight, HAND_REACH_R, HAND_HALF_THICKNESS_R, HAND_HALF_BREADTH_R, GLOVE_CLEARANCE_R, GLOVE_CUFF_M, WRIST_AT_T, ANKLE_AT_T, WRIST_TO_FOREARM, ANKLE_TO_CALF, STUD_BALL_MM, STUD_POST_MM, HOOP_OUTER_MM, HOOP_WIRE_MM } from './wornSizing'
@@ -43,8 +44,8 @@ import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, F
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
+export type AccessoryKind = 'fez' | 'kufi' | 'pillbox' | 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['fez', 'kufi', 'pillbox', 'tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -348,6 +349,9 @@ export class Accessories {
   constructor() {
     this.group.name = 'accessories'
     this.items.push(
+      this.buildBrimless('fez'),
+      this.buildBrimless('kufi'),
+      this.buildBrimless('pillbox'),
       this.buildTie(),
       this.buildBowtie(),
       this.buildSuspenders(),
@@ -1818,6 +1822,72 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(lens, shell, strap)
     return this.headItem('goggles', obj)
+  }
+
+  /**
+   * The **brimless crowns** — fez, kufi and pillbox.
+   *
+   * One lathe and a table of profiles, because that is honestly what separates
+   * them: all three come off the same kind of block, cut to different heights and
+   * tapers. The fez is the tall truncated cone, the kufi the short rounded
+   * skullcap, the pillbox the shallow drum — and the pillbox is deliberately
+   * *narrower* than the head, which is why it perches rather than fits, and why it
+   * is worn tilted and set back.
+   *
+   * Blocked in millimetres, as a milliner works, converted into the head frame
+   * through the measured head breadth so every one of them fits a resized head.
+   */
+  private buildBrimless(style: BrimlessStyle): Item {
+    const c = CROWNS[style]
+    const mat = style === 'fez' ? felt(c.colour) : knit(c.colour)
+    const RINGS = 20
+    const RADIAL = 40
+    // a lathe: the crown profile revolved, with the band open at the bottom
+    const pts: THREE.Vector2[] = []
+    for (let i = 0; i <= RINGS; i++) {
+      const t = i / RINGS
+      pts.push(new THREE.Vector2(Math.max(1e-4, crownRadius(c, t)), t * crownHeight(c)))
+    }
+    const crown = new THREE.Mesh(new THREE.LatheGeometry(pts, RADIAL), mat)
+    const obj = new THREE.Group()
+    obj.add(crown)
+    if (style === 'fez') this.addTassel(obj, c)
+    // graded to the head it is on: girth so the band clears the widest point, and
+    // height so the crown actually contains the skull above it
+    obj.scale.set(crownFit(c), crownRise(c, HAT_LINE_Y), crownFit(c))
+    // a pillbox perches: tilted back off the brow and set back on the crown
+    obj.rotation.x = (-c.tiltDeg * Math.PI) / 180
+    obj.position.set(0, HAT_LINE_Y, -c.setBack)
+    const outer = new THREE.Group()
+    outer.add(obj)
+    return this.headItem(style as AccessoryKind, outer)
+  }
+
+  /**
+   * The fez's tassel — a silk bundle on a cord from a button at the centre of the
+   * flat top. Built as strands rather than a cone so it reads as thread.
+   */
+  private addTassel(obj: THREE.Group, c: (typeof CROWNS)['fez']): void {
+    const silk = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.62, metalness: 0 })
+    const top = crownHeight(c)
+    const button = new THREE.Mesh(new THREE.SphereGeometry((TASSEL_BUTTON_MM / 2) * mmToUnits, 12, 10), silk)
+    button.position.y = top
+    button.scale.y = 0.6
+    obj.add(button)
+    const SEGS = 6
+    for (let i = 0; i < TASSEL_STRANDS; i++) {
+      const path: THREE.Vector3[] = []
+      for (let k = 0; k <= SEGS; k++) {
+        const d = k / SEGS
+        const p = tasselStrand(i, TASSEL_STRANDS, d, 0.06, crownRadius(c, 1 - c.roundTop))
+        path.push(new THREE.Vector3(p.x, top + p.y, p.z))
+      }
+      const strand = new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), SEGS * 2, TASSEL_LENGTH_MM * mmToUnits * 0.012, 4, false),
+        silk
+      )
+      obj.add(strand)
+    }
   }
 
   private sunglassesStyle: SunglassesStyle = 'wayfarer'
