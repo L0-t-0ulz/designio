@@ -6,6 +6,7 @@ import { loadGlbBody, measureGlbHead, type GlbBody, type GlbBones, type GlbHead 
 import { makeSkinMaterial, applySkinLook, type SkinLook } from './skin'
 import { getPose, type Pose, type PoseName, type PoseTargets } from './poses'
 import { solveJoint, aimBone } from './ik'
+import { comBob, cadenceRatio, elbowFlexion, RUN_CADENCE, RUN_LEG_GAIN, RUN_ARM_GAIN } from './gait'
 
 /** `?poseDebug=1` logs each solved limb: where it was asked to reach and where it got to. */
 const POSE_DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).get('poseDebug') === '1'
@@ -113,7 +114,7 @@ export const DEFAULT_BODY: BodyParams = {
   bodyType: 'female', height: 1, build: 1, bust: 1, waist: 1, hips: 1
 }
 
-export type AnimationMode = 'static' | 'idle' | 'walk' | 'turn'
+export type AnimationMode = 'static' | 'idle' | 'walk' | 'jog' | 'turn'
 
 /** World-space frames garments pin to so they follow the moving body (torso = tops, hip = bottoms,
  *  armL/armR = sleeve shoulders, handL/handR = sleeve cuffs; armL/handL are the −x side, R the +x). */
@@ -679,6 +680,53 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
    * figure sits in mid-air above where its own legs are.
    */
   let hipsRestY: number | null = null
+  let gaitPhase = 0
+  const gaitBase = new Map<THREE.Object3D, { rot: THREE.Euler; y: number }>()
+
+  /**
+   * The parts of a run a walk clip cannot supply: the body's **bob** and the bent
+   * elbows.
+   *
+   * Applied absolutely from a base recorded the first time, never added — the
+   * update loop runs every frame and an additive offset accumulates until the
+   * figure is under the floor, which is exactly what the seated pose did.
+   */
+  const applyRunMechanics = (phase: number): void => {
+    if (!glb) return
+    const parts: [THREE.Object3D | undefined, number][] = [
+      [glb.bones.hips, 0],
+      [glb.bones.lFore, elbowFlexion('run')],
+      [glb.bones.rFore, elbowFlexion('run')]
+    ]
+    for (const [bone, flex] of parts) {
+      if (!bone) continue
+      let base = gaitBase.get(bone)
+      if (!base) {
+        base = { rot: bone.rotation.clone(), y: bone.position.y }
+        gaitBase.set(bone, base)
+      }
+      if (bone === glb.bones.hips) {
+        // the bob rides the hips, which carries the whole body with it
+        const scale = glb.model.scale.y || 1
+        bone.position.y = base.y + (comBob(phase, 'run') - comBob(0.5, 'run')) / scale
+      } else {
+        // the elbow bends about −y on this rig (`?probeAxes=1`)
+        bone.rotation.set(base.rot.x, base.rot.y - flex, base.rot.z)
+      }
+    }
+    glb.model.updateMatrixWorld(true)
+  }
+
+  /** Put the run's bones back where the clip left them when the gait changes. */
+  const restoreGait = (): void => {
+    for (const [bone, base] of gaitBase) {
+      bone.rotation.copy(base.rot)
+      bone.position.y = base.y
+    }
+    gaitBase.clear()
+    glb?.model.updateMatrixWorld(true)
+  }
+
   const poseBase = new Map<THREE.Object3D, THREE.Euler>()
   let poseBaseKey = ''
   const applyGlbPoseBones = (pose: Pose): void => {
@@ -826,11 +874,20 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     if (useGlb && glb) {
       // Play the rig's idle/walk clip (idle frozen when static) then snap the cloth
       // capsules onto its bones; garments follow via their body anchors (see anchors()).
-      const animating = mode === 'idle' || mode === 'walk'
+      const running = mode === 'jog'
+      const animating = mode === 'idle' || mode === 'walk' || running
       // Ease the walk to half speed so the stride (and the cloth that hangs off it) reads
       // graceful rather than frantic, and the sim keeps up; idle plays at full rate.
-      const rate = mode === 'walk' ? 0.5 * walkStyle.rate : 1
-      glb.update(animating ? dt * speed * rate : 0, mode === 'walk')
+      // A jog is the same clip at a jogger's cadence — 165 steps a minute against a
+      // walk's 110 — and then the parts a clip cannot give it.
+      const rate = mode === 'walk' ? 0.5 * walkStyle.rate : running ? 0.5 * walkStyle.rate * cadenceRatio('walk', 'run') : 1
+      glb.update(animating ? dt * speed * rate : 0, mode === 'walk' || running)
+      if (running) {
+        gaitPhase = (gaitPhase + dt * speed * (RUN_CADENCE / 60)) % 1
+        applyRunMechanics(gaitPhase)
+      } else if (gaitBase.size) {
+        restoreGait()
+      }
       applyGlbPosture()
       fitCollidersToGlb()
       return
@@ -838,10 +895,11 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     let legAmp = 0
     let armAmp = 0
     let freq = 0
-    if (mode === 'walk') {
-      legAmp = walkStyle.legAmp
-      armAmp = walkStyle.armAmp
-      freq = walkStyle.freq
+    if (mode === 'walk' || mode === 'jog') {
+      const run = mode === 'jog'
+      legAmp = walkStyle.legAmp * (run ? RUN_LEG_GAIN : 1)
+      armAmp = walkStyle.armAmp * (run ? RUN_ARM_GAIN : 1)
+      freq = walkStyle.freq * (run ? cadenceRatio('walk', 'run') : 1)
     } else if (mode === 'idle') {
       legAmp = 0.05
       armAmp = 0.06

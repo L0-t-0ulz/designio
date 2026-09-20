@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { scatterFreckles, freckleColour, FIELD_WIDTH_MM } from './freckles'
 import type { Capsule } from './colliders'
 
 /**
@@ -163,6 +164,14 @@ export const HEAD_BREADTH_R = 0.87
  * collider sphere, whose surface is well behind it.
  */
 export const FACE_FRONT_R = 1.32
+/** Where a freckle sits: just proud of the face so it reads as skin, not a decal. */
+export const FACE_PLANE_Z = 0.98
+/** How many freckles a fully freckled face gets, before the density scales it. */
+export const FRECKLE_COUNT = 150
+/** The head breadth the freckle field's millimetres are drafted against. */
+export const HEAD_BREADTH_MM_FACE = 181
+/** …which is this many head-frame units across, from the measured head. */
+export const HEAD_UNITS_FACE = 1.74
 export const EAR_X = 0.855
 export const LOBE_X = 0.83
 /** The ear canal sits a little behind the mid-coronal plane. */
@@ -186,11 +195,14 @@ export class FaceRig {
   private readonly facePivot = new THREE.Group()
   private readonly hairMat = new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.72, metalness: 0.02 })
   private readonly styleGroups = new Map<Hairstyle, THREE.Group>()
+  private readonly frecklePivot = new THREE.Group()
+  private freckleDensity = 0
+  private freckleSkin = 0xe9c6a8
   private style: Hairstyle = 'bald' // no hair by default → the avatar's clean default look
 
   constructor() {
     this.group.name = 'face-rig'
-    this.group.add(this.hairPivot, this.facePivot)
+    this.group.add(this.hairPivot, this.facePivot, this.frecklePivot)
     for (const s of HAIRSTYLES) {
       const g = this.buildHair(s)
       g.visible = s === this.style
@@ -198,11 +210,73 @@ export class FaceRig {
       this.hairPivot.add(g)
     }
     this.buildFace()
+    this.buildFreckles()
+    this.frecklePivot.visible = false // opt-in, like the face features
     this.facePivot.visible = false // subtle features are opt-in (a clean face by default)
     this.group.traverse((o) => {
       o.castShadow = true
       o.frustumCulled = false
     })
+  }
+
+  /**
+   * Freckles, 0 (none) … 1 (heavily freckled).
+   *
+   * The scatter is deterministic from the seed, so a face keeps its own freckles
+   * across a rebuild, a resize and a reload instead of re-rolling them every time
+   * the avatar is touched.
+   */
+  setFreckles(density: number, skin = this.freckleSkin, seed = 1): void {
+    this.freckleDensity = Math.min(1, Math.max(0, density))
+    this.freckleSkin = skin
+    this.frecklePivot.visible = this.freckleDensity > 0
+    this.buildFreckles(seed)
+  }
+  getFreckles(): number {
+    return this.freckleDensity
+  }
+
+  /**
+   * Lay the freckles on the face plane, in the unit head frame.
+   *
+   * The field spans the nose bridge and both cheekbones, between the eye line and
+   * the base of the nose — the heights `face.ts` already derives from the head's
+   * own proportions, so freckles land on the same face the ears and the eyewear do.
+   */
+  private buildFreckles(seed = 1): void {
+    for (const c of [...this.frecklePivot.children]) {
+      ;(c as THREE.Mesh).geometry?.dispose()
+      this.frecklePivot.remove(c)
+    }
+    if (this.freckleDensity <= 0) return
+    // the field's real width, converted through the head breadth the face is drafted to
+    const halfW = ((FIELD_WIDTH_MM / HEAD_BREADTH_MM_FACE) * HEAD_UNITS_FACE) / 2
+    // between the eye line and the base of the nose, both read off the face layout
+    // so the freckles land on the same face the eyes and the nose are drawn on
+    const feat = faceFeatureLayout()
+    const nose = feat.find((f) => f.name === 'nose')!
+    const top = feat.find((f) => f.name === 'eyeL-sclera')!.pos[1] + 0.03
+    // down to the nose's own height, not past it: the upper lip does not freckle
+    const bottom = nose.pos[1]
+    const geo = new THREE.CircleGeometry(1, 8)
+    const FWD = new THREE.Vector3(0, 0, 1)
+    for (const f of scatterFreckles(FRECKLE_COUNT, this.freckleDensity, seed)) {
+      const m = new THREE.Mesh(
+        geo,
+        new THREE.MeshStandardMaterial({ color: freckleColour(this.freckleSkin, f.strength), roughness: 0.66, metalness: 0, transparent: true, opacity: 0.5 + 0.45 * f.strength })
+      )
+      const x = f.x * halfW
+      // laid on the face's curve, not on a flat plane: the outer ones sit back and
+      // turn to face outward, or a cheek freckle floats off the side of the head
+      const t = Math.min(0.97, Math.abs(x) / EAR_X)
+      const z = FACE_PLANE_Z * Math.sqrt(1 - t * t)
+      m.position.set(x, bottom + (top - bottom) * f.y, z)
+      m.quaternion.setFromUnitVectors(FWD, new THREE.Vector3(x, 0, z).normalize())
+      m.scale.setScalar(f.r * halfW * 2)
+      m.frustumCulled = false // built after the rig's traverse, so it needs its own
+      m.castShadow = false // a freckle casting a shadow is not a freckle
+      this.frecklePivot.add(m)
+    }
   }
 
   setHairstyle(style: Hairstyle): void {
@@ -236,7 +310,7 @@ export class FaceRig {
     if (!this.group.visible || colliders.length < 13) return
     const f = headFrame(colliders)
     const basis = new THREE.Matrix4().makeBasis(f.right, f.up, f.forward)
-    for (const pivot of [this.hairPivot, this.facePivot]) {
+    for (const pivot of [this.hairPivot, this.facePivot, this.frecklePivot]) {
       pivot.position.copy(f.crown)
       pivot.quaternion.setFromRotationMatrix(basis)
       pivot.scale.setScalar(f.radius)

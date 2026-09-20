@@ -2370,6 +2370,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     ['Static', 'static'],
     ['Idle', 'idle'],
     ['Walk', 'walk'],
+    ['Jog', 'jog'],
     ['Turn', 'turn']
   ]
   const animBtns = new Map<AnimationMode, HTMLButtonElement>()
