@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { scatterFreckles, freckleColour, FIELD_WIDTH_MM } from './freckles'
+import { SCALP_R, cornrowOffset, cornrowPoint, braidRadius, cornrowTaper, bunCoil, ponytailPoint, ponytailRadius } from './hairstyles'
 import type { Capsule } from './colliders'
 
 /**
@@ -12,10 +13,18 @@ import type { Capsule } from './colliders'
  * unit-tested; the meshes are built in the renderer.
  */
 
-export type Hairstyle = 'bald' | 'short' | 'bob' | 'long' | 'afro'
-export const HAIRSTYLES: Hairstyle[] = ['bald', 'short', 'bob', 'long', 'afro']
+export type Hairstyle = 'bald' | 'short' | 'pixie' | 'bob' | 'long' | 'afro' | 'cornrows' | 'ponytail' | 'bun'
+export const HAIRSTYLES: Hairstyle[] = ['bald', 'short', 'pixie', 'bob', 'long', 'afro', 'cornrows', 'ponytail', 'bun']
 export const HAIRSTYLE_LABELS: Record<Hairstyle, string> = {
-  bald: 'None', short: 'Short', bob: 'Bob', long: 'Long', afro: 'Afro'
+  bald: 'None',
+  short: 'Short',
+  pixie: 'Pixie',
+  bob: 'Bob',
+  long: 'Long',
+  afro: 'Afro',
+  cornrows: 'Cornrows',
+  ponytail: 'Ponytail',
+  bun: 'Bun'
 }
 
 export interface HairColor {
@@ -74,14 +83,33 @@ export interface HairstyleSpec {
   cap: boolean
   back: number
   afro: boolean
+  /**
+   * How close the cap sits to the skull, as a multiple of the bowl's radius.
+   *
+   * A pixie is cut *to* the head and a bob stands off it, which is the difference
+   * between the two far more than their length is.
+   */
+  hug: number
+  /** Rows of cornrows braided flat to the scalp, front to back. 0 = none. */
+  rows: number
+  /** Hair gathered at one point, and what it is gathered into. */
+  gather?: { kind: 'tail' | 'bun'; at: 'nape' | 'crown' }
 }
 export function hairstyleSpec(style: Hairstyle): HairstyleSpec {
   switch (style) {
-    case 'bald': return { cap: false, back: 0, afro: false }
-    case 'short': return { cap: true, back: 0.35, afro: false }
-    case 'bob': return { cap: true, back: 1.6, afro: false }
-    case 'long': return { cap: true, back: 3.0, afro: false }
-    case 'afro': return { cap: false, back: 0, afro: true }
+    case 'bald': return { cap: false, back: 0, afro: false, hug: 1, rows: 0 }
+    case 'short': return { cap: true, back: 0.35, afro: false, hug: 1, rows: 0 }
+    // cut to the head rather than standing off it — that, not the length, is what
+    // makes a pixie a pixie next to a short bowl
+    case 'pixie': return { cap: true, back: 0.2, afro: false, hug: 0.93, rows: 0 }
+    case 'bob': return { cap: true, back: 1.6, afro: false, hug: 1, rows: 0 }
+    case 'long': return { cap: true, back: 3.0, afro: false, hug: 1, rows: 0 }
+    case 'afro': return { cap: false, back: 0, afro: true, hug: 1, rows: 0 }
+    // braided flat to the scalp, so there is no cap at all — the partings between
+    // the rows are as much of the style as the braids
+    case 'cornrows': return { cap: false, back: 0, afro: false, hug: 0.99, rows: 9 }
+    case 'ponytail': return { cap: true, back: 0.3, afro: false, hug: 0.97, rows: 0, gather: { kind: 'tail', at: 'nape' } }
+    case 'bun': return { cap: true, back: 0.3, afro: false, hug: 0.97, rows: 0, gather: { kind: 'bun', at: 'crown' } }
   }
 }
 
@@ -356,7 +384,7 @@ export class FaceRig {
         new THREE.SphereGeometry(1.1, 48, 28, 0, Math.PI * 2, 0, HAIRLINE),
         this.hairMat
       )
-      cap.scale.set(...SCALE)
+      cap.scale.set(SCALE[0] * spec.hug, SCALE[1] * spec.hug, SCALE[2] * spec.hug)
       cap.position.set(...POS)
       g.add(cap)
       // Longer styles: a curtain that falls behind/beside the face. Its top tucks
@@ -379,6 +407,89 @@ export class FaceRig {
         fall.scale.set(SCALE[0], 1, SCALE[2])
         fall.position.set(0, -1.65, -0.12)
         g.add(fall)
+      }
+    }
+
+    if (spec.rows > 0) {
+      // Cornrows: braided flat to the scalp, running front to back, with the scalp
+      // showing between them. There is no cap — the partings are the style.
+      const SEG = 26
+      for (let i = 0; i < spec.rows; i++) {
+        const offset = cornrowOffset(i, spec.rows)
+        const path: THREE.Vector3[] = []
+        for (let k = 0; k <= SEG; k++) {
+          const p = cornrowPoint(offset, k / SEG)
+          path.push(new THREE.Vector3(p.x * SCALE[0], p.y * SCALE[1], p.z * SCALE[2]).multiplyScalar(1.02 * spec.hug))
+        }
+        const curve = new THREE.CatmullRomCurve3(path)
+        const tube = new THREE.TubeGeometry(curve, SEG * 2, 0.055, 6, false)
+        // the braid's own rhythm: swell and pinch once per crossing, tapering to the nape
+        const pos = tube.getAttribute('position') as THREE.BufferAttribute
+        const rings = SEG * 2 + 1
+        for (let v = 0; v < pos.count; v++) {
+          const t = Math.min(1, Math.floor(v / 7) / (rings - 1))
+          const c = curve.getPoint(t)
+          const k = braidRadius(t) * cornrowTaper(t)
+          pos.setXYZ(v, c.x + (pos.getX(v) - c.x) * k, c.y + (pos.getY(v) - c.y) * k, c.z + (pos.getZ(v) - c.z) * k)
+        }
+        pos.needsUpdate = true
+        tube.computeVertexNormals()
+        const row = new THREE.Mesh(tube, this.hairMat)
+        row.position.set(POS[0], POS[1], POS[2])
+        g.add(row)
+      }
+    }
+
+    if (spec.gather) {
+      // Where the hair is gathered off the head — the nape for a tail, the crown
+      // for a bun. Both sit on the scalp so the gather meets the cap it came from.
+      const nape = spec.gather.at === 'nape'
+      // ON the scalp: a unit direction scaled out to the surface, not a point
+      // scaled by it — an un-normalised direction lands inside the cap, where the
+      // bun is hidden by the very hair it is gathered from.
+      // a high bun sits on the upper crown, a little back — which is also why it
+      // is the classic reason a hat will not sit down (see `hairVolume`)
+      const dir = new THREE.Vector3(0, nape ? -0.42 : 0.9, nape ? -0.9 : -0.44).normalize()
+      const at = new THREE.Vector3(
+        POS[0] + dir.x * SCALP_R * SCALE[0] * spec.hug,
+        POS[1] + dir.y * SCALP_R * SCALE[1] * spec.hug,
+        POS[2] + dir.z * SCALP_R * SCALE[2] * spec.hug
+      )
+      // the band that gathers it
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.06, 8, 18), this.hairMat)
+      band.position.copy(at)
+      band.rotation.x = nape ? Math.PI / 2 : 0
+      g.add(band)
+      if (spec.gather.kind === 'tail') {
+        const SEG = 22
+        const path: THREE.Vector3[] = []
+        for (let k = 0; k <= SEG; k++) {
+          const p = ponytailPoint(k / SEG)
+          path.push(new THREE.Vector3(at.x + p.x, at.y + p.y, at.z + p.z))
+        }
+        const curve = new THREE.CatmullRomCurve3(path)
+        const tube = new THREE.TubeGeometry(curve, SEG * 2, 0.26, 10, false)
+        const pos = tube.getAttribute('position') as THREE.BufferAttribute
+        const rings = SEG * 2 + 1
+        for (let v = 0; v < pos.count; v++) {
+          const t = Math.min(1, Math.floor(v / 11) / (rings - 1))
+          const c = curve.getPoint(t)
+          const k = ponytailRadius(t)
+          pos.setXYZ(v, c.x + (pos.getX(v) - c.x) * k, c.y + (pos.getY(v) - c.y) * k, c.z + (pos.getZ(v) - c.z) * k)
+        }
+        pos.needsUpdate = true
+        tube.computeVertexNormals()
+        g.add(new THREE.Mesh(tube, this.hairMat))
+      } else {
+        // a rope wound on itself: a spiral, not a torus, because a bun has no hole
+        const SEG = 90
+        const path: THREE.Vector3[] = []
+        for (let k = 0; k <= SEG; k++) {
+          const p = bunCoil(k / SEG)
+          path.push(new THREE.Vector3(at.x + p.x, at.y + p.y, at.z + p.z))
+        }
+        const coil = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), SEG * 2, 0.17, 8, false)
+        g.add(new THREE.Mesh(coil, this.hairMat))
       }
     }
 
