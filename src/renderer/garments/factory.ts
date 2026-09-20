@@ -17,6 +17,67 @@ import {
 } from '../cloth/Garment'
 import type { BalaclavaFace, BodyTubePiece, GarmentDefinition, HeadTubePiece, ScarfPiece } from './schema'
 import { simTube, getResolutionScale, type SimResolution } from '../cloth/simQuality'
+import { HEAD_BREADTH_R } from '../avatar/face'
+
+/**
+ * How much wider than the head a knit band may be and still grip it.
+ *
+ * A rib-knit band is worn under tension: on a real head the relaxed band is
+ * *narrower* than the skull and stretches on. Six per cent over the head's widest
+ * girth is about the loosest it can be while contact friction still holds it — cut
+ * half again as wide, which is what the unclamped pattern width came to, and the
+ * cap simply slides off.
+ */
+export const BAND_GRIP = 1.06
+
+/**
+ * How much of a band's excess width survives being pulled onto the head.
+ *
+ * A rib knit has high recovery: cut wider than the skull, it pulls itself back to
+ * the head and only a little of the extra remains as ease. So the worn band is the
+ * grip radius plus a fraction of the overhang — not the overhang truncated away,
+ * which would collapse every crown piece cut wider than the grip limit onto the
+ * same radius and lose the difference between a beanie, a slouchy and a brimmed one.
+ *
+ * A twentieth is enough: it is a fifth of a centimetre on a beanie, small enough
+ * that the band still grips, and strictly monotonic so two blocks never swap order.
+ */
+export const KNIT_RECOVERY = 0.05
+
+/**
+ * The hem mass ramp for a crown piece's band.
+ *
+ * A knit cap's band is doubled, ribbed and often elasticated, against a crown that
+ * is a single thickness — so it is several times the mass per unit area, not the
+ * 2.2 a skirt's chain-weighted hem gets. Without it the hem curls up the skull and
+ * the cap settles perched on the crown rather than sitting at the brow.
+ */
+export const CROWN_BAND_WEIGHT = 6
+
+/**
+ * How much extra drop a fully slouchy crown piece is allowed past the cap limit —
+ * the extra length IS the slouch, so the limit has to open up for it rather than
+ * press it flat.
+ */
+export const SLOUCH_DROP_ALLOWANCE = 0.4
+
+/**
+ * How far down the head a cap may reach, as a fraction of the head's own height.
+ *
+ * A beanie finishes below the ears, not below the chin. The drops in the registry
+ * are absolute metres, so on this avatar's head — 31.5 cm crown to chin — the beanie's
+ * 29 cm came out as a cone whose bottom 40 % hung in free air below the jaw. That
+ * skirt is dead weight, and it drags the band off the head however well it grips.
+ *
+ * 0.6 puts the hem just below the brow and above the eyes, which is where a knit
+ * cap's band sits, and it is where the render puts the hem on the brow. Going past
+ * it does not lower the hem — the extra length rolls up into a brim and the cap
+ * ends up perched higher than a shorter one would. — the face proportions in `avatar/face` put the brow at 0.467 of
+ * the head's height and the base of the nose at 0.733.
+ * Face pieces (the balaclava, the hijab) are exempt: reaching past the jaw is
+ * the whole point of them.
+ */
+export const CAP_DROP_OF_HEAD = 0.6
 
 const RADIAL = 60
 const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v))
@@ -98,17 +159,57 @@ export function headTubeToSpec(pc: HeadTubePiece, p: GarmentParams, m: Measureme
   const slouch = crown ? Math.max(0, Math.min(1, p.slouch ?? 0)) : 0
   const cuff = crown ? Math.max(0, Math.min(1, p.cuffHeight ?? 0)) : 0
   const drop = pc.dropHi + (pc.dropLo - pc.dropHi) * p.length + slouch * 0.04 - cuff * 0.045
-  const bottomY = Math.max(m.chestY - 0.03, topY - drop) // never past the upper chest
+  let bottomY = Math.max(m.chestY - 0.03, topY - drop) // never past the upper chest
+  if (crown && !pc.face) {
+    // crown → chin: the head joint is the ear line, and the jaw is about a radius below it
+    const headH = Math.max(0.08, m.crownY - m.headBaseY + m.headR)
+    // a slouchy beanie is MEANT to hang past the cap line — the extra length is the
+    // whole look — so the limit opens up with the slouch rather than flattening it
+    // …and rolling the cuff eats length, so the limit rises with it too: the clamp
+    // must not flatten the fit controls it is there to keep in range
+    const limit = headH * (CAP_DROP_OF_HEAD + SLOUCH_DROP_ALLOWANCE * slouch) - cuff * 0.045
+    bottomY = Math.max(bottomY, m.crownY - limit)
+  }
   // compression squeezes the BAND, never the gather (a negative ease would collapse
   // the tiny crown ring into a spike and destabilise the whole cone)
   const rTop = baseR * pc.topScale * (1 + 0.3 * slouch) + Math.max(0, p.ease)
-  const rBot = baseR * pc.botScale * (1 + 0.22 * cuff) + p.ease + p.flare
+  // A knit cap stays on because its band sits at or just under the head's widest
+  // girth. The head COLLIDER has to enclose the skull, so its radius overstates the
+  // rendered head by about 15 % — an unclamped `botScale` therefore produced an
+  // opening half again as wide as the head, and the beanie slid straight off it.
+  // Clamped on the band only: `flare` is the designer deliberately widening a brim,
+  // and `ease` is theirs too, so neither is capped.
+  // The band as CUT — pattern width, the cuff's doubled bulk and the ease the
+  // designer asked for. All three go inside the stretch, so a block cut wider still
+  // comes out wider than one cut narrower and the fit controls keep working; what
+  // they cannot do is put the opening far enough over the head for it to fall off.
+  const relaxed = baseR * pc.botScale * (1 + 0.22 * cuff)
+  const grip = m.headR * HEAD_BREADTH_R * BAND_GRIP
+  const worn = crown ? Math.min(relaxed, grip) + KNIT_RECOVERY * Math.max(0, relaxed - grip) : relaxed
+  // `ease` and `flare` stay outside the stretch: those are the designer asking for
+  // a looser fit and a wider brim, and neither is the pattern width the knit pulls
+  // back in. Only the cut band is subject to the grip.
+  const rBot = worn + p.ease + p.flare
   const spec = piece(topY, bottomY, rTop, rBot, 0, 44, 0.013) // denser rings — a short piece still drapes
   spec.rings = Math.max(10, spec.rings) // a very short band (headband) still meshes finely enough to drape
-  // a COMPRESSED crown piece spawns clamped to the skull dome — negative ease pulls
-  // the spawn cone deep inside the head where the push-out resolves to the wrong
-  // side (the balaclava lesson); the neutral drape keeps its proven spawn
-  if (crown && p.ease < 0) spec.dome = { cy: topY - m.headR, r: m.headR * 1.02 }
+  // EVERY crown piece spawns clamped to the skull dome, not just a compressed one.
+  //
+  // The spawn is a cone from the gather ring (0.13 × headR) down to the band, so near
+  // the crown it is far narrower than the skull and starts *inside* it. Resolving a
+  // cone out of a dome is unstable — it squirts out to whichever side rounds first —
+  // which is why the beanie was ending up hanging over one ear. Clamping the spawn
+  // to just outside the dome means it starts on the head and only has to settle.
+  //
+  // This used to be applied only when `ease < 0`, on the reasoning that the neutral
+  // drape had a proven spawn. It stopped being true when the head capsule was grown
+  // to span the whole skull: the head got bigger and the cone did not.
+  // The dome radius is exactly `headR`, so its surface passes through the crown and
+  // its horizontal radius there is zero. At 1.02 it stood proud of the crown and
+  // pushed the gather ring out into a 2 cm hole showing bare scalp.
+  if (crown) {
+    spec.dome = { cy: topY - m.headR, r: m.headR }
+    spec.hemWeight = CROWN_BAND_WEIGHT // the band is the heavy part of a knit cap
+  }
   if (p.hemShape && p.hemShape !== 'straight') spec.hemShape = p.hemShape // ear flaps · a bandana point
   if (pc.face && p.convertibleWorn === 'gaiter') {
     // the convertible worn as a NECK GAITER: the whole tube pushed down off the
@@ -392,6 +493,8 @@ export function garmentPatternSpecs(
 
 /** A ready-to-simulate garment piece (geometry + how to reset it + a display name). */
 export interface SimPiece {
+  /** Hem mass ramp for this piece, when it wants one of its own (a knit cap's band). */
+  hemWeight?: number
   build: TubeBuild
   refill: (pos: Float32Array) => void
   name: string
@@ -432,7 +535,7 @@ export function buildGarment(
       }
     } else if (pc.kind === 'headTube') {
       const spec = headTubeToSpec(pc, params, m)
-      out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: pc.anchor === 'crown' ? 'Head' : 'Cowl' })
+      out.push({ build: buildTubeGarment(spec), refill: (pos) => fillTube(pos, spec), name: pc.anchor === 'crown' ? 'Head' : 'Cowl', hemWeight: spec.hemWeight })
     } else if (pc.kind === 'scarfPanel') {
       const spec = scarfToSpec(pc, params, m)
       out.push({ build: buildScarf(spec), refill: (pos) => fillScarf(pos, spec), name: 'Scarf', wrapX: false })

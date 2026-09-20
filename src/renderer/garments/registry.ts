@@ -650,7 +650,7 @@ export const GARMENTS: GarmentDefinition[] = [
     // a folded-up ribbed brim: shorter drop, band flared wide (the doubled cuff), snug
     pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.23, dropLo: 0.28, topScale: 0.13, botScale: 1.45 }],
     supports: { beanieFit: true, length: true, ease: true, flare: true },
-    defaults: { length: 0.5, ease: 0.003, flare: 0 },
+    defaults: { length: 0.5, ease: 0.007, flare: 0 },
     defaultFabric: 'rib-knit'
   },
   {
@@ -661,7 +661,7 @@ export const GARMENTS: GarmentDefinition[] = [
     // extra crown length that drapes/slouches at the back
     pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.3, dropLo: 0.38, topScale: 0.17, botScale: 1.26 }],
     supports: { beanieFit: true, length: true, ease: true, flare: true },
-    defaults: { length: 0.6, ease: 0.006, flare: 0 },
+    defaults: { length: 0.6, ease: 0.006, flare: 0, slouch: 0.6 }, // the slouch IS the block
     defaultFabric: 'jersey-knit'
   },
   {
@@ -670,7 +670,8 @@ export const GARMENTS: GarmentDefinition[] = [
     category: 'outerwear',
     icon: 'top',
     // the docker cap: short tight rolled brim above the ears, minimal crown
-    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.17, dropLo: 0.2, topScale: 0.16, botScale: 1.4 }],
+    // the cropped docker cut — shorter than the cap limit, which is what makes it read as cropped
+    pieces: [{ kind: 'headTube', anchor: 'crown', dropHi: 0.15, dropLo: 0.18, topScale: 0.16, botScale: 1.4 }],
     supports: { beanieFit: true, length: true, ease: true },
     defaults: { length: 0.4, ease: 0.002, flare: 0 },
     defaultFabric: 'rib-knit'
