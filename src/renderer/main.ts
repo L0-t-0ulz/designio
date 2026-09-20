@@ -1190,6 +1190,7 @@ function initStudio(
   if (params.get('pressure') === '1') stack.setPressure(true)
   if (params.get('utilisation') === '1') stack.setUtilisation(true)
   if (params.get('wrinklemap') === '1') stack.setWrinkleMap(true)
+  if (params.get('seamStress') === '1') stack.setSeamStress(true)
   if (params.get('tearing') === '1') stack.setTearing(true)
   // closure-designer deep-links (?buttons= ?buttonMm= ?buttonColor= ?zipColor=)
   {
@@ -2635,6 +2636,7 @@ function initStudio(
     pressure: { get: () => stack.pressure, set: (on) => { stack.setPressure(on); syncLegend() } },
     utilisation: { get: () => stack.utilisation, set: (on) => { stack.setUtilisation(on); syncLegend() } },
     wrinkleMap: { get: () => stack.wrinkleMap, set: (on) => { stack.setWrinkleMap(on); syncLegend() } },
+    seamStress: { get: () => stack.seamStress, set: (on) => { stack.setSeamStress(on); syncLegend() } },
     tearing: { get: () => stack.tearing, set: (on) => stack.setTearing(on) },
     slip: { get: () => slipLayerRef !== null, set: (on) => setSlip(on) },
     wrinkles: { get: () => stack.wrinkles, set: (on) => stack.setWrinkles(on) },

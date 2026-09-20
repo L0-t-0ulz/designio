@@ -35,6 +35,8 @@ import { furParams, makeFurNormalMap } from '../fabric/fur'
 import type { FabricParams } from '../cloth/fabricPresets'
 import { strainToColor } from '../fabric/heatmap'
 import { stressColor, stressThreshold } from '../fabric/stress'
+import { seamStressColor, seamUtilisation } from '../export/seamStress'
+import { DEFAULT_STITCH } from '../garment/stitchTypes'
 import { utilisationColor, stretchUtilisation } from '../fabric/stretchUtilisation'
 import { strainLegend, type Legend } from '../fabric/legend'
 import { sumContactAreas, type ContactAreaResult } from './contactArea'
@@ -1604,11 +1606,19 @@ export class GarmentStack {
   // Strain overlay: a per-vertex colouring of the cloth by solver strain — the fit
   // heatmap (loose→tight), the stress check (fit-failure) or the pressure map
   // (body-contact force). Mutually exclusive.
-  private strainView: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle' = 'none'
+  private strainView: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle' | 'seam' = 'none'
   /** The strain→colour fn for a layer — stress is fabric-aware (a stretchy fabric reds
    *  out at higher strain than a rigid one), the heatmap is a fixed tension ramp, the
    *  pressure map a cold→hot contact ramp. */
   private layerColorFn(l: StackLayer): (s: number) => [number, number, number] {
+    if (this.strainView === 'seam') {
+      // How hard the SEAM is working, not the cloth. A garment usually fails at a
+      // seam first, and whether it does depends on the seam type, the stitch
+      // density and the thread — none of which the cloth's own stress view sees.
+      const stitch = l.data.stitch ?? DEFAULT_STITCH
+      const fail = stressThreshold(l.fabric.stretch)
+      return (strain) => seamStressColor(seamUtilisation(strain, stitch, l.fabric.gsm, fail))
+    }
     if (this.strainView === 'wrinkle') return wrinkleColor
     if (this.strainView === 'pressure') return pressureColor
     if (this.strainView === 'utilisation') {
@@ -1627,7 +1637,7 @@ export class GarmentStack {
     if (this.strainView === 'wrinkle') return 'wrinkle'
     return 'strain'
   }
-  private setStrainView(mode: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle'): void {
+  private setStrainView(mode: 'none' | 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle' | 'seam'): void {
     this.strainView = mode
     for (const l of this.layers) this.applyStrainViewTo(l)
   }
@@ -1645,6 +1655,12 @@ export class GarmentStack {
   }
   setWrinkleMap(on: boolean): void {
     this.setStrainView(on ? 'wrinkle' : 'none')
+  }
+  setSeamStress(on: boolean): void {
+    this.setStrainView(on ? 'seam' : 'none')
+  }
+  get seamStress(): boolean {
+    return this.strainView === 'seam'
   }
   get heatmap(): boolean {
     return this.strainView === 'heatmap'

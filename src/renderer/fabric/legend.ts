@@ -1,4 +1,5 @@
 import { strainToColor } from './heatmap'
+import { seamStressColor } from '../export/seamStress'
 import { pressureColor } from './pressure'
 import { stressColor, stressThreshold } from './stress'
 import { stretchUtilisation, usableStretch, utilisationColor } from './stretchUtilisation'
@@ -17,7 +18,7 @@ import { WRINKLE_SCALE, wrinkleColor } from './wrinkleDensity'
  * other reason this cannot be a static image — "red" means 22% strain on a rigid
  * woven and 66% on a power knit.
  */
-export type StrainView = 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle'
+export type StrainView = 'heatmap' | 'stress' | 'pressure' | 'utilisation' | 'wrinkle' | 'seam'
 
 export interface LegendStop {
   /** Position along the ramp, 0…1 — where to place it on the gradient bar. */
@@ -58,6 +59,18 @@ export function strainLegend(view: StrainView, fabricStretch = 0.5): Legend {
           const strain = (a * 2 - 1) * HEATMAP_SCALE
           return { at: a, label: `${strain > 0 ? '+' : ''}${pct(strain)}`, color: strainToColor(strain, HEATMAP_SCALE) }
         })
+      }
+    }
+    case 'seam': {
+      // how hard the SEAM is working, which is a different question from the
+      // cloth: a garment usually fails at a seam, and whether it does depends on
+      // the seam type, the stitch density and the thread
+      const at = [0, 0.5, 0.75, 1]
+      const names = ['slack', 'half', 'marginal', 'burst']
+      return {
+        title: 'Seam stress',
+        note: 'load across the seam ÷ what the seam can take',
+        stops: at.map((a, i) => ({ at: a, label: names[i], color: seamStressColor(a) }))
       }
     }
     case 'stress': {
