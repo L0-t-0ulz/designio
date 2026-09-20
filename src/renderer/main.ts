@@ -3181,6 +3181,19 @@ function initStudio(
       console.log('[capture-log] probeTaper', JSON.stringify(out))
     }, 8000)
   }
+  if (params.get('probeBones')) {
+    // Which standard bones the rig actually resolved to, and where. A missing one
+    // makes `fitCollidersToGlb` skip that capsule silently, leaving it at its
+    // procedural default — which is how a sleeve ends up on a phantom arm.
+    window.setTimeout(() => {
+      const names: string[] = []
+      viewport.scene.traverse((o) => { if ((o as THREE.Bone).isBone) names.push(o.name) })
+      console.log('[capture-log] probeBones', JSON.stringify({
+        armBones: names.filter((n) => /arm|hand|shoulder/i.test(n)).slice(0, 24),
+        caps: mannequin.colliders.map((c, i) => ({ i, a: [c.a.x, c.a.y].map((v) => +v.toFixed(3)), b: [c.b.x, c.b.y].map((v) => +v.toFixed(3)) }))
+      }))
+    }, 8000)
+  }
   if (params.get('probeBody')) {
     // **Body silhouette probe** — the rendered avatar's outer and inner surface on
     // each side, at a ladder of heights, so a limb's true girth at a landmark can be
