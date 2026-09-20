@@ -1213,6 +1213,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   accRow.style.flexWrap = 'wrap'
   const ACC_LABELS: Record<AccessoryKind, string> = {
     anklet: 'Anklet',
+  boater: 'Boater',
+  panama: 'Panama hat',
   fez: 'Fez',
   kufi: 'Kufi',
   pillbox: 'Pillbox hat',

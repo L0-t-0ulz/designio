@@ -29,6 +29,7 @@ import {
   tieHalfWidth,
   splineThrough3
 } from './neckwear'
+import { STRAW_HATS, brimProfileAt, centreDent, type StrawStyle } from './strawHats'
 import { CROWNS, crownRadius, crownHeight, crownFit, crownRise, HAT_LINE_Y, mmToUnits, TASSEL_LENGTH_MM, TASSEL_STRANDS, TASSEL_BUTTON_MM, tasselStrand, type BrimlessStyle } from './brimless'
 import { FRAMES, lensOffset, lensOutline, unitsPerMm, type SunglassesStyle } from './shades'
 import { headFrame, FACE_FRONT_R, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X, EAR_Z } from './face'
@@ -44,8 +45,8 @@ import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, F
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'fez' | 'kufi' | 'pillbox' | 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['fez', 'kufi', 'pillbox', 'tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
+export type AccessoryKind = 'boater' | 'panama' | 'fez' | 'kufi' | 'pillbox' | 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['boater', 'panama', 'fez', 'kufi', 'pillbox', 'tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -349,6 +350,8 @@ export class Accessories {
   constructor() {
     this.group.name = 'accessories'
     this.items.push(
+      this.buildStraw('boater'),
+      this.buildStraw('panama'),
       this.buildBrimless('fez'),
       this.buildBrimless('kufi'),
       this.buildBrimless('pillbox'),
@@ -1888,6 +1891,91 @@ export class Accessories {
       )
       obj.add(strand)
     }
+  }
+
+  /**
+   * The **straw hats** — a boater and a panama.
+   *
+   * Crown, brim and ribbon band, with the difference between them carried in the
+   * spec rather than in the code: a boater is stiffened sennit, so its brim is dead
+   * flat with a small turned edge and its crown a hard flat-topped drum; a panama
+   * is soft toquilla, so its brim falls away and its crown takes a centre dent.
+   *
+   * Placed on the same measured hat line as the brimless crowns, and graded so the
+   * band clears the head's widest point.
+   */
+  private buildStraw(style: StrawStyle): Item {
+    const h = STRAW_HATS[style]
+    const strawMat = this.strawMaterial()
+    strawMat.color = new THREE.Color(h.strawColour)
+    const ribbonMat = new THREE.MeshStandardMaterial({ color: h.ribbonColour, roughness: 0.68, metalness: 0 })
+    const obj = new THREE.Group()
+
+    // the crown: a grid so a centre dent can be pressed into its top
+    const RAD = 44
+    const bandR = (h.bandMm / 2) * mmToUnits
+    const topR = (h.topMm / 2) * mmToUnits
+    const hgt = h.crownMm * mmToUnits
+    const side = new THREE.Mesh(new THREE.CylinderGeometry(topR, bandR, hgt, RAD, 1, true), strawMat)
+    side.position.y = hgt / 2
+    obj.add(side)
+    // the top, pressed: a disc whose height is the dent field
+    const top = new THREE.CircleGeometry(topR, RAD, 0, TAU)
+    {
+      const pos = top.getAttribute('position') as THREE.BufferAttribute
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i)
+        const y = pos.getY(i)
+        // the crease runs front-to-back, so `across` is x and `axial` is y (→ z)
+        pos.setZ(i, -centreDent(h, x / (topR || 1), y / (topR || 1)))
+      }
+      pos.needsUpdate = true
+      top.computeVertexNormals()
+    }
+    const topMesh = new THREE.Mesh(top, strawMat)
+    topMesh.rotation.x = -Math.PI / 2
+    topMesh.position.y = hgt
+    obj.add(topMesh)
+
+    // the brim: a ring swept out along its own profile
+    const BRIM_RINGS = 10
+    const brimMat = new THREE.MeshStandardMaterial({ color: h.strawColour, roughness: 0.82, metalness: 0, side: THREE.DoubleSide })
+    const brim = new THREE.Mesh(new THREE.BufferGeometry(), brimMat)
+    {
+      const verts: number[] = []
+      const idx: number[] = []
+      for (let i = 0; i <= BRIM_RINGS; i++) {
+        const { out, down } = brimProfileAt(h, i / BRIM_RINGS)
+        for (let k = 0; k < RAD; k++) {
+          const a = (k / RAD) * TAU
+          verts.push(Math.cos(a) * out, -down, Math.sin(a) * out)
+        }
+      }
+      for (let i = 0; i < BRIM_RINGS; i++) {
+        for (let k = 0; k < RAD; k++) {
+          const n = (k + 1) % RAD
+          const a = i * RAD + k
+          const b = i * RAD + n
+          idx.push(a, b, a + RAD, b, b + RAD, a + RAD)
+        }
+      }
+      brim.geometry.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3))
+      brim.geometry.setIndex(idx)
+      brim.geometry.computeVertexNormals()
+    }
+    obj.add(brim)
+
+    // the ribbon band, sitting on the brim at the base of the crown
+    const bandH = h.bandHeightMm * mmToUnits
+    const ribbon = new THREE.Mesh(new THREE.CylinderGeometry(bandR * 1.03, bandR * 1.03, bandH, RAD, 1, true), ribbonMat)
+    ribbon.position.y = bandH / 2 + 0.01
+    obj.add(ribbon)
+
+    const outer = new THREE.Group()
+    obj.scale.set(crownFit(CROWNS.fez), 1, crownFit(CROWNS.fez))
+    obj.position.y = HAT_LINE_Y
+    outer.add(obj)
+    return this.headItem(style as AccessoryKind, outer)
   }
 
   private sunglassesStyle: SunglassesStyle = 'wayfarer'
