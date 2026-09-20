@@ -364,7 +364,7 @@ Renderer modules:
 ## Snapshot deep-links (query string)
 
 `?start=0` skip start page · `?garment=<id>` (registry id — dress, gown, jumpsuit, wide-leg, …; applies
-its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · `?pose=stand|weight-shift|stride|relaxed|contrapposto|hand-on-hip|arms-crossed|sitting` · `?walk=<commercial|editorial|sport>` (walk style — stride/arms/cadence + GLB rate)
+its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|jog|turn` (**jog** = the walk clip at a jogger's 165 spm plus the parts a clip cannot give it — the spring-gait **bob** (a run's centre of mass is lowest at mid-stance, a walk's is highest: `avatar/gait`) and bent elbows) · `?pose=stand|weight-shift|stride|relaxed|contrapposto|hand-on-hip|arms-crossed|sitting` · `?walk=<commercial|editorial|sport>` (walk style — stride/arms/cadence + GLB rate)
 (a static lookbook pose) · `?posture=<neutral|athletic|slouch|swayback>` (a **posture carriage** layered on any pose — bends the spine/neck in colliders + visual shaping + anchors so garments re-drape onto the new carriage) · `?bodyType=female|male` ·
 `?bodyH=<s>&bodyB=<s>&bodyBust=<s>&bodyWaist=<s>&bodyHips=<s>` (mannequin size/shape) ·
 `?bodyPreset=<runway|curvy|plus|athletic|petite|tall>` (a body-shape preset) ·
@@ -409,7 +409,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|turn` · 
 `?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
 `?undertone=<warm|neutral|cool>` (its undertone) ·
 `?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
-features — brows/eyes/lips) ·
+features — brows/eyes/lips) · `?freckles=<0..1>` (the **malar scatter** — `avatar/freckles` rejection-samples the butterfly distribution across the nose bridge and cheekbones, cut out at the shaded eye sockets, sized as real 1–4 mm ephelides and coloured off the current skin tone rather than a fixed brown) ·
 `?light=<studio|softbox|dramatic|high-key|runway|golden-hour>` (a studio lighting preset) ·
 `?tonemap=<aces|agx|neutral|filmic|reinhard>` (the final tone-mapping operator; default ACES) ·
 `?backdrop=<studio-grey|white|product-white|charcoal|black|blush|sky|transparent>` (a backdrop preset;

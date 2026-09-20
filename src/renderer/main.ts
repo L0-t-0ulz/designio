@@ -1353,6 +1353,12 @@ function initStudio(
   const hairColorParam = params.get('hairColor')
   if (hairColorParam) faceRig.setHairColor(parseInt(hairColorParam.replace('#', ''), 16))
   if (params.get('face') === '1') faceRig.setFaceVisible(true) // subtle features are opt-in
+  // ?freckles=<0..1> — the malar scatter, coloured off the current skin tone
+  const freckleParam = parseFloat(params.get('freckles') ?? '')
+  if (Number.isFinite(freckleParam)) {
+    const look = bodySize.skinTone ? skinLook(bodySize.skinTone, bodySize.undertone ?? 'warm') : SKIN_LOOK
+    faceRig.setFreckles(freckleParam, look.color)
+  }
   const lightParam = params.get('light')
   if (lightParam) env.setLighting(lightParam)
   const backdropParam = params.get('backdrop')
