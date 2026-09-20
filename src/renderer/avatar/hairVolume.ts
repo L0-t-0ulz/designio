@@ -9,9 +9,18 @@ import type { Hairstyle } from './face'
  */
 const HAIR_VOLUME_CM: Record<Hairstyle, number> = {
   bald: 0,
+  // cut to the head, so it takes less room than a short bowl standing off it
+  pixie: 0.3,
+  // braided flat to the scalp: almost none, which is half the reason for the style
+  cornrows: 0.4,
   short: 0.5,
+  // the cap is close and the tail hangs behind the hat entirely
+  ponytail: 0.7,
   bob: 1.2,
   long: 1.8,
+  // a crown bun is the classic reason a hat will not sit down: it is not extra
+  // girth so much as a lump under the crown, and it costs more than an afro does
+  bun: 3.6,
   afro: 3.2
 }
 

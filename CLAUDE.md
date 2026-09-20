@@ -408,7 +408,7 @@ its defaults) · `?fabric=<id>` · `?mode=pattern` · `?anim=idle|walk|jog|turn`
 `?garment=<skinny-scarf|bandana|chullo|helmet-liner>` (more cloth-sim headwear: a charmeuse ribbon scarf · the outlaw bandana (worn up, one `point-front` hem point) · the Andean ear-flap chullo (`ear-flap` hem + pom) · the under-helmet liner (snug open-face)) ·
 `?skin=<porcelain|fair|light|medium|tan|brown|deep|espresso>` (a complexion skin tone) ·
 `?undertone=<warm|neutral|cool>` (its undertone) ·
-`?hair=<short|bob|long|afro>` (a hairstyle; default none) · `?hairColor=<hex>` · `?face=1` (subtle face
+`?hair=<short|pixie|bob|long|afro|cornrows|ponytail|bun>` (a hairstyle; default none — `avatar/hairstyles` carries the parts that are *shape* rather than a shell: cornrows as **parallel** small circles across the scalp with the partings showing, a bun as a spiral wound inward (a torus has a hole a bun does not), and a ponytail that swings out as it clears the skull instead of hanging flat to it) · `?hairColor=<hex>` · `?face=1` (subtle face
 features — brows/eyes/lips) · `?freckles=<0..1>` (the **malar scatter** — `avatar/freckles` rejection-samples the butterfly distribution across the nose bridge and cheekbones, cut out at the shaded eye sockets, sized as real 1–4 mm ephelides and coloured off the current skin tone rather than a fixed brown) ·
 `?light=<studio|softbox|dramatic|high-key|runway|golden-hour>` (a studio lighting preset) ·
 `?tonemap=<aces|agx|neutral|filmic|reinhard>` (the final tone-mapping operator; default ACES) ·

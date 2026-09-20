@@ -58,12 +58,15 @@ describe('hairstyleSpec', () => {
     for (const s of HAIRSTYLES) expect(hairstyleSpec(s)).toBeDefined()
   })
 
-  it('bald has no hair volumes; others have a cap or an afro', () => {
-    const bald = hairstyleSpec('bald')
-    expect(bald.cap || bald.afro || bald.back > 0).toBe(false)
+  it('bald has no hair at all; every other style has some', () => {
+    // "a cap or an afro" was the whole vocabulary once. Cornrows have neither —
+    // they are rows braided flat with the scalp showing between them — so the
+    // invariant is that a named style puts *something* on the head.
+    const hasHair = (s: ReturnType<typeof hairstyleSpec>): boolean =>
+      s.cap || s.afro || s.back > 0 || s.rows > 0 || s.gather !== undefined
+    expect(hasHair(hairstyleSpec('bald'))).toBe(false)
     for (const s of HAIRSTYLES.filter((x) => x !== 'bald')) {
-      const spec = hairstyleSpec(s)
-      expect(spec.cap || spec.afro).toBe(true)
+      expect(hasHair(hairstyleSpec(s)), s).toBe(true)
     }
   })
 
