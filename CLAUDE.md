@@ -465,6 +465,7 @@ selector do the same interactively) · `?body=mesh|glb` (GLB realistic avatar is
 `?backFabric=<id>` · `?legBackFabric=<id>` · `?sleeveBackFabric=<id>` (per-panel fabric — the body/leg/sleeve **back** panel) ·
 `?review=1` (**design comments & review pins** — a review panel of comments each with an author + open/resolved status + optional 3D point; `studio/reviewPins` store + `ui/reviewOverlay`, View → Design review…) ·
 `?sockHeight=<no-show|ankle|crew|knee-high>` (a real sock cut, specified in cm up from the **sole** — `avatar/wornSizing`) ·
+`?probeBones=1` (**rig audit** — which standard bones `boneKey` resolved and where each capsule ended up; a bone that fails to classify makes `fitCollidersToGlb` skip its capsule *silently*, leaving it at the procedural default) ·
 `?probeHead=1` / `?probeLimb=1` / `?probeBody=1` / `?probeTaper=1` / `?probeFoot=1` (**surface probes** — raycast the *rendered* avatar and log its head profile · limb radii · body silhouette · limb taper · a horizontal fan section, all against the colliders, so anything worn on the body is placed and sized from measured geometry rather than an assumed ratio) ·
 `?closeup=1` (macro camera) · `?heatmap=1` (fit / tension heatmap) · `?stress=1` (fit-failure viz) ·
 `?pressure=1` (pressure / contact fit map — where the garment presses into the body) ·

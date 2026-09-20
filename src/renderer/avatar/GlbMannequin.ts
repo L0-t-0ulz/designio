@@ -109,40 +109,44 @@ export function measureGlbHead(model: THREE.Object3D, head: THREE.Object3D): Glb
   }
 }
 
-/** Classify a bone by name (strips a `mixorig:`-style prefix; side-agnostic segments are centred). */
-function boneKey(name: string): keyof GlbBones | undefined {
+/**
+ * Classify a bone by name (strips a `mixorig:`-style prefix; side-agnostic segments
+ * are centred).
+ *
+ * **The order of this table is load-bearing.** Specific segments are matched before
+ * general ones — `ForeArm` before `Arm`, `UpLeg` before `Leg`, the finger and toe
+ * tips before the hand and the foot — which is what lets the general patterns be the
+ * bare word.
+ *
+ * They have to be the bare word. An earlier version guarded them as
+ * `(^|[^a-z])arm` and `(^|[^a-z])leg` to keep `ForeArm` and `UpLeg` out, and that
+ * guard cannot match a Mixamo rig at all: `mixamorigLeftArm` lowercases to
+ * `…leftarm`, where the character before `arm` is the `t` of `Left`. So `lArm`,
+ * `rArm`, `lLeg` and `rLeg` were never found; `fitCollidersToGlb` skips a capsule
+ * whose bones are missing, so the upper arms, the shoulder line and **both legs**
+ * silently kept their procedural defaults while the avatar moved. Sleeves collapsed
+ * off the shoulder, and the shin colliders sat centimetres from the rendered legs.
+ */
+const BONE_SEGMENTS: [RegExp, string][] = [
+  [/middle(4|_04)|middle(3|_03)end|middleend/, 'MidTip'],
+  [/middle1|middle_01/, 'Mid'],
+  [/toebase|toe/, 'Toe'],
+  [/forearm|lowerarm/, 'Fore'],
+  [/upperarm|arm/, 'Arm'],
+  [/shoulder|clavicle/, 'Shoulder'],
+  [/hand|wrist/, 'Hand'],
+  [/upleg|upperleg|thigh/, 'UpLeg'],
+  [/calf|shin|lowerleg|leg/, 'Leg'],
+  [/foot|ankle/, 'Foot'],
+  [/hips|pelvis/, 'hips'],
+  [/spine2|upperchest|chest/, 'chest'],
+  [/neck/, 'neck'],
+  [/head/, 'head']
+]
+
+export function boneKey(name: string): keyof GlbBones | undefined {
   const n = name.toLowerCase().replace(/^.*:/, '')
-  // the tip bones come first: 'HandMiddle1' contains 'hand' and 'ToeBase' would
-  // otherwise fall through to nothing at all
-  const seg = /middle(4|_04)|middle(3|_03)end|middleend/.test(n)
-    ? 'MidTip'
-    : /middle1|middle_01/.test(n)
-      ? 'Mid'
-    : /toebase|(^|[^a-z])toe/.test(n)
-      ? 'Toe'
-      : /forearm|lowerarm/.test(n)
-    ? 'Fore'
-    : /upperarm|(^|[^a-z])arm/.test(n)
-      ? 'Arm'
-      : /shoulder|clavicle/.test(n)
-        ? 'Shoulder'
-        : /hand|wrist/.test(n)
-          ? 'Hand'
-          : /upleg|upperleg|thigh/.test(n)
-            ? 'UpLeg'
-            : /calf|shin|lowerleg|(^|[^a-z])leg/.test(n)
-              ? 'Leg'
-              : /foot|ankle/.test(n)
-                ? 'Foot'
-                : /hips|pelvis/.test(n)
-                  ? 'hips'
-                  : /spine2|upperchest|chest/.test(n)
-                    ? 'chest'
-                    : /neck/.test(n)
-                      ? 'neck'
-                      : /head/.test(n)
-                        ? 'head'
-                        : ''
+  const seg = BONE_SEGMENTS.find(([re]) => re.test(n))?.[1] ?? ''
   if (!seg) return undefined
   if (seg === 'hips' || seg === 'chest' || seg === 'neck' || seg === 'head') return seg
   const side = /right|_r\b|\br[_.]|\.r\b/.test(n) ? 'r' : /left|_l\b|\bl[_.]|\.l\b/.test(n) ? 'l' : ''
