@@ -29,6 +29,7 @@ import {
   tieHalfWidth,
   splineThrough3
 } from './neckwear'
+import { BASE_MM, BASE_THICK_MM, AZIMUTH_DEG, CANT_DEG, SEAT_FRAC, QUILLS, quillPoint, quillRadius, loopPoint, baseRadius } from './fascinator'
 import { FLAP_HATS, crownOf, flapAngle, flapHalfWidth, flapStandoff, FLAP_HINGE_FRAC, BILL_AZIMUTHS, type FlapStyle, type FlapWorn } from './earFlaps'
 import { STRAW_HATS, brimProfileAt, centreDent, type StrawStyle } from './strawHats'
 import { CROWNS, crownRadius, crownHeight, crownFit, crownRise, HAT_LINE_Y, HEAD_CROWN_Y, mmToUnits, TASSEL_LENGTH_MM, TASSEL_STRANDS, TASSEL_BUTTON_MM, tasselStrand, type BrimlessStyle } from './brimless'
@@ -46,8 +47,8 @@ import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, F
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'ushanka' | 'deerstalker' | 'boater' | 'panama' | 'fez' | 'kufi' | 'pillbox' | 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['ushanka', 'deerstalker', 'boater', 'panama', 'fez', 'kufi', 'pillbox', 'tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
+export type AccessoryKind = 'fascinator' | 'ushanka' | 'deerstalker' | 'boater' | 'panama' | 'fez' | 'kufi' | 'pillbox' | 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['fascinator', 'ushanka', 'deerstalker', 'boater', 'panama', 'fez', 'kufi', 'pillbox', 'tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -351,6 +352,7 @@ export class Accessories {
   constructor() {
     this.group.name = 'accessories'
     this.items.push(
+      this.buildFascinator(),
       this.buildFlapHat('ushanka'),
       this.buildFlapHat('deerstalker'),
       this.buildStraw('boater'),
@@ -1979,6 +1981,98 @@ export class Accessories {
     obj.position.y = HAT_LINE_Y
     outer.add(obj)
     return this.headItem(style as AccessoryKind, outer)
+  }
+
+  /**
+   * A **fascinator** — the occasion headpiece.
+   *
+   * Not a small hat. It has no crown and does not fit the head: a stiffened base
+   * is pinned to **one side** on a comb, tilted off the skull, with the trim
+   * standing off it. Built as a hat it sits on top facing forward, which is the
+   * one place a fascinator is never worn.
+   *
+   * The spray is arcs rather than spikes, because a feather is sprung: it leaves
+   * the base steeply and flattens toward the tip, and the outer quills are shorter
+   * so it reads as a fan and not a broom.
+   */
+  private buildFascinator(): Item {
+    const sinamay = new THREE.MeshStandardMaterial({ color: 0x8a2b52, roughness: 0.64, metalness: 0.02, side: THREE.DoubleSide })
+    const feather = new THREE.MeshStandardMaterial({ color: 0xe8dbe4, roughness: 0.78, metalness: 0, side: THREE.DoubleSide })
+    const obj = new THREE.Group()
+    const R = baseRadius(BASE_MM)
+    const D = R * 2
+
+    // the base: a stiffened disc, a couple of millimetres thick
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(R, R, BASE_THICK_MM * mmToUnits, 36), sinamay)
+    obj.add(base)
+
+    // the quill spray, arcing off the base
+    const SEG = 10
+    for (let i = 0; i < QUILLS; i++) {
+      const path: THREE.Vector3[] = []
+      for (let k = 0; k <= SEG; k++) {
+        const p = quillPoint(i, QUILLS, k / SEG)
+        path.push(new THREE.Vector3(p.x * D, p.y * D, p.z * D))
+      }
+      const curve = new THREE.CatmullRomCurve3(path)
+      const geo = new THREE.TubeGeometry(curve, SEG * 3, quillRadius(0) * D, 5, false)
+      // taper it: a feather comes to a point
+      const pos = geo.getAttribute('position') as THREE.BufferAttribute
+      const n = SEG * 3 + 1
+      for (let v = 0; v < pos.count; v++) {
+        const ring = Math.floor(v / 6)
+        const t = Math.min(1, ring / (n - 1))
+        const c = curve.getPoint(t)
+        pos.setXYZ(v, c.x + (pos.getX(v) - c.x) * (quillRadius(t) / quillRadius(0)), c.y + (pos.getY(v) - c.y) * (quillRadius(t) / quillRadius(0)), c.z + (pos.getZ(v) - c.z) * (quillRadius(t) / quillRadius(0)))
+      }
+      pos.needsUpdate = true
+      geo.computeVertexNormals()
+      obj.add(new THREE.Mesh(geo, feather))
+    }
+
+    // the sinamay loop
+    {
+      const path: THREE.Vector3[] = []
+      for (let k = 0; k <= 28; k++) {
+        const p = loopPoint(k / 28)
+        path.push(new THREE.Vector3(p.x * D, p.y * D, p.z * D))
+      }
+      const loop = new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path, true), 60, 0.012 * D, 4, true),
+        sinamay
+      )
+      obj.add(loop)
+    }
+
+    const outer = new THREE.Group()
+    outer.add(obj)
+    return {
+      kind: 'fascinator',
+      obj: outer,
+      place: (a) => {
+        // seated on the side of the head, above and forward of one ear
+        const head = a.headR
+        const height = a.headR * 3.15 // the head's own height, as the hats use
+        const az = (AZIMUTH_DEG * Math.PI) / 180
+        const seat = a.headTop
+          .clone()
+          .addScaledVector(a.headUp, head - height * SEAT_FRAC)
+          .addScaledVector(a.headRight, Math.sin(az) * head * 0.8)
+          .addScaledVector(a.headFwd, Math.cos(az) * head * 0.8)
+        outer.position.copy(seat)
+        outer.scale.setScalar(head)
+        // tilted off the skull, and turned so the spray sweeps back and out
+        const up = a.headUp
+          .clone()
+          .multiplyScalar(Math.cos((CANT_DEG * Math.PI) / 180))
+          .addScaledVector(a.headRight, Math.sin((CANT_DEG * Math.PI) / 180) * Math.sin(az))
+          .addScaledVector(a.headFwd, Math.sin((CANT_DEG * Math.PI) / 180) * Math.cos(az))
+          .normalize()
+        const fwd = a.headFwd.clone().addScaledVector(up, -a.headFwd.dot(up)).normalize()
+        const right = new THREE.Vector3().crossVectors(up, fwd)
+        outer.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, fwd))
+      }
+    }
   }
 
   private flapWorn: FlapWorn = 'down'
