@@ -142,6 +142,8 @@ import { factoryPackJSON } from './export/factoryPack'
 import { sizeSetFiles } from './export/sizeSet'
 import { threadMetres } from './export/thread'
 import { drapedGirths } from './export/drapeFit'
+import { easeMap, bodyRadiusAt, type ZoneEase } from './export/easeMap'
+import { drapeScoreOfRim, type DrapeScore } from './export/drapeScore'
 import { careLabel, careInstructions } from './export/careLabel'
 import { careSymbols } from './export/careSymbols'
 import { saveFile, openFile } from './export/save'
@@ -2118,6 +2120,43 @@ function initStudio(
     const body = stack.active?.controller.bodySim()
     return body ? drapedGirths(body, mannequin.measurements) : []
   }
+  /**
+   * Clearance to the live body at each zone, measured on the settled cloth.
+   *
+   * Both sides come from the same avatar — the garment's slice and the body's own
+   * colliders — so it stays consistent on a resized or posed body, where a girth
+   * difference against the abstract measurements would not.
+   */
+  function easeMapRows(): ZoneEase[] {
+    if (mode !== 'templates') return []
+    const body = stack.active?.controller.bodySim()
+    if (!body) return []
+    const m = mannequin.measurements
+    return easeMap(body, mannequin.colliders, [
+      { label: 'Chest', y: m.chestY },
+      { label: 'Waist', y: m.waistY },
+      { label: 'Hip', y: m.hipY },
+      { label: 'Knee', y: m.kneeY }
+    ])
+  }
+  /** The Cusick drape test, read off the garment's own hem. */
+  function hemDrapeScore(): DrapeScore | null {
+    if (mode !== 'templates') return null
+    const body = stack.active?.controller.bodySim()
+    if (!body || body.ny < 2) return null
+    const { positions, nx, ny } = body
+    const rim: { x: number; z: number }[] = []
+    let sy = 0
+    for (let ix = 0; ix < nx; ix++) {
+      const k = ((ny - 1) * nx + ix) * 3
+      rim.push({ x: positions[k], z: positions[k + 2] })
+      sy += positions[k + 1]
+    }
+    if (rim.length < 6) return null
+    // the body's own radius at the hem's height is what the hem would collapse onto
+    const hemY = sy / nx
+    return drapeScoreOfRim(rim, bodyRadiusAt(mannequin.colliders, hemY))
+  }
   function manufactureBundle(): ManufactureBundle {
     const appr = entryParams.get('approval')
     return {
@@ -2867,6 +2906,8 @@ function initStudio(
     getMetrics: () => activeMetrics(),
     getContactArea: () => stack.contactArea(),
     getDrapedFit: () => drapedFit(),
+    getEaseMap: () => easeMapRows(),
+    getDrapeScore: () => hemDrapeScore(),
     bodySize,
     onBodySize: (b) => {
       Object.assign(bodySize, b)

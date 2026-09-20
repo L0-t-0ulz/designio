@@ -6,6 +6,8 @@ import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES
 import { WRAP_PRESETS, applyWrapPreset } from '../avatar/wrapPresets'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
+import { clearanceVerdict, tightestZone, type ZoneEase } from '../export/easeMap'
+import { drapeReadout, type DrapeScore } from '../export/drapeScore'
 import { SKIN_TONES, SKIN_TONE_HEX, UNDERTONES, type SkinTone, type Undertone } from '../avatar/skin'
 import { POSES, type PoseName } from '../avatar/poses'
 import { POSTURES, type PostureName } from '../avatar/posture'
@@ -347,6 +349,10 @@ export interface PanelOptions {
   getContactArea?: () => { contact: number; total: number; fraction: number }
   /** Chest/waist/hip girth measured on the live *draped* garment (on-body fit). */
   getDrapedFit?: () => GirthRow[]
+  /** Measured clearance to the live body at each zone. */
+  getEaseMap?: () => ZoneEase[]
+  /** The Cusick drape score of the garment's hem. */
+  getDrapeScore?: () => DrapeScore | null
   bodySize: BodyParams
   onBodySize: (b: BodyParams) => void
   onBodyMode: (realistic: boolean) => void
@@ -2185,6 +2191,28 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       metricsBody.append(el('div', 'dio-metric-sep'))
       metricsBody.append(metricLine('Body contact', `${Math.round(ca.fraction * 100)}%`))
       metricsBody.append(metricLine('Contact area', `${Math.round(ca.contact * 10000).toLocaleString()} cm²`))
+    }
+    // Clearance to the live body, per zone — both sides measured on the same
+    // avatar, so it stays consistent where a girth difference would not.
+    const zones = opts.getEaseMap?.() ?? []
+    if (zones.length) {
+      metricsBody.append(el('div', 'dio-metric-sep'))
+      metricsBody.append(el('div', 'dio-metric-head', 'Ease map (measured)'))
+      for (const z of zones) {
+        const row = z.covered
+          ? metricLine(z.label, `${fmtEase(z.minCm)} min · ${fmtEase(z.meanCm)} mean · ${clearanceVerdict(z.minCm)}`)
+          : metricLine(z.label, 'not covered')
+        if (z.covered && z.minCm < 0) row.classList.add('dio-metric-neg')
+        metricsBody.append(row)
+      }
+      const worst = tightestZone(zones)
+      if (worst) metricsBody.append(metricLine('Tightest', `${worst.label} (${fmtEase(worst.minCm)})`))
+    }
+    // How far the hem stands off the body — the Cusick drape test, on the garment.
+    const drape = opts.getDrapeScore?.()
+    if (drape) {
+      metricsBody.append(el('div', 'dio-metric-sep'))
+      metricsBody.append(metricLine('Drape', drapeReadout(drape)))
     }
     // Girth measured on the live drape — a real hip the flat draft can't give.
     const draped = opts.getDrapedFit?.() ?? []
