@@ -29,7 +29,8 @@ import {
   tieHalfWidth,
   splineThrough3
 } from './neckwear'
-import { headFrame, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X, EAR_Z } from './face'
+import { FRAMES, lensOffset, lensOutline, unitsPerMm, type SunglassesStyle } from './shades'
+import { headFrame, FACE_FRONT_R, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X, EAR_Z } from './face'
 import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, FOOT_LAST, SOCK_INSIDE_SHOE, sockRiseM, type SockHeight, HAND_REACH_R, HAND_HALF_THICKNESS_R, HAND_HALF_BREADTH_R, GLOVE_CLEARANCE_R, GLOVE_CUFF_M, WRIST_AT_T, ANKLE_AT_T, WRIST_TO_FOREARM, ANKLE_TO_CALF, STUD_BALL_MM, STUD_POST_MM, HOOP_OUTER_MM, HOOP_WIRE_MM } from './wornSizing'
 
 /**
@@ -1819,37 +1820,84 @@ export class Accessories {
     return this.headItem('goggles', obj)
   }
 
-  private buildSunglasses(): Item {
-    // wayfarer-ish shades that ride the face frame (so they coexist with any hat):
-    // two dark tinted oval lenses at eye level, thin metal frames + bridge, and a
-    // temple arm down each side of the head. Authored in the unit head frame
-    // (face plane z ≈ 1.18, eyes just below centre) like the goggles.
-    const glass = new THREE.MeshPhysicalMaterial({ color: 0x121216, metalness: 0.1, roughness: 0.08, transmission: 0.18, ior: 1.5, envMapIntensity: 1.5 })
-    const frame = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.45, metalness: 0.6 })
-    const obj = new THREE.Group()
-    // origin is the crown; eyes sit ~0.6 head-radii below it, on the face front (+z)
-    const eyeY = -0.6
-    const eyeZ = 0.92
-    for (const sx of [-1, 1]) {
-      const cx = sx * 0.42
-      // lens: a flattened sphere → a slightly convex oval facing forward
-      const lens = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 14), glass)
-      lens.scale.set(1.15, 0.82, 0.32)
-      lens.position.set(cx, eyeY, eyeZ)
-      // rim around the lens
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.03, 8, 28), frame)
-      rim.scale.set(1.15, 0.82, 1)
-      rim.position.set(cx, eyeY, eyeZ + 0.02)
-      // temple arm: a thin bar from the outer lens edge back along the head side
-      const temple = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.03), frame)
-      temple.position.set(sx * 0.8, eyeY + 0.06, eyeZ - 0.5)
-      temple.rotation.y = sx * 0.7 // splay back toward the ears
-      obj.add(lens, rim, temple)
+  private sunglassesStyle: SunglassesStyle = 'wayfarer'
+
+  /** Pick a frame block — wayfarer · aviator · round · cat-eye. */
+  setSunglassesStyle(style: SunglassesStyle): void {
+    this.sunglassesStyle = style
+    const it = this.items.find((i) => i.kind === 'sunglasses')
+    if (!it) return
+    const holder = it.obj
+    for (const child of [...holder.children]) {
+      ;(child as THREE.Mesh).geometry?.dispose()
+      holder.remove(child)
     }
-    // bridge over the nose
-    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.04, 0.04), frame)
-    bridge.position.set(0, eyeY + 0.06, eyeZ + 0.01)
+    this.addShades(holder)
+  }
+  getSunglassesStyle(): SunglassesStyle {
+    return this.sunglassesStyle
+  }
+
+  /**
+   * Shades that ride the face frame, so they coexist with any hat.
+   *
+   * Built at the **measured** face plane: `?probeHead=1` puts the rendered face at
+   * 1.32 collider radii at eye level, and the lenses used to be authored at 0.92 —
+   * a good four centimetres inside the skull, with only the outer corners showing
+   * and the temple arms apparently floating in mid-air beside the head.
+   *
+   * The four blocks differ in the way real frames differ: the lens and bridge
+   * millimetres off the temple, a moulded acetate rim against drawn wire, the
+   * cat-eye's swept corner and the aviator's teardrop and brow bar. Sizing them
+   * against the face's width rather than by a constant is how an optician fits a
+   * frame, and it is what keeps them looking like eyewear on a head of any size.
+   */
+  private addShades(obj: THREE.Group): void {
+    const f = FRAMES[this.sunglassesStyle]
+    const glass = new THREE.MeshPhysicalMaterial({ color: f.tint, metalness: 0.1, roughness: 0.08, transmission: 0.2, ior: 1.52, envMapIntensity: 1.5, side: THREE.DoubleSide })
+    const rimMat = f.metal
+      ? new THREE.MeshStandardMaterial({ color: 0xc9b477, roughness: 0.24, metalness: 0.95 })
+      : new THREE.MeshStandardMaterial({ color: 0x15151a, roughness: 0.38, metalness: 0.05 })
+    // eye level: half the head's height below the crown, which is where `face.ts`
+    // puts the eyes, and the face plane is the measured one
+    const eyeY = -0.575
+    const eyeZ = FACE_FRONT_R - 0.06 // the lens hugs the face rather than floating off it
+    const rim = f.rimMm * unitsPerMm
+    const off = lensOffset(f)
+    for (const sx of [-1, 1] as const) {
+      const pts = lensOutline(f, sx)
+      // the lens itself: the outline filled, sitting in the rim
+      const shape = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y)))
+      const lens = new THREE.Mesh(new THREE.ShapeGeometry(shape, 1), glass)
+      lens.position.set(sx * off, eyeY, eyeZ)
+      obj.add(lens)
+      // the rim: a tube swept round the same outline, so a cat-eye's corner and an
+      // aviator's teardrop are rimmed in their own shape rather than an ellipse
+      const curve = new THREE.CatmullRomCurve3(pts.map(([x, y]) => new THREE.Vector3(x, y, 0)), true)
+      const rimMesh = new THREE.Mesh(new THREE.TubeGeometry(curve, pts.length * 2, rim, 6, true), rimMat)
+      rimMesh.position.set(sx * off, eyeY, eyeZ + 0.01)
+      obj.add(rimMesh)
+      // temple arm, from the lens's outer edge back past the ear
+      const temple = new THREE.Mesh(new THREE.BoxGeometry(0.95, rim * 1.6, rim * 1.2), rimMat)
+      temple.position.set(sx * (off + f.lensMm * 0.5 * unitsPerMm + 0.28), eyeY + 0.07, eyeZ - 0.5)
+      temple.rotation.y = sx * 0.72 // splayed back toward the ears
+      obj.add(temple)
+    }
+    // the bridge over the nose
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(f.bridgeMm * unitsPerMm, rim * 1.4, rim * 1.4), rimMat)
+    bridge.position.set(0, eyeY + (f.teardrop ? 0.1 : 0.05), eyeZ + 0.01)
     obj.add(bridge)
+    if (f.browBar) {
+      // the aviator's bar straight across the top of both lenses
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(off * 2 + f.lensMm * unitsPerMm, rim * 1.3, rim * 1.3), rimMat)
+      bar.position.set(0, eyeY + (f.lensHighMm / 2) * unitsPerMm, eyeZ + 0.01)
+      obj.add(bar)
+    }
+  }
+
+  private buildSunglasses(): Item {
+    const obj = new THREE.Group()
+    this.addShades(obj)
     return this.headItem('sunglasses', obj)
   }
 

@@ -157,6 +157,12 @@ export const EARLOBE_FRAC = EAR_TOP_FRAC + (EAR_BOTTOM_FRAC - EAR_TOP_FRAC) * (1
  * not to the collider, or its opening comes out wider than the head it is on.
  */
 export const HEAD_BREADTH_R = 0.87
+/**
+ * The rendered face plane at eye level, in collider radii — 1.32, measured with
+ * `?probeHead=1`. Anything worn on the face sits against this, not against the
+ * collider sphere, whose surface is well behind it.
+ */
+export const FACE_FRONT_R = 1.32
 export const EAR_X = 0.855
 export const LOBE_X = 0.83
 /** The ear canal sits a little behind the mid-coronal plane. */

@@ -48,6 +48,7 @@ import { FIGURE_BLOCKS, figureBlockGrade, applyFigureBlockToConfig, type FigureB
 import { getKidsBlock } from './avatar/kidsSizes'
 import { Accessories, ACCESSORY_KINDS, accessoryAnchors, radialMount, type AccessoryKind } from './avatar/accessories'
 import { SOCK_HEIGHTS, type SockHeight } from './avatar/wornSizing'
+import { SUNGLASSES_STYLES, type SunglassesStyle } from './avatar/shades'
 import { CROWN_STYLES, type CrownStyle } from './avatar/crown'
 import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from './avatar/hatBand'
 import { UNDERBILL_CLASSIC, type CapBillParams } from './avatar/capBill'
@@ -1304,6 +1305,9 @@ function initStudio(
     // ?crownShape= — the crown shape library (the fedora's blocked crease)
     const cs = params.get('crownShape')
     if (cs && (CROWN_STYLES as string[]).includes(cs)) accessories.setCrown(cs as CrownStyle)
+    // ?sunglassesStyle= — the frame block (wayfarer · aviator · round · cat-eye)
+    const gs = params.get('sunglassesStyle')
+    if (gs && (SUNGLASSES_STYLES as string[]).includes(gs)) accessories.setSunglassesStyle(gs as SunglassesStyle)
     // ?sockHeight= — a real sock cut, measured in cm up from the sole
     const sh = params.get('sockHeight')
     if (sh && (SOCK_HEIGHTS as string[]).includes(sh)) accessories.setSockHeight(sh as SockHeight)
