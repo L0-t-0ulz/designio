@@ -101,13 +101,38 @@ describe('anatomical anchors', () => {
     expect(a.ankleL.y).toBeCloseTo(a.ankleR.y, 9)
   })
 
-  it('places the ears on the head sphere, below its centre and slightly back', () => {
+  it('places the ears against the rendered head, not against the collider sphere', () => {
+    // This is where the anchor was wrong first time round: a fixed fraction below
+    // the *collider point* landed it up on the parietal skull. The rendered head runs
+    // crown (b + r) to chin (a − r) — verified by raycast, `?probeHead=1` — so the ear
+    // is checked against that span and the proportions that live on it.
     const head = body()[0]
-    // the visual cranium centre sits 0.35 radii above the collider point
-    const centre = new THREE.Vector3(0, head.b.y + head.radius * 0.35, 0)
-    expect(a.earL.distanceTo(centre)).toBeLessThan(head.radius * 1.4)
-    expect(a.earL.y).toBeLessThan(centre.y) // ears are below the cranium centre
-    expect(a.earL.z).toBeLessThan(0) // and a little behind the face plane
+    const crown = head.b.y + head.radius
+    const chin = head.a.y - head.radius
+    const height = crown - chin
+    for (const ear of [a.earL, a.earR]) {
+      const down = (crown - ear.y) / height // fraction of the head height below the crown
+      expect(down).toBeGreaterThan(0.4) // below the brow
+      expect(down).toBeLessThan(0.75) // above the base of the nose
+      // outboard of half the eye separation — an ear is on the side of the head
+      expect(Math.abs(ear.x)).toBeGreaterThan(head.radius * 0.5)
+      // and inside the measured head breadth, so it is not floating off the skull
+      expect(Math.abs(ear.x)).toBeLessThan(head.radius * 0.87)
+      expect(ear.z).toBeLessThan(0) // a little behind the mid-coronal plane
+    }
+  })
+
+  it('hangs the earlobes below the ears, mirrored', () => {
+    expect(a.lobeL.y).toBeLessThan(a.earL.y)
+    expect(a.lobeR.y).toBeLessThan(a.earR.y)
+    expect(a.lobeL.y).toBeCloseTo(a.lobeR.y, 9)
+    expect(a.lobeL.x).toBeCloseTo(-a.lobeR.x, 9)
+    expect(a.lobeL.x).toBeLessThan(0) // left lobe on the avatar's left
+    // still on the ear: the drop is part of the auricle, not a whole head
+    const h = body()[0]
+    expect(a.earL.y - a.lobeL.y).toBeLessThan((h.a.distanceTo(h.b) + 2 * h.radius) * 0.2)
+    // and the lobe tucks in as the head tapers toward the jaw
+    expect(Math.abs(a.lobeL.x)).toBeLessThan(Math.abs(a.earL.x))
   })
 
   it('gives limb directions that point down the limb', () => {
