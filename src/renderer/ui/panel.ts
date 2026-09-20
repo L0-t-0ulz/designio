@@ -23,6 +23,7 @@ import { CAP_PANEL_COUNTS, type CapPanelCount } from '../avatar/capPanels'
 import { PUFF_SHAPES, type PuffLogoParams, type PuffShape } from '../avatar/puffLogo'
 import { BOONIE_SNAPS, type BoonieSnap } from '../avatar/boonie'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, type Hairstyle } from '../avatar/face'
+import { BEARD_STYLES, BEARD_LABELS, type BeardStyle } from '../avatar/beard'
 import { SIM_RESOLUTIONS, type SimResolution } from '../cloth/simQuality'
 import { LIGHTING_PRESETS, BACKDROP_PRESETS } from '../core/studioPresets'
 import { TONE_MAPS, toneMappingMode, type ToneMapName } from '../core/tonemap'
@@ -388,6 +389,9 @@ export interface PanelOptions {
     setColor: (hex: number) => void
     getFace: () => boolean
     setFace: (on: boolean) => void
+    /** Facial hair — clean shaven through to a full beard. */
+    getBeard: () => BeardStyle
+    setBeard: (s: BeardStyle) => void
   }
   /** Studio lighting + backdrop presets. */
   scene?: {
@@ -1286,10 +1290,26 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
       hairRow.append(b)
     }
   }
+  const beardRow = el('div', 'dio-actions')
+  beardRow.style.flexWrap = 'wrap'
+  const beardBtns = new Map<BeardStyle, HTMLButtonElement>()
+  if (opts.hair) {
+    for (const style of BEARD_STYLES) {
+      const b = button(BEARD_LABELS[style], () => {
+        opts.hair!.setBeard(style)
+        for (const [s2, btn] of beardBtns) btn.classList.toggle('primary', s2 === style)
+      }, opts.hair.getBeard() === style)
+      b.style.flex = '1 1 30%'
+      beardBtns.set(style, b)
+      beardRow.append(b)
+    }
+  }
   const hairFaceEls = opts.hair
     ? [
         el('div', 'dio-field-label', 'Hair'),
         hairRow,
+        el('div', 'dio-field-label', 'Facial hair'),
+        beardRow,
         colorField({ label: 'Hair colour', get: () => opts.hair!.getColor(), set: (hex) => opts.hair!.setColor(hex) }).row,
         toggle({ label: 'Face features', get: () => opts.hair!.getFace(), set: (v) => opts.hair!.setFace(v) }).row
       ]

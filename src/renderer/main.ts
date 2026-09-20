@@ -40,6 +40,7 @@ import { renderPathTraced } from './core/PathTracer'
 import { pathTraceProgress, type PathTraceQuality } from './core/pathTracePlan'
 import { buildMannequin, type AnimationMode } from './avatar/Mannequin'
 import { skinLook, SKIN_LOOK, SKIN_TONES, UNDERTONES, type SkinTone, type Undertone } from './avatar/skin'
+import { BEARD_STYLES, type BeardStyle } from './avatar/beard'
 import { POSE_NAMES, type PoseName } from './avatar/poses'
 import { POSTURES, type PostureName } from './avatar/posture'
 import { WALK_STYLE_NAMES, type WalkStyleName } from './avatar/walkStyles'
@@ -1357,6 +1358,9 @@ function initStudio(
   const hairColorParam = params.get('hairColor')
   if (hairColorParam) faceRig.setHairColor(parseInt(hairColorParam.replace('#', ''), 16))
   if (params.get('face') === '1') faceRig.setFaceVisible(true) // subtle features are opt-in
+  // ?beard=<stubble|moustache|goatee|full> — facial hair
+  const beardParam = params.get('beard')
+  if (beardParam && (BEARD_STYLES as string[]).includes(beardParam)) faceRig.setBeard(beardParam as BeardStyle)
   // ?freckles=<0..1> — the malar scatter, coloured off the current skin tone
   const freckleParam = parseFloat(params.get('freckles') ?? '')
   if (Number.isFinite(freckleParam)) {
@@ -2654,7 +2658,9 @@ function initStudio(
       getColor: () => faceRig.getHairColor(),
       setColor: (hex) => faceRig.setHairColor(hex),
       getFace: () => faceRig.isFaceVisible(),
-      setFace: (on) => faceRig.setFaceVisible(on)
+      setFace: (on) => faceRig.setFaceVisible(on),
+      getBeard: () => faceRig.getBeard(),
+      setBeard: (s) => faceRig.setBeard(s)
     },
     scene: {
       getLighting: () => env.getLighting(),
