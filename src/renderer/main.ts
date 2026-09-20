@@ -47,6 +47,7 @@ import { getBodyPreset } from './avatar/bodyPresets'
 import { FIGURE_BLOCKS, figureBlockGrade, applyFigureBlockToConfig, type FigureBlock } from './studio/figureBlock'
 import { getKidsBlock } from './avatar/kidsSizes'
 import { Accessories, ACCESSORY_KINDS, accessoryAnchors, radialMount, type AccessoryKind } from './avatar/accessories'
+import { SOCK_HEIGHTS, type SockHeight } from './avatar/wornSizing'
 import { CROWN_STYLES, type CrownStyle } from './avatar/crown'
 import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from './avatar/hatBand'
 import { UNDERBILL_CLASSIC, type CapBillParams } from './avatar/capBill'
@@ -725,7 +726,7 @@ function initStudio(
       }
       player.tick(dt) // timeline playback drives the camera + avatar subject
       mannequin.update(simTime, anim.mode, anim.speed)
-      accessories.update(mannequin.colliders) // shoes/belt/hat/bag follow the live body
+      accessories.update(mannequin.colliders, mannequin.extremities()) // worn pieces follow the live body
       faceRig.update(mannequin.colliders) // hair + face features ride the head
       if (mode === 'templates') stack.step(dt)
       else patternCtl?.step(dt)
@@ -1303,6 +1304,9 @@ function initStudio(
     // ?crownShape= — the crown shape library (the fedora's blocked crease)
     const cs = params.get('crownShape')
     if (cs && (CROWN_STYLES as string[]).includes(cs)) accessories.setCrown(cs as CrownStyle)
+    // ?sockHeight= — a real sock cut, measured in cm up from the sole
+    const sh = params.get('sockHeight')
+    if (sh && (SOCK_HEIGHTS as string[]).includes(sh)) accessories.setSockHeight(sh as SockHeight)
     // ?turbanWraps= — the turban wrap-count designer (2–8 wraps)
     const tw = parseFloat(params.get('turbanWraps') ?? '')
     if (Number.isFinite(tw)) accessories.setTurbanWraps(tw)
@@ -3093,6 +3097,124 @@ function initStudio(
       console.log('[capture-log] probeHead', JSON.stringify({ crown: c0.b.y, radius: r, atEar: all, rows }))
     }, 8000)
   }
+  if (params.get('probeFoot')) {
+    // **Cross-section probe** — fans rays horizontally out of a point and reports how
+    // far the rendered avatar's surface is in each direction.
+    //
+    // That gives three things a capsule cannot: the limb's true radius there, how far
+    // its centre is from the capsule's axis, and — at foot height — which way the foot
+    // actually points, which is the direction of greatest reach. Feet toe out; a shoe
+    // built square to the world sits across the foot it is supposed to be on.
+    window.setTimeout(() => {
+      const ray = new THREE.Raycaster()
+      const shown = (o: THREE.Object3D): boolean => {
+        for (let n: THREE.Object3D | null = o; n; n = n.parent) if (!n.visible) return false
+        return true
+      }
+      const N = 24
+      const fan = (p: THREE.Vector3): (number | null)[] =>
+        Array.from({ length: N }, (_, k) => {
+          const th = (k / N) * Math.PI * 2
+          const d = new THREE.Vector3(Math.sin(th), 0, Math.cos(th)) // 0 = +z (front)
+          ray.set(p.clone().addScaledVector(d, 0.4), d.clone().negate())
+          const h = ray.intersectObject(viewport.scene, true).filter((q) => {
+            const o = q.object as THREE.Mesh
+            return o.isMesh && shown(o) && /^Beta_/.test(o.name || (o.parent?.name ?? ''))
+          })
+          return h.length ? +(0.4 - h[0].distance).toFixed(4) : null
+        })
+      const a = accessoryAnchors(mannequin.colliders)
+      const spots: [string, THREE.Vector3][] = [
+        ['ankleL', a.ankleL], ['ankleR', a.ankleR],
+        ['footL', a.footL], ['footR', a.footR],
+        ['shinL', a.ankleL.clone().setY(a.ankleL.y + 0.08)],
+        ['soleL', a.footL.clone().setY(Math.max(0.03, a.footL.y) + 0.02)]
+      ]
+      const out = spots.map(([name, p]) => ({ name, at: [p.x, p.y, p.z].map((v) => +v.toFixed(3)), fan: fan(p) }))
+      console.log('[capture-log] probeFoot', JSON.stringify(out))
+    }, 8000)
+  }
+  if (params.get('probeTaper')) {
+    // **Limb taper probe** — walks a capsule from `a` past `b` and measures the
+    // rendered limb's half-thickness at each step, front-to-back (the one direction
+    // that never catches the torso or the other limb).
+    //
+    // A capsule has one radius, which has to enclose the whole limb, so it is the
+    // CALF or the forearm's widest — never the joint. This says where the joint
+    // actually is and how thin it actually gets.
+    window.setTimeout(() => {
+      const ray = new THREE.Raycaster()
+      const shown = (o: THREE.Object3D): boolean => {
+        for (let n: THREE.Object3D | null = o; n; n = n.parent) if (!n.visible) return false
+        return true
+      }
+      const half = (p: THREE.Vector3, d: THREE.Vector3): number | null => {
+        const one = (sign: number): number | null => {
+          ray.set(p.clone().addScaledVector(d, sign * 0.35), d.clone().multiplyScalar(-sign))
+          const h = ray.intersectObject(viewport.scene, true).filter((q) => {
+            const o = q.object as THREE.Mesh
+            return o.isMesh && shown(o) && /^Beta_/.test(o.name || (o.parent?.name ?? ''))
+          })
+          return h.length ? 0.35 - h[0].distance : null
+        }
+        const a = one(1)
+        const b = one(-1)
+        return a === null || b === null ? null : (a + b) / 2
+      }
+      const out: Record<string, unknown> = {}
+      for (const [name, idx] of [['forearm', 6], ['lowerLeg', 8], ['forearmR', 10], ['lowerLegR', 12]] as const) {
+        const c = mannequin.colliders[idx]
+        const axis = c.b.clone().sub(c.a).normalize()
+        const len = c.a.distanceTo(c.b)
+        const d = new THREE.Vector3(0, 0, 1)
+        d.addScaledVector(axis, -d.dot(axis)).normalize()
+        out[name] = {
+          capsuleR: +c.radius.toFixed(4),
+          len: +len.toFixed(4),
+          // t past 1 walks into the hand / foot beyond the capsule's distal point
+          at: [0, 0.2, 0.4, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1, 1.1, 1.25, 1.5, 1.8].map((t) => {
+            const r = half(c.a.clone().addScaledVector(axis, len * t), d)
+            return { t, r: r === null ? null : +r.toFixed(4) }
+          })
+        }
+      }
+      console.log('[capture-log] probeTaper', JSON.stringify(out))
+    }, 8000)
+  }
+  if (params.get('probeBody')) {
+    // **Body silhouette probe** — the rendered avatar's outer and inner surface on
+    // each side, at a ladder of heights, so a limb's true girth at a landmark can be
+    // read off instead of taken from the capsule that merely encloses it.
+    window.setTimeout(() => {
+      const ray = new THREE.Raycaster()
+      const shown = (o: THREE.Object3D): boolean => {
+        for (let n: THREE.Object3D | null = o; n; n = n.parent) if (!n.visible) return false
+        return true
+      }
+      const skin = (q: THREE.Intersection): boolean => {
+        const o = q.object as THREE.Mesh
+        return o.isMesh && shown(o) && /^Beta_/.test(o.name || (o.parent?.name ?? ''))
+      }
+      const castX = (y: number, fromX: number, dir: number): number | null => {
+        ray.set(new THREE.Vector3(fromX, y, 0), new THREE.Vector3(dir, 0, 0))
+        const h = ray.intersectObject(viewport.scene, true).filter(skin)
+        return h.length ? fromX + dir * h[0].distance : null
+      }
+      const rows: Record<string, unknown>[] = []
+      for (let y = 1.75; y >= 0.02; y -= 0.05) {
+        const outR = castX(y, 0.8, -1) // right side, from outside in
+        const inR = castX(y, 0, 1) // right side, from the midline out
+        rows.push({
+          y: +y.toFixed(2),
+          outer: outR === null ? null : +outR.toFixed(4),
+          inner: inR === null ? null : +inR.toFixed(4),
+          r: outR === null || inR === null ? null : +((outR - inR) / 2).toFixed(4)
+        })
+      }
+      const caps = mannequin.colliders.map((c, i) => ({ i, ay: +c.a.y.toFixed(3), by: +c.b.y.toFixed(3), ax: +c.a.x.toFixed(3), bx: +c.b.x.toFixed(3), r: +c.radius.toFixed(4) }))
+      console.log('[capture-log] probeBody', JSON.stringify({ caps, rows }))
+    }, 8000)
+  }
   if (params.get('probeLimb')) {
     // **Limb surface probe** — measures the rendered avatar's true radius at the
     // wrist, hand and ankle, against the collider capsule's radius there.
@@ -3111,11 +3233,11 @@ function initStudio(
         ray.set(p.clone().addScaledVector(d, 0.3), d.clone().negate())
         const h = ray.intersectObject(viewport.scene, true).filter((q) => {
           const o = q.object as THREE.Mesh
-          return o.isMesh && shown(o) && /Beta_Surface|body/i.test(o.name || (o.parent?.name ?? ''))
+          return o.isMesh && shown(o) && /^Beta_/.test(o.name || (o.parent?.name ?? ''))
         })
         return h.length ? 0.3 - h[0].distance : null
       }
-      const a = accessoryAnchors(mannequin.colliders)
+      const a = accessoryAnchors(mannequin.colliders, mannequin.extremities())
       const spots: { name: string; at: THREE.Vector3; axis: THREE.Vector3; capsuleR: number }[] = [
         { name: 'wristL', at: a.wristL, axis: a.foreArmDirL, capsuleR: mannequin.colliders[6].radius },
         { name: 'handL', at: a.handL, axis: a.foreArmDirL, capsuleR: mannequin.colliders[6].radius },
@@ -3134,14 +3256,42 @@ function initStudio(
         return out
       })
       const fmt = (v: THREE.Vector3) => [v.x, v.y, v.z].map((q) => +q.toFixed(3))
+      // how far the hand and the foot reach BEYOND the capsule's distal cap: the
+      // capsule stops at the palm, but a glove has to cover the fingers
+      const reach = (from: THREE.Vector3, dir: THREE.Vector3): number | null => {
+        // cast back along the limb from well past the extremity
+        const far = from.clone().addScaledVector(dir, 0.4)
+        ray.set(far, dir.clone().negate())
+        const h = ray.intersectObject(viewport.scene, true).filter((q) => {
+          const o = q.object as THREE.Mesh
+          return o.isMesh && shown(o) && /^Beta_/.test(o.name || (o.parent?.name ?? ''))
+        })
+        return h.length ? 0.4 - h[0].distance : null
+      }
+      const capL = mannequin.colliders[6]
+      const capLeg = mannequin.colliders[8]
+      const extents = {
+        // measured from the capsule's distal point `b`, in capsule radii
+        handBeyondB: (() => { const d = reach(capL.b, a.foreArmDirL); return d === null ? null : +(d / capL.radius).toFixed(3) })(),
+        footBeyondB: (() => { const d = reach(capLeg.b, a.lowerLegDirL); return d === null ? null : +(d / capLeg.radius).toFixed(3) })(),
+        // and the foot's forward reach (the toe), which is not along the leg axis
+        toeReach: (() => { const d = reach(capLeg.b, new THREE.Vector3(0, 0, 1)); return d === null ? null : +(d / capLeg.radius).toFixed(3) })(),
+        soleY: (() => { const d = reach(capLeg.b, new THREE.Vector3(0, -1, 0)); return d === null ? null : +(capLeg.b.y - d).toFixed(4) })(),
+        ankleY: +a.ankleL.y.toFixed(4),
+        legLen: +capLeg.a.distanceTo(capLeg.b).toFixed(4)
+      }
       console.log('[capture-log] probeLimb', JSON.stringify({
+        extents,
         rows,
         headFwd: fmt(a.headFwd),
         headRight: fmt(a.headRight),
         foreArmDirL: fmt(a.foreArmDirL),
         wristL: fmt(a.wristL),
         mount: fmt(radialMount(a.foreArmDirL, a.headFwd)),
-        camera: fmt(viewport.camera.position)
+        camera: fmt(viewport.camera.position),
+        handL: fmt(a.handL), fingertipL: fmt(a.fingertipL), handDirL: fmt(a.handDirL),
+        foreArmR: a.foreArmR, wristRj: a.wristR_,
+        handLen: +a.handL.distanceTo(a.fingertipL).toFixed(4)
       }))
     }, 8000)
   }

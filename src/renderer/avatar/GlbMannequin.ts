@@ -20,9 +20,18 @@ export interface GlbBones {
   lUpLeg?: THREE.Object3D
   lLeg?: THREE.Object3D
   lFoot?: THREE.Object3D
+  /** Toe base + middle-finger base — the only bones that say which way a foot or a
+   *  hand POINTS. A hand is not collinear with its forearm and a foot toes out, so
+   *  without these an extremity accessory can only guess, and guesses show. */
+  lToe?: THREE.Object3D
+  lMid?: THREE.Object3D
+  lMidTip?: THREE.Object3D
   rUpLeg?: THREE.Object3D
   rLeg?: THREE.Object3D
   rFoot?: THREE.Object3D
+  rToe?: THREE.Object3D
+  rMid?: THREE.Object3D
+  rMidTip?: THREE.Object3D
 }
 
 export interface GlbBody {
@@ -103,7 +112,15 @@ export function measureGlbHead(model: THREE.Object3D, head: THREE.Object3D): Glb
 /** Classify a bone by name (strips a `mixorig:`-style prefix; side-agnostic segments are centred). */
 function boneKey(name: string): keyof GlbBones | undefined {
   const n = name.toLowerCase().replace(/^.*:/, '')
-  const seg = /forearm|lowerarm/.test(n)
+  // the tip bones come first: 'HandMiddle1' contains 'hand' and 'ToeBase' would
+  // otherwise fall through to nothing at all
+  const seg = /middle(4|_04)|middle(3|_03)end|middleend/.test(n)
+    ? 'MidTip'
+    : /middle1|middle_01/.test(n)
+      ? 'Mid'
+    : /toebase|(^|[^a-z])toe/.test(n)
+      ? 'Toe'
+      : /forearm|lowerarm/.test(n)
     ? 'Fore'
     : /upperarm|(^|[^a-z])arm/.test(n)
       ? 'Arm'
