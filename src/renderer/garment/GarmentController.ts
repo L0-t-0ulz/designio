@@ -122,7 +122,7 @@ export class GarmentController {
     for (const p of buildGarment(def, garmentParams, this.measurements, this.colliders)) {
       // fringe trim hangs from the garment's bottom hem — the body tube, not
       // sleeves/legs — or from a scarf strip's END columns (the tail hems)
-      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol, !!garmentParams.fringe && (p.name === 'Body' || p.name === 'Scarf'), !!garmentParams.piping && p.name === 'Body', !!garmentParams.breath)
+      this.addPiece(p.build, p.refill, p.name, p.wrapX ?? true, p.cutCol, !!garmentParams.fringe && (p.name === 'Body' || p.name === 'Scarf'), !!garmentParams.piping && p.name === 'Body', !!garmentParams.breath, p.hemWeight)
     }
     this.applyPieceFabrics() // per-panel (front/back) drape where a back fabric is set
     this.bindPinsToBody() // hang each piece from the body so it follows animation
@@ -154,7 +154,7 @@ export class GarmentController {
   }
   private brooch: { disc: THREE.Mesh; ia: number; ib: number; piece: Piece } | null = null
 
-  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true, cutCol?: number, fringeOn = false, pipingOn = false, breathOn = false): void {
+  private addPiece(build: TubeBuild, fill: (pos: Float32Array) => void, name: string, wrapX = true, cutCol?: number, fringeOn = false, pipingOn = false, breathOn = false, hemWeight?: number): void {
     const { geometry, positions, nx, ny, pinnedTop } = build
     const mesh = new THREE.Mesh(geometry, this.material)
     mesh.castShadow = true
@@ -177,7 +177,9 @@ export class GarmentController {
     solver.gravity.set(0, -this.gravityY, 0)
     solver.wind.set(this.windX, 0, this.windZ)
     solver.turbulence = this.windTurbulence
-    solver.hemWeight = HEM_WEIGHT // couture chain-weight: the free hem hangs plumb (pinned cuffs ignore it)
+    // couture chain-weight: the free hem hangs plumb (pinned cuffs ignore it).
+    // A piece may ask for its own — a knit cap's band is far heavier than its crown.
+    solver.hemWeight = hemWeight ?? HEM_WEIGHT
     solver.applyMass()
     const topRing = [...pinnedTop]
     const midY = Math.floor((ny - 1) / 2)

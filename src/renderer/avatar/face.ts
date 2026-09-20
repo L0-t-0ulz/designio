@@ -147,6 +147,16 @@ export const EARLOBE_FRAC = EAR_TOP_FRAC + (EAR_BOTTOM_FRAC - EAR_TOP_FRAC) * (1
  * the rendered avatar, which is a little narrower than its own collider (0.87 r at
  * the widest) and tapers toward the jaw.
  */
+/**
+ * The rendered head's **widest** half-breadth, in collider radii — 0.87, measured
+ * with `?probeHead=1` on both bodies.
+ *
+ * The head collider has to enclose the skull, so its radius is not the head's girth:
+ * on the stock body it is 10 cm against a rendered 8.7 cm. Anything that has to
+ * *grip* the head — a knit band, a hat's crown opening — has to be sized to this and
+ * not to the collider, or its opening comes out wider than the head it is on.
+ */
+export const HEAD_BREADTH_R = 0.87
 export const EAR_X = 0.855
 export const LOBE_X = 0.83
 /** The ear canal sits a little behind the mid-coronal plane. */

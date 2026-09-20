@@ -95,6 +95,15 @@ export interface TubeSpec {
   /** Chew the cut-out edges (a distressed mask): rim-adjacent quads drop by a
    *  deterministic hash, and the neat binding is skipped — raw frayed holes. */
   fray?: boolean
+  /**
+   * Override the hem's mass ramp for this piece.
+   *
+   * A knit cap's band is the heavy part of it — doubled, ribbed, often elasticated —
+   * against a single-thickness crown. The couture chain-weight the other pieces get
+   * is not enough to stop a cap's hem curling up the skull, which lets it settle
+   * perched on the crown instead of sitting at the brow.
+   */
+  hemWeight?: number
 }
 
 /** A sphere's cross-section radius at height `y` (0 outside the sphere). Pure. */
