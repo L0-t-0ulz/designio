@@ -2,9 +2,13 @@ import * as THREE from 'three'
 import type { Capsule } from './colliders'
 import type { ExtremityFrame, ExtremityFrames } from './extremities'
 import { BodyMesh, type BodyPart } from './BodyMesh'
-import { loadGlbBody, measureGlbHead, type GlbBody, type GlbHead } from './GlbMannequin'
+import { loadGlbBody, measureGlbHead, type GlbBody, type GlbBones, type GlbHead } from './GlbMannequin'
 import { makeSkinMaterial, applySkinLook, type SkinLook } from './skin'
-import { getPose, type PoseName } from './poses'
+import { getPose, type Pose, type PoseName, type PoseTargets } from './poses'
+import { solveJoint, aimBone } from './ik'
+
+/** `?poseDebug=1` logs each solved limb: where it was asked to reach and where it got to. */
+const POSE_DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).get('poseDebug') === '1'
 import { applyPostureToColliders, bendPoint, postureAngles, type PostureName } from './posture'
 import { WALK_STYLES, type WalkStyle, type WalkStyleName } from './walkStyles'
 import { headFrame } from './face'
@@ -142,6 +146,8 @@ export interface Mannequin {
   colliders: Capsule[]
   /** Hand/foot joint + pointing direction, from the rig's tip bones (empty when unrigged). */
   extremities: () => ExtremityFrames
+  /** The resolved rig bones, for posing (empty on the procedural body). */
+  glbBones: () => GlbBones
   measurements: Measurements
   /** Mesh-accurate body collision surface (valid while the body is static). */
   bodyCollider: BodyCollider
@@ -664,6 +670,116 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
 
   // Posture carriage — layered on top of whatever pose/clip is active.
   let posture: PostureName = 'neutral'
+  /**
+   * Layer a pose's bone rotations onto the freshly sampled clip frame.
+   *
+   * Additive, and applied before the posture carriage and before the capsules are
+   * fitted, so a posed limb collides where it is drawn. The `hipDrop` lowers the
+   * whole figure, which a seated pose needs: rotate the thighs without it and the
+   * figure sits in mid-air above where its own legs are.
+   */
+  let hipsRestY: number | null = null
+  const poseBase = new Map<THREE.Object3D, THREE.Euler>()
+  let poseBaseKey = ''
+  const applyGlbPoseBones = (pose: Pose): void => {
+    if (!glb) return
+    // Set ABSOLUTELY from the captured rest height, never subtracted. The static
+    // loop re-applies the pose every frame, and the idle clip carries no hips
+    // position track to reset it — so a relative drop accumulates and the figure
+    // sinks through the floor a few centimetres a second.
+    if (glb.bones.hips) {
+      if (hipsRestY === null) hipsRestY = glb.bones.hips.position.y
+      glb.bones.hips.position.y = hipsRestY - (pose.hipDropM ?? 0) / (glb.model.scale.y || 1)
+    }
+    if (pose.bones) {
+      // ABSOLUTE, from a recorded base — never `+=`.
+      //
+      // The static loop re-applies the pose every frame, and `freezePose` does not
+      // reset every bone it does not animate. An additive offset therefore
+      // accumulates: the seated pose's 0.05 rad chest tilt reached 90° in a second,
+      // and the figure ended up face down. The base is recorded the first time a
+      // given clip frame is posed and restored before the offset is added.
+      const key = `${pose.glb.clip}@${pose.glb.phase}`
+      if (poseBaseKey !== key) {
+        poseBase.clear()
+        poseBaseKey = key
+      }
+      for (const [name, rot] of Object.entries(pose.bones)) {
+        const bone = (glb.bones as Record<string, THREE.Object3D | undefined>)[name]
+        if (!bone || !rot) continue
+        const base = poseBase.get(bone) ?? bone.rotation.clone()
+        if (!poseBase.has(bone)) poseBase.set(bone, base)
+        bone.rotation.set(base.x + rot[0], base.y + rot[1], base.z + rot[2])
+      }
+    }
+    glb.model.updateMatrixWorld(true)
+    if (pose.targets) applyGlbPoseTargets(pose.targets)
+    if (POSE_DEBUG) {
+      const q = glb.bones.chest?.getWorldQuaternion(new THREE.Quaternion())
+      const up = q ? new THREE.Vector3(0, 1, 0).applyQuaternion(q) : null
+      console.log('[capture-log] poseTorso', pose.name, JSON.stringify({
+        chestUp: up ? up.toArray().map((v) => +v.toFixed(3)) : null,
+        hipsY: +(glb.bones.hips?.position.y ?? 0).toFixed(4),
+        restY: hipsRestY === null ? null : +hipsRestY.toFixed(4)
+      }))
+    }
+  }
+
+  /**
+   * Reach each posed limb to its target with two-bone IK.
+   *
+   * Targets are in the body frame and in multiples of the limb's own length, so
+   * the same pose fits a resized body without being re-authored — the arm's length
+   * is measured off the rig here, not assumed.
+   */
+  const poseScratch = { root: new THREE.Vector3(), mid: new THREE.Vector3(), tip: new THREE.Vector3() }
+  const applyGlbPoseTargets = (targets: PoseTargets): void => {
+    if (!glb) return
+    const b = glb.bones
+    // the body frame, from the head frame the accessories already use
+    const hf = headFrame(colliders)
+    const chain: [keyof PoseTargets, (keyof typeof b)[]][] = [
+      ['armL', ['lArm', 'lFore', 'lHand']],
+      ['armR', ['rArm', 'rFore', 'rHand']],
+      ['legL', ['lUpLeg', 'lLeg', 'lFoot']],
+      ['legR', ['rUpLeg', 'rLeg', 'rFoot']]
+    ]
+    const dir = (t: { right: number; up: number; fwd: number }): THREE.Vector3 =>
+      new THREE.Vector3().addScaledVector(hf.right, t.right).addScaledVector(hf.up, t.up).addScaledVector(hf.forward, t.fwd)
+    for (const [key, bones] of chain) {
+      const target = targets[key]
+      const [rootB, midB, tipB] = bones.map((n) => b[n])
+      if (!target || !rootB || !midB || !tipB) continue
+      rootB.getWorldPosition(poseScratch.root)
+      midB.getWorldPosition(poseScratch.mid)
+      tipB.getWorldPosition(poseScratch.tip)
+      const l1 = poseScratch.root.distanceTo(poseScratch.mid)
+      const l2 = poseScratch.mid.distanceTo(poseScratch.tip)
+      const reach = l1 + l2
+      const goal = poseScratch.root.clone().add(dir(target).multiplyScalar(reach))
+      const pole = dir(target.pole)
+      const joint = solveJoint(poseScratch.root, goal, l1, l2, pole)
+      // aim the upper bone at the solved joint, then the lower one at the target
+      aimBone(rootB, poseScratch.mid, joint)
+      midB.getWorldPosition(poseScratch.mid)
+      tipB.getWorldPosition(poseScratch.tip)
+      aimBone(midB, poseScratch.tip, goal)
+      if (POSE_DEBUG) {
+        const got = tipB.getWorldPosition(new THREE.Vector3())
+        console.log('[capture-log] poseIK', key, JSON.stringify({
+          root: poseScratch.root.toArray().map((v) => +v.toFixed(3)),
+          goal: goal.toArray().map((v) => +v.toFixed(3)),
+          joint: joint.toArray().map((v) => +v.toFixed(3)),
+          got: got.toArray().map((v) => +v.toFixed(3)),
+          l1: +l1.toFixed(3),
+          l2: +l2.toFixed(3),
+          miss: +got.distanceTo(goal).toFixed(4)
+        }))
+      }
+    }
+    glb.model.updateMatrixWorld(true)
+  }
+
   const applyGlbPosture = (): void => {
     if (!glb) return
     const pa = postureAngles(posture)
@@ -690,6 +806,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     if (useGlb && glb) {
       const pose = getPose(currentPose)
       glb.freezePose(pose.glb.clip, pose.glb.phase)
+      applyGlbPoseBones(pose)
       applyGlbPosture()
       fitCollidersToGlb()
     } else {
@@ -842,6 +959,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     group,
     colliders,
     extremities,
+    glbBones: () => glb?.bones ?? {},
     measurements,
     bodyCollider,
     update,
