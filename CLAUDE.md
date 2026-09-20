@@ -306,7 +306,7 @@ Renderer modules:
   production spec**: real chest/waist/hip/length/sleeve/inseam + fabric area + seam length from the same
   construction), `careLabel` (**auto care label**: pure `fibreContent`/`careInstructions` derive fibre
   content % + laundering lines from a fabric's family/stretch — unit-tested; folded into the manufacturing
-  pack), `cost` (**landed cost sheet**: pure `costRollup` (fabric yield × price + thread + trims + labour +
+  pack), `consumption` (**fabric to buy** — the marker is the cutting-room plan, the purchase order is longer: `fabricConsumption` nests the panels then adds the end loss, the splices and a shrinkage allowance (dividing by 1−s, not multiplying by 1+s, which comes up short), and `bestBolt` picks a width by **re-nesting at each one** because a panel a little over half the bolt can make a narrower roll win outright. The cost sheet now charges the bought metres, not the marker's), `cost` (**landed cost sheet**: pure `costRollup` (fabric yield × price + thread + trims + labour +
   overhead → cost/unit) + `estimateLabourMinutes`, with `estimatedFabricPrice` from the fabric library;
   + a **pricing calculator** — pure `priceFromCost` prices wholesale to hit a target gross margin
   (`cost / (1 − margin)`) + suggested retail off a keystone multiple, with margin/markup back-out;

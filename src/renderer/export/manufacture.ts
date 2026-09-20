@@ -10,6 +10,7 @@ import { pieceCountSummary } from './patternPieces'
 import { grainSummary } from './grainline'
 import type { PomSheet } from './pom'
 import { markerSVG, type MarkerLayout } from './marker'
+import type { Consumption } from './consumption'
 import { threadMetres } from './thread'
 import { SEAM_TYPES, stitchLengthMm, threadMetresFor } from '../garment/stitchTypes'
 import { priceFromCost, type CostBreakdown } from './cost'
@@ -64,6 +65,8 @@ export interface ManufactureLayer {
   pom?: PomSheet
   /** Nested marker (fabric layout) for the realistic yield + efficiency. */
   marker?: MarkerLayout
+  /** What has to be BOUGHT — the marker plus the losses a roll carries. */
+  consumption?: Consumption
   /** Landed cost breakdown (fabric + thread + labour + overhead). */
   cost?: CostBreakdown
   /** Sustainability: material passport + footprint + circular score + longevity tips. */
@@ -150,11 +153,21 @@ function headSizingSection(h?: PomSheet['head']): string {
     </table>`
 }
 
-/** Nested-marker preview (fabric layout) + its efficiency; omitted when empty. */
-function markerSection(m?: MarkerLayout): string {
+/**
+ * Nested-marker preview + what has to be bought.
+ *
+ * Two different numbers, and a buyer needs both: the **marker** is how long the lay
+ * is, and the **consumption** is what goes on the purchase order — the marker plus
+ * the end loss, the splices and the shrinkage allowance a roll carries. Printing
+ * only the marker is how a cutting room comes up short.
+ */
+function markerSection(m?: MarkerLayout, c?: Consumption): string {
   if (!m || !m.placements.length) return ''
+  const buy = c
+    ? `<div class="note">Buy <b>${c.buyM.toFixed(2)} m</b> @ ${c.boltWidthCm} cm — marker ${c.markerM.toFixed(2)} m plus end loss, splices and shrinkage. ${(c.utilisation * 100).toFixed(0)}% of it ends up in the garment; ${c.wasteM2.toFixed(2)} m² is waste.</div>`
+    : ''
   return `<h3>Marker (@ ${m.widthCm.toFixed(0)} cm) — ${(m.lengthCm / 100).toFixed(2)} m · ${(m.efficiency * 100).toFixed(0)}% efficient</h3>
-    <div class="marker">${markerSVG(m)}</div>`
+    <div class="marker">${markerSVG(m)}</div>${buy}`
 }
 
 /**
@@ -267,6 +280,7 @@ function layerSection(l: ManufactureLayer): string {
                 ? `<tr><td>Marker (@ ${FABRIC_WIDTH_M * 100} cm)</td><td colspan="2">${(l.marker.lengthCm / 100).toFixed(2)} m · ${((l.marker.lengthCm / 100) * 1.094).toFixed(2)} yd · ${(l.marker.efficiency * 100).toFixed(0)}% eff.</td></tr>`
                 : `<tr><td>Yardage (@ ${FABRIC_WIDTH_M * 100} cm)</td><td colspan="2">${lengthM.toFixed(2)} m · ${(lengthM * 1.094).toFixed(2)} yd</td></tr>`
             }
+            ${l.consumption ? `<tr><td>Fabric to buy</td><td colspan="2">${l.consumption.buyM.toFixed(2)} m @ ${l.consumption.boltWidthCm} cm · ${(l.consumption.utilisation * 100).toFixed(0)}% utilised</td></tr>` : ''}
             <tr><td>Total seam length</td><td colspan="2">${l.metrics.seamCm.toFixed(0)} cm</td></tr>
             ${
               l.stitch
@@ -296,7 +310,7 @@ function layerSection(l: ManufactureLayer): string {
       </div>
     </div>
     ${pomSection(l.pom)}
-    ${markerSection(l.marker)}
+    ${markerSection(l.marker, l.consumption)}
   </section>`
 }
 

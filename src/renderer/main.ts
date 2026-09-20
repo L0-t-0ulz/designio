@@ -131,6 +131,7 @@ import { parseScanOBJ, scanToMeasurements } from './avatar/bodyScan'
 import { parseBVH, bvhJointNames, bvhDuration } from './avatar/mocap'
 import { recommendSize, sizeRecommendationReadout } from './avatar/sizeRecommend'
 import { nestMarker } from './export/marker'
+import { fabricConsumption } from './export/consumption'
 import { costRollup, estimateLabourMinutes, headwearFabricM, headwearTrims, priceFromCost, DEFAULT_FREIGHT_PER_UNIT, DEFAULT_APPAREL_DUTY_PCT, priceTrimLines } from './export/cost'
 import { shopifyCsv, type ListingInput } from './export/listing'
 import { productPageHtml } from './export/productPage'
@@ -2001,9 +2002,13 @@ function initStudio(
     const l = stack.active
     const def = getGarment(l.data.garmentType)
     const metrics = activeMetrics(l)
-    const marker = nestMarker(garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels, 140)
+    const layPanels = garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels
+    // what the purchase order says, not how long the lay is: a roll also carries
+    // end loss, splices and a shrinkage allowance, and `fabricConsumption` nests
+    // the marker itself on the way
+    const consumption = fabricConsumption({ panels: layPanels, boltWidthCm: 140, shrinkage: 0.03 })
     const cost = costRollup({
-      fabricM: marker ? marker.lengthCm / 100 : metrics.fabricM2 / 1.4,
+      fabricM: consumption.buyM,
       pricePerM: estimatedFabricPrice(l.fabric),
       threadM: threadMetres(metrics.seamCm),
       labourMin: estimateLabourMinutes(metrics.seamCm),
@@ -2134,6 +2139,7 @@ function initStudio(
         const metrics = activeMetrics(l)
         const panels = garmentToPanels(def, gradeParams(l.data), mannequin.measurements, mannequin.colliders).panels
         const markerLayout = nestMarker(panels, 140)
+        const consumption = fabricConsumption({ panels, boltWidthCm: 140, shrinkage: 0.03 })
         const pieceCount = patternPieceCount(panels)
         // Only pieces cut on the fold are meant to mirror. A sleeve or a side panel
         // is asymmetric by design, and flagging those would drown the real signal.
@@ -2224,6 +2230,7 @@ function initStudio(
           metrics,
           pom: pomTable(def, l.data, mannequin.measurements, mannequin.colliders, faceRig.getHairstyle()),
           marker: markerLayout,
+          consumption,
           cost: costRollup({
             freightPerUnit: DEFAULT_FREIGHT_PER_UNIT,
             dutyPct: DEFAULT_APPAREL_DUTY_PCT,
