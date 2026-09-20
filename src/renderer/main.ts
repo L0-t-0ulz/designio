@@ -46,7 +46,7 @@ import { WALK_STYLE_NAMES, type WalkStyleName } from './avatar/walkStyles'
 import { getBodyPreset } from './avatar/bodyPresets'
 import { FIGURE_BLOCKS, figureBlockGrade, applyFigureBlockToConfig, type FigureBlock } from './studio/figureBlock'
 import { getKidsBlock } from './avatar/kidsSizes'
-import { Accessories, ACCESSORY_KINDS, type AccessoryKind } from './avatar/accessories'
+import { Accessories, ACCESSORY_KINDS, accessoryAnchors, radialMount, type AccessoryKind } from './avatar/accessories'
 import { CROWN_STYLES, type CrownStyle } from './avatar/crown'
 import { HAT_BAND_STYLES, BAND_TRIMS, type HatBandParams, type HatBandStyle, type BandTrim } from './avatar/hatBand'
 import { UNDERBILL_CLASSIC, type CapBillParams } from './avatar/capBill'
@@ -3045,6 +3045,105 @@ function initStudio(
     viewport.camera.position.set(0.12, 1.16, 0.62)
     viewport.controls.target.set(0, 1.08, 0.12)
     viewport.controls.update()
+  }
+  if (params.get('probeHead')) {
+    // **Head surface probe** — raycasts the rendered avatar laterally and from the
+    // front at a ladder of heights, and logs the half-width / depth profile in head
+    // frame units (origin = the head collider's `b`, unit = its radius).
+    //
+    // Accessories that sit ON the face — an ear stud, a hoop, a temple arm — have to
+    // be placed against the *rendered* head, and that is the metaball ovoid or the
+    // GLB mesh, neither of which is the head collider. This is how those constants
+    // get calibrated instead of guessed.
+    window.setTimeout(() => {
+      const c0 = mannequin.colliders[0]
+      const r = c0.radius
+      const ray = new THREE.Raycaster()
+      const hit = (from: THREE.Vector3, dir: THREE.Vector3): { d: number; n: string } | null => {
+        ray.set(from, dir)
+        // three.js does not skip hidden objects, and the hair/face rigs are parked
+        // invisible — so ancestor visibility has to be checked by hand
+        const shown = (o: THREE.Object3D): boolean => {
+          for (let n: THREE.Object3D | null = o; n; n = n.parent) if (!n.visible) return false
+          return true
+        }
+        const hits = ray.intersectObject(viewport.scene, true).filter((h) => {
+          const o = h.object as THREE.Mesh
+          return o.isMesh && shown(o) && !/floor|shadow|backdrop|reflector/i.test(o.name)
+        })
+        return hits.length ? { d: hits[0].distance, n: hits[0].object.name || hits[0].object.type } : null
+      }
+      const rows: Record<string, unknown>[] = []
+      for (let y = 1.2; y >= -2.6; y -= 0.2) {
+        const p = new THREE.Vector3(0, c0.b.y + r * y, 0)
+        const side = hit(p.clone().setX(-3 * r), new THREE.Vector3(1, 0, 0))
+        const front = hit(p.clone().setZ(3 * r), new THREE.Vector3(0, 0, -1))
+        rows.push({
+          y: +y.toFixed(2),
+          halfWidth: side === null ? null : +((3 * r - side.d) / r).toFixed(3),
+          sideHit: side?.n ?? null,
+          front: front === null ? null : +((3 * r - front.d) / r).toFixed(3),
+          frontHit: front?.n ?? null
+        })
+      }
+      // a full hit list at ear height, so a stray mesh in the way is obvious
+      const p0 = new THREE.Vector3(-3 * r, c0.b.y - r, 0)
+      ray.set(p0, new THREE.Vector3(1, 0, 0))
+      const all = ray.intersectObject(viewport.scene, true).map((h) => `${h.object.name || h.object.type}@${(-3 * r + h.distance).toFixed(3)}`)
+      console.log('[capture-log] probeHead', JSON.stringify({ crown: c0.b.y, radius: r, atEar: all, rows }))
+    }, 8000)
+  }
+  if (params.get('probeLimb')) {
+    // **Limb surface probe** — measures the rendered avatar's true radius at the
+    // wrist, hand and ankle, against the collider capsule's radius there.
+    //
+    // A limb collider is a uniform capsule standing in for a tapering limb, so its
+    // radius is not the girth at any particular point. Anything sized to a joint — a
+    // watch case, a sock cuff, a glove — needs the real one, and this is where it
+    // comes from rather than an assumed anthropometric ratio.
+    window.setTimeout(() => {
+      const ray = new THREE.Raycaster()
+      const shown = (o: THREE.Object3D): boolean => {
+        for (let n: THREE.Object3D | null = o; n; n = n.parent) if (!n.visible) return false
+        return true
+      }
+      const surface = (p: THREE.Vector3, d: THREE.Vector3): number | null => {
+        ray.set(p.clone().addScaledVector(d, 0.3), d.clone().negate())
+        const h = ray.intersectObject(viewport.scene, true).filter((q) => {
+          const o = q.object as THREE.Mesh
+          return o.isMesh && shown(o) && /Beta_Surface|body/i.test(o.name || (o.parent?.name ?? ''))
+        })
+        return h.length ? 0.3 - h[0].distance : null
+      }
+      const a = accessoryAnchors(mannequin.colliders)
+      const spots: { name: string; at: THREE.Vector3; axis: THREE.Vector3; capsuleR: number }[] = [
+        { name: 'wristL', at: a.wristL, axis: a.foreArmDirL, capsuleR: mannequin.colliders[6].radius },
+        { name: 'handL', at: a.handL, axis: a.foreArmDirL, capsuleR: mannequin.colliders[6].radius },
+        { name: 'ankleL', at: a.ankleL, axis: a.lowerLegDirL, capsuleR: mannequin.colliders[8].radius },
+        { name: 'footL', at: a.footL, axis: a.lowerLegDirL, capsuleR: mannequin.colliders[8].radius }
+      ]
+      const rows = spots.map((s) => {
+        const out: Record<string, unknown> = { at: s.name, capsuleR: +s.capsuleR.toFixed(4) }
+        for (const [label, dir] of [['lateral', new THREE.Vector3(1, 0, 0)], ['front', new THREE.Vector3(0, 0, 1)]] as const) {
+          const d = new THREE.Vector3().copy(dir)
+          const m = d.clone().addScaledVector(s.axis, -d.dot(s.axis)).normalize()
+          const plus = surface(s.at, m)
+          const minus = surface(s.at, m.clone().negate())
+          out[label] = plus === null || minus === null ? null : +(((plus + minus) / 2)).toFixed(4)
+        }
+        return out
+      })
+      const fmt = (v: THREE.Vector3) => [v.x, v.y, v.z].map((q) => +q.toFixed(3))
+      console.log('[capture-log] probeLimb', JSON.stringify({
+        rows,
+        headFwd: fmt(a.headFwd),
+        headRight: fmt(a.headRight),
+        foreArmDirL: fmt(a.foreArmDirL),
+        wristL: fmt(a.wristL),
+        mount: fmt(radialMount(a.foreArmDirL, a.headFwd)),
+        camera: fmt(viewport.camera.position)
+      }))
+    }, 8000)
   }
   if (params.get('debugHead')) {
     console.log('[capture-log] debugHead armed')

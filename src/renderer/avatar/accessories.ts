@@ -12,7 +12,8 @@ import { BOONIE, boonieBrimLift, CHIN_CORD, type BoonieSnap } from './boonie'
 import { BAKERBOY, goreLobe } from './bakerboy'
 import { strawRecipe } from './straw'
 import { makeDraftNormalMap, makeDraftRoughnessMap } from '../fabric/weaveDraft'
-import { headFrame } from './face'
+import { headFrame, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X, EAR_Z } from './face'
+import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, STUD_BALL_MM, STUD_POST_MM, HOOP_OUTER_MM, HOOP_WIRE_MM } from './wornSizing'
 
 /**
  * A small **accessories library** — footwear, a belt, a bag, plus **headwear &
@@ -24,8 +25,8 @@ import { headFrame } from './face'
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
+export type AccessoryKind = 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -64,9 +65,16 @@ export interface AccessoryAnchors {
   foreArmDirR: THREE.Vector3
   lowerLegDirL: THREE.Vector3
   lowerLegDirR: THREE.Vector3
-  /** Outer ear positions (world), on the head sphere. */
+  /**
+   * Outer ear (auricle) centres, world. Placed at the height `face.ts` derives from
+   * the brow and the nose base, so they line up with the rendered face rather than
+   * with a guessed fraction of the skull.
+   */
   earL: THREE.Vector3
   earR: THREE.Vector3
+  /** Earlobe centres — where a stud or a hoop actually hangs. */
+  lobeL: THREE.Vector3
+  lobeR: THREE.Vector3
   /** Shoulder tips (world) + the span between them. */
   shoulderL: THREE.Vector3
   shoulderR: THREE.Vector3
@@ -95,6 +103,42 @@ export function limbDirection(cap: Capsule): THREE.Vector3 {
   const axis = cap.b.clone().sub(cap.a)
   const len = axis.length()
   return len < 1e-6 ? new THREE.Vector3(0, -1, 0) : axis.divideScalar(len)
+}
+
+/**
+ * A point on the side of the head, `frac` of the head's height below its crown.
+ *
+ * The head's height is the collider capsule's swept extent, `|a − b| + 2r`, which
+ * measurement shows is the rendered crown-to-chin to within a couple of millimetres
+ * (see `face.ts`). `side` is −1 for the avatar's left, +1 for its right.
+ */
+function earPoint(head: Capsule, hf: { right: THREE.Vector3; up: THREE.Vector3; forward: THREE.Vector3 }, side: -1 | 1, frac: number, x: number): THREE.Vector3 {
+  const r = head.radius
+  const height = head.a.distanceTo(head.b) + 2 * r
+  return head.b
+    .clone()
+    .addScaledVector(hf.up, r - height * frac) // down from the crown, which is b + r
+    .addScaledVector(hf.right, side * r * x)
+    .addScaledVector(hf.forward, r * EAR_Z)
+}
+
+/**
+ * The direction to mount something on the surface of a limb: `away`, made
+ * perpendicular to the limb `axis`.
+ *
+ * A watch case has to sit **flat** on the wrist, which means its mount direction must
+ * lie in the limb's cross-section — the plane the strap loop occupies. Taking the
+ * body-outward direction straight from the geometry would tilt the case whenever the
+ * arm is not vertical, so the axial component is projected out (Gram–Schmidt) before
+ * it is used. Falls back to a stable perpendicular when `away` is parallel to the axis.
+ */
+export function radialMount(axis: THREE.Vector3, away: THREE.Vector3): THREE.Vector3 {
+  const a = axis.clone().normalize()
+  const out = away.clone().addScaledVector(a, -away.dot(a))
+  if (out.lengthSq() > 1e-12) return out.normalize()
+  // degenerate: pick any axis-perpendicular direction, preferring world +z (front)
+  const alt = Math.abs(a.z) < 0.9 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0)
+  return alt.addScaledVector(a, -alt.dot(a)).normalize()
 }
 
 /** Key attach points (world) derived from the live body capsules. Pure. */
@@ -135,10 +179,12 @@ export function accessoryAnchors(c: Capsule[]): AccessoryAnchors {
     foreArmDirR: limbDirection(foreR),
     lowerLegDirL: limbDirection(legL),
     lowerLegDirR: limbDirection(legR),
-    // The ear sits on the side of the head sphere, a little behind the lateral axis
-    // and below its centre — measured in the head frame so it turns with the head.
-    earL: head.b.clone().addScaledVector(hf.up, head.radius * (HC - 0.55)).addScaledVector(hf.right, -head.radius * 0.98).addScaledVector(hf.forward, -head.radius * 0.1),
-    earR: head.b.clone().addScaledVector(hf.up, head.radius * (HC - 0.55)).addScaledVector(hf.right, head.radius * 0.98).addScaledVector(hf.forward, -head.radius * 0.1),
+    // Ear + earlobe, at the fractions of the head's height `face.ts` derives from the
+    // brow and the nose base, in the head frame so they turn with the head.
+    earL: earPoint(head, hf, -1, EAR_CENTRE_FRAC, EAR_X),
+    earR: earPoint(head, hf, 1, EAR_CENTRE_FRAC, EAR_X),
+    lobeL: earPoint(head, hf, -1, EARLOBE_FRAC, LOBE_X),
+    lobeR: earPoint(head, hf, 1, EARLOBE_FRAC, LOBE_X),
     shoulderL: shoulder.a.clone(),
     shoulderR: shoulder.b.clone(),
     chest: torso.b.clone(),
@@ -155,6 +201,7 @@ const felt = (color: number): THREE.MeshStandardMaterial => new THREE.MeshStanda
 const TAU = Math.PI * 2
 /** The +y axis a limb-worn ring is authored around before being turned onto the limb. */
 const UP = new THREE.Vector3(0, 1, 0)
+const FORWARD = new THREE.Vector3(0, 0, 1)
 /** Visual head-sphere centre in the unit head frame (origin = the head collider's `b`,
  *  +y up, 1 unit = head radius). The metaball cranium sits ~0.35 radii *above* the
  *  collider point, so headwear caps from here (not from the collider point itself). */
@@ -181,6 +228,8 @@ export class Accessories {
   constructor() {
     this.group.name = 'accessories'
     this.items.push(
+      this.buildStuds(),
+      this.buildWatch(),
       this.buildAnklet(),
       this.buildShoes(),
       this.buildBelt(),
@@ -1025,16 +1074,194 @@ export class Accessories {
     return this.neckItem('necklace', obj)
   }
 
+  /**
+   * Gold hoops hanging from the **earlobes**.
+   *
+   * They used to be pinned half a head-radius too high — up level with the brow,
+   * which is the *top* of the ear — because the height was a round number rather
+   * than a landmark. Now they hang off `lobeL`/`lobeR`, and they are built at their
+   * real size (30 mm outside, 1.5 mm wire) in world units, so a 30 mm hoop stays a
+   * 30 mm hoop on a larger or smaller head instead of scaling with the skull.
+   */
   private buildHoops(): Item {
-    // gold hoops hanging from the earlobes, facing sideways
     const obj = new THREE.Group()
-    for (const side of [-1, 1]) {
-      const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.035, 10, 24), METAL)
-      hoop.rotation.y = Math.PI / 2
-      hoop.position.set(side * 1.02, HC - 1.05, 0.05)
-      obj.add(hoop)
+    const wire = HOOP_WIRE_MM / 2000 // mm diameter → m radius
+    const ring = HOOP_OUTER_MM / 2000 - wire // torus radius is to the centre of the wire
+    const hoops = [-1, 1].map(() => {
+      const m = new THREE.Mesh(new THREE.TorusGeometry(ring, wire, 8, 28), METAL)
+      obj.add(m)
+      return m
+    })
+    return {
+      kind: 'hoops',
+      obj,
+      place: (a) => {
+        const lobes = [a.lobeL, a.lobeR]
+        for (let i = 0; i < 2; i++) {
+          // the hoop passes through the lobe, so its centre hangs one radius below it
+          hoops[i].position.copy(lobes[i]).addScaledVector(a.headUp, -ring)
+          // it lies in the sagittal plane: the ring's axis is the head's lateral axis
+          hoops[i].quaternion.setFromUnitVectors(FORWARD, a.headRight)
+        }
+      }
     }
-    return this.headItem('hoops', obj)
+  }
+
+  /**
+   * **Stud earrings** — a 5 mm ball on a 20-gauge post, sitting on the earlobe.
+   *
+   * Built in world units at the real size, like the hoops: a stud is 5 mm across on
+   * any head. The ball sits its own radius proud of the lobe so it reads as resting
+   * on the surface rather than sunk into it, and the post runs inward along the
+   * head's lateral axis, which is the direction a piercing actually goes.
+   */
+  private buildStuds(): Item {
+    const obj = new THREE.Group()
+    const ball = STUD_BALL_MM / 2000
+    const post = STUD_POST_MM / 2000
+    const studs = [-1, 1].map(() => {
+      const g = new THREE.Group()
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(ball, 14, 12), METAL)
+      // a faceted collet under the ball catches the key light like a real setting
+      const collet = new THREE.Mesh(new THREE.CylinderGeometry(ball * 0.55, ball * 0.8, ball * 0.5, 8), METAL)
+      collet.rotation.x = Math.PI / 2
+      collet.position.z = -ball * 0.7
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(post, post, ball * 2.4, 6), METAL)
+      shaft.rotation.x = Math.PI / 2
+      shaft.position.z = -ball * 2 // runs inward, mostly hidden by the lobe
+      g.add(bead, collet, shaft)
+      obj.add(g)
+      return g
+    })
+    return {
+      kind: 'studs',
+      obj,
+      place: (a) => {
+        const lobes = [a.lobeL, a.lobeR]
+        for (let i = 0; i < 2; i++) {
+          const outward = a.headRight.clone().multiplyScalar(i === 0 ? -1 : 1)
+          studs[i].position.copy(lobes[i]).addScaledVector(outward, ball)
+          // +z of the stud is its outward face, so the post points into the lobe
+          studs[i].quaternion.setFromUnitVectors(FORWARD, outward)
+        }
+      }
+    }
+  }
+
+  /**
+   * A **wristwatch** on the left wrist, sized to the wrist it is worn on.
+   *
+   * The case diameter comes from `watchCaseMm` — 2 mm of case per cm of wrist — and
+   * the thickness and strap width follow from the diameter, so the proportions stay
+   * right across body sizes instead of a 40 mm case being bolted onto a child's arm.
+   *
+   * The whole thing is built in a local frame with **+y along the forearm** and **+z
+   * out of the wrist surface**, which makes the geometry say what it means:
+   *
+   * - the strap loop lies in the x–z plane, i.e. the wrist's cross-section;
+   * - the case axis is +z, so it sits flat on the wrist however the arm is posed;
+   * - the dial's 12–6 axis is local x — *across* the wrist — because that is where
+   *   the lugs are and the strap continues from them around the arm;
+   * - the crown at 3 o'clock therefore points along the forearm, and it is put on the
+   *   **proximal** side so wrist flexion does not drive it into the back of the hand.
+   *
+   * The mount direction is the body's forward — the dorsal face of the wrist on this
+   * rig — with its along-the-arm component projected out (`radialMount`), so the case
+   * stays flat on the wrist when the avatar's arms swing.
+   */
+  private buildWatch(): Item {
+    const steel = new THREE.MeshStandardMaterial({ color: 0xd8dade, roughness: 0.18, metalness: 1, envMapIntensity: 1.4 })
+    const dialMat = new THREE.MeshStandardMaterial({ color: 0x14161c, roughness: 0.45, metalness: 0.1 })
+    // sapphire: IOR 1.77, which is why a real crystal reads so much brighter than glass
+    const crystalMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.92, ior: 1.77, roughness: 0.02, metalness: 0, thickness: 0.001, envMapIntensity: 2 })
+    const strapMat = new THREE.MeshStandardMaterial({ color: 0x241a14, roughness: 0.62, metalness: 0.02, side: THREE.DoubleSide })
+    const handMat = new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: 0.3, metalness: 0.6 })
+
+    const frame = new THREE.Group() // local: +y distal, +z out of the wrist
+    // Built at unit case radius, so the case spans z ∈ [−0.27, +0.27]: the thickness
+    // ratio is baked into the geometry, which means one uniform scale to the fitted
+    // diameter gets both the width and the depth right.
+    const D = WATCH_THICKNESS_RATIO // the case spans ±D at unit radius, so it is 0.27 × diameter deep
+    // the case SIDE is an open cylinder and the bezel a flat ring: a solid cylinder
+    // caps the front and hides the dial behind a blank steel disc
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, D * 2, 44, 1, true), steel)
+    band.rotation.x = Math.PI / 2
+    const bezel = new THREE.Mesh(new THREE.RingGeometry(0.87, 1, 44), steel)
+    bezel.position.z = D
+    const back = new THREE.Mesh(new THREE.CircleGeometry(1, 44), steel)
+    back.rotation.y = Math.PI // faces −z, so it reads from under the wrist
+    back.position.z = -D
+    const dial = new THREE.Mesh(new THREE.CircleGeometry(0.86, 40), dialMat)
+    dial.position.z = 0.05
+    // a real sapphire is a thin flat disc, ~1 mm on a 40 mm case — 0.05 at unit radius
+    const crystal = new THREE.Mesh(new THREE.CylinderGeometry(0.88, 0.88, 0.05, 40), crystalMat)
+    crystal.rotation.x = Math.PI / 2
+    crystal.position.z = D - 0.05
+    // indices at 12 / 3 / 6 / 9. 12 o'clock is local +x — across the wrist, where the
+    // lugs are, because the strap continues from them around the arm.
+    const indices = new THREE.Group()
+    for (let i = 0; i < 4; i++) {
+      const ang = (i / 4) * TAU
+      const mark = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.045, 0.015), handMat)
+      mark.position.set(Math.cos(ang) * 0.71, Math.sin(ang) * 0.71, 0.075)
+      mark.rotation.z = ang
+      indices.add(mark)
+    }
+    // hands set to 10:08 — the display setting, because it leaves the dial readable
+    const hour = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.05, 0.015), handMat)
+    hour.geometry.translate(0.23, 0, 0) // pivot at the centre pin, not the middle
+    hour.rotation.z = Math.PI / 3 // 10 o'clock, measured from 12 at +x
+    hour.position.z = 0.1
+    const minute = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.04, 0.015), handMat)
+    minute.geometry.translate(0.33, 0, 0)
+    minute.rotation.z = -Math.PI * 0.267 // 08 minutes
+    minute.position.z = 0.12
+    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.05, 12), handMat)
+    pin.rotation.x = Math.PI / 2
+    pin.position.z = 0.14
+    // the crown at 3 o'clock sits on the proximal side (local −y), so wrist flexion
+    // does not drive it into the back of the hand
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.15, 14), steel)
+    crown.position.y = -1.05
+    const caseGrp = new THREE.Group()
+    caseGrp.add(band, bezel, back, dial, crystal, indices, hour, minute, pin, crown)
+
+    // The strap is a thin band, so it is an open cylinder rather than a torus: axis
+    // already +y, which is the forearm, so the loop lies in the wrist's cross-section.
+    const strap = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 48, 1, true), strapMat)
+    frame.add(caseGrp, strap)
+
+    const obj = new THREE.Group()
+    obj.add(frame)
+    return {
+      kind: 'watch',
+      obj,
+      place: (a) => {
+        // Worn on the **left** wrist, and which one that is has to come from the
+        // geometry rather than from an array index: the GLB rig's limb colliders do
+        // not sit on the side their index is named for, so `wristL` can land on the
+        // avatar's right. The head frame knows which way is right, so ask it.
+        const onLeft = a.wristL.clone().sub(a.waist).dot(a.headRight) < 0
+        const wrist = onLeft ? a.wristL : a.wristR
+        const axis = onLeft ? a.foreArmDirL : a.foreArmDirR
+        const caseMm = watchCaseMm(circumferenceCm(a.wristR_))
+        const caseR = caseMm / 2000 // mm diameter → m radius
+        const bandW = watchLugWidthMm(caseMm) / 1000
+        // A watch is worn on the **dorsal** face of the wrist — the back of the hand.
+        // On this rig the arm hangs with the back of the hand facing forward, so the
+        // body's own forward direction is the dorsal one; flattening it onto the
+        // wrist's cross-section keeps the case on the surface rather than skewed
+        // across it when the arm swings.
+        const mount = radialMount(axis, a.headFwd)
+        const x = new THREE.Vector3().crossVectors(axis, mount) // right-handed: x = y × z
+        frame.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, axis, mount))
+        // the case sits just proximal of the joint, by about half its own diameter
+        frame.position.copy(wrist).addScaledVector(axis, -caseR)
+        caseGrp.scale.setScalar(caseR)
+        caseGrp.position.set(0, 0, a.wristR_ + caseR * WATCH_THICKNESS_RATIO)
+        strap.scale.set(a.wristR_ + 0.001, bandW, a.wristR_ + 0.001)
+      }
+    }
   }
 
   private buildBalaclava(): Item {

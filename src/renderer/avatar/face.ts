@@ -116,6 +116,42 @@ export function faceFeatureLayout(): FaceFeature[] {
   ]
 }
 
+/**
+ * **Ear landmarks**, as fractions of the head's own crown-to-chin height.
+ *
+ * Measured, not guessed. Raycasting the rendered avatar (`?probeHead=1`) across a
+ * ladder of heights shows that the head collider's **swept extent** — crown at
+ * `b + r`, chin at `a − r` — lands within 2 mm of the rendered head's crown and chin,
+ * on both the GLB avatar and the procedural body. So the head's real height is
+ * `|a − b| + 2r`, and a landmark expressed as a fraction of it is correct for either
+ * body and stays correct when the head is resized.
+ *
+ * The fractions are the classical face proportions: the hairline sits a fifth of the
+ * way down, and hairline → brow → base of the nose → chin divide the rest in thirds.
+ * The **auricle spans brow to nose base** — which on this head works out at 6.7 cm
+ * tall, against a real ear's 6–6.5 cm.
+ */
+export const HAIRLINE_FRAC = 0.2
+export const BROW_FRAC = HAIRLINE_FRAC + (1 - HAIRLINE_FRAC) / 3
+export const NOSE_BASE_FRAC = HAIRLINE_FRAC + (2 * (1 - HAIRLINE_FRAC)) / 3
+/** Top and bottom of the ear, and so its centre — 0.6 of the way down the head. */
+export const EAR_TOP_FRAC = BROW_FRAC
+export const EAR_BOTTOM_FRAC = NOSE_BASE_FRAC
+export const EAR_CENTRE_FRAC = (EAR_TOP_FRAC + EAR_BOTTOM_FRAC) / 2
+/** The fleshy lobule is the bottom fifth of the auricle; a piercing sits in its middle. */
+export const LOBULE_FRACTION = 0.2
+export const EARLOBE_FRAC = EAR_TOP_FRAC + (EAR_BOTTOM_FRAC - EAR_TOP_FRAC) * (1 - LOBULE_FRACTION / 2)
+
+/**
+ * Half-breadth of the head at those heights, in collider radii — again measured off
+ * the rendered avatar, which is a little narrower than its own collider (0.87 r at
+ * the widest) and tapers toward the jaw.
+ */
+export const EAR_X = 0.855
+export const LOBE_X = 0.83
+/** The ear canal sits a little behind the mid-coronal plane. */
+export const EAR_Z = -0.1
+
 const FACE_MATS: Record<FeatureKind, THREE.MeshStandardMaterial> = {
   sclera: new THREE.MeshStandardMaterial({ color: 0xf3efe9, roughness: 0.32, metalness: 0 }),
   iris: new THREE.MeshStandardMaterial({ color: 0x4a3120, roughness: 0.22, metalness: 0 }),
