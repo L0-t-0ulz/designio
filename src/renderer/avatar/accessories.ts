@@ -12,8 +12,9 @@ import { BOONIE, boonieBrimLift, CHIN_CORD, type BoonieSnap } from './boonie'
 import { BAKERBOY, goreLobe } from './bakerboy'
 import { strawRecipe } from './straw'
 import { makeDraftNormalMap, makeDraftRoughnessMap } from '../fabric/weaveDraft'
+import type { ExtremityFrames } from './extremities'
 import { headFrame, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X, EAR_Z } from './face'
-import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, STUD_BALL_MM, STUD_POST_MM, HOOP_OUTER_MM, HOOP_WIRE_MM } from './wornSizing'
+import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, FOOT_LAST, SOCK_INSIDE_SHOE, sockRiseM, type SockHeight, HAND_REACH_R, HAND_HALF_THICKNESS_R, HAND_HALF_BREADTH_R, GLOVE_CLEARANCE_R, GLOVE_CUFF_M, WRIST_AT_T, ANKLE_AT_T, WRIST_TO_FOREARM, ANKLE_TO_CALF, STUD_BALL_MM, STUD_POST_MM, HOOP_OUTER_MM, HOOP_WIRE_MM } from './wornSizing'
 
 /**
  * A small **accessories library** — footwear, a belt, a bag, plus **headwear &
@@ -25,8 +26,8 @@ import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, S
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
+export type AccessoryKind = 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -44,22 +45,45 @@ export interface AccessoryAnchors {
   footR: THREE.Vector3
   handL: THREE.Vector3
   /**
-   * Limb landmarks, derived from the capsule geometry rather than guessed.
-   *
-   * A limb capsule is a shaft with hemispherical end caps, so its `b` point is the
-   * *centre* of the end cap — the middle of the hand, or of the foot — and the joint
-   * itself sits one radius back along the axis, where the shaft ends. That single
-   * rule gives the wrist and the ankle without inventing anthropometric ratios, and
-   * it keeps working when the body is resized, since the radius scales with it.
+   * Limb landmarks, at the fractions along each capsule where the rendered limb is
+   * measured to narrow (`?probeTaper=1`) — the wrist at 0.95 of the forearm, the
+   * ankle at 0.91 of the shank.
    */
   wristL: THREE.Vector3
   wristR: THREE.Vector3
   handR: THREE.Vector3
   ankleL: THREE.Vector3
   ankleR: THREE.Vector3
-  /** Radii at those landmarks, for sizing a cuff, a strap or a sock. */
+  /**
+   * Radii **at those landmarks** — the joint's, not the capsule's. A capsule radius
+   * has to enclose the whole limb, so it is the forearm's belly or the calf; sizing
+   * a sock cuff from it produces a bucket.
+   */
   wristR_: number
   ankleR_: number
+  /**
+   * Fingertips — the far end of the hand, which is **not** the capsule's end point.
+   * The capsule stops at the palm and the hand mesh carries on `HAND_REACH_R` radii
+   * past it (measured, `?probeLimb=1`), so a glove built to the capsule would leave
+   * the fingers bare.
+   */
+  fingertipL: THREE.Vector3
+  fingertipR: THREE.Vector3
+  /** The enclosing capsule radii, for anything proportioned to the whole limb. */
+  foreArmR: number
+  calfR: number
+  /** Knee-to-ankle length, so a sock can be told how far up the shank its cuff is. */
+  shankLen: number
+  /**
+   * Hand and foot **pointing** directions (unit). These come from the rig's toe-base
+   * and middle-finger bones when it has them, and fall back to the limb axis when it
+   * does not — a hand bends at the wrist and a foot toes out, so the limb axis is
+   * only ever an approximation of where an extremity is aimed.
+   */
+  handDirL: THREE.Vector3
+  handDirR: THREE.Vector3
+  footDirL: THREE.Vector3
+  footDirR: THREE.Vector3
   /** Limb axis directions (unit, pointing distally) — a strap must sit square to these. */
   foreArmDirL: THREE.Vector3
   foreArmDirR: THREE.Vector3
@@ -84,18 +108,16 @@ export interface AccessoryAnchors {
 }
 
 /**
- * The joint end of a limb capsule: one radius back from the distal cap centre.
+ * A point a fraction `t` of the way along a limb capsule, `a` to `b`.
  *
- * `b` is the centre of the hemispherical cap, so the shaft — the limb proper — ends
- * a radius earlier. That is the wrist on a forearm and the ankle on a lower leg.
- * Clamped to the capsule so a very short or very fat segment cannot invert.
+ * Joints are placed with this and a **measured** fraction (`WRIST_AT_T`,
+ * `ANKLE_AT_T`) rather than by stepping back from `b` by the capsule's radius, which
+ * is what this used to do. The capsule's radius encloses the limb's widest part, so
+ * stepping back by it overshoots: on this rig it lands mid-forearm, and it claims a
+ * 12 cm-wide ankle. `?probeTaper=1` walks the limb and shows where it really narrows.
  */
-export function jointEnd(cap: Capsule): THREE.Vector3 {
-  const axis = cap.b.clone().sub(cap.a)
-  const len = axis.length()
-  if (len < 1e-6) return cap.b.clone()
-  const back = Math.min(cap.radius, len * 0.5)
-  return cap.b.clone().addScaledVector(axis.divideScalar(len), -back)
+export function limbJoint(cap: Capsule, t: number): THREE.Vector3 {
+  return cap.a.clone().lerp(cap.b, t)
 }
 
 /** Unit direction along a capsule, pointing from `a` toward `b` (distally). */
@@ -141,8 +163,34 @@ export function radialMount(axis: THREE.Vector3, away: THREE.Vector3): THREE.Vec
   return alt.addScaledVector(a, -alt.dot(a)).normalize()
 }
 
+/**
+ * An orthonormal frame on a limb, as a rotation: **+y runs distally along the limb**,
+ * **+z out of its dorsal face**, +x across it.
+ *
+ * Everything worn on a limb wants this frame. A watch case is flat on +z, a glove is
+ * an ellipsoid long in y / broad in x / thin in z, a sock's cuff is a ring in the x–z
+ * plane. Building in it means the geometry reads as the anatomy it describes, and one
+ * quaternion puts it on a limb in any pose.
+ */
+export function limbFrame(axis: THREE.Vector3, dorsal: THREE.Vector3): THREE.Quaternion {
+  const y = axis.clone().normalize()
+  const z = radialMount(y, dorsal)
+  const x = new THREE.Vector3().crossVectors(y, z) // right-handed: x = y × z
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z))
+}
+
+/**
+ * Place a foot piece at `at`, heading `dir`, with the last's +z aligned to it and no
+ * roll: only the heading is taken, because a last is modelled flat on the ground.
+ */
+export function placeFoot(obj: THREE.Object3D, at: THREE.Vector3, dir: THREE.Vector3): void {
+  obj.position.set(at.x, Math.max(0.03, at.y) - 0.02, at.z)
+  const yaw = Math.atan2(dir.x, dir.z) // heading only — the last lies flat
+  obj.rotation.set(0, Number.isFinite(yaw) ? yaw : 0, 0)
+}
+
 /** Key attach points (world) derived from the live body capsules. Pure. */
-export function accessoryAnchors(c: Capsule[]): AccessoryAnchors {
+export function accessoryAnchors(c: Capsule[], ext: ExtremityFrames = {}): AccessoryAnchors {
   const head = c[0] // head capsule (b = crown)
   const neckCap = c[1] // neck capsule (a…b along the neck)
   const torso = c[2] // torso (a = waist, b = upper chest)
@@ -165,16 +213,27 @@ export function accessoryAnchors(c: Capsule[]): AccessoryAnchors {
     // waist = just above the hips, toward the chest
     waist: hipCenter.clone().lerp(torso.b, 0.16),
     waistR: torso.radius,
-    footL: legL.b.clone(),
-    footR: legR.b.clone(),
-    handL: foreL.b.clone(),
-    handR: foreR.b.clone(),
-    wristL: jointEnd(foreL),
-    wristR: jointEnd(foreR),
-    ankleL: jointEnd(legL),
-    ankleR: jointEnd(legR),
-    wristR_: foreL.radius,
-    ankleR_: legL.radius,
+    footL: (ext.footL?.at ?? legL.b).clone(),
+    footR: (ext.footR?.at ?? legR.b).clone(),
+    handL: (ext.handL?.at ?? foreL.b).clone(),
+    handR: (ext.handR?.at ?? foreR.b).clone(),
+    wristL: limbJoint(foreL, WRIST_AT_T),
+    wristR: limbJoint(foreR, WRIST_AT_T),
+    ankleL: limbJoint(legL, ANKLE_AT_T),
+    ankleR: limbJoint(legR, ANKLE_AT_T),
+    wristR_: foreL.radius * WRIST_TO_FOREARM,
+    ankleR_: legL.radius * ANKLE_TO_CALF,
+    // the rig's own fingertip when it has one; otherwise the measured reach down
+    // the knuckle direction, which is the best an unrigged body can offer
+    fingertipL: ext.handL?.tip?.clone() ?? (ext.handL?.at ?? foreL.b).clone().addScaledVector(ext.handL?.dir ?? limbDirection(foreL), foreL.radius * HAND_REACH_R),
+    fingertipR: ext.handR?.tip?.clone() ?? (ext.handR?.at ?? foreR.b).clone().addScaledVector(ext.handR?.dir ?? limbDirection(foreR), foreR.radius * HAND_REACH_R),
+    handDirL: (ext.handL?.dir ?? limbDirection(foreL)).clone(),
+    handDirR: (ext.handR?.dir ?? limbDirection(foreR)).clone(),
+    footDirL: (ext.footL?.dir ?? limbDirection(legL)).clone(),
+    footDirR: (ext.footR?.dir ?? limbDirection(legR)).clone(),
+    foreArmR: foreL.radius,
+    calfR: legL.radius,
+    shankLen: legL.a.distanceTo(legL.b),
     foreArmDirL: limbDirection(foreL),
     foreArmDirR: limbDirection(foreR),
     lowerLegDirL: limbDirection(legL),
@@ -228,6 +287,8 @@ export class Accessories {
   constructor() {
     this.group.name = 'accessories'
     this.items.push(
+      this.buildSocks(),
+      this.buildGloves(),
       this.buildStuds(),
       this.buildWatch(),
       this.buildAnklet(),
@@ -437,22 +498,23 @@ export class Accessories {
   }
 
   /** Re-attach every visible accessory to the live body (call each frame). */
-  update(colliders: Capsule[]): void {
+  update(colliders: Capsule[], ext: ExtremityFrames = {}): void {
     if (!this.items.some((i) => i.obj.visible) || colliders.length < 13) return
-    const a = accessoryAnchors(colliders)
+    const a = accessoryAnchors(colliders, ext)
     for (const it of this.items) if (it.obj.visible) it.place(a)
   }
 
+  /** A real shoe: a flat sole + a rounded instep/heel + a toe cap, on the shared last. */
   private buildShoes(): Item {
-    // a real shoe: a flat sole + a rounded instep/heel + a toe cap (not a flat slab)
     const shoe = (): THREE.Group => {
       const g = new THREE.Group()
-      const sole = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.028, 0.27), LEATHER)
+      const L = FOOT_LAST
+      const sole = new THREE.Mesh(new THREE.BoxGeometry(L.width, 0.028, L.length), LEATHER)
       sole.position.set(0, -0.012, 0.05)
-      const instep = new THREE.Mesh(new THREE.SphereGeometry(0.058, 16, 12), LEATHER)
+      const instep = new THREE.Mesh(new THREE.SphereGeometry(L.instep, 16, 12), LEATHER)
       instep.scale.set(0.82, 1.05, 1.7) // domed over the heel + instep
       instep.position.set(0, 0.012, -0.005)
-      const toe = new THREE.Mesh(new THREE.SphereGeometry(0.05, 14, 10), LEATHER)
+      const toe = new THREE.Mesh(new THREE.SphereGeometry(L.toe, 14, 10), LEATHER)
       toe.scale.set(0.92, 0.62, 1.15) // low rounded toe box
       toe.position.set(0, -0.006, 0.15)
       g.add(sole, instep, toe)
@@ -466,8 +528,10 @@ export class Accessories {
       kind: 'shoes',
       obj,
       place: (a) => {
-        l.position.set(a.footL.x, Math.max(0.03, a.footL.y) - 0.02, a.footL.z)
-        r.position.set(a.footR.x, Math.max(0.03, a.footR.y) - 0.02, a.footR.z)
+        // the last is built pointing +z, so turn it to the foot's own heading —
+        // feet toe out, and a shoe squared to the world sits ACROSS the foot
+        placeFoot(l, a.footL, a.footDirL)
+        placeFoot(r, a.footR, a.footDirR)
       }
     }
   }
@@ -1025,6 +1089,190 @@ export class Accessories {
   }
 
   /**
+   * **Socks** — a knit foot cut on the *same last as the shoe*, one clearance
+   * smaller, plus a ribbed cuff running up the shank.
+   *
+   * Sharing `FOOT_LAST` is the point: a sock modelled with its own numbers either
+   * pokes through the shoe or rattles around inside it, and neither shows up until
+   * someone renders both together. Cut at `SOCK_INSIDE_SHOE` of the last, the shoe
+   * demonstrably fits over it — a property a test can hold.
+   *
+   * The cuff height is a real sock height (`?sockHeight=`), measured in cm up from
+   * the **sole**, which is how socks are specified. The ankle bone is 7 cm up, so
+   * the rise above the ankle is that height less 7 — negative for a no-show, which
+   * is exactly why it vanishes into the shoe.
+   */
+  private sockHeight: SockHeight = 'crew'
+
+  private buildSocks(): Item {
+    const mat = knit(0xf0ede6)
+    const k = 1 - SOCK_INSIDE_SHOE
+    const L = FOOT_LAST
+    const parts: { leg: THREE.Mesh; cuff: THREE.Group; foot: THREE.Group; shank: THREE.Group }[] = []
+    const obj = new THREE.Group()
+    for (let i = 0; i < 2; i++) {
+      const g = new THREE.Group()
+      // the foot, on the shoe's last less the clearance
+      const instep = new THREE.Mesh(new THREE.SphereGeometry(L.instep * k, 18, 14), mat)
+      instep.scale.set(0.82, 1.05, 1.7)
+      instep.position.set(0, 0.012, -0.005)
+      const toe = new THREE.Mesh(new THREE.SphereGeometry(L.toe * k, 16, 12), mat)
+      toe.scale.set(0.92, 0.62, 1.15)
+      toe.position.set(0, -0.006, 0.15)
+      // a thin sole shell rather than the shoe's slab — a sock has no sole unit
+      const sole = new THREE.Mesh(new THREE.BoxGeometry(L.width * k, 0.014, L.length * k), mat)
+      sole.position.set(0, -0.008, 0.05)
+      g.add(instep, toe, sole)
+      // the shank, built at unit radius / unit length and scaled per frame
+      // tapered: 1 at the bottom (the ankle) and rebuilt per rise at the top, because
+      // a shank widens toward the calf and a straight tube reads as a cup on a shoe
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 24, 1, true), mat)
+      const cuff = new THREE.Group()
+      for (let r = 0; r < 4; r++) {
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(1, 0.05, 6, 24), mat)
+        rib.rotation.x = Math.PI / 2
+        rib.position.y = 0.72 + r * 0.09
+        cuff.add(rib)
+      }
+      const shank = new THREE.Group()
+      shank.add(leg, cuff)
+      obj.add(g, shank)
+      parts.push({ leg, cuff, foot: g, shank })
+    }
+    return {
+      kind: 'socks',
+      obj,
+      place: (a) => {
+        const feet = [a.footL, a.footR]
+        // the rig's foot joint IS the ankle; the capsule lerp is only a fallback
+        const ankles = [a.footL, a.footR]
+        const dirs = [a.lowerLegDirL, a.lowerLegDirR]
+        const footDirs = [a.footDirL, a.footDirR]
+        for (let i = 0; i < 2; i++) {
+          placeFoot(parts[i].foot, feet[i], footDirs[i])
+          const up = dirs[i].clone().negate() // distally is DOWN a leg, so up the shank is −dir
+          parts[i].shank.position.copy(ankles[i])
+          parts[i].shank.quaternion.setFromUnitVectors(UP, up)
+          // sock knit stands a little off the leg; the cuff flares a touch more
+          const r = a.ankleR_ * 1.04
+          const rise = Math.max(0.012, sockRiseM(this.sockHeight))
+          // the calf's belly is about a third of the way up the shank, so that is how
+          // far the cuff has to rise before it is on the full calf girth
+          const t = Math.min(1, rise / (0.33 * a.shankLen))
+          const top = (a.ankleR_ + (a.calfR - a.ankleR_) * t) * 1.04
+          if (parts[i].leg.userData.top !== top || parts[i].leg.userData.r !== r) {
+            parts[i].leg.userData.top = top
+            parts[i].leg.userData.r = r
+            parts[i].leg.geometry.dispose()
+            const g = new THREE.CylinderGeometry(top, r, 1, 24, 1, true)
+            g.translate(0, 0.5, 0)
+            parts[i].leg.geometry = g
+          }
+          parts[i].leg.scale.set(1, rise, 1)
+          parts[i].cuff.scale.set(top * 1.05, rise, top * 1.05)
+          parts[i].cuff.visible = rise > 0.03 // a no-show has no cuff to show
+        }
+      }
+    }
+  }
+
+  /** Pick a sock height — a real cut (`no-show` · `ankle` · `crew` · `knee-high`). */
+  setSockHeight(h: SockHeight): void {
+    this.sockHeight = h
+  }
+  getSockHeight(): SockHeight {
+    return this.sockHeight
+  }
+
+  /**
+   * **Gloves** — a shell over the hand and a knit cuff up the forearm.
+   *
+   * Sized to the hand that is actually rendered. The forearm capsule's distal point
+   * is the **palm**: the hand mesh carries on another 2.08 radii past it, so a glove
+   * built to the capsule would stop at the knuckles and leave the fingers bare. The
+   * reach, the thickness and the breadth all come from `?probeLimb=1`.
+   *
+   * Built in the limb frame — long in +y down the arm, broad in x, thin in z — so it
+   * lies the way a hand lies whatever the arm is doing, with the thumb on the medial
+   * side, toward the body.
+   */
+  private buildGloves(): Item {
+    const mat = knit(0x2e3138)
+    const halves: { grp: THREE.Group; shell: THREE.Mesh; thumb: THREE.Mesh; cuff: THREE.Mesh }[] = []
+    const obj = new THREE.Group()
+    for (let i = 0; i < 2; i++) {
+      const g = new THREE.Group()
+      // A capsule, not an ellipsoid: the rig gives a hand's heading but no roll
+      // about it, so a shape that is round in section covers the hand whichever way
+      // the palm faces — and a mitten IS round in section, which makes this the
+      // honest form rather than a workaround. Rebuilt on resize (see `place`)
+      // rather than scaled, because scaling a capsule in one axis distorts its caps.
+      const shell = new THREE.Mesh(new THREE.CapsuleGeometry(1, 1, 6, 18), mat)
+      const thumb = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 10), mat)
+      const cuff = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 24, 1, true), mat)
+      cuff.geometry.translate(0, -0.5, 0) // grows proximally from the wrist
+      g.add(shell, thumb, cuff)
+      obj.add(g)
+      halves.push({ grp: g, shell, thumb, cuff })
+    }
+    return {
+      kind: 'gloves',
+      obj,
+      place: (a) => {
+        const wrists = [a.wristL, a.wristR]
+        const hands = [a.handL, a.handR]
+        const tips = [a.fingertipL, a.fingertipR]
+        const dirs = [a.foreArmDirL, a.foreArmDirR]
+        const handDirs = [a.handDirL, a.handDirR]
+        for (let i = 0; i < 2; i++) {
+          const h = halves[i]
+          const R = a.foreArmR // the hand's proportions are measured against the CAPSULE
+          // A glove starts at the WRIST, not at the hand joint: the palm just below
+          // the wrist would otherwise sit right on the capsule's proximal cap and
+          // poke through it.
+          h.grp.position.copy(wrists[i])
+          // Built along the HAND's heading — a hand bends at the wrist, so the
+          // forearm axis points past the fingers rather than down them — and rolled
+          // by the **flexion plane**: the wrist hinges palmward, so the plane
+          // containing the forearm and the hand contains the palm normal too. The
+          // rig exposes no palm roll directly, and this recovers it from two
+          // directions it does expose. Straight-armed it degenerates, and
+          // `radialMount` falls back to the body's forward.
+          const along = tips[i].clone().sub(wrists[i])
+          const heading = along.lengthSq() > 1e-8 ? along.clone().normalize() : handDirs[i]
+          const flex = new THREE.Vector3().crossVectors(dirs[i], heading)
+          const palm = flex.lengthSq() > 1e-8 ? new THREE.Vector3().crossVectors(heading, flex).normalize() : a.headFwd
+          h.grp.quaternion.copy(limbFrame(heading, palm))
+          // the hand runs wrist → fingertips, both of which are anchors
+          const half = wrists[i].distanceTo(tips[i]) * 0.5
+          // radius from the hand's half-breadth plus ease; the shaft spans whatever
+          // of the joint-to-fingertip reach the two hemispherical caps do not
+          const gr = (HAND_HALF_BREADTH_R + GLOVE_CLEARANCE_R) * R
+          const L = half * 2
+          if (h.grp.userData.gr !== gr || h.grp.userData.L !== L) {
+            h.grp.userData.gr = gr
+            h.grp.userData.L = L
+            h.shell.geometry.dispose()
+            const g = new THREE.CapsuleGeometry(gr, Math.max(0, L - 2 * gr), 6, 20)
+            g.translate(0, L / 2, 0) // the joint at y = 0, the fingertips at y = L
+            h.shell.geometry = g
+          }
+          // the thumb sits medially — toward the body — and low on the hand
+          void hands
+          const medial = wrists[i].x < 0 ? 1 : -1
+          h.thumb.position.set(medial * gr * 0.8, half * 0.5, 0)
+          h.thumb.scale.set(half * 0.3, half * 0.42, HAND_HALF_THICKNESS_R * R * 0.9)
+          // the cuff grips the WRIST, which is up the forearm from the hand joint,
+          // so it gets its own placement rather than riding the hand's frame
+          h.cuff.position.set(0, 0, 0)
+          h.cuff.quaternion.setFromUnitVectors(UP, dirs[i]).premultiply(h.grp.quaternion.clone().invert())
+          h.cuff.scale.set(a.wristR_ * 1.12, GLOVE_CUFF_M, a.wristR_ * 1.12)
+        }
+      }
+    }
+  }
+
+  /**
    * A fine chain sitting on the ankle — the joint end of the lower-leg capsule, not
    * the foot centre, so it rides the narrowest point rather than floating over the
    * instep. Oriented square to the leg axis, which matters as soon as the avatar
@@ -1043,8 +1291,8 @@ export class Accessories {
       kind: 'anklet',
       obj,
       place: (a) => {
-        // the ankle is slightly wider than the shaft, so the chain rides just above it
-        const r = a.ankleR_ * 1.06
+        // a chain hangs a little loose on the ankle
+        const r = a.ankleR_ * 1.12
         obj.scale.setScalar(r)
         obj.position.copy(a.ankleL)
         obj.quaternion.setFromUnitVectors(UP, a.lowerLegDirL)

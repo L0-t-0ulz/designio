@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import type { Capsule } from './colliders'
+import type { ExtremityFrame, ExtremityFrames } from './extremities'
 import { BodyMesh, type BodyPart } from './BodyMesh'
 import { loadGlbBody, measureGlbHead, type GlbBody, type GlbHead } from './GlbMannequin'
 import { makeSkinMaterial, applySkinLook, type SkinLook } from './skin'
@@ -139,6 +140,8 @@ export function headAnchor(colliders: Capsule[], out: THREE.Matrix4 = new THREE.
 export interface Mannequin {
   group: THREE.Group
   colliders: Capsule[]
+  /** Hand/foot joint + pointing direction, from the rig's tip bones (empty when unrigged). */
+  extremities: () => ExtremityFrames
   measurements: Measurements
   /** Mesh-accurate body collision surface (valid while the body is static). */
   bodyCollider: BodyCollider
@@ -790,9 +793,49 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
   syncBodyBVH(false) // initial static body → build the collision surface
   lastKey = '0.0000,0.0000'
 
+  /**
+   * **Extremity frames** — where the hands and feet are, and which way they point.
+   *
+   * Neither is derivable from the limb capsules. A capsule ends at the hand bone,
+   * which is the *wrist*, and a hand is not collinear with its forearm; a foot toes
+   * out from the shank rather than continuing it. Anything worn on an extremity —
+   * a shoe, a sock, a glove — needs the real direction, and the rig has it in the
+   * toe-base and middle-finger bones.
+   *
+   * Empty on the procedural body, where the caller falls back to the limb axis.
+   */
+  const extScratch = [new THREE.Vector3(), new THREE.Vector3()]
+  const extremities = (): ExtremityFrames => {
+    if (!glb) return {}
+    const b = glb.bones
+    let negS: 'l' | 'r' = 'l'
+    if (b.lArm && b.rArm) {
+      b.lArm.getWorldPosition(extScratch[0])
+      b.rArm.getWorldPosition(extScratch[1])
+      negS = extScratch[0].x <= extScratch[1].x ? 'l' : 'r'
+    }
+    const posS: 'l' | 'r' = negS === 'l' ? 'r' : 'l'
+    const pair = (from?: THREE.Object3D, to?: THREE.Object3D, tipBone?: THREE.Object3D): ExtremityFrame | undefined => {
+      if (!from || !to) return undefined
+      const at = from.getWorldPosition(new THREE.Vector3())
+      const toward = to.getWorldPosition(new THREE.Vector3())
+      const dir = toward.clone().sub(at)
+      if (dir.lengthSq() < 1e-10) return undefined
+      return { at, dir: dir.normalize(), tip: tipBone?.getWorldPosition(new THREE.Vector3()) }
+    }
+    const bn = (s: 'l' | 'r', seg: string): THREE.Object3D | undefined => b[(s + seg) as keyof typeof b]
+    return {
+      handL: pair(bn(negS, 'Hand'), bn(negS, 'Mid'), bn(negS, 'MidTip')),
+      handR: pair(bn(posS, 'Hand'), bn(posS, 'Mid'), bn(posS, 'MidTip')),
+      footL: pair(bn(negS, 'Foot'), bn(negS, 'Toe')),
+      footR: pair(bn(posS, 'Foot'), bn(posS, 'Toe'))
+    }
+  }
+
   return {
     group,
     colliders,
+    extremities,
     measurements,
     bodyCollider,
     update,

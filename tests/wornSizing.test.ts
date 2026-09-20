@@ -8,7 +8,16 @@ import {
   WATCH_CASE_MIN_MM,
   WATCH_CASE_MAX_MM,
   STUD_BALL_MM,
-  HOOP_OUTER_MM
+  HOOP_OUTER_MM,
+  SOCK_HEIGHTS_CM,
+  SOCK_HEIGHTS,
+  sockRiseM,
+  FOOT_LAST,
+  SOCK_INSIDE_SHOE,
+  HAND_REACH_R,
+  HAND_HALF_BREADTH_R,
+  HAND_HALF_THICKNESS_R,
+  GLOVE_CLEARANCE_R
 } from '../src/renderer/avatar/wornSizing'
 import { HAIRLINE_FRAC, BROW_FRAC, NOSE_BASE_FRAC, EAR_TOP_FRAC, EAR_BOTTOM_FRAC, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X } from '../src/renderer/avatar/face'
 import { radialMount } from '../src/renderer/avatar/accessories'
@@ -137,5 +146,46 @@ describe('radialMount', () => {
     const a = radialMount(v(0, -1, 0), v(2, -3, 1))
     const b = radialMount(v(0, -7, 0), v(20, -30, 10))
     expect(a.distanceTo(b)).toBeCloseTo(0, 10)
+  })
+})
+
+describe('limb coverings', () => {
+  it('specifies sock heights in cm up from the sole, as socks are sold', () => {
+    expect(SOCK_HEIGHTS_CM['no-show']).toBeLessThan(SOCK_HEIGHTS_CM.ankle)
+    expect(SOCK_HEIGHTS_CM.ankle).toBeLessThan(SOCK_HEIGHTS_CM.crew)
+    expect(SOCK_HEIGHTS_CM.crew).toBeLessThan(SOCK_HEIGHTS_CM['knee-high'])
+    expect(SOCK_HEIGHTS).toHaveLength(4)
+    expect(new Set(SOCK_HEIGHTS).size).toBe(SOCK_HEIGHTS.length)
+  })
+
+  it('measures a sock cuff from the ankle bone, so a no-show finishes below it', () => {
+    // the whole point of the cut: it disappears into the shoe
+    expect(sockRiseM('no-show')).toBeLessThan(0)
+    expect(sockRiseM('ankle')).toBeLessThan(0.01) // level with the bone, near enough
+    expect(sockRiseM('crew')).toBeCloseTo(0.11, 9) // 18 cm up, less the 7 cm ankle
+    expect(sockRiseM('knee-high')).toBeCloseTo(0.31, 9)
+    for (let i = 1; i < SOCK_HEIGHTS.length; i++) {
+      expect(sockRiseM(SOCK_HEIGHTS[i])).toBeGreaterThan(sockRiseM(SOCK_HEIGHTS[i - 1]))
+    }
+  })
+
+  it('cuts the sock inside the shoe, on the very same last', () => {
+    // the property that makes a sock fit IN a shoe rather than through it: both are
+    // built from FOOT_LAST, and the sock is strictly smaller in every dimension
+    const k = 1 - SOCK_INSIDE_SHOE
+    expect(k).toBeGreaterThan(0)
+    expect(k).toBeLessThan(1)
+    for (const v of Object.values(FOOT_LAST)) {
+      expect(v * k).toBeLessThan(v)
+      expect(v - v * k).toBeGreaterThan(0.001) // at least a millimetre of room
+    }
+  })
+
+  it('sizes a glove to the hand that is drawn, not to the capsule', () => {
+    // the capsule's distal point is the palm; the hand carries on past it
+    expect(HAND_REACH_R).toBeGreaterThan(1)
+    // and the glove is cut with ease over the hand, never inside it
+    expect(GLOVE_CLEARANCE_R).toBeGreaterThan(0)
+    expect(HAND_HALF_BREADTH_R).toBeGreaterThan(HAND_HALF_THICKNESS_R) // a hand is flat
   })
 })
