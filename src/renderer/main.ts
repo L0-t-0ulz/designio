@@ -3128,10 +3128,15 @@ function initStudio(
         ['ankleL', a.ankleL], ['ankleR', a.ankleR],
         ['footL', a.footL], ['footR', a.footR],
         ['shinL', a.ankleL.clone().setY(a.ankleL.y + 0.08)],
+        ['neck', a.neck], ['chest', a.chest], ['waist', a.waist],
         ['soleL', a.footL.clone().setY(Math.max(0.03, a.footL.y) + 0.02)]
       ]
-      const out = spots.map(([name, p]) => ({ name, at: [p.x, p.y, p.z].map((v) => +v.toFixed(3)), fan: fan(p) }))
-      console.log('[capture-log] probeFoot', JSON.stringify(out))
+      try {
+        const out = spots.map(([name, p]) => ({ name, at: [p.x, p.y, p.z].map((v) => +v.toFixed(3)), fan: fan(p) }))
+        console.log('[capture-log] probeFoot', JSON.stringify(out))
+      } catch (err) {
+        console.log('[capture-log] probeFoot failed:', String(err))
+      }
     }, 8000)
   }
   if (params.get('probeTaper')) {

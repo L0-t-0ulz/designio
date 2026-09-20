@@ -13,6 +13,22 @@ import { BAKERBOY, goreLobe } from './bakerboy'
 import { strawRecipe } from './straw'
 import { makeDraftNormalMap, makeDraftRoughnessMap } from '../fabric/weaveDraft'
 import type { ExtremityFrames } from './extremities'
+import {
+  TIE_BLADE_MM,
+  TIE_KNOT_W_MM,
+  TIE_KNOT_H_MM,
+  TIE_TIP_OF_TORSO,
+  BOW_WING_MM,
+  BOW_HEIGHT_MM,
+  BOW_KNOT_MM,
+  BRACE_WIDTH_MM,
+  BRACE_FRONT_SPREAD_MM,
+  OVER_SHIRT_M,
+  CHEST_FRONT_OF_R,
+  WAIST_FRONT_OF_R,
+  tieHalfWidth,
+  splineThrough3
+} from './neckwear'
 import { headFrame, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X, EAR_Z } from './face'
 import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, FOOT_LAST, SOCK_INSIDE_SHOE, sockRiseM, type SockHeight, HAND_REACH_R, HAND_HALF_THICKNESS_R, HAND_HALF_BREADTH_R, GLOVE_CLEARANCE_R, GLOVE_CUFF_M, WRIST_AT_T, ANKLE_AT_T, WRIST_TO_FOREARM, ANKLE_TO_CALF, STUD_BALL_MM, STUD_POST_MM, HOOP_OUTER_MM, HOOP_WIRE_MM } from './wornSizing'
 
@@ -26,8 +42,8 @@ import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, F
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
+export type AccessoryKind = 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -189,6 +205,50 @@ export function placeFoot(obj: THREE.Object3D, at: THREE.Vector3, dir: THREE.Vec
   obj.rotation.set(0, Number.isFinite(yaw) ? yaw : 0, 0)
 }
 
+/**
+ * Rewrite a ribbon strip's vertices in place: `rings + 1` cross-sections along a
+ * centre-line, two vertices each, offset `halfWidth` either side.
+ *
+ * Every strap on a body is one of these — a tie down the chest, a brace over a
+ * shoulder — and they all have to be rebuilt each frame as the body moves, so this
+ * writes into the existing buffer rather than allocating a geometry per frame.
+ */
+export function writeRibbon(
+  geo: THREE.BufferGeometry,
+  rings: number,
+  centre: (t: number, out: THREE.Vector3) => void,
+  side: (t: number, out: THREE.Vector3) => void,
+  halfWidth: (t: number) => number
+): void {
+  const pos = geo.getAttribute('position') as THREE.BufferAttribute
+  const c = new THREE.Vector3()
+  const s = new THREE.Vector3()
+  for (let i = 0; i <= rings; i++) {
+    const t = i / rings
+    centre(t, c)
+    side(t, s)
+    const w = halfWidth(t)
+    pos.setXYZ(i * 2, c.x - s.x * w, c.y - s.y * w, c.z - s.z * w)
+    pos.setXYZ(i * 2 + 1, c.x + s.x * w, c.y + s.y * w, c.z + s.z * w)
+  }
+  pos.needsUpdate = true
+  geo.computeVertexNormals()
+  geo.computeBoundingSphere()
+}
+
+/** An empty ribbon of `rings` segments, ready for `writeRibbon`. */
+export function makeRibbon(rings: number): THREE.BufferGeometry {
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array((rings + 1) * 2 * 3), 3))
+  const idx: number[] = []
+  for (let i = 0; i < rings; i++) {
+    const a = i * 2
+    idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
+  }
+  geo.setIndex(idx)
+  return geo
+}
+
 /** Key attach points (world) derived from the live body capsules. Pure. */
 export function accessoryAnchors(c: Capsule[], ext: ExtremityFrames = {}): AccessoryAnchors {
   const head = c[0] // head capsule (b = crown)
@@ -287,6 +347,9 @@ export class Accessories {
   constructor() {
     this.group.name = 'accessories'
     this.items.push(
+      this.buildTie(),
+      this.buildBowtie(),
+      this.buildSuspenders(),
       this.buildSocks(),
       this.buildGloves(),
       this.buildStuds(),
@@ -1086,6 +1149,210 @@ export class Accessories {
     const obj = new THREE.Group()
     obj.add(dome, holder, band)
     return this.headItem('sunhat', obj)
+  }
+
+  /**
+   * A **necktie**, lying on the chest rather than hanging in front of it.
+   *
+   * The blade runs a Catmull–Rom curve through three body landmarks — the neck, the
+   * chest and the waist, each pushed out to that girth — so it bows over the chest
+   * the way a tie does. A straight drop from the collar to the waist cuts straight
+   * through the ribcage on any figure with a chest.
+   *
+   * Its length is the tailor's rule: the point reaches the **middle of the belt
+   * buckle**, so the blade runs a little past the anatomical waist. Its width is the
+   * real 8 cm, in world units, with `tieHalfWidth` opening the blade out of the
+   * neck band over the first third and closing it to a point over the last eighth —
+   * a constant-width strip reads as a ribbon, not a tie.
+   */
+  private buildTie(): Item {
+    const silk = new THREE.MeshPhysicalMaterial({ color: 0x7a1f33, roughness: 0.34, metalness: 0, sheen: 0.7, sheenColor: new THREE.Color(0xc08090), sheenRoughness: 0.4, side: THREE.DoubleSide })
+    const RINGS = 40
+    const blade = new THREE.Mesh(makeRibbon(RINGS), silk)
+    // the four-in-hand knot: a small rounded wedge, wider than it is deep
+    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 10), silk)
+    const obj = new THREE.Group()
+    obj.add(blade, knot)
+    const p0: number[] = [0, 0, 0]
+    const p1: number[] = [0, 0, 0]
+    const p2: number[] = [0, 0, 0]
+    const c = new THREE.Vector3()
+    const nextC = new THREE.Vector3()
+    const tangent = new THREE.Vector3()
+    return {
+      kind: 'tie',
+      obj,
+      place: (a) => {
+        // the three landmarks, each on the body's FRONT surface
+        const front = a.headFwd
+        // The knot sits at the THROAT, not at the neck anchor. That anchor is the
+        // neck capsule's midpoint, which on this rig is level with the shoulders —
+        // where the body is 9.5 cm deep, so a knot placed on the neck's own radius
+        // there is buried inside the chest. Raising it by most of a neck radius puts
+        // it above the shoulder mass, where the neck really is that narrow.
+        // (Over the shirt, not on the skin — see OVER_SHIRT_M.)
+        const neckFront = a.neck
+          .clone()
+          .addScaledVector(a.headUp, a.neckR * 0.8)
+          .addScaledVector(front, a.neckR + OVER_SHIRT_M)
+        const chestFront = a.chest.clone().addScaledVector(front, a.chestR * CHEST_FRONT_OF_R + OVER_SHIRT_M)
+        const waistFront = a.waist.clone().addScaledVector(front, a.waistR * WAIST_FRONT_OF_R + OVER_SHIRT_M)
+        // the tip goes a little past the waist — the belt buckle, not the waistline
+        const tip = neckFront.clone().lerp(waistFront, TIE_TIP_OF_TORSO)
+        p0[0] = neckFront.x; p0[1] = neckFront.y; p0[2] = neckFront.z
+        p1[0] = chestFront.x; p1[1] = chestFront.y; p1[2] = chestFront.z
+        p2[0] = tip.x; p2[1] = tip.y; p2[2] = tip.z
+        const at = (t: number, out: THREE.Vector3): void => {
+          const v = splineThrough3(p0, p1, p2, t)
+          out.set(v[0], v[1], v[2])
+        }
+        const half = (t: number): number => tieHalfWidth(t) * (TIE_BLADE_MM / 1000)
+        writeRibbon(
+          blade.geometry,
+          RINGS,
+          at,
+          (t, out) => {
+            // across the strip: square to both the run of the blade and the body's front
+            at(t, c)
+            at(Math.min(1, t + 0.02), nextC)
+            tangent.copy(nextC).sub(c)
+            if (tangent.lengthSq() < 1e-12) tangent.set(0, -1, 0)
+            out.crossVectors(front, tangent.normalize())
+            if (out.lengthSq() < 1e-12) out.copy(a.headRight)
+            out.normalize()
+          },
+          half
+        )
+        knot.position.copy(neckFront).addScaledVector(a.headUp, TIE_KNOT_H_MM / 3000)
+        knot.scale.set(TIE_KNOT_W_MM / 1000, TIE_KNOT_H_MM / 1000, TIE_KNOT_W_MM / 1400)
+        knot.quaternion.setFromUnitVectors(FORWARD, front)
+      }
+    }
+  }
+
+  /**
+   * A **bow tie** — the butterfly shape, 6.5 cm a wing.
+   *
+   * Two wings that narrow to the knot rather than two rectangles: a bow tie is cut
+   * as an hourglass and pinched in the middle, so its silhouette is the pinch. Built
+   * as a ribbon running left to right through the knot, with the half-width profile
+   * doing the pinching, and placed on the neck's front in the head frame so it turns
+   * with the head instead of staying square to the world.
+   */
+  private buildBowtie(): Item {
+    const silk = new THREE.MeshPhysicalMaterial({ color: 0x15161c, roughness: 0.3, metalness: 0, sheen: 0.6, sheenColor: new THREE.Color(0x6a6a7a), sheenRoughness: 0.35, side: THREE.DoubleSide })
+    const RINGS = 24
+    const bow = new THREE.Mesh(makeRibbon(RINGS), silk)
+    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 10), silk)
+    const obj = new THREE.Group()
+    obj.add(bow, knot)
+    return {
+      kind: 'bowtie',
+      obj,
+      place: (a) => {
+        const front = a.headFwd
+        // the same throat placement the tie's knot uses — the neck anchor is at
+        // shoulder level, where a bow tie would sit inside the chest
+        const centre = a.neck
+          .clone()
+          .addScaledVector(a.headUp, a.neckR * 0.8)
+          .addScaledVector(front, a.neckR + OVER_SHIRT_M)
+        const span = (BOW_WING_MM * 2) / 1000
+        writeRibbon(
+          bow.geometry,
+          RINGS,
+          (t, out) => {
+            // left wing tip → knot → right wing tip, bowing forward at the tips so
+            // the wings stand off the neck rather than wrapping into it
+            const x = (t - 0.5) * span
+            const bulge = Math.abs(t - 0.5) * 2 // 0 at the knot, 1 at the tips
+            out.copy(centre).addScaledVector(a.headRight, x).addScaledVector(front, bulge * a.neckR * 0.25)
+          },
+          (_t, out) => out.copy(a.headUp),
+          (t) => {
+            // the hourglass: pinched to the knot, full at the wing tips
+            const k = Math.abs(t - 0.5) * 2
+            return ((BOW_KNOT_MM + (BOW_HEIGHT_MM - BOW_KNOT_MM) * Math.pow(k, 0.7)) / 2000)
+          }
+        )
+        knot.position.copy(centre).addScaledVector(front, a.neckR * 0.05)
+        knot.scale.set(BOW_KNOT_MM / 1000, (BOW_KNOT_MM * 1.6) / 1000, BOW_KNOT_MM / 1200)
+        knot.quaternion.setFromUnitVectors(FORWARD, front)
+      }
+    }
+  }
+
+  /**
+   * **Suspenders** — two 35 mm braces, over the shoulders and down the back.
+   *
+   * Each side is one continuous strip clipped at the waistband in front, run up the
+   * chest, **over the shoulder tip**, and down the back to the waistband behind.
+   * The shoulder tip is the anchor that matters: braces bear their load there, and
+   * a strap routed straight from the front waistband to the back one passes through
+   * the shoulder instead of over it.
+   *
+   * The back ends converge toward centre-back, which is the Y a real pair makes.
+   */
+  private buildSuspenders(): Item {
+    const web = new THREE.MeshStandardMaterial({ color: 0x23262e, roughness: 0.78, metalness: 0.02, side: THREE.DoubleSide })
+    const clip = new THREE.MeshStandardMaterial({ color: 0xb8bcc4, roughness: 0.3, metalness: 0.9 })
+    const RINGS = 32
+    const straps = [0, 1].map(() => new THREE.Mesh(makeRibbon(RINGS), web))
+    const clips = [0, 1, 2, 3].map(() => new THREE.Mesh(new THREE.BoxGeometry(BRACE_WIDTH_MM / 1000, 0.022, 0.008), clip))
+    const obj = new THREE.Group()
+    obj.add(...straps, ...clips)
+    const p0: number[] = [0, 0, 0]
+    const p1: number[] = [0, 0, 0]
+    const p2: number[] = [0, 0, 0]
+    const c = new THREE.Vector3()
+    const nextC = new THREE.Vector3()
+    const tan = new THREE.Vector3()
+    return {
+      kind: 'suspenders',
+      obj,
+      place: (a) => {
+        const front = a.headFwd
+        const spread = BRACE_FRONT_SPREAD_MM / 1000
+        for (let i = 0; i < 2; i++) {
+          const sx = i === 0 ? -1 : 1
+          const shoulder = i === 0 ? a.shoulderL : a.shoulderR
+          const frontClip = a.waist.clone().addScaledVector(front, a.waistR * WAIST_FRONT_OF_R + OVER_SHIRT_M).addScaledVector(a.headRight, sx * spread)
+          // behind: the ends come in toward centre-back, the Y a real pair makes
+          const backClip = a.waist.clone().addScaledVector(front, -(a.waistR * WAIST_FRONT_OF_R + OVER_SHIRT_M)).addScaledVector(a.headRight, sx * spread * 0.45)
+          // the strap goes OVER the shoulder tip, standing just off it by its own bulk
+          const over = shoulder.clone().addScaledVector(a.headUp, 0.012 + OVER_SHIRT_M)
+          p0[0] = frontClip.x; p0[1] = frontClip.y; p0[2] = frontClip.z
+          p1[0] = over.x; p1[1] = over.y; p1[2] = over.z
+          p2[0] = backClip.x; p2[1] = backClip.y; p2[2] = backClip.z
+          const at = (t: number, out: THREE.Vector3): void => {
+            const v = splineThrough3(p0, p1, p2, t)
+            out.set(v[0], v[1], v[2])
+          }
+          writeRibbon(
+            straps[i].geometry,
+            RINGS,
+            at,
+            (t, out) => {
+              // the strap lies flat on the body: across = the run × the outward normal,
+              // and outward flips from front to back as it crosses the shoulder
+              at(t, c)
+              at(Math.min(1, t + 0.02), nextC)
+              tan.copy(nextC).sub(c)
+              if (tan.lengthSq() < 1e-12) tan.set(0, -1, 0)
+              out.copy(front).multiplyScalar(t < 0.5 ? 1 : -1)
+              out.crossVectors(out, tan.normalize())
+              if (out.lengthSq() < 1e-12) out.copy(a.headRight)
+              out.normalize()
+            },
+            () => BRACE_WIDTH_MM / 2000
+          )
+          clips[i * 2].position.copy(frontClip)
+          clips[i * 2].quaternion.setFromUnitVectors(FORWARD, front)
+          clips[i * 2 + 1].position.copy(backClip)
+          clips[i * 2 + 1].quaternion.setFromUnitVectors(FORWARD, front.clone().negate())
+        }
+      }
+    }
   }
 
   /**
