@@ -3193,6 +3193,39 @@ function initStudio(
       console.log('[capture-log] probeTaper', JSON.stringify(out))
     }, 8000)
   }
+  if (params.get('probeAxes')) {
+    // **Bone axis probe** — rotates one bone a known amount about each of its local
+    // axes in turn and reports where the limb's tip ends up.
+    //
+    // A rig's bones have their own local frames and no convention says which way
+    // they face. Authoring a static pose means knowing, for this rig, which axis
+    // of `lArm` swings the arm forward and which lifts it sideways. Guessing puts
+    // a hand through the chest.
+    window.setTimeout(() => {
+      const b = mannequin.glbBones?.() ?? {}
+      const out: Record<string, unknown> = {}
+      for (const key of ['lArm', 'lFore', 'lUpLeg', 'lLeg'] as const) {
+        const bone = (b as Record<string, THREE.Object3D | undefined>)[key]
+        const tipKey = { lArm: 'lFore', lFore: 'lHand', lUpLeg: 'lLeg', lLeg: 'lFoot' }[key]
+        const tip = (b as Record<string, THREE.Object3D | undefined>)[tipKey]
+        if (!bone || !tip) continue
+        const base = tip.getWorldPosition(new THREE.Vector3())
+        const rot = bone.rotation.clone()
+        const row: Record<string, number[]> = { rest: [base.x, base.y, base.z].map((v) => +v.toFixed(3)) }
+        for (const axis of ['x', 'y', 'z'] as const) {
+          bone.rotation.copy(rot)
+          bone.rotation[axis] += 0.6
+          bone.updateWorldMatrix(true, true)
+          const p = tip.getWorldPosition(new THREE.Vector3())
+          row[axis] = [p.x - base.x, p.y - base.y, p.z - base.z].map((v) => +v.toFixed(3))
+        }
+        bone.rotation.copy(rot)
+        bone.updateWorldMatrix(true, true)
+        out[key] = row
+      }
+      console.log('[capture-log] probeAxes', JSON.stringify(out))
+    }, 8000)
+  }
   if (params.get('probeBones')) {
     // Which standard bones the rig actually resolved to, and where. A missing one
     // makes `fitCollidersToGlb` skip that capsule silently, leaving it at its

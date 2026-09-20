@@ -3,7 +3,12 @@ import { POSES, POSE_NAMES, getPose } from '../src/renderer/avatar/poses'
 
 describe('pose library', () => {
   it('exposes the lookbook pose set', () => {
-    expect(POSE_NAMES).toEqual(['stand', 'weight-shift', 'stride', 'relaxed'])
+    // a contains-check, not a frozen list: the set grows, and a hardcoded array
+    // turns every new pose into an unrelated test edit while catching nothing
+    for (const n of ['stand', 'weight-shift', 'stride', 'relaxed', 'contrapposto', 'hand-on-hip', 'arms-crossed', 'sitting']) {
+      expect(POSE_NAMES, n).toContain(n)
+    }
+    expect(new Set(POSE_NAMES).size).toBe(POSE_NAMES.length)
   })
 
   it('every pose has a valid clip + phase in [0,1] and a stance', () => {
