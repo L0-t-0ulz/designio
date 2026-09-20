@@ -29,8 +29,9 @@ import {
   tieHalfWidth,
   splineThrough3
 } from './neckwear'
+import { FLAP_HATS, crownOf, flapAngle, flapHalfWidth, flapStandoff, FLAP_HINGE_FRAC, BILL_AZIMUTHS, type FlapStyle, type FlapWorn } from './earFlaps'
 import { STRAW_HATS, brimProfileAt, centreDent, type StrawStyle } from './strawHats'
-import { CROWNS, crownRadius, crownHeight, crownFit, crownRise, HAT_LINE_Y, mmToUnits, TASSEL_LENGTH_MM, TASSEL_STRANDS, TASSEL_BUTTON_MM, tasselStrand, type BrimlessStyle } from './brimless'
+import { CROWNS, crownRadius, crownHeight, crownFit, crownRise, HAT_LINE_Y, HEAD_CROWN_Y, mmToUnits, TASSEL_LENGTH_MM, TASSEL_STRANDS, TASSEL_BUTTON_MM, tasselStrand, type BrimlessStyle } from './brimless'
 import { FRAMES, lensOffset, lensOutline, unitsPerMm, type SunglassesStyle } from './shades'
 import { headFrame, FACE_FRONT_R, EAR_CENTRE_FRAC, EARLOBE_FRAC, EAR_X, LOBE_X, EAR_Z } from './face'
 import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, FOOT_LAST, SOCK_INSIDE_SHOE, sockRiseM, type SockHeight, HAND_REACH_R, HAND_HALF_THICKNESS_R, HAND_HALF_BREADTH_R, GLOVE_CLEARANCE_R, GLOVE_CUFF_M, WRIST_AT_T, ANKLE_AT_T, WRIST_TO_FOREARM, ANKLE_TO_CALF, STUD_BALL_MM, STUD_POST_MM, HOOP_OUTER_MM, HOOP_WIRE_MM } from './wornSizing'
@@ -45,8 +46,8 @@ import { circumferenceCm, watchCaseMm, watchLugWidthMm, WATCH_THICKNESS_RATIO, F
  * colliders, so both the procedural and GLB avatars work. The anchor math is pure
  * (unit-tested); the geometry is built in the renderer.
  */
-export type AccessoryKind = 'boater' | 'panama' | 'fez' | 'kufi' | 'pillbox' | 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
-export const ACCESSORY_KINDS: AccessoryKind[] = ['boater', 'panama', 'fez', 'kufi', 'pillbox', 'tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
+export type AccessoryKind = 'ushanka' | 'deerstalker' | 'boater' | 'panama' | 'fez' | 'kufi' | 'pillbox' | 'tie' | 'bowtie' | 'suspenders' | 'socks' | 'gloves' | 'studs' | 'watch' | 'anklet' | 'shoes' | 'belt' | 'hat' | 'bag' | 'beanie' | 'cap' | 'bucket' | 'balaclava' | 'scarf' | 'gaiter' | 'beret' | 'sunhat' | 'visor' | 'cowboy' | 'tophat' | 'bowler' | 'boonie' | 'bakerboy' | 'goggles' | 'sunglasses' | 'turban' | 'necklace' | 'hoops'
+export const ACCESSORY_KINDS: AccessoryKind[] = ['ushanka', 'deerstalker', 'boater', 'panama', 'fez', 'kufi', 'pillbox', 'tie', 'bowtie', 'suspenders', 'socks', 'gloves', 'studs', 'watch', 'anklet', 'shoes', 'belt', 'hat', 'bag', 'beanie', 'cap', 'bucket', 'balaclava', 'scarf', 'gaiter', 'beret', 'sunhat', 'visor', 'cowboy', 'tophat', 'bowler', 'boonie', 'bakerboy', 'goggles', 'sunglasses', 'turban', 'necklace', 'hoops']
 
 export interface AccessoryAnchors {
   headTop: THREE.Vector3
@@ -350,6 +351,8 @@ export class Accessories {
   constructor() {
     this.group.name = 'accessories'
     this.items.push(
+      this.buildFlapHat('ushanka'),
+      this.buildFlapHat('deerstalker'),
       this.buildStraw('boater'),
       this.buildStraw('panama'),
       this.buildBrimless('fez'),
@@ -1974,6 +1977,115 @@ export class Accessories {
     const outer = new THREE.Group()
     obj.scale.set(crownFit(CROWNS.fez), 1, crownFit(CROWNS.fez))
     obj.position.y = HAT_LINE_Y
+    outer.add(obj)
+    return this.headItem(style as AccessoryKind, outer)
+  }
+
+  private flapWorn: FlapWorn = 'down'
+
+  /** Wear the ear flaps down over the ears, or folded up onto the crown. */
+  setFlapWorn(worn: FlapWorn): void {
+    this.flapWorn = worn
+    for (const it of this.items) {
+      const flaps = it.obj.getObjectByName('flaps') as THREE.Group | undefined
+      if (!flaps) continue
+      for (const f of flaps.children) f.rotation.x = flapAngle(worn)
+    }
+  }
+  getFlapWorn(): FlapWorn {
+    return this.flapWorn
+  }
+
+  /**
+   * The **ear-flap hats** — an ushanka and a deerstalker.
+   *
+   * One flap shape on one hinge; the hats differ in the crown it hangs from, the
+   * pile, and what else is attached. The flap **hinges on the ear**, using the same
+   * landmark the earrings do, so the two agree about where an ear is — a flap that
+   * covers the ear has to pivot there or it swings through the jaw.
+   *
+   * A deerstalker also carries the pair of bills, front and back, which is the
+   * thing that makes it a deerstalker rather than any other flapped cap.
+   */
+  private buildFlapHat(style: FlapStyle): Item {
+    const h = FLAP_HATS[style]
+    const crownMat = style === 'ushanka' ? knit(h.crownColour) : felt(h.crownColour)
+    const flapMat = style === 'ushanka' ? knit(h.flapColour) : felt(h.flapColour)
+    flapMat.side = THREE.DoubleSide
+    const obj = new THREE.Group()
+    const RAD = 40
+    const bandR = (h.bandMm / 2) * mmToUnits
+
+    // The crown goes through the same graded lathe as the fez and the kufi. A
+    // hemisphere is the obvious shape for a fur hat and it is the wrong one: this
+    // head is squarer at the top than a sphere, so a dome drafted to clear it at
+    // the band has the skull coming out through it higher up.
+    const cs = crownOf(h)
+    const fit = crownFit(cs)
+    const rise = crownRise(cs, HAT_LINE_Y)
+    const shellR = bandR * fit
+    const profile: THREE.Vector2[] = []
+    for (let i = 0; i <= 18; i++) {
+      const t = i / 18
+      profile.push(new THREE.Vector2(Math.max(1e-4, crownRadius(cs, t) * fit), t * crownHeight(cs) * rise))
+    }
+    obj.add(new THREE.Mesh(new THREE.LatheGeometry(profile, RAD), crownMat))
+
+    // the flaps, each on its own hinge group so the worn state is one rotation
+    const flaps = new THREE.Group()
+    flaps.name = 'flaps'
+    const RINGS = 10
+    const COLS = 9
+    const SPAN = 1.5 // radians of head the flap covers at its widest
+    for (const sx of [-1, 1] as const) {
+      const hinge = new THREE.Group()
+      const verts: number[] = []
+      const idx: number[] = []
+      const drop = h.flapDropMm * mmToUnits
+      // The flap WRAPS the side of the head: an arc patch about the head's axis,
+      // not a flat panel. Built flat it is a strip seen edge-on from the front,
+      // which is a line where an ear flap should be a broad shape over the ear.
+      for (let i = 0; i <= RINGS; i++) {
+        const t = i / RINGS
+        const half = (flapHalfWidth(t) / 0.5) * (SPAN / 2) // the profile, as an angle
+        const r = shellR + flapStandoff(h, t)
+        for (let k = 0; k <= COLS; k++) {
+          const a = sx * (Math.PI / 2) + (k / COLS - 0.5) * 2 * half
+          verts.push(Math.cos(a) * r, -t * drop, Math.sin(a) * r)
+        }
+      }
+      for (let i = 0; i < RINGS; i++) {
+        for (let k = 0; k < COLS; k++) {
+          const a = i * (COLS + 1) + k
+          idx.push(a, a + 1, a + COLS + 1, a + 1, a + COLS + 2, a + COLS + 1)
+        }
+      }
+      const geo = new THREE.BufferGeometry()
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3))
+      geo.setIndex(idx)
+      geo.computeVertexNormals()
+      const hingeMesh = new THREE.Mesh(geo, flapMat)
+      hinge.add(hingeMesh)
+      hinge.rotation.x = flapAngle(this.flapWorn)
+      flaps.add(hinge)
+    }
+    // hinged on the EAR — the same landmark the earrings use
+    flaps.position.y = HEAD_CROWN_Y - HAT_LINE_Y - FLAP_HINGE_FRAC * (HEAD_CROWN_Y + 1.7)
+    obj.add(flaps)
+
+    if (h.billMm > 0) {
+      // the deerstalker's pair: front and back, which is what makes it one
+      for (const az of BILL_AZIMUTHS) {
+        const bill = new THREE.Mesh(new THREE.CylinderGeometry(shellR * 1.02, shellR * 1.02, h.billMm * mmToUnits, 26, 1, false, -0.55, 1.1), crownMat)
+        bill.rotation.x = Math.PI / 2
+        bill.rotation.y = az
+        bill.scale.set(1, 1, 0.12)
+        obj.add(bill)
+      }
+    }
+
+    obj.position.y = HAT_LINE_Y
+    const outer = new THREE.Group()
     outer.add(obj)
     return this.headItem(style as AccessoryKind, outer)
   }

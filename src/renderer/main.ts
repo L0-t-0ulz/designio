@@ -1305,6 +1305,9 @@ function initStudio(
     // ?crownShape= — the crown shape library (the fedora's blocked crease)
     const cs = params.get('crownShape')
     if (cs && (CROWN_STYLES as string[]).includes(cs)) accessories.setCrown(cs as CrownStyle)
+    // ?flapWorn= — ear flaps down over the ears, or folded up onto the crown
+    const fw = params.get('flapWorn')
+    if (fw === 'up' || fw === 'down') accessories.setFlapWorn(fw)
     // ?sunglassesStyle= — the frame block (wayfarer · aviator · round · cat-eye)
     const gs = params.get('sunglassesStyle')
     if (gs && (SUNGLASSES_STYLES as string[]).includes(gs)) accessories.setSunglassesStyle(gs as SunglassesStyle)
