@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { scatterFreckles, freckleColour, FIELD_WIDTH_MM } from './freckles'
+import { beardCoverage, beardLengthMm, beardColour, type BeardStyle } from './beard'
 import { SCALP_R, cornrowOffset, cornrowPoint, braidRadius, cornrowTaper, bunCoil, ponytailPoint, ponytailRadius } from './hairstyles'
 import type { Capsule } from './colliders'
 
@@ -192,6 +193,8 @@ export const HEAD_BREADTH_R = 0.87
  * collider sphere, whose surface is well behind it.
  */
 export const FACE_FRONT_R = 1.32
+/** How far under the skin a bare part of the beard shell sinks, in head radii. */
+export const BEARD_SINK = 0.13
 /** Where a freckle sits: just proud of the face so it reads as skin, not a decal. */
 export const FACE_PLANE_Z = 0.98
 /** How many freckles a fully freckled face gets, before the density scales it. */
@@ -224,13 +227,15 @@ export class FaceRig {
   private readonly hairMat = new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.72, metalness: 0.02 })
   private readonly styleGroups = new Map<Hairstyle, THREE.Group>()
   private readonly frecklePivot = new THREE.Group()
+  private readonly beardPivot = new THREE.Group()
+  private beard: BeardStyle = 'none'
   private freckleDensity = 0
   private freckleSkin = 0xe9c6a8
   private style: Hairstyle = 'bald' // no hair by default → the avatar's clean default look
 
   constructor() {
     this.group.name = 'face-rig'
-    this.group.add(this.hairPivot, this.facePivot, this.frecklePivot)
+    this.group.add(this.hairPivot, this.facePivot, this.frecklePivot, this.beardPivot)
     for (const s of HAIRSTYLES) {
       const g = this.buildHair(s)
       g.visible = s === this.style
@@ -239,6 +244,8 @@ export class FaceRig {
     }
     this.buildFace()
     this.buildFreckles()
+    this.buildBeard()
+    this.beardPivot.visible = false // opt-in, like the face features
     this.frecklePivot.visible = false // opt-in, like the face features
     this.facePivot.visible = false // subtle features are opt-in (a clean face by default)
     this.group.traverse((o) => {
@@ -307,6 +314,78 @@ export class FaceRig {
     }
   }
 
+  /** Facial hair — clean shaven, stubble, moustache, goatee or a full beard. */
+  setBeard(style: BeardStyle): void {
+    this.beard = style
+    this.beardPivot.visible = style !== 'none'
+    this.buildBeard()
+  }
+  getBeard(): BeardStyle {
+    return this.beard
+  }
+
+  /**
+   * The beard shell: the lower face, pushed out by how much hair grows there.
+   *
+   * A shell rather than a scatter, because a beard is a mass. Where the coverage
+   * is zero the shell sits **inside** the skin and is simply not seen, so the
+   * boundary needs no alpha and cannot z-fight — the cheek line, the mouth gap and
+   * the width of a moustache all fall out of the same field.
+   */
+  private buildBeard(): void {
+    for (const c of [...this.beardPivot.children]) {
+      ;(c as THREE.Mesh).geometry?.dispose()
+      this.beardPivot.remove(c)
+    }
+    if (this.beard === 'none') return
+    const feat = faceFeatureLayout()
+    const nose = feat.find((f) => f.name === 'nose')!
+    // the beard region, against the same face the eyes and the nose are drawn on
+    const topY = nose.pos[1] + 0.12 // up to the sideburn, level with the nose
+    const botY = feat.find((f) => f.name === 'lip')!.pos[1] - 0.62 // below the chin
+    const halfW = EAR_X * 0.98
+    const lenUnits = (beardLengthMm(this.beard) / 100) * 1.0 // mm → head-frame units
+    const NX = 48
+    const NY = 30
+    const verts: number[] = []
+    const idx: number[] = []
+    for (let iy = 0; iy <= NY; iy++) {
+      const fy = 1 - iy / NY // face-local y: 1 at the sideburn, 0 at the chin
+      const wy = topY + (botY - topY) * (iy / NY)
+      for (let ix = 0; ix <= NX; ix++) {
+        const fx = (ix / NX) * 2 - 1
+        const cov = beardCoverage(this.beard, fx, fy)
+        // on the face's curve, then out by however much hair is there. Zero
+        // coverage sinks it under the skin, which is what hides the boundary.
+        const t = Math.min(0.985, Math.abs(fx))
+        const surf = FACE_PLANE_Z * Math.sqrt(1 - t * t)
+        // Where no hair grows the shell is sunk a full centimetre UNDER the skin,
+        // not skimmed along it: a two-millimetre sink leaves the bare parts poking
+        // through wherever the real head is a shade narrower than this shell, and
+        // the whole slab shows. Where hair does grow it stands out by its length.
+        const r = surf * (1 - BEARD_SINK) + cov * (BEARD_SINK * surf + lenUnits)
+        const k = surf > 1e-6 ? r / surf : 1
+        verts.push(fx * halfW * k, wy, r)
+      }
+    }
+    for (let iy = 0; iy < NY; iy++) {
+      for (let ix = 0; ix < NX; ix++) {
+        const a = iy * (NX + 1) + ix
+        idx.push(a, a + 1, a + NX + 1, a + 1, a + NX + 2, a + NX + 1)
+      }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3))
+    geo.setIndex(idx)
+    geo.computeVertexNormals()
+    const mesh = new THREE.Mesh(
+      geo,
+      new THREE.MeshStandardMaterial({ color: beardColour(this.hairMat.color.getHex()), roughness: 0.88, metalness: 0, side: THREE.DoubleSide })
+    )
+    mesh.frustumCulled = false
+    this.beardPivot.add(mesh)
+  }
+
   setHairstyle(style: Hairstyle): void {
     this.style = style
     for (const [s, g] of this.styleGroups) g.visible = s === style
@@ -316,6 +395,7 @@ export class FaceRig {
   }
   setHairColor(hex: number): void {
     this.hairMat.color.setHex(hex)
+    if (this.beard !== 'none') this.buildBeard() // facial hair follows the head's colour
   }
   getHairColor(): number {
     return this.hairMat.color.getHex()
@@ -338,7 +418,7 @@ export class FaceRig {
     if (!this.group.visible || colliders.length < 13) return
     const f = headFrame(colliders)
     const basis = new THREE.Matrix4().makeBasis(f.right, f.up, f.forward)
-    for (const pivot of [this.hairPivot, this.facePivot, this.frecklePivot]) {
+    for (const pivot of [this.hairPivot, this.facePivot, this.frecklePivot, this.beardPivot]) {
       pivot.position.copy(f.crown)
       pivot.quaternion.setFromRotationMatrix(basis)
       pivot.scale.setScalar(f.radius)
