@@ -438,6 +438,30 @@ Tailoring & finishes shipped alongside — the three classic **lapel gorges** (n
 | --- | --- | --- |
 | ![A blazer with peaked lapels sweeping up to the shoulders](docs/lapel-peak.png) | ![A gold-rimmed enamel star pin on a blazer](docs/enamel-pin.png) | ![A beanie in a disco party finish — sequins + holographic shimmer](docs/party-finish.png) |
 
+**Lookbook poses**, authored as *where the hand goes* and solved with two-bone IK — a rig's bone axes are its own, and an angle that works on one arm is wrong on the other by a sign that puts a hand through the chest:
+
+| Contrapposto | Hand on hip | Arms crossed | Sitting |
+| --- | --- | --- | --- |
+| ![A figure in contrapposto — one hip riding up, the shoulders counter-tilted](docs/pose-contrapposto.png) | ![A figure with one hand resting on the hip, elbow out](docs/pose-hand-on-hip.png) | ![A figure with both forearms folded across the chest](docs/pose-arms-crossed.png) | ![A seated figure, thighs level and shins vertical](docs/pose-sitting.png) |
+
+And a **jog** gait, which is not the walk clip played faster: walking is an inverted pendulum and running is a spring, so the body is highest at mid-stance in one and lowest in the other.
+
+| Jog | Freckles | Seam stress |
+| --- | --- | --- |
+| ![A figure mid-jog, elbows bent and the skirt flared](docs/anim-jog.png) | ![A face with a malar scatter of freckles across the nose and cheeks](docs/freckles.png) | ![A denim dress coloured by how hard its seams are working — red across the compressed bodice](docs/seam-stress.png) |
+
+**Millinery**, every block graded to the head that was measured off the rendered avatar — a band has to clear the head's widest point, and the crown has to be tall enough to contain the skull above it:
+
+| Fez + tassel | Boater | Ushanka | Fascinator |
+| --- | --- | --- | --- |
+| ![A red fez with its tassel spilling over one edge](docs/hat-fez.png) | ![A straw boater with a dead-flat brim and a ribbon band](docs/hat-boater.png) | ![A fur ushanka with its ear flaps down](docs/hat-ushanka.png) | ![A fascinator pinned to one side of the head, canted, with a feather spray](docs/hat-fascinator.png) |
+
+**Worn on measured anatomy** — the ear landmarks come from the face's own proportions, the wrist and ankle from where the limb is measured to narrow, and eyewear is specified by the lens▫bridge millimetres off a real temple:
+
+| Aviators | Tie + braces | Watch + gloves |
+| --- | --- | --- |
+| ![Gold aviator sunglasses with a teardrop lens and brow bar](docs/shades-aviator.png) | ![A necktie curving over the chest with braces over the shoulders](docs/neckwear-tie.png) | ![A wristwatch on the left wrist, dial facing out, with knit gloves](docs/worn-watch.png) |
+
 Studio tools & fit — an in-app **vector print editor** (compose a graphic from shapes, no upload), an **interactive tutorial** checklist, a resolvable **design-review** panel, and **petite/tall/plus auto-proportioning** that resizes the body + regrades the garment in one setting:
 
 | Vector print editor | Interactive tutorial + review | Tall auto-proportioning |

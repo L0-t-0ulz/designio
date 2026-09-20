@@ -112,7 +112,25 @@ const shots = [
   ['docs/vector-editor.png', 6500, 'garment=dress&fabric=jersey&vectorEditor=1&start=0'],
   ['docs/tutorial.png', 6500, 'garment=dress&fabric=satin&tutorial=1&start=0'],
   ['docs/review-panel.png', 6500, 'garment=dress&fabric=denim&review=1&start=0'],
-  ['docs/auto-proportion.png', 8000, 'garment=dress&fabric=satin&block=tall&start=0']
+  ['docs/auto-proportion.png', 8000, 'garment=dress&fabric=satin&block=tall&start=0'],
+  // Lookbook poses, solved with two-bone IK rather than a frozen clip frame
+  ['docs/pose-contrapposto.png', 11000, 'garment=dress&fabric=satin&pose=contrapposto&start=0'],
+  ['docs/pose-hand-on-hip.png', 11000, 'garment=dress&fabric=satin&pose=hand-on-hip&start=0'],
+  ['docs/pose-arms-crossed.png', 11000, 'garment=dress&fabric=satin&pose=arms-crossed&start=0'],
+  ['docs/pose-sitting.png', 11000, 'garment=dress&fabric=satin&pose=sitting&start=0'],
+  ['docs/anim-jog.png', 11000, 'garment=dress&fabric=jersey&anim=jog&start=0'],
+  // Millinery blocks, graded to the measured head
+  ['docs/hat-fez.png', 9000, 'garment=dress&accessories=fez&closeup=head&headDist=1.7&start=0'],
+  ['docs/hat-boater.png', 9000, 'garment=dress&accessories=boater&closeup=head&headDist=1.9&start=0'],
+  ['docs/hat-ushanka.png', 9000, 'garment=dress&accessories=ushanka&closeup=head&headDist=1.9&start=0'],
+  ['docs/hat-fascinator.png', 9000, 'garment=dress&accessories=fascinator&closeup=head&headDist=1.9&start=0'],
+  // Worn hardware + neckwear, on measured anatomy
+  ['docs/shades-aviator.png', 9000, 'garment=dress&accessories=sunglasses&sunglassesStyle=aviator&closeup=head&headDist=1.3&start=0'],
+  ['docs/neckwear-tie.png', 11000, 'garment=dress-shirt&fabric=oxford&accessories=tie,suspenders&start=0'],
+  ['docs/worn-watch.png', 10000, 'garment=dress&fabric=denim&accessories=watch,gloves&start=0'],
+  ['docs/freckles.png', 9000, 'garment=dress&freckles=0.8&face=1&body=mesh&closeup=head&headDist=1.2&start=0'],
+  // Seam stress — whether the SEAMS hold, not the cloth
+  ['docs/seam-stress.png', 11000, 'garment=dress&fabric=denim&seamStress=1&ease=-0.02&start=0']
 ]
 
 let failed = 0
