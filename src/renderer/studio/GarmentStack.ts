@@ -44,6 +44,7 @@ import { wrinkleColor } from '../fabric/wrinkleDensity'
 import { pressureColor } from '../fabric/pressure'
 import { makePillNormalMap } from '../fabric/pilling'
 import { buttonCount, buttonScale } from './closureDesign'
+import { closureMarks, resolveClosureStyle } from '../garment/closureStyles'
 import { wrinkleAmount, installWrinkle, uninstallWrinkle } from '../fabric/wrinkle'
 import { layerShown, gradeParams, captureColorway, applyColorway, duplicateColorway, type GarmentLayerData, type Colorway } from './document'
 
@@ -1257,7 +1258,7 @@ export class GarmentStack {
   private buildClosure(l: StackLayer): void {
     const spec = garmentPatternSpecs(getGarment(l.data.garmentType), gradeParams(l.data), this.measurements, this.colliders).body[0]
     if (!spec) return
-    const style = getGarment(l.data.garmentType).closureStyle ?? 'button'
+    const style = resolveClosureStyle(l.data.closureStyle, getGarment(l.data.garmentType).closureStyle)
     const yTop = (spec.shoulderY ?? spec.topY) - (spec.neckline ? 0.1 : 0.04)
     const yBot = spec.bottomY + 0.015
     if (yTop - yBot < 0.06) return
@@ -1301,14 +1302,29 @@ export class GarmentStack {
       const n = buttonCount(yTop - yBot, design?.buttons)
       const scale = buttonScale(design?.buttonMm)
       const btnMat = design?.buttonColor !== undefined ? GarmentStack.closureMat('button', design.buttonColor) : CLOSURE_BUTTON
-      for (let i = 0; i < n; i++) {
-        const y = yBot + ((yTop - yBot) * (i + 0.5)) / n
+      for (const mark of closureMarks(style, n)) {
+        const y = yBot + (yTop - yBot) * mark.y
         const faceZ = frontZ(y) + 0.006
+        if (mark.kind === 'toggle') {
+          const bar = new THREE.Mesh(new THREE.CapsuleGeometry(0.004 * scale, 0.028 * scale, 4, 8), btnMat)
+          bar.rotation.z = Math.PI / 2
+          bar.position.set(mark.x, y, faceZ)
+          bar.castShadow = true
+          l.decor.add(bar)
+          continue
+        }
+        if (mark.kind === 'frog') {
+          const knot = new THREE.Mesh(new THREE.TorusGeometry(0.008 * scale, 0.0025 * scale, 6, 12), btnMat)
+          knot.position.set(mark.x, y, faceZ)
+          knot.castShadow = true
+          l.decor.add(knot)
+          continue
+        }
         // domed shell button body (clone the shared lathe so per-rebuild disposal is safe)
         const btn = new THREE.Mesh(BUTTON_PROFILE.clone(), btnMat)
         btn.scale.setScalar(scale)
         btn.rotation.x = Math.PI / 2 // domed face toward the front (+z)
-        btn.position.set(0, y, faceZ)
+        btn.position.set(mark.x, y, faceZ)
         btn.castShadow = true
         btn.receiveShadow = true
         l.decor.add(btn)
@@ -1318,13 +1334,13 @@ export class GarmentStack {
         for (const [hx, hy] of [[-off, off], [off, off], [-off, -off], [off, -off]] as [number, number][]) {
           const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.001, 0.001, 0.0012, 8), CLOSURE_HOLE)
           hole.rotation.x = Math.PI / 2
-          hole.position.set(hx, y + hy, holeZ)
+          hole.position.set(mark.x + hx, y + hy, holeZ)
           l.decor.add(hole)
         }
         const tz = holeZ + 0.0007
         const thread = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(-off, y + off, tz), new THREE.Vector3(off, y - off, tz),
-          new THREE.Vector3(off, y + off, tz), new THREE.Vector3(-off, y - off, tz)
+          new THREE.Vector3(mark.x - off, y + off, tz), new THREE.Vector3(mark.x + off, y - off, tz),
+          new THREE.Vector3(mark.x + off, y + off, tz), new THREE.Vector3(mark.x - off, y - off, tz)
         ])
         l.decor.add(new THREE.LineSegments(thread, CLOSURE_THREAD))
       }

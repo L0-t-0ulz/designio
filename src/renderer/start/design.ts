@@ -72,6 +72,8 @@ export interface DesignConfig {
   hem?: boolean
   hemShape?: import('../cloth/Garment').HemShape
   closure?: boolean
+  /** Which closure, when `closure` is on. Absent = the garment's own default. */
+  closureStyle?: import('../garment/closureStyles').ClosureStyle
   /** Wear the closure open (unbuttoned/unzipped) — the garment gaps at centre-front. */
   closureOpen?: boolean
   lined?: boolean

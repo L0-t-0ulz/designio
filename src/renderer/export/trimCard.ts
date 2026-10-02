@@ -1,5 +1,6 @@
 import { buttonCount } from '../studio/closureDesign'
 import type { ClosureDesign } from '../studio/closureDesign'
+import { closureMarks, type ClosureStyle } from '../garment/closureStyles'
 
 /**
  * **Trim card** — the page of a tech pack that lists everything that isn't fabric:
@@ -27,7 +28,7 @@ export interface TrimLine {
 
 export interface TrimCardInput {
   /** Front closure, if the garment has one. */
-  closure?: 'button' | 'zip'
+  closure?: ClosureStyle
   closureDesign?: ClosureDesign
   /** Placket height in metres — drives the automatic button count. */
   placketHeightM?: number
@@ -62,14 +63,17 @@ const round1 = (n: number): number => Math.round(Math.max(0, n) * 10) / 10
 export function trimCard(inp: TrimCardInput): TrimLine[] {
   const lines: TrimLine[] = []
 
-  if (inp.closure === 'button') {
+  if (inp.closure && inp.closure !== 'zip') {
     const mm = inp.closureDesign?.buttonMm ?? 13
+    const n = buttonCount(inp.placketHeightM ?? 0.42, inp.closureDesign?.buttons)
+    const marks = closureMarks(inp.closure, n)
+    const item = inp.closure === 'frog' ? 'Frog knot' : inp.closure === 'toggle' ? `Horn toggle, ${mm} mm` : `Shell button, ${mm} mm`
     lines.push({
       kind: 'closure',
-      item: `Shell button, ${mm} mm`,
-      qty: buttonCount(inp.placketHeightM ?? 0.42, inp.closureDesign?.buttons),
+      item,
+      qty: inp.closure === 'button' ? n : marks.length,
       unit: 'pcs',
-      placement: 'Centre-front placket',
+      placement: inp.closure === 'double-breasted' ? 'Double-breasted front' : 'Centre-front placket',
       color: inp.closureDesign?.buttonColor ?? inp.bodyColor
     })
   } else if (inp.closure === 'zip') {

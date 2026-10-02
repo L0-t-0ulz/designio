@@ -3,7 +3,7 @@ import { adaptiveRingT } from './adaptiveMesh'
 
 export type NecklineStyle = 'strapless' | 'scoop' | 'crew' | 'v' | 'one-shoulder'
 /** Pleat / gather styles (the pleats library; active when the `pleats` detail is on). */
-export type PleatStyle = 'knife' | 'box' | 'accordion' | 'cartridge' | 'gather' | 'shirr' | 'smock'
+export type PleatStyle = 'knife' | 'box' | 'accordion' | 'cartridge' | 'gather' | 'shirr' | 'smock' | 'inverted-box' | 'sunburst'
 
 /**
  * The radial fold modulation for a pleat style at circumferential angle `a` (and, for
@@ -22,7 +22,7 @@ export function creaseWave(a: number): number {
 }
 
 export function pleatWave(a: number, style: PleatStyle, t = 0): number {
-  const N = { knife: 12, box: 8, accordion: 15, cartridge: 15, gather: 12, shirr: 24, smock: 10 }[style]
+  const N = { knife: 12, box: 8, accordion: 15, cartridge: 15, gather: 12, shirr: 24, smock: 10, 'inverted-box': 8, sunburst: 8 }[style]
   const u = (a / (2 * Math.PI)) * N
   const f = u - Math.floor(u) // 0..1 within a fold
   switch (style) {
@@ -30,6 +30,15 @@ export function pleatWave(a: number, style: PleatStyle, t = 0): number {
       return f * 2 - 1
     case 'box': // alternating flat out / flat in
       return f < 0.5 ? 1 : -1
+    case 'inverted-box': // the box turned inside out — the flat face that stood out now sits in
+      return f < 0.5 ? -1 : 1
+    case 'sunburst': {
+      // more folds toward the hem, the way a sunburst skirt opens
+      const folds = 6 + Math.round(Math.min(1, Math.max(0, t)) * 10)
+      const u2 = (a / (2 * Math.PI)) * folds
+      const g = u2 - Math.floor(u2)
+      return 1 - 4 * Math.abs(g - 0.5)
+    }
     case 'accordion': // symmetric zig-zag
       return 1 - 4 * Math.abs(f - 0.5)
     case 'cartridge': // rounded gathered tubes
@@ -230,8 +239,8 @@ export function openSeamColumn(nx: number): number {
 }
 
 /** Hem shapes — how the bottom edge curves (front = angle π/2). */
-export type HemShape = 'straight' | 'high-low' | 'shirttail' | 'handkerchief' | 'ear-flap' | 'point-front' | 'back-flap'
-export const HEM_SHAPES: HemShape[] = ['straight', 'high-low', 'shirttail', 'handkerchief', 'ear-flap', 'point-front', 'back-flap']
+export type HemShape = 'straight' | 'high-low' | 'shirttail' | 'handkerchief' | 'ear-flap' | 'point-front' | 'back-flap' | 'fishtail' | 'bubble'
+export const HEM_SHAPES: HemShape[] = ['straight', 'high-low', 'shirttail', 'handkerchief', 'ear-flap', 'point-front', 'back-flap', 'fishtail', 'bubble']
 
 /** Per-angle hem height: straight, a high-low sweep (front lifts, back trails),
  *  shirttail side vents, or handkerchief points hanging at the diagonals. */
@@ -247,8 +256,25 @@ export function bottomEdge(spec: TubeSpec, angle: number): number {
   else if (shape === 'ear-flap') y -= h * 0.42 * Math.abs(Math.cos(angle)) ** 3 // deep side flaps (a chullo's ears)
   else if (shape === 'point-front') y -= h * 0.5 * front ** 2.5 // one triangle point at centre-front (a bandana)
   else if (shape === 'back-flap') y -= h * 0.7 * back ** 2 // a long flap draping the nape (a durag)
+  else if (shape === 'fishtail') y += h * 0.1 * front - h * 0.5 * back ** 2.2 // a short front and one long point at the back
+  else if (shape === 'bubble') y -= h * 0.05 // a little extra length so the hem can tuck under the balloon
   else y -= h * 0.14 * Math.abs(Math.sin(2 * angle)) ** 1.2 // handkerchief points
   return Math.max(0.05, y)
+}
+
+/**
+ * How a hem shape changes the tube radius at ring fraction `t` (0 top … 1 hem).
+ *
+ * A balloon hem swells through the lower half and tucks back in at the edge.
+ * Every other shape leaves the radius alone — they are drawn by `bottomEdge`.
+ */
+export function hemRadiusScale(shape: HemShape | undefined, t: number): number {
+  if (shape !== 'bubble') return 1
+  if (t < 0.5) return 1
+  const u = (t - 0.5) / 0.5
+  const belly = Math.sin(Math.min(1, u) * Math.PI)
+  const tuck = u > 0.85 ? 1 - 0.28 * ((u - 0.85) / 0.15) : 1
+  return (1 + 0.22 * belly) * tuck
 }
 
 /** Per-angle top-edge height: straps at the sides (shoulders), a dip for the neck. */
@@ -386,6 +412,7 @@ export function fillTube(positions: Float32Array, spec: TubeSpec, ringT: number[
     for (let ix = 0; ix < radial; ix++) {
       const a = (ix / radial) * Math.PI * 2
       let r = spec.pleat ? r0 * (1 + amp * pleatWave(a, spec.pleat, t)) : r0
+      r *= hemRadiusScale(spec.hemShape, t)
       if (spec.crease) r *= 1 + 0.07 * creaseWave(a) // pressed fore/aft trouser crease
       const top = topEdge(spec, a) // per-column top so the neckline is shaped
       const y = top + (bottomEdge(spec, a) - top) * t // per-column hem (high-low · shirttail · handkerchief)

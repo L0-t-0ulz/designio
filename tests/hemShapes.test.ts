@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { HEM_SHAPES, bottomEdge, type TubeSpec } from '../src/renderer/cloth/Garment'
+import { HEM_SHAPES, bottomEdge, hemRadiusScale, type TubeSpec } from '../src/renderer/cloth/Garment'
 import { garmentToPanels } from '../src/renderer/export/garmentPattern'
 import { getGarment } from '../src/renderer/garments/registry'
 import { defaultLayer, gradeParams } from '../src/renderer/studio/document'
@@ -40,6 +40,17 @@ describe('high-low & asymmetric hems', () => {
     for (const shape of HEM_SHAPES) {
       for (let i = 0; i < 24; i++) expect(bottomEdge({ ...spec, hemShape: shape }, (i / 24) * Math.PI * 2)).toBeGreaterThanOrEqual(0.05)
     }
+  })
+
+  it('a fishtail hangs a longer back point than a high-low, and a balloon swells then tucks', () => {
+    const fish: TubeSpec = { ...spec, hemShape: 'fishtail' }
+    const hl: TubeSpec = { ...spec, hemShape: 'high-low' }
+    expect(bottomEdge(fish, BACK)).toBeLessThan(bottomEdge(hl, BACK))
+    expect(bottomEdge(fish, FRONT)).toBeGreaterThan(bottomEdge(fish, BACK))
+    expect(hemRadiusScale('bubble', 0.2)).toBe(1)
+    expect(hemRadiusScale('bubble', 0.75)).toBeGreaterThan(1)
+    expect(hemRadiusScale('bubble', 1)).toBeLessThan(1)
+    expect(hemRadiusScale('fishtail', 0.75)).toBe(1)
   })
 
   it('the 2D pattern follows the curve: the lifted front panel loses cloth, the trailing back gains it', () => {

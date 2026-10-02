@@ -53,6 +53,20 @@ describe('proportions on the mannequin', () => {
     expect(calf.colliders[8].radius).toBeGreaterThan(base.colliders[8].radius * 1.1)
     expect(calf.colliders[12].radius).toBeCloseTo(calf.colliders[8].radius, 6)
     expect(calf.measurements.thighR).toBeCloseTo(base.measurements.thighR, 6)
+
+    const shoulder = buildMannequin({ shoulder: 1.15 })
+    expect(shoulder.measurements.shoulderHalfX).toBeGreaterThan(base.measurements.shoulderHalfX * 1.1)
+    expect(shoulder.measurements.hipHalfX).toBeCloseTo(base.measurements.hipHalfX, 6)
+
+    const torso = buildMannequin({ torso: 1.15 })
+    expect(torso.measurements.shoulderY).toBeGreaterThan(base.measurements.shoulderY)
+    expect(torso.measurements.hipY).toBeCloseTo(base.measurements.hipY, 6)
+
+    const wristY = (m: ReturnType<typeof buildMannequin>): number => Math.min(m.colliders[6].a.y, m.colliders[6].b.y)
+    const shoulderY = (m: ReturnType<typeof buildMannequin>): number => Math.max(m.colliders[5].a.y, m.colliders[5].b.y)
+    const arm = buildMannequin({ arm: 1.15 })
+    expect(wristY(arm)).toBeLessThan(wristY(base))
+    expect(shoulderY(arm)).toBeCloseTo(shoulderY(base), 5)
   })
 })
 

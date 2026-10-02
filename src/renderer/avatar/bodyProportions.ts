@@ -43,3 +43,35 @@ export function neckLift(span: number, neck: number | undefined): number {
 export function scaledBelow(attachY: number, y: number, leg: number | undefined): number {
   return attachY + (y - attachY) * proportionOf(leg)
 }
+
+/**
+ * Extra torso length, in the same units as the authored span.
+ *
+ * The hip stays. The chest grows, and everything above the torso (shoulders,
+ * neck, head, arms) rises by this amount so the neck is not crushed.
+ */
+export function torsoLift(span: number, torso: number | undefined): number {
+  return span * (proportionOf(torso) - 1)
+}
+
+/** A point inside the torso span, stretched upward from `anchor`. Points above `spanTop` are lifted whole. */
+export function torsoY(y: number, anchor: number, spanTop: number, torso: number | undefined): number {
+  const s = proportionOf(torso)
+  if (y <= anchor) return y
+  if (y <= spanTop) return anchor + (y - anchor) * s
+  return y + (spanTop - anchor) * (s - 1)
+}
+
+/** Scale a point away from `origin` — an arm lengthened from the shoulder. */
+export function scaledFromPoint(
+  origin: { x: number; y: number; z: number },
+  p: { x: number; y: number; z: number },
+  scale: number | undefined
+): { x: number; y: number; z: number } {
+  const s = proportionOf(scale)
+  return {
+    x: origin.x + (p.x - origin.x) * s,
+    y: origin.y + (p.y - origin.y) * s,
+    z: origin.z + (p.z - origin.z) * s
+  }
+}

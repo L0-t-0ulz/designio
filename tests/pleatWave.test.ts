@@ -52,6 +52,28 @@ describe('pleatWave (the pleats & gathers library)', () => {
     expect(crossings('shirr')).toBeGreaterThan(crossings('gather'))
   })
 
+  it('an inverted box is a box turned inside out', () => {
+    for (let i = 0; i < 80; i++) {
+      const a = (i / 80) * TAU
+      expect(pleatWave(a, 'inverted-box')).toBeCloseTo(-pleatWave(a, 'box'), 9)
+    }
+  })
+
+  it('a sunburst grows more folds toward the hem', () => {
+    const crossings = (t: number): number => {
+      let n = 0
+      let prev = pleatWave(0, 'sunburst', t)
+      const N = 2000
+      for (let i = 1; i <= N; i++) {
+        const v = pleatWave((i / N) * TAU, 'sunburst', t)
+        if (Math.sign(v) !== Math.sign(prev) && v !== 0) n++
+        prev = v
+      }
+      return n
+    }
+    expect(crossings(1)).toBeGreaterThan(crossings(0))
+  })
+
   it('smocking forms a honeycomb — the lattice shifts with height', () => {
     // alternate rows are offset half a cell, so the same angle pinches differently
     // near the top (t≈0.05) vs one row down (t≈0.22) — not a plain radial pleat.

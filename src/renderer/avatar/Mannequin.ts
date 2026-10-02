@@ -14,7 +14,7 @@ import { applyPostureToColliders, bendPoint, postureAngles, type PostureName } f
 import { WALK_STYLES, type WalkStyle, type WalkStyleName } from './walkStyles'
 import { headFrame } from './face'
 import { bellySpec } from './maternity'
-import { neckLift, proportionOf, scaledBelow } from './bodyProportions'
+import { neckLift, proportionOf, scaledBelow, scaledFromPoint, torsoLift, torsoY } from './bodyProportions'
 import { BodyCollider } from '../cloth/BodyCollider'
 import { chestSurfaceR } from './bodyFit'
 
@@ -118,6 +118,10 @@ export interface BodyParams {
   leg?: number
   thigh?: number
   calf?: number
+  /** Shoulder width, torso length, arm length. Absent or 1 = the authored figure. */
+  shoulder?: number
+  torso?: number
+  arm?: number
 }
 export const DEFAULT_BODY: BodyParams = {
   bodyType: 'female', height: 1, build: 1, bust: 1, waist: 1, hips: 1
@@ -487,6 +491,48 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     // Pelvis collider = the mesh seat radius (single source), so cloth collides against
     // the *visible* slim rear, not a fat invisible capsule. bones[4] is the hip segment.
     bones[4].radius = bones[4].collider.radius = seatRadius()
+    // Shoulder width spreads the shoulder line and the arms. The hip stays.
+    const shoulder = proportionOf(body.shoulder)
+    measurements.shoulderHalfX *= shoulder
+    pivot.armL.x *= shoulder
+    pivot.armR.x *= shoulder
+    for (const bone of bones) {
+      if (bone.widthKey !== 'shoulder') continue
+      bone.restA.x *= shoulder
+      bone.restB.x *= shoulder
+    }
+    // Torso length grows upward from the waist. Shoulders, neck, head and arms rise with it.
+    const torsoBone = bones[2]
+    const torsoAnchor = Math.min(torsoBone.restA.y, torsoBone.restB.y)
+    const torsoTop = Math.max(torsoBone.restA.y, torsoBone.restB.y)
+    const liftTorso = torsoLift(torsoTop - torsoAnchor, body.torso)
+    if (torsoBone.restA.y >= torsoBone.restB.y) torsoBone.restA.y += liftTorso
+    else torsoBone.restB.y += liftTorso
+    for (const i of [0, 1, 3, 5, 6, 9, 10]) {
+      bones[i].restA.y += liftTorso
+      bones[i].restB.y += liftTorso
+    }
+    measurements.neckY += liftTorso
+    measurements.crownY += liftTorso
+    measurements.headBaseY += liftTorso
+    measurements.shoulderY += liftTorso
+    measurements.chestY = torsoY(measurements.chestY, torsoAnchor, torsoTop, body.torso)
+    measurements.waistY = torsoY(measurements.waistY, torsoAnchor, torsoTop, body.torso)
+    pivot.armL.y += liftTorso
+    pivot.armR.y += liftTorso
+    // Arm length grows from each shoulder. The shoulder joint stays put.
+    const stretchArm = (upper: number, fore: number): void => {
+      const origin = bones[upper].restA.y >= bones[upper].restB.y ? bones[upper].restA : bones[upper].restB
+      const o = { x: origin.x, y: origin.y, z: origin.z }
+      for (const i of [upper, fore]) {
+        for (const v of [bones[i].restA, bones[i].restB]) {
+          const p = scaledFromPoint(o, v, body.arm)
+          v.set(p.x, p.y, p.z)
+        }
+      }
+    }
+    stretchArm(5, 6)
+    stretchArm(9, 10)
     // Neck length lifts the head off the shoulders. Leg length drops the knee and
     // ankle from the hip attachment. Thigh and calf girth scale those capsules
     // only — a bigger thigh does not thicken the calf.
