@@ -23,6 +23,14 @@ describe('sleeve length stops', () => {
     expect(bracelet).toBeLessThan(long)
   })
 
+  it('a cap and a flutter stay shorter than a set-in short sleeve', () => {
+    const short = garmentSleeveSpecs(getGarment('top'), { ...DEFAULT_PARAMS, sleeve: 'short', sleeveShape: 'set-in' }, mann.colliders)[0]
+    const cap = garmentSleeveSpecs(getGarment('top'), { ...DEFAULT_PARAMS, sleeve: 'long', sleeveShape: 'cap' }, mann.colliders)[0]
+    const flutter = garmentSleeveSpecs(getGarment('top'), { ...DEFAULT_PARAMS, sleeve: 'long', sleeveShape: 'flutter' }, mann.colliders)[0]
+    expect(cap.a.distanceTo(cap.b)).toBeLessThan(short.a.distanceTo(short.b))
+    expect(flutter.a.distanceTo(flutter.b)).toBeLessThan(short.a.distanceTo(short.b))
+  })
+
   it('none yields no sleeves; statement shapes stay full-length at any stop', () => {
     expect(garmentSleeveSpecs(getGarment('top'), { ...DEFAULT_PARAMS, sleeve: 'none' }, mann.colliders)).toEqual([])
     const bishopElbow = garmentSleeveSpecs(getGarment('top'), { ...DEFAULT_PARAMS, sleeve: 'elbow', sleeveShape: 'bishop' }, mann.colliders)[0]

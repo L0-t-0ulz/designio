@@ -42,6 +42,13 @@ describe('high-low & asymmetric hems', () => {
     }
   })
 
+  it('an asymmetric hem rises on one side and drops on the other', () => {
+    const specA: TubeSpec = { ...spec, hemShape: 'asymmetric' }
+    expect(bottomEdge(specA, 0)).toBeGreaterThan(spec.bottomY)
+    expect(bottomEdge(specA, Math.PI)).toBeLessThan(spec.bottomY)
+    expect(bottomEdge(specA, FRONT)).toBeCloseTo(spec.bottomY, 5)
+  })
+
   it('a fishtail hangs a longer back point than a high-low, and a balloon swells then tucks', () => {
     const fish: TubeSpec = { ...spec, hemShape: 'fishtail' }
     const hl: TubeSpec = { ...spec, hemShape: 'high-low' }

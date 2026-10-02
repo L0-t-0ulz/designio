@@ -1001,6 +1001,20 @@ export class GarmentStack {
       add(new THREE.CylinderGeometry(neckR * 1.05, neckR * 1.55, 0.055, 40, 1, true), neckY + sh + 0.018) // flared fold-down
     } else if (style === 'peterpan') {
       add(new THREE.RingGeometry(neckR * 1.02, neckR * 1.95, 44, 1), neckY - 0.005, -Math.PI / 2 + 0.28) // flat, front dips
+    } else if (style === 'camp') {
+      // one-piece collar, open at centre front, no stand
+      add(new THREE.CylinderGeometry(neckR * 1.02, neckR * 1.65, 0.038, 40, 1, true, Math.PI * 0.42, Math.PI * 1.16), neckY - 0.008)
+    } else if (style === 'wing') {
+      const h = 0.05
+      add(new THREE.CylinderGeometry(neckR * 0.98, neckR * 1.02, h, 40, 1, true), neckY + h / 2)
+      for (const s of [-1, 1]) {
+        const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.034, 0.042), mat)
+        wing.position.set(s * neckR * 0.62, neckY + h + 0.01, neckR * 0.7)
+        wing.rotation.y = s * 0.45
+        wing.rotation.z = s * -0.4
+        wing.castShadow = true
+        l.decor.add(wing)
+      }
     } else {
       // lapel family: fold-back lapels down the V front + a small back stand.
       // notch (stepped gorge) · peak (points swept up) · shawl (smooth rounded roll)
@@ -1017,7 +1031,7 @@ export class GarmentStack {
    */
   private buildPocket(l: StackLayer, mat: THREE.Material): void {
     const style = l.data.pocketStyle ?? 'patch'
-    for (const p of pocketPlacements(getGarment(l.data.garmentType), this.measurements)) {
+    for (const p of pocketPlacements(getGarment(l.data.garmentType), this.measurements, style)) {
       // One group per pocket, sub-meshes positioned RELATIVE to the pocket centre (local +z =
       // outward). `updatePockets` places the group on the live draped surface each frame, so
       // the whole pocket rides the cloth (position + normal) instead of floating at a fixed z.
@@ -1034,7 +1048,17 @@ export class GarmentStack {
         e.position.set(x, y, z)
         grp.add(e)
       }
-      if (style === 'welt' || style === 'jetted') {
+      if (style === 'inseam') {
+        const slit = new THREE.PlaneGeometry(0.012, p.h)
+        add(slit, 0, 0, 0.001)
+        stitch(slit, 0, 0, 0.002)
+      } else if (style === 'kangaroo') {
+        const pouch = new THREE.PlaneGeometry(p.w, p.h)
+        add(pouch, 0, 0, 0)
+        stitch(pouch, 0, 0, 0.0015)
+        const mouth = new THREE.PlaneGeometry(p.w * 0.72, 0.008)
+        add(mouth, 0, p.h * 0.18, 0.003)
+      } else if (style === 'welt' || style === 'jetted') {
         const lipH = style === 'jetted' ? 0.007 : 0.014
         const oy = p.h * 0.2
         const top = new THREE.PlaneGeometry(p.w, lipH)
