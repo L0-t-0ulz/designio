@@ -17,6 +17,7 @@ import {
 } from '../cloth/Garment'
 import type { BalaclavaFace, BodyTubePiece, GarmentDefinition, HeadTubePiece, ScarfPiece } from './schema'
 import { simTube, getResolutionScale, type SimResolution } from '../cloth/simQuality'
+import { FIT_CLEARANCE, chestSurfaceR, clearedEase, stopAt } from '../avatar/bodyFit'
 import { HEAD_BREADTH_R } from '../avatar/face'
 
 /**
@@ -121,10 +122,16 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
     spec.neckline = p.collar ? 'crew' : (p.neckline ?? 'scoop') // a collar closes/raises the neck
     spec.shoulderY = m.shoulderY
   }
-  // Waist shaping: cinch by construction, or add darts for a fitted waist.
-  if (pc.cinchWaist || p.dart) {
+  // Follow the waist whenever the tube actually crosses it. A straight chest→hip
+  // cone stands off the waist or, if cinched harder than the collision shell,
+  // buckles into a horizontal fold. Compression pieces keep their drafted nip.
+  const spansWaist = hemY < m.waistY - 0.02 && topY > m.waistY + 0.02
+  if (pc.cinchWaist || p.dart || (p.ease >= 0 && spansWaist)) {
     const nip = p.dart ? 0.86 : 1 // darts pull the waist in further
-    spec.radiusWaist = m.waistR * nip + p.ease * (p.dart ? 0.4 : 0.6) + (p.easeWaist ?? 0)
+    const waistEase = (p.dart ? p.ease * 0.4 : p.ease >= 0 ? p.ease : p.ease * 0.6) + (p.easeWaist ?? 0)
+    let rw = m.waistR * nip + (p.ease >= 0 && !p.dart ? clearedEase(waistEase) : waistEase)
+    if (p.ease >= 0) rw = Math.max(rw, m.waistR + FIT_CLEARANCE)
+    spec.radiusWaist = rw
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.7)
   }
   if (p.pleats) spec.pleat = p.pleatStyle ?? 'knife'
@@ -133,8 +140,25 @@ function bodyTubeToSpec(pc: BodyTubePiece, p: GarmentParams, m: Measurements): T
   if (p.closure && p.closureOpen && pc.neckline) spec.openFront = true
   // Boning cinches the waist hard (corset silhouette) — overrides any softer cinch.
   if (p.boning) {
-    spec.radiusWaist = m.waistR * 0.8 + p.ease * 0.25 + (p.easeWaist ?? 0)
+    let rw = m.waistR * 0.8 + p.ease * 0.25 + (p.easeWaist ?? 0)
+    if (p.ease >= 0) rw = Math.max(rw, m.waistR + FIT_CLEARANCE)
+    spec.radiusWaist = rw
     spec.waistT = clamp((topY - m.waistY) / (topY - hemY), 0.2, 0.72)
+  }
+  // Relaxed garments: widen at the bust (the metaballs stick out past chestR) and
+  // keep the waist stop on the same profile so the tube doesn't cut through either.
+  if (p.ease >= 0) {
+    const stops: { t: number; r: number }[] = []
+    if (pc.topR === 'chest') {
+      const surface = m.chestSurfaceR ?? chestSurfaceR(m.chestR, 'female')
+      const bust = stopAt(topY, hemY, m.chestY, surface + clearedEase(p.ease + (p.easeChest ?? 0)))
+      if (bust) stops.push(bust)
+    }
+    if (spec.radiusWaist != null && spec.waistT != null) stops.push({ t: spec.waistT, r: spec.radiusWaist })
+    if (stops.length) {
+      stops.sort((a, b) => a.t - b.t)
+      spec.radiusStops = stops
+    }
   }
   return spec
 }
@@ -348,7 +372,7 @@ export function scarfToSpec(pc: ScarfPiece, p: GarmentParams, m: Measurements): 
 function legTubeSpecs(p: GarmentParams, m: Measurements): TubeSpec[] {
   const breakDrop = p.trouserBreak ? 0.028 : 0 // break: the hem runs past the ankle and stacks softly
   const hemY = m.kneeY - p.length * (m.kneeY - m.ankleY) + (p.hem ? 0.03 : 0) - (p.lengthGradeM ?? 0) - breakDrop // rolled hem = shorter leg; grade rules lengthen per size
-  const rTop = m.thighR + p.ease + (p.easeHip ?? 0) // the hip/seat zone governs the leg top
+  const rTop = m.thighR + clearedEase(p.ease + (p.easeHip ?? 0)) // the hip/seat zone governs the leg top
   const rBot = m.thighR * 0.6 + p.ease * 0.6 + p.flare * 0.4 + (p.pleats ? 0.05 : 0)
   const legs = [
     piece(m.hipY, hemY, rTop, rBot, -m.hipHalfX, 40),
@@ -373,7 +397,7 @@ export function sleeveShapeSpec(
   // Everything is expressed as a MULTIPLE of the arm radius (not absolute metres) so a sleeve
   // reads the same — and stays stable — on any body size. Bulges are kept modest so the puff
   // gather can't balloon into a self-intersecting ring that the solver blows up.
-  const base = hemR + (cuff ? 0.004 : 0.02) // cuff / hem radius: a little ease over the arm
+  const base = hemR + (cuff ? FIT_CLEARANCE : 0.02) // cuff stays snug, but outside the collision shell
   const lerp = (s: number, e: number, t: number): number => s + (e - s) * t
   switch (shape) {
     case 'raglan': // seam runs to the neck → a wider top over the shoulder
@@ -383,7 +407,7 @@ export function sleeveShapeSpec(
       return { radiusStart: start, radiusEnd: base, profile: (t) => start + (base - start) * Math.pow(t, 1.5) }
     }
     case 'bishop': { // full sleeve, gathered into a tight cuff
-      const end = hemR + 0.004
+      const end = hemR + FIT_CLEARANCE
       const start = shoulderR * 1.4
       const bulge = shoulderR * 0.7 // a modest mid-sleeve gather (was a fixed 0.05 m → too full)
       return { radiusStart: start, radiusEnd: end, profile: (t) => lerp(start, end, t) + bulge * Math.sin(Math.PI * Math.min(t / 0.94, 1)) }

@@ -15,10 +15,13 @@ import { WALK_STYLES, type WalkStyle, type WalkStyleName } from './walkStyles'
 import { headFrame } from './face'
 import { bellySpec } from './maternity'
 import { BodyCollider } from '../cloth/BodyCollider'
+import { chestSurfaceR } from './bodyFit'
 
 /** Key body measurements (metres) garments are fitted to (scale with body size). */
 export interface Measurements {
   chestR: number
+  /** Radial extent of the bust/pecs — the circle a garment must clear at the chest. */
+  chestSurfaceR?: number
   waistR: number
   hipR: number
   thighR: number
@@ -86,7 +89,7 @@ const LANDMARKS = {
 function measurementsFor(type: BodyType): Measurements {
   const p = PROPORTIONS[type]
   return {
-    chestR: p.chestR, waistR: p.waistR, hipR: p.hipR, thighR: p.thighR,
+    chestR: p.chestR, chestSurfaceR: chestSurfaceR(p.chestR, type), waistR: p.waistR, hipR: p.hipR, thighR: p.thighR,
     headR: p.headR, neckR: p.neckR, crownY: LANDMARKS.neckY + p.headR * 2.7, headBaseY: LANDMARKS.neckY + p.headR * 0.7,
     hipHalfX: p.hipHalfX, shoulderHalfX: p.shoulderHalfX, ...LANDMARKS
   }
@@ -442,6 +445,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     const b = body.build
     const p = PROPORTIONS[body.bodyType]
     measurements.chestR = p.chestR * b * body.bust
+    measurements.chestSurfaceR = chestSurfaceR(measurements.chestR, body.bodyType, body.bust)
     measurements.waistR = p.waistR * b * body.waist
     measurements.hipR = p.hipR * b * body.hips
     measurements.thighR = p.thighR * b * body.hips
