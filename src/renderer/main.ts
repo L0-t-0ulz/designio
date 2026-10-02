@@ -1121,12 +1121,16 @@ function initStudio(
   if (walkParam && WALK_STYLE_NAMES.includes(walkParam)) mannequin.setWalkStyle(walkParam as WalkStyleName)
   const postureParam = params.get('posture')
   if (postureParam && (POSTURES as string[]).includes(postureParam)) mannequin.setPosture(postureParam as PostureName)
-  const bodyParams: [string, 'height' | 'build' | 'bust' | 'waist' | 'hips'][] = [
+  const bodyParams: [string, 'height' | 'build' | 'bust' | 'waist' | 'hips' | 'neck' | 'leg' | 'thigh' | 'calf'][] = [
     ['bodyH', 'height'],
     ['bodyB', 'build'],
     ['bodyBust', 'bust'],
     ['bodyWaist', 'waist'],
-    ['bodyHips', 'hips']
+    ['bodyHips', 'hips'],
+    ['bodyNeck', 'neck'],
+    ['bodyLeg', 'leg'],
+    ['bodyThigh', 'thigh'],
+    ['bodyCalf', 'calf']
   ]
   let bodyChanged = false
   const btParam = params.get('bodyType')

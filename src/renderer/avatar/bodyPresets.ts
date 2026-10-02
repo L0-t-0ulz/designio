@@ -24,7 +24,12 @@ export const BODY_PRESETS: BodyPreset[] = [
   { name: 'tall', label: 'Tall', shape: { height: 1.13, build: 0.97, bust: 0.98, waist: 0.94, hips: 0.98 } },
   // a gender-neutral block — a straighter, less-gendered silhouette: flatter chest,
   // a less-nipped (straighter) waist and narrower hips, so the same design reads unisex
-  { name: 'unisex', label: 'Unisex', shape: { height: 1.05, build: 1.02, bust: 0.96, waist: 1.06, hips: 0.97 } }
+  { name: 'unisex', label: 'Unisex', shape: { height: 1.05, build: 1.02, bust: 0.96, waist: 1.06, hips: 0.97 } },
+  // classic dress-form silhouettes, still inside the slider range
+  { name: 'pear', label: 'Pear', shape: { height: 1, build: 1.02, bust: 0.9, waist: 0.96, hips: 1.22 } },
+  { name: 'apple', label: 'Apple', shape: { height: 1, build: 1.06, bust: 1.12, waist: 1.22, hips: 0.94 } },
+  { name: 'inverted-triangle', label: 'Inverted triangle', shape: { height: 1.02, build: 1.04, bust: 1.2, waist: 0.94, hips: 0.86 } },
+  { name: 'rectangle', label: 'Rectangle', shape: { height: 1, build: 1, bust: 1.02, waist: 1.04, hips: 1.02 } }
 ]
 
 export const BODY_PRESET_NAMES: string[] = BODY_PRESETS.map((p) => p.name)

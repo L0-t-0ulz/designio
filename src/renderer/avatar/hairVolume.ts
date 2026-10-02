@@ -21,7 +21,10 @@ const HAIR_VOLUME_CM: Record<Hairstyle, number> = {
   // a crown bun is the classic reason a hat will not sit down: it is not extra
   // girth so much as a lump under the crown, and it costs more than an afro does
   bun: 3.6,
-  afro: 3.2
+  afro: 3.2,
+  // a tight cap; the braids and locs hang behind the hat, so they add little girth
+  braids: 0.85,
+  locs: 0.7
 }
 
 /** Extra head circumference (cm) a hairstyle adds under a hat. Pure. */

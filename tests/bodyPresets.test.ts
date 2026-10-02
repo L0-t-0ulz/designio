@@ -8,7 +8,10 @@ const GIRTH: [number, number] = [0.78, 1.3]
 
 describe('body-shape presets', () => {
   it('exposes a diverse set beyond the two runway figures', () => {
-    expect(BODY_PRESET_NAMES).toEqual(['runway', 'curvy', 'plus', 'athletic', 'petite', 'tall', 'unisex'])
+    expect(BODY_PRESET_NAMES).toEqual([
+      'runway', 'curvy', 'plus', 'athletic', 'petite', 'tall', 'unisex',
+      'pear', 'apple', 'inverted-triangle', 'rectangle'
+    ])
   })
 
   it('every preset stays inside the sliders valid range (→ valid colliders)', () => {
@@ -44,6 +47,18 @@ describe('body-shape presets', () => {
     const uni = getBodyPreset('unisex')!.shape
     expect(uni.bust).toBeLessThan(getBodyPreset('curvy')!.shape.bust)
     expect(uni.waist).toBeGreaterThan(uni.hips) // waist not nipped in below the hips — a rectangle
+    const pear = getBodyPreset('pear')!.shape
+    expect(pear.hips).toBeGreaterThan(pear.waist)
+    expect(pear.waist).toBeGreaterThan(pear.bust)
+    const apple = getBodyPreset('apple')!.shape
+    expect(apple.waist).toBeGreaterThan(apple.bust)
+    expect(apple.bust).toBeGreaterThan(apple.hips)
+    const inv = getBodyPreset('inverted-triangle')!.shape
+    expect(inv.bust).toBeGreaterThan(inv.waist)
+    expect(inv.waist).toBeGreaterThan(inv.hips)
+    const rect = getBodyPreset('rectangle')!.shape
+    expect(Math.abs(rect.bust - rect.waist)).toBeLessThan(0.05)
+    expect(Math.abs(rect.waist - rect.hips)).toBeLessThan(0.05)
   })
 
   it('runway is the neutral 1.0 body', () => {
