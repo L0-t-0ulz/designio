@@ -1,4 +1,4 @@
-import type { NecklineStyle } from '../cloth/Garment'
+import { NECKLINE_STYLES, type NecklineStyle } from '../cloth/Garment'
 
 /**
  * **Surprise me** — a random but wearable starting point, for when the blank-page
@@ -20,7 +20,7 @@ export const RANDOM_RANGES = {
   flare: { min: 0, max: 0.18 }
 } as const
 
-export const NECKLINES: NecklineStyle[] = ['strapless', 'scoop', 'crew', 'v', 'one-shoulder']
+export const NECKLINES: NecklineStyle[] = NECKLINE_STYLES
 
 export interface RandomDesign {
   garmentType: string

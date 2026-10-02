@@ -212,6 +212,16 @@ describe('catalog additions — tapered bottoms + new silhouettes', () => {
     expect(j.defaults.waistband).toBe(true)
     expect(ankleR('joggers')).toBeLessThan(ankleR('wide-leg'))
   })
+
+  it('palazzo pants are wider than wide-leg from the hip to the hem', () => {
+    const palazzo = getGarment('palazzo')
+    expect(palazzo.category).toBe('bottom')
+    expect(palazzo.defaults.pleats).toBe(true)
+    expect(palazzo.defaultFabric).toBe('crepe')
+    const leg = (t: GarmentType) => specs(t, withDefaults(t))[0]
+    expect(leg('palazzo').radiusTop).toBeGreaterThan(leg('wide-leg').radiusTop)
+    expect(leg('palazzo').radiusBottom).toBeGreaterThan(leg('wide-leg').radiusBottom)
+  })
 })
 
 describe('activewear — sports bra · high-waist leggings · swimsuit', () => {

@@ -175,6 +175,15 @@ describe('real per-garment 2D pattern', () => {
     expect(panels('long-sleeve', { collar: true, collarStyle: 'shirt' }).some((p) => p.name === 'Collar + stand')).toBe(true)
     expect(panels('long-sleeve', { collar: true, collarStyle: 'peterpan' }).some((p) => p.name === 'Collar (flat)')).toBe(true)
     expect(panels('long-sleeve', { collar: true, collarStyle: 'band' }).some((p) => p.name === 'Collar')).toBe(true)
+    expect(panels('long-sleeve', { collar: true, collarStyle: 'wing' }).some((p) => p.name === 'Wing collar')).toBe(true)
+    expect(panels('long-sleeve', { collar: true, collarStyle: 'spread' }).some((p) => p.name === 'Spread collar')).toBe(true)
+    expect(panels('long-sleeve', { collar: true, collarStyle: 'club' }).some((p) => p.name === 'Club collar')).toBe(true)
+    const outlineKey = (style: 'shirt' | 'spread' | 'club'): string => {
+      const name = style === 'shirt' ? 'Collar + stand' : style === 'spread' ? 'Spread collar' : 'Club collar'
+      const pts = panels('long-sleeve', { collar: true, collarStyle: style }).find((p) => p.name === name)!.outline
+      return pts.map((p) => `${Math.round(p.x)},${Math.round(p.y)}`).join(';')
+    }
+    expect(new Set([outlineKey('shirt'), outlineKey('spread'), outlineKey('club')]).size).toBe(3)
     // no collar → no collar piece
     expect(panels('long-sleeve', { collar: false }).some((p) => /Collar|Lapel/.test(p.name))).toBe(false)
   })

@@ -227,6 +227,17 @@ export const GARMENTS: GarmentDefinition[] = [
     defaults: { length: 0.98, ease: 0.03, flare: 0.18, waistband: true, drawstring: true }
   },
   {
+    id: 'palazzo',
+    name: 'Palazzo pants',
+    category: 'bottom',
+    icon: 'pants',
+    pieces: [{ kind: 'legTubes' }],
+    supports: { ...lowerCaps, ...trousersCaps },
+    // wider than wide-leg from the hip down: more ease, a full flare, and pleats so the leg swings
+    defaults: { length: 1, ease: 0.05, flare: 0.2, pleats: true, pleatStyle: 'knife', waistband: true },
+    defaultFabric: 'crepe'
+  },
+  {
     id: 'cargo',
     name: 'Cargo pants',
     category: 'bottom',

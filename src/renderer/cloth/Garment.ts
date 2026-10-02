@@ -1,7 +1,32 @@
 import * as THREE from 'three'
 import { adaptiveRingT } from './adaptiveMesh'
 
-export type NecklineStyle = 'strapless' | 'scoop' | 'crew' | 'v' | 'one-shoulder'
+export type NecklineStyle =
+  | 'strapless'
+  | 'scoop'
+  | 'crew'
+  | 'v'
+  | 'one-shoulder'
+  | 'boat'
+  | 'square'
+  | 'sweetheart'
+  | 'halter'
+  | 'keyhole'
+  | 'cowl'
+/** Every neckline the panel, the 2D stepper, and `?neckline=` accept. */
+export const NECKLINE_STYLES: NecklineStyle[] = [
+  'scoop',
+  'crew',
+  'v',
+  'one-shoulder',
+  'boat',
+  'square',
+  'sweetheart',
+  'halter',
+  'keyhole',
+  'cowl',
+  'strapless'
+]
 /** Pleat / gather styles (the pleats library; active when the `pleats` detail is on). */
 export type PleatStyle = 'knife' | 'box' | 'accordion' | 'cartridge' | 'gather' | 'shirr' | 'smock' | 'inverted-box' | 'sunburst'
 
@@ -285,6 +310,7 @@ export function topEdge(spec: TubeSpec, angle: number): number {
   const shoulderY = spec.shoulderY ?? spec.topY
   const side = Math.abs(Math.cos(angle)) // 1 at the sides (shoulders), 0 front/back
   const front = Math.max(0, Math.sin(angle)) // 1 at centre-front
+  const back = Math.max(0, -Math.sin(angle))
   let dip: number
   if (style === 'crew') dip = 0.055 * (1 - side ** 0.55)
   else if (style === 'scoop') dip = 0.13 * (1 - side)
@@ -293,6 +319,29 @@ export function topEdge(spec: TubeSpec, angle: number): number {
     // edge sweeps down across the chest to below the right armpit (+x, angle 0)
     const toRight = 0.5 + 0.5 * Math.cos(angle)
     dip = 0.17 * toRight ** 1.3
+  } else if (style === 'boat') {
+    // bateau: wide and shallow — the drop holds until the strap, then rises late
+    dip = 0.075 * (1 - side ** 4)
+  } else if (style === 'square') {
+    // a flat shelf across the chest, then a sharp rise into the shoulder strap
+    const shelf = side < 0.62 ? 1 : Math.max(0, (0.92 - side) / 0.3)
+    dip = 0.115 * shelf * (0.45 + 0.55 * front)
+  } else if (style === 'sweetheart') {
+    // a rise at centre front, the low point over each cup
+    const fromCenter = Math.abs(angle - Math.PI / 2)
+    const cup = Math.exp(-((fromCenter - 0.42) ** 2) / 0.05)
+    dip = 0.04 * (1 - side) + 0.11 * cup * front
+  } else if (style === 'halter') {
+    // high only at the neck; the shoulders are bare and the back is open
+    dip = 0.17 * side + 0.13 * back
+  } else if (style === 'keyhole') {
+    // a crew with a narrow slit dropped at centre front
+    const slit = Math.exp(-((angle - Math.PI / 2) ** 2) / 0.015)
+    dip = 0.055 * (1 - side ** 0.55) + 0.1 * slit
+  } else if (style === 'cowl') {
+    // soft folds: the centre hangs, the edge rises, then the next fold hangs again
+    const folds = 0.07 + 0.05 * Math.cos(6 * (angle - Math.PI / 2))
+    dip = folds * (0.35 + 0.65 * front)
   } else dip = 0.09 * (1 - side) + 0.12 * front * (1 - side) // v: deeper at the front
   return shoulderY - dip
 }

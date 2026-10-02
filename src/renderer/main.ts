@@ -80,7 +80,7 @@ import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
 import { isClosureStyle } from './garment/closureStyles'
-import { HEM_SHAPES, type HemShape, type NecklineStyle } from './cloth/Garment'
+import { HEM_SHAPES, NECKLINE_STYLES, type HemShape, type NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { pocketPlacements } from './garments/decor'
 import { hardwarePlacements, hardwareBOM } from './garments/hardware'
@@ -1011,7 +1011,7 @@ function initStudio(
     applyGarmentEdit()
     api.refresh()
   }
-  const NECKS: NecklineStyle[] = ['scoop', 'crew', 'v', 'one-shoulder', 'strapless']
+  const NECKS: NecklineStyle[] = NECKLINE_STYLES
   const SLEEVES: SleeveStyle[] = ['none', 'short', 'elbow', 'three-quarter', 'bracelet', 'long']
   const cycle = <T,>(list: T[], cur: T, d: number): T => list[((list.indexOf(cur) + d) % list.length + list.length) % list.length]
   const patternEditor: PatternEditor = {
@@ -3688,7 +3688,7 @@ if (skipStart) {
   }
   if (entryParams.get('hem')) cfg.hem = true
   const neckParam = entryParams.get('neckline')
-  if (neckParam && ['scoop', 'crew', 'v', 'one-shoulder', 'strapless'].includes(neckParam)) cfg.neckline = neckParam as NecklineStyle
+  if (neckParam && (NECKLINE_STYLES as string[]).includes(neckParam)) cfg.neckline = neckParam as NecklineStyle
   if (entryParams.get('closure')) cfg.closure = true
   const closureStyleParam = entryParams.get('closureStyle')
   if (closureStyleParam && isClosureStyle(closureStyleParam)) {

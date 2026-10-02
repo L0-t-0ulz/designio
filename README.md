@@ -42,7 +42,7 @@ If you are unsure whether something is allowed, **ask first.**
 - [At a glance](#at-a-glance)
 - [The homepage & "Design your piece"](#the-homepage--design-your-piece)
 - [The professional studio — every panel](#the-professional-studio--every-panel)
-- [The garment catalog — 57 garments](#the-garment-catalog--57-garments)
+- [The garment catalog — 58 garments](#the-garment-catalog--58-garments)
 - [Construction detail](#construction-detail)
 - [The fabric library — 71 fabrics](#the-fabric-library--71-fabrics)
 - [Surface design & fabric finishes](#surface-design--fabric-finishes)
@@ -118,7 +118,7 @@ empty clipboard, last garment).
 
 | Tab | What's in it |
 | --- | --- |
-| **Garments** | the full 57-garment catalog, grouped by category, each a one-click add |
+| **Garments** | the full 58-garment catalog, grouped by category, each a one-click add |
 | **Fabrics** | all 71 fabrics — **filter** by family · weight · stretch, combined with the text search |
 | **Avatars** | body type, presets and the mannequin options |
 | **Presets** | curated looks to start from |
@@ -159,21 +159,21 @@ once automatically and is always re-openable from **Help → Take the tour**.
 
 ---
 
-## The garment catalog — 57 garments
+## The garment catalog — 58 garments
 
 Garments are built from a **data-driven schema** (a registry of definitions composed from parametric
 pieces), so breadth comes from data, not bespoke code. **Adding a garment is a data change, not new code.**
 Grouped by category:
 
 - **Tops** (12) — t-shirt, tank, crop top, long-sleeve, polo, tube top, sports bra, tunic, blouse, dress shirt, hoodie (with a real draped hood), waistcoat
-- **Bottoms** (12) — A-line / pencil / maxi skirt, trousers, shorts, wide-leg, cargo, slim trousers, joggers, leggings, high-waist leggings, suit trousers
+- **Bottoms** (13) — A-line / pencil / maxi skirt, trousers, shorts, wide-leg, palazzo, cargo, slim trousers, joggers, leggings, high-waist leggings, suit trousers
 - **Dresses** (4) — dress, sheath, slip, gown
 - **One-pieces** (2) — jumpsuit, swimsuit
 - **Outerwear** (6) — blazer, coat, suit jacket, overcoat, cardigan, bomber
 - **Headwear & neckwear** (19) — cloth-sim head/neck pieces that really drape: snood (cowl→hood) · beanie (cuffed · slouchy · fisherman · pom-pom · brimmed) · balaclava / ski mask · convertible 3-way · helmet liner · **durag** (with a nape flap) · **satin bonnet** · **hijab under-cap** · chullo · bandana · twisted headband · neck gaiter · scarf (+ skinny silk)
 
 The construction panel is **schema-driven**: each garment shows only the controls it supports —
-**neckline** (scoop / crew / V / strapless), **sleeves** (short / long) with a **sleeve library** of shapes
+**neckline** (scoop / crew / V / boat / square / sweetheart / halter / keyhole / cowl / strapless), **sleeves** (short / long) with a **sleeve library** of shapes
 (set-in · raglan · dolman · bishop · puff · bell), **length**, **looseness**, and **flare**. Tops & dresses
 get shoulder coverage + cinched waists; the jumpsuit is a torso + two legs.
 
@@ -738,7 +738,7 @@ src/
                 · FabricMaterial · fabricPresets · windPresets · simQuality
     fabric/     FabricLibrary (71 fabrics) · weaveTexture · textile · ombre · wear · swatch · sparkle
                 · iridescent · quilt · lace · fur · namedColors · heatmap · wrinkle
-    garments/   schema (GarmentDefinition) · registry (the 57-garment catalog, as data) · factory · decor
+    garments/   schema (GarmentDefinition) · registry (the 58-garment catalog, as data) · factory · decor
     garment/    GarmentController (one garment's multi-piece sim, body-anchored) · templates
     studio/     GarmentStack (the live layer stack) · document (.dio, undo, colorways) · projectStore
                 · autosave · timeline + TimelinePlayer · turntable · measure + MeasureTool · lineup
@@ -764,7 +764,7 @@ or a supported detail is a data change, not new code.**
 
 ## Roadmap
 
-**Shipped:** data-driven garment schema + factory · 57-garment catalog (tops · bottoms · dresses ·
+**Shipped:** data-driven garment schema + factory · 58-garment catalog (tops · bottoms · dresses ·
 one-piece · outerwear · **cloth-sim headwear/neckwear**) with a category picker + schema-driven construction
 UI · 29-fabric library by family · **fabric thickness** (two-sided garments with a lining shell) · full
 **construction detail** (collar/cuff/pleats/darts/pockets/hem/closure + lining/interfacing/waistband/…) +
