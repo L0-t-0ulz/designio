@@ -463,7 +463,7 @@ export function showStartPage(
   }
   const necklineRow = segRow<NecklineStyle>(
     'Neckline',
-    [['Scoop', 'scoop'], ['Crew', 'crew'], ['V', 'v'], ['None', 'strapless']],
+    [['Scoop', 'scoop'], ['Crew', 'crew'], ['V', 'v'], ['Boat', 'boat'], ['Square', 'square'], ['Sweetheart', 'sweetheart'], ['Halter', 'halter'], ['Keyhole', 'keyhole'], ['Cowl', 'cowl'], ['None', 'strapless']],
     () => config.neckline,
     (v) => { config.neckline = v; preview?.rebuild(config) },
     () => !!getGarment(config.garmentType).supports.neckline

@@ -5,7 +5,7 @@ import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, P
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from '../garment/templates'
 import { CLOSURE_STYLES, type ClosureStyle } from '../garment/closureStyles'
 import { WRAP_PRESETS, applyWrapPreset } from '../avatar/wrapPresets'
-import type { NecklineStyle } from '../cloth/Garment'
+import { NECKLINE_STYLES, type NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
 import { clearanceVerdict, tightestZone, type ZoneEase } from '../export/easeMap'
 import { drapeReadout, type DrapeScore } from '../export/drapeScore'
@@ -465,15 +465,22 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   // neckline picker (tops/dresses)
   const neckRow = el('div', 'dio-actions')
   neckRow.style.flexWrap = 'wrap'
-  const necks: [string, NecklineStyle][] = [
-    ['Scoop', 'scoop'],
-    ['Crew', 'crew'],
-    ['V', 'v'],
-    ['One-shoulder', 'one-shoulder'],
-    ['None', 'strapless']
-  ]
+  const neckLabels: Record<NecklineStyle, string> = {
+    scoop: 'Scoop',
+    crew: 'Crew',
+    v: 'V',
+    'one-shoulder': 'One-shoulder',
+    boat: 'Boat',
+    square: 'Square',
+    sweetheart: 'Sweetheart',
+    halter: 'Halter',
+    keyhole: 'Keyhole',
+    cowl: 'Cowl',
+    strapless: 'None'
+  }
   const neckBtns = new Map<NecklineStyle, HTMLButtonElement>()
-  for (const [name, n] of necks) {
+  for (const n of NECKLINE_STYLES) {
+    const name = neckLabels[n]
     const b = button(name, () => { garment.neckline = n; syncNeckSleeve(); opts.onGarmentEdit() }, garment.neckline === n)
     neckBtns.set(n, b)
     neckRow.append(b)
@@ -653,7 +660,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   pocketBlock.append(el('div', 'dio-field-label', 'Pocket style'), pocketRow)
 
   // collar / lapel picker (shown when the Collar detail is on)
-  const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel', peak: 'Peak lapel', shawl: 'Shawl collar', camp: 'Camp', wing: 'Wing' }
+  const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel', peak: 'Peak lapel', shawl: 'Shawl collar', camp: 'Camp', wing: 'Wing', spread: 'Spread', club: 'Club' }
   const collarRow = el('div', 'dio-actions')
   collarRow.style.flexWrap = 'wrap'
   const collarBtns = new Map<CollarStyle, HTMLButtonElement>()

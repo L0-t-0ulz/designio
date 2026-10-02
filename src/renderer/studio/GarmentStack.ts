@@ -1015,6 +1015,22 @@ export class GarmentStack {
         wing.castShadow = true
         l.decor.add(wing)
       }
+    } else if (style === 'spread') {
+      // a shirt collar whose points sit wide apart — shorter leaf, open at centre front
+      const sh = 0.024
+      add(new THREE.CylinderGeometry(neckR * 1.03, neckR * 1.05, sh, 40, 1, true), neckY + sh / 2)
+      add(new THREE.CylinderGeometry(neckR * 1.08, neckR * 1.9, 0.04, 40, 1, true, Math.PI * 0.28, Math.PI * 1.44), neckY + sh + 0.012)
+    } else if (style === 'club') {
+      // the same folded collar with the points rounded off
+      const sh = 0.024
+      add(new THREE.CylinderGeometry(neckR * 1.03, neckR * 1.05, sh, 40, 1, true), neckY + sh / 2)
+      add(new THREE.CylinderGeometry(neckR * 1.04, neckR * 1.38, 0.046, 40, 1, true), neckY + sh + 0.014)
+      for (const s of [-1, 1]) {
+        const tip = new THREE.Mesh(new THREE.SphereGeometry(0.012, 12, 10), mat)
+        tip.position.set(s * neckR * 0.55, neckY + sh - 0.006, neckR * 0.82)
+        tip.castShadow = true
+        l.decor.add(tip)
+      }
     } else {
       // lapel family: fold-back lapels down the V front + a small back stand.
       // notch (stepped gorge) · peak (points swept up) · shawl (smooth rounded roll)

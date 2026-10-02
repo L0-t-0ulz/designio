@@ -10,8 +10,8 @@ export type SleeveStyle = 'none' | 'short' | 'elbow' | 'three-quarter' | 'bracel
 export type SleeveShape = 'set-in' | 'raglan' | 'dolman' | 'bishop' | 'puff' | 'bell' | 'leg-of-mutton' | 'flutter' | 'cap' | 'cold-shoulder'
 export const SLEEVE_SHAPES: SleeveShape[] = ['set-in', 'raglan', 'dolman', 'bishop', 'puff', 'bell', 'leg-of-mutton', 'flutter', 'cap', 'cold-shoulder']
 /** Collar / lapel styles (active when the `collar` detail is on). */
-export type CollarStyle = 'band' | 'shirt' | 'mandarin' | 'peterpan' | 'notch' | 'peak' | 'shawl' | 'camp' | 'wing'
-export const COLLAR_STYLES: CollarStyle[] = ['band', 'shirt', 'mandarin', 'peterpan', 'notch', 'peak', 'shawl', 'camp', 'wing']
+export type CollarStyle = 'band' | 'shirt' | 'mandarin' | 'peterpan' | 'notch' | 'peak' | 'shawl' | 'camp' | 'wing' | 'spread' | 'club'
+export const COLLAR_STYLES: CollarStyle[] = ['band', 'shirt', 'mandarin', 'peterpan', 'notch', 'peak', 'shawl', 'camp', 'wing', 'spread', 'club']
 /** Hem frill styles (ruffles/flounces/godets; active when the `ruffles` detail is on). */
 export type FrillStyle = 'ruffle' | 'flounce' | 'godet'
 export const FRILL_STYLES: FrillStyle[] = ['ruffle', 'flounce', 'godet']
