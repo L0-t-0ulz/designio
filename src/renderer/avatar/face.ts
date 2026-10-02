@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { scatterFreckles, freckleColour, FIELD_WIDTH_MM } from './freckles'
 import { beardCoverage, beardLengthMm, beardColour, type BeardStyle } from './beard'
-import { SCALP_R, cornrowOffset, cornrowPoint, braidRadius, cornrowTaper, bunCoil, ponytailPoint, ponytailRadius } from './hairstyles'
+import { SCALP_R, cornrowOffset, cornrowPoint, braidRadius, cornrowTaper, bunCoil, ponytailPoint, ponytailRadius, lockRoot, lockHang, locLength, lockThickness, type LockKind } from './hairstyles'
 import type { Capsule } from './colliders'
 
 /**
@@ -14,8 +14,8 @@ import type { Capsule } from './colliders'
  * unit-tested; the meshes are built in the renderer.
  */
 
-export type Hairstyle = 'bald' | 'short' | 'pixie' | 'bob' | 'long' | 'afro' | 'cornrows' | 'ponytail' | 'bun'
-export const HAIRSTYLES: Hairstyle[] = ['bald', 'short', 'pixie', 'bob', 'long', 'afro', 'cornrows', 'ponytail', 'bun']
+export type Hairstyle = 'bald' | 'short' | 'pixie' | 'bob' | 'long' | 'afro' | 'cornrows' | 'ponytail' | 'bun' | 'braids' | 'locs'
+export const HAIRSTYLES: Hairstyle[] = ['bald', 'short', 'pixie', 'bob', 'long', 'afro', 'cornrows', 'ponytail', 'bun', 'braids', 'locs']
 export const HAIRSTYLE_LABELS: Record<Hairstyle, string> = {
   bald: 'None',
   short: 'Short',
@@ -25,7 +25,9 @@ export const HAIRSTYLE_LABELS: Record<Hairstyle, string> = {
   afro: 'Afro',
   cornrows: 'Cornrows',
   ponytail: 'Ponytail',
-  bun: 'Bun'
+  bun: 'Bun',
+  braids: 'Braids',
+  locs: 'Locs'
 }
 
 export interface HairColor {
@@ -95,6 +97,11 @@ export interface HairstyleSpec {
   rows: number
   /** Hair gathered at one point, and what it is gathered into. */
   gather?: { kind: 'tail' | 'bun'; at: 'nape' | 'crown' }
+  /**
+   * Hanging locks — box braids or locs. Unlike cornrows these leave the scalp
+   * and fall. `length` is in head radii; locs vary around it, braids do not.
+   */
+  locks?: { kind: LockKind; count: number; length: number }
 }
 export function hairstyleSpec(style: Hairstyle): HairstyleSpec {
   switch (style) {
@@ -111,6 +118,10 @@ export function hairstyleSpec(style: Hairstyle): HairstyleSpec {
     case 'cornrows': return { cap: false, back: 0, afro: false, hug: 0.99, rows: 9 }
     case 'ponytail': return { cap: true, back: 0.3, afro: false, hug: 0.97, rows: 0, gather: { kind: 'tail', at: 'nape' } }
     case 'bun': return { cap: true, back: 0.3, afro: false, hug: 0.97, rows: 0, gather: { kind: 'bun', at: 'crown' } }
+    // a tight cap so the scalp reads as hair, then individual braids that hang
+    case 'braids': return { cap: true, back: 0, afro: false, hug: 0.96, rows: 0, locks: { kind: 'braid', count: 12, length: 2.15 } }
+    // more locks, thinner, and cut to uneven lengths
+    case 'locs': return { cap: true, back: 0, afro: false, hug: 0.97, rows: 0, locks: { kind: 'loc', count: 18, length: 1.55 } }
   }
 }
 
@@ -517,6 +528,43 @@ export class FaceRig {
         const row = new THREE.Mesh(tube, this.hairMat)
         row.position.set(POS[0], POS[1], POS[2])
         g.add(row)
+      }
+    }
+
+    if (spec.locks) {
+      // Box braids and locs hang off the scalp. The root sits on the same scaled
+      // cranium as a cornrow; the hang is added after that scale so a long braid
+      // is not stretched by the scalp's tall Y.
+      const SEG = 18
+      const radial = spec.locks.kind === 'braid' ? 6 : 5
+      const tubeR = spec.locks.kind === 'braid' ? 0.07 : 0.044
+      const sway = spec.locks.kind === 'braid' ? 0.4 : 0.16
+      for (let i = 0; i < spec.locks.count; i++) {
+        const root = lockRoot(i, spec.locks.count)
+        const origin = new THREE.Vector3(root.x * SCALE[0], root.y * SCALE[1], root.z * SCALE[2])
+        const length = spec.locks.kind === 'loc' ? locLength(i, spec.locks.length) : spec.locks.length
+        const side = root.x >= 0 ? 1 : -1
+        const path: THREE.Vector3[] = []
+        for (let k = 0; k <= SEG; k++) {
+          const h = lockHang(k / SEG, length, sway, side)
+          path.push(new THREE.Vector3(origin.x + h.x, origin.y + h.y, origin.z + h.z))
+        }
+        const curve = new THREE.CatmullRomCurve3(path)
+        const tube = new THREE.TubeGeometry(curve, SEG * 2, tubeR, radial, false)
+        const pos = tube.getAttribute('position') as THREE.BufferAttribute
+        const rings = SEG * 2 + 1
+        const stride = radial + 1
+        for (let v = 0; v < pos.count; v++) {
+          const t = Math.min(1, Math.floor(v / stride) / (rings - 1))
+          const c = curve.getPoint(t)
+          const k = lockThickness(t, spec.locks.kind)
+          pos.setXYZ(v, c.x + (pos.getX(v) - c.x) * k, c.y + (pos.getY(v) - c.y) * k, c.z + (pos.getZ(v) - c.z) * k)
+        }
+        pos.needsUpdate = true
+        tube.computeVertexNormals()
+        const lock = new THREE.Mesh(tube, this.hairMat)
+        lock.position.set(POS[0], POS[1], POS[2])
+        g.add(lock)
       }
     }
 

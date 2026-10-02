@@ -9,6 +9,7 @@
 import type { CollarStyle, GarmentParams, GarmentType, SleeveStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from '../garment/templates'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyType } from '../avatar/Mannequin'
+import { storedProportion } from '../avatar/bodyProportions'
 import { SKIN_TONES, UNDERTONES, type SkinTone, type Undertone } from '../avatar/skin'
 import { printToSpec, type DesignConfig, type PrintSpec } from '../start/design'
 import type { TextilePattern } from '../fabric/textile'
@@ -521,6 +522,11 @@ export interface BodyData {
   hips: number
   /** Maternity — trimester 0…3 (absent = none). */
   belly?: number
+  /** Neck length, leg length, thigh girth, calf girth. Absent = the authored 1. */
+  neck?: number
+  leg?: number
+  thigh?: number
+  calf?: number
   /** Complexion — skin tone + undertone (undefined = the default warm mid skin). */
   skinTone?: SkinTone
   undertone?: Undertone
@@ -794,6 +800,10 @@ export function parseDoc(text: string): ProjectDoc {
     // conditional spread: no `belly: undefined` key, so a default doc's body still
     // reads as all-neutral (main only calls setBody when a scale differs from 1)
     ...(typeof b.belly === 'number' && b.belly > 0 ? { belly: +b.belly } : {}),
+    ...(storedProportion(b.neck) !== undefined ? { neck: storedProportion(b.neck) } : {}),
+    ...(storedProportion(b.leg) !== undefined ? { leg: storedProportion(b.leg) } : {}),
+    ...(storedProportion(b.thigh) !== undefined ? { thigh: storedProportion(b.thigh) } : {}),
+    ...(storedProportion(b.calf) !== undefined ? { calf: storedProportion(b.calf) } : {}),
     skinTone: b.skinTone && (SKIN_TONES as string[]).includes(b.skinTone) ? b.skinTone : undefined,
     undertone: b.undertone && (UNDERTONES as string[]).includes(b.undertone) ? b.undertone : undefined
   }

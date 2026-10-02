@@ -14,6 +14,7 @@ import { applyPostureToColliders, bendPoint, postureAngles, type PostureName } f
 import { WALK_STYLES, type WalkStyle, type WalkStyleName } from './walkStyles'
 import { headFrame } from './face'
 import { bellySpec } from './maternity'
+import { neckLift, proportionOf, scaledBelow } from './bodyProportions'
 import { BodyCollider } from '../cloth/BodyCollider'
 import { chestSurfaceR } from './bodyFit'
 
@@ -112,6 +113,11 @@ export interface BodyParams {
   hips: number
   /** Maternity — trimester 0…3 (absent/0 = none; the bump stays buried in the torso). */
   belly?: number
+  /** Neck length, leg length, thigh girth, calf girth. Absent or 1 = the authored figure. */
+  neck?: number
+  leg?: number
+  thigh?: number
+  calf?: number
 }
 export const DEFAULT_BODY: BodyParams = {
   bodyType: 'female', height: 1, build: 1, bust: 1, waist: 1, hips: 1
@@ -334,7 +340,7 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     { rA: () => P().upperArmR * body.build, rB: () => (P().upperArmR - 0.008) * body.build }, // upper arm
     { rA: () => (P().upperArmR - 0.008) * body.build, rB: () => P().foreArmR * body.build, cap: 'hand' }, // forearm
     { rA: () => measurements.thighR, rB: () => measurements.thighR * 0.68 }, // thigh
-    { rA: () => measurements.thighR * 0.68, rB: () => 0.048 * body.build, cap: 'foot' } // shin
+    { rA: () => measurements.thighR * 0.68, rB: () => 0.048 * body.build * proportionOf(body.calf), cap: 'foot' } // shin
   ]
   // mirror arms + legs, then the belly (visual radius = its collider radius),
   // then the GLB face blob — collider-only, no visual metaball (radius 0 here)
@@ -481,6 +487,42 @@ export function buildMannequin(bodyInit: Partial<BodyParams> = {}): Mannequin {
     // Pelvis collider = the mesh seat radius (single source), so cloth collides against
     // the *visible* slim rear, not a fat invisible capsule. bones[4] is the hip segment.
     bones[4].radius = bones[4].collider.radius = seatRadius()
+    // Neck length lifts the head off the shoulders. Leg length drops the knee and
+    // ankle from the hip attachment. Thigh and calf girth scale those capsules
+    // only — a bigger thigh does not thicken the calf.
+    const neckBone = bones[1]
+    const nLo = Math.min(neckBone.restA.y, neckBone.restB.y)
+    const nHi = Math.max(neckBone.restA.y, neckBone.restB.y)
+    const lift = neckLift(nHi - nLo, body.neck)
+    const raise = (v: THREE.Vector3): void => {
+      v.y += lift
+    }
+    if (neckBone.restA.y >= neckBone.restB.y) raise(neckBone.restA)
+    else raise(neckBone.restB)
+    raise(bones[0].restA)
+    raise(bones[0].restB)
+    measurements.crownY += lift
+    measurements.headBaseY += lift
+
+    const attach = Math.max(bones[7].restA.y, bones[7].restB.y)
+    for (const i of [7, 8, 11, 12]) {
+      bones[i].restA.y = scaledBelow(attach, bones[i].restA.y, body.leg)
+      bones[i].restB.y = scaledBelow(attach, bones[i].restB.y, body.leg)
+    }
+    measurements.kneeY = scaledBelow(attach, measurements.kneeY, body.leg)
+    measurements.ankleY = scaledBelow(attach, measurements.ankleY, body.leg)
+
+    const thighG = proportionOf(body.thigh)
+    const calfG = proportionOf(body.calf)
+    for (const i of [7, 11]) {
+      bones[i].radius *= thighG
+      bones[i].collider.radius = bones[i].radius
+    }
+    for (const i of [8, 12]) {
+      bones[i].radius *= calfG
+      bones[i].collider.radius = bones[i].radius
+    }
+    measurements.thighR *= thighG
     // Maternity bump — rest capsule from the pure spec (overwrites the generic
     // bones-loop rest above). Best shown on the procedural body; in GLB mode the
     // capsule still shapes the drape at its rest spot (the rig walks in place).

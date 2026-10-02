@@ -1174,7 +1174,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   // Body-shape sliders (multipliers) — captured so made-to-measure edits refresh them.
   const bodyRefreshers: Refreshable[] = []
   const bodySlider = (label: string, key: keyof BodyParams, min: number, max: number, fmt: (v: number) => string): Refreshable => {
-    const s = slider({ label, min, max, step: 0.01, format: fmt, get: () => opts.bodySize[key] as number, set: (v) => { (opts.bodySize[key] as number) = v; opts.onBodySize(opts.bodySize); refreshMeasure() } })
+    const s = slider({ label, min, max, step: 0.01, format: fmt, get: () => (opts.bodySize[key] as number | undefined) ?? 1, set: (v) => { (opts.bodySize[key] as number) = v; opts.onBodySize(opts.bodySize); refreshMeasure() } })
     bodyRefreshers.push(s)
     return s
   }
@@ -1432,6 +1432,10 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     bodySlider('Bust', 'bust', 0.82, 1.25, (v) => `${Math.round(v * 100)}%`).row,
     bodySlider('Waist', 'waist', 0.78, 1.3, (v) => `${Math.round(v * 100)}%`).row,
     bodySlider('Hips', 'hips', 0.82, 1.3, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Leg length', 'leg', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Thigh', 'thigh', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Calf', 'calf', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Neck length', 'neck', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
     mtm.root
   )
   // The fabric *gallery* now lives in the Library; keep selectFabric as the shared

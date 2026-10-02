@@ -8,7 +8,11 @@ import {
   cornrowTaper,
   bunCoil,
   ponytailPoint,
-  ponytailRadius
+  ponytailRadius,
+  lockRoot,
+  lockHang,
+  locLength,
+  lockThickness
 } from '../src/renderer/avatar/hairstyles'
 import { HAIRSTYLES, HAIRSTYLE_LABELS, hairstyleSpec, type Hairstyle } from '../src/renderer/avatar/face'
 import { hairVolumeCm, effectiveHeadCircCm } from '../src/renderer/avatar/hairVolume'
@@ -209,12 +213,58 @@ describe('the style set', () => {
     for (const s of HAIRSTYLES) if (s !== 'cornrows') expect(hairstyleSpec(s).rows, s).toBe(0)
   })
 
+  it('hangs braids and locs off the scalp, and nothing else', () => {
+    expect(hairstyleSpec('braids').locks).toEqual({ kind: 'braid', count: 12, length: 2.15 })
+    expect(hairstyleSpec('locs').locks?.kind).toBe('loc')
+    expect(hairstyleSpec('locs').locks!.count).toBeGreaterThan(hairstyleSpec('braids').locks!.count)
+    for (const s of HAIRSTYLES) {
+      if (s !== 'braids' && s !== 'locs') expect(hairstyleSpec(s).locks, s).toBeUndefined()
+    }
+  })
+
   it('gathers only the two styles that are gathered, and in the right places', () => {
     expect(hairstyleSpec('ponytail').gather).toEqual({ kind: 'tail', at: 'nape' })
     expect(hairstyleSpec('bun').gather).toEqual({ kind: 'bun', at: 'crown' })
     for (const s of HAIRSTYLES) {
       if (s !== 'ponytail' && s !== 'bun') expect(hairstyleSpec(s).gather, s).toBeUndefined()
     }
+  })
+})
+
+describe('hanging locks', () => {
+  it('plants a ring of distinct roots on the upper scalp', () => {
+    const n = 12
+    const roots = Array.from({ length: n }, (_, i) => lockRoot(i, n))
+    const placed = new Set(roots.map((r) => `${r.x.toFixed(4)},${r.z.toFixed(4)}`))
+    expect(placed.size).toBe(n)
+    for (const r of roots) {
+      expect(r.y).toBeGreaterThan(0.2)
+      expect(r.x * r.x + r.z * r.z).toBeLessThan(1)
+    }
+  })
+
+  it('hangs downward, and locs in one head are not all the same length', () => {
+    const tip = lockHang(1, 2, 0.4, 1)
+    const root = lockHang(0, 2, 0.4, 1)
+    expect(tip.y).toBeLessThan(root.y)
+    expect(tip.y).toBeCloseTo(-2, 9)
+    const lengths = [0, 1, 2, 3].map((i) => locLength(i, 1.55))
+    expect(new Set(lengths.map((l) => l.toFixed(4))).size).toBeGreaterThan(1)
+  })
+
+  it('gives a braid a crossing rhythm a loc does not have', () => {
+    const span = (kind: 'braid' | 'loc'): number => {
+      let lo = Infinity
+      let hi = -Infinity
+      for (let k = 0; k <= 40; k++) {
+        const r = lockThickness(k / 40, kind)
+        lo = Math.min(lo, r)
+        hi = Math.max(hi, r)
+      }
+      return hi - lo
+    }
+    expect(span('braid')).toBeGreaterThan(span('loc'))
+    expect(lockThickness(0.5, 'loc')).toBeGreaterThan(0.9)
   })
 })
 

@@ -125,3 +125,62 @@ export function ponytailRadius(t: number): number {
   if (u < 0.8) return 1 - 0.35 * u
   return (1 - 0.35 * 0.8) * (1 - (u - 0.8) / 0.2)
 }
+
+/* ------------------------------ braids & locs ------------------------------ */
+
+export type LockKind = 'braid' | 'loc'
+
+/**
+ * Where hanging lock `i` of `n` leaves the scalp, on the unit sphere the cornrows
+ * use — before the scalp scale is applied. A ring around the upper cranium, set a
+ * little back so the face stays open.
+ */
+export function lockRoot(i: number, n: number): { x: number; y: number; z: number } {
+  const u = n <= 1 ? 0 : i / n
+  const a = u * Math.PI * 2
+  const x = Math.sin(a) * 0.42
+  const z = -0.12 + Math.cos(a) * 0.28
+  const y = Math.sqrt(Math.max(0.05, 1 - x * x - z * z)) * 0.45 + 0.12
+  return { x, y, z }
+}
+
+/**
+ * Offset from a lock's root at `t` (0 at the scalp, 1 at the tip), in head radii.
+ *
+ * Box braids and locs hang. They are not cornrows: a cornrow is a small circle
+ * lying on the scalp, and these leave it. `side` is the sign of the root's x, so
+ * neighbouring locks lean apart instead of collapsing into one rope.
+ */
+export function lockHang(t: number, length: number, sway: number, side: number): { x: number; y: number; z: number } {
+  const u = Math.min(1, Math.max(0, t))
+  const lean = side >= 0 ? 1 : -1
+  return {
+    x: lean * sway * Math.sin(u * Math.PI) * 0.16,
+    y: -length * u,
+    z: -0.05 * u
+  }
+}
+
+/** Locs are cut to slightly different lengths; box braids in one head match. */
+export function locLength(i: number, base: number): number {
+  const h = ((Math.abs(i) * 17) % 7) / 6
+  return base * (0.82 + 0.36 * h)
+}
+
+/**
+ * Thickness along a hanging lock, as a fraction of its nominal radius.
+ *
+ * A box braid keeps the cornrow's crossing rhythm and finishes in a short taper.
+ * A loc is smoother — a gentle mid-shaft swell and a blunt tip — which is how the
+ * two read as different hair from across the studio.
+ */
+export function lockThickness(t: number, kind: LockKind): number {
+  const u = Math.min(1, Math.max(0, t))
+  if (kind === 'braid') {
+    const tip = u < 0.9 ? 1 : 1 - ((u - 0.9) / 0.1) * 0.55
+    return braidRadius(u, 10, 0.28) * tip
+  }
+  const belly = 1 + 0.1 * Math.sin(u * Math.PI)
+  const tip = u < 0.88 ? 1 : 1 - ((u - 0.88) / 0.12) * 0.35
+  return belly * tip
+}
