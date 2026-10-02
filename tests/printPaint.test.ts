@@ -19,6 +19,7 @@ describe('resolvePrintPaint — print opacity + blend', () => {
     expect(resolvePrintPaint({ blend: 'multiply' }).composite).toBe('multiply')
     expect(resolvePrintPaint({ blend: 'screen' }).composite).toBe('screen')
     expect(resolvePrintPaint({ blend: 'overlay' }).composite).toBe('overlay')
+    expect(resolvePrintPaint({ blend: 'darken' }).composite).toBe('darken')
   })
 
   it('every listed blend resolves to a real, distinct-from-default-when-not-normal composite', () => {

@@ -12,7 +12,7 @@ import type { Measurements, BodyAnchors } from '../avatar/Mannequin'
 import type { BodyCollider } from '../cloth/BodyCollider'
 import { GarmentController } from '../garment/GarmentController'
 import { ClothCollision } from '../cloth/ClothCollision'
-import { createFabricMaterial, applyFabric } from '../cloth/FabricMaterial'
+import { createFabricMaterial, applyFabric, setYarnDetail } from '../cloth/FabricMaterial'
 import { getFabric, fabricToSolverParams, fabricThickness, interfaceParams, corsetParams, wetParams, type Fabric } from '../fabric/FabricLibrary'
 import { physicalToSolverParams } from '../fabric/physicalProps'
 import { getGarment } from '../garments/registry'
@@ -491,6 +491,10 @@ export class GarmentStack {
         m.sheen = fur.sheen
         m.sheenRoughness = fur.sheenRoughness
       }
+      if (sp || ir) m.specularIntensity = 1 // sequins and thin-film keep a real highlight
+      // A finish, photo swatch, or custom draft owns the surface — the preset yarn
+      // shadow would fight that structure. applyFabric already set the cloth mix.
+      if (sp || ql || fur || l.swatch || (l.data.pilling ?? 0) > 0 || draftNormalMap) setYarnDetail(m, 0)
       m.needsUpdate = true
     }
     // Wet look — waterlogged fabric goes darker + glossy with a clearcoat sheen and
@@ -502,6 +506,7 @@ export class GarmentStack {
         m.clearcoat = Math.max(m.clearcoat, 0.6)
         m.clearcoatRoughness = 0.12
         m.sheen = Math.min(1, m.sheen * 0.5)
+        m.specularIntensity = 1
         m.color.multiplyScalar(0.78)
         m.needsUpdate = true
       }

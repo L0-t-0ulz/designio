@@ -136,9 +136,56 @@ export function weaveHeight(weave: WeaveType, u: number, v: number, threads: num
  * roughness). Returned as a multiplier in (0, 1] so it can be baked straight into a
  * `roughnessMap` (which three.js multiplies onto `material.roughness`). Pure.
  */
-const ROUGH_CONTRAST = 0.22
+const ROUGH_CONTRAST = 0.3
 export function weaveRoughness(weave: WeaveType, u: number, v: number, threads: number): number {
   return 1 - ROUGH_CONTRAST * weaveHeight(weave, u, v, threads)
+}
+
+/**
+ * Thread-valley shadow, 0.68 (deep valley) … 1 (yarn crown). Multiplied onto the
+ * albedo so the weave reads as real yarn under the key light, not a flat plastic
+ * fill with a bump map. Monotonic in height. Pure.
+ */
+export function yarnOcclusion(height: number): number {
+  const h = height < 0 ? 0 : height > 1 ? 1 : height
+  return 0.68 + 0.32 * Math.pow(h, 0.6)
+}
+
+/** Stable 0…1 hash of an integer thread cell. */
+function threadHash(cu: number, cv: number): number {
+  let n = Math.imul(cu | 0, 374761393) + Math.imul(cv | 0, 668265263)
+  n = Math.imul(n ^ (n >>> 13), 1274126177)
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967295
+}
+
+/**
+ * Per-thread dye variation, 0.97…1. So a solid garment colour isn't one perfectly
+ * even slab — neighbouring yarns differ by a few percent, the way a real dye lot
+ * does. Pure.
+ */
+export function fiberSlub(u: number, v: number, threads: number): number {
+  return 0.97 + 0.03 * threadHash(Math.floor(u * threads), Math.floor(v * threads))
+}
+
+/**
+ * Albedo multiply for one weave sample: valley shadow × slub. In (0, 1]. Crowns
+ * stay near 1, valleys drop, and the slub keeps a plain colour from looking sprayed
+ * on. Pure — baked into the yarn-detail map the fabric shader samples.
+ */
+export function clothAlbedoScale(weave: WeaveType, u: number, v: number, threads: number): number {
+  return yarnOcclusion(weaveHeight(weave, u, v, threads)) * fiberSlub(u, v, threads)
+}
+
+/**
+ * How strongly the yarn-detail map shows on a fabric. Napped fleece is a fuzz, not
+ * a thread grid (0). A smooth silk keeps only a hint; a matte cotton/wool takes the
+ * full valley shadow. Pure.
+ */
+export function yarnDetailMix(roughness: number, napKnit: boolean): number {
+  if (napKnit) return 0
+  const t = (roughness - 0.22) / 0.55
+  const u = t < 0 ? 0 : t > 1 ? 1 : t
+  return 0.4 + 0.6 * u
 }
 
 /**
@@ -208,7 +255,7 @@ export function makeWeaveNormalMap(
   tex.colorSpace = THREE.NoColorSpace // normal maps are linear data
   tex.wrapS = THREE.RepeatWrapping
   tex.wrapT = THREE.RepeatWrapping
-  tex.anisotropy = 4
+  tex.anisotropy = 8
   cache.set(key, tex)
   return tex
 }
@@ -247,7 +294,46 @@ export function makeWeaveRoughnessMap(weave: WeaveType, size = 256, threads = 16
   tex.colorSpace = THREE.NoColorSpace // roughness is linear data
   tex.wrapS = THREE.RepeatWrapping
   tex.wrapT = THREE.RepeatWrapping
-  tex.anisotropy = 4
+  tex.anisotropy = 8
   roughCache.set(key, tex)
+  return tex
+}
+
+const aoCache = new Map<string, THREE.CanvasTexture>()
+
+/**
+ * Bakes the yarn-detail field (`clothAlbedoScale`) into a tiling map the fabric
+ * shader multiplies onto the albedo. Same thread count as the weave normal so the
+ * valley shadows land on the same yarns as the bump. Cached per weave.
+ */
+export function makeWeaveAoMap(weave: WeaveType, size = 256, threads = 16): THREE.CanvasTexture {
+  const key = `${weave}:${size}:${threads}`
+  const cached = aoCache.get(key)
+  if (cached) return cached
+
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const img = ctx.createImageData(size, size)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const s = clothAlbedoScale(weave, x / size, y / size, threads)
+      const c = Math.max(0, Math.min(255, Math.round(s * 255)))
+      const i = (y * size + x) * 4
+      img.data[i] = c
+      img.data[i + 1] = c
+      img.data[i + 2] = c
+      img.data[i + 3] = 255
+    }
+  }
+  ctx.putImageData(img, 0, 0)
+
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.NoColorSpace
+  tex.wrapS = THREE.RepeatWrapping
+  tex.wrapT = THREE.RepeatWrapping
+  tex.anisotropy = 8
+  aoCache.set(key, tex)
   return tex
 }

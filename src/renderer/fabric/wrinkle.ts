@@ -56,11 +56,18 @@ const FRAG_PERTURB = `
 // Darken the diffuse in the compressed crease valleys — mirrors `cavityFactor`.
 const FRAG_CAVITY = '\n  diffuseColor.rgb *= (1.0 - ' + CAVITY_STRENGTH.toFixed(2) + ' * clamp(vStrainW, 0.0, 1.0));'
 
-/** Install the strain-driven wrinkle perturbation on a fabric material. Idempotent. */
+type CompileHook = THREE.MeshPhysicalMaterial['onBeforeCompile']
+
+/** Install the strain-driven wrinkle perturbation on a fabric material. Idempotent.
+ *  Chains the material's existing compile hook so yarn shading and the velvet lobe stay. */
 export function installWrinkle(mat: THREE.MeshPhysicalMaterial): void {
-  if ((mat.userData as { wrinkle?: boolean }).wrinkle) return
-  ;(mat.userData as { wrinkle?: boolean }).wrinkle = true
-  mat.onBeforeCompile = (shader) => {
+  const ud = mat.userData as { wrinkle?: boolean; wrinkleBase?: CompileHook }
+  if (ud.wrinkle) return
+  const base = mat.onBeforeCompile
+  ud.wrinkle = true
+  ud.wrinkleBase = base
+  mat.onBeforeCompile = (shader, renderer) => {
+    base(shader, renderer)
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\n' + VERT_HEAD)
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + VERT_BODY)
@@ -72,10 +79,11 @@ export function installWrinkle(mat: THREE.MeshPhysicalMaterial): void {
   mat.needsUpdate = true
 }
 
-/** Remove the wrinkle perturbation from a material. */
+/** Remove the wrinkle perturbation from a material, restoring the cloth shader. */
 export function uninstallWrinkle(mat: THREE.MeshPhysicalMaterial): void {
-  if (!(mat.userData as { wrinkle?: boolean }).wrinkle) return
-  ;(mat.userData as { wrinkle?: boolean }).wrinkle = false
-  mat.onBeforeCompile = () => {}
+  const ud = mat.userData as { wrinkle?: boolean; wrinkleBase?: CompileHook }
+  if (!ud.wrinkle) return
+  ud.wrinkle = false
+  if (ud.wrinkleBase) mat.onBeforeCompile = ud.wrinkleBase
   mat.needsUpdate = true
 }

@@ -1,13 +1,31 @@
 import * as THREE from 'three'
-import { type Fabric, sheenRecipeFromFabric, anisotropyAngleForFabric, envIntensityForFabric } from '../fabric/FabricLibrary'
-import { makeWeaveNormalMap, makeWeaveRoughnessMap, toksvigRoughness } from '../fabric/weaveTexture'
+import { type Fabric, sheenRecipeFromFabric, anisotropyAngleForFabric, envIntensityForFabric, specularIntensityForFabric } from '../fabric/FabricLibrary'
+import { makeWeaveNormalMap, makeWeaveRoughnessMap, makeWeaveAoMap, toksvigRoughness, yarnDetailMix } from '../fabric/weaveTexture'
 import { makePerfAlphaMap } from '../fabric/perforate'
 import { isVelvet, VELVET_FLOOR } from '../fabric/velvet'
 import { makeFurNormalMap, furParams } from '../fabric/fur'
 
-interface VelvetUniforms {
+interface ClothUniforms {
   uVelvet: { value: number }
   uVelvetFloor: { value: number }
+  uYarnAo: { value: THREE.Texture }
+  uYarnAoMix: { value: number }
+}
+
+let whiteYarn: THREE.DataTexture | null = null
+function whiteYarnAo(): THREE.DataTexture {
+  if (!whiteYarn) {
+    whiteYarn = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1)
+    whiteYarn.colorSpace = THREE.NoColorSpace
+    whiteYarn.wrapS = THREE.RepeatWrapping
+    whiteYarn.wrapT = THREE.RepeatWrapping
+    whiteYarn.needsUpdate = true
+  }
+  return whiteYarn
+}
+
+function clothUniforms(mat: THREE.MeshPhysicalMaterial): ClothUniforms | undefined {
+  return mat.userData.cloth as ClothUniforms | undefined
 }
 
 /**
@@ -23,16 +41,32 @@ export function createFabricMaterial(fabric: Fabric): THREE.MeshPhysicalMaterial
     envMapIntensity: 1.1
   })
   // Velvet retroreflective term: darken the diffuse facing the camera (|N·V|→1), leaving
-  // the grazing rim + sheen bright — the velvet look. Gated by `uVelvet` (0 = `mix(...,0)`
-  // = an exact ×1.0 identity), so every non-velvet fabric renders bit-for-bit as before.
-  const velvet: VelvetUniforms = { uVelvet: { value: 0 }, uVelvetFloor: { value: VELVET_FLOOR } }
-  mat.userData.velvet = velvet
+  // the grazing rim + sheen bright. Gated by `uVelvet` (0 = an exact ×1 identity).
+  // The same compile multiplies yarn-valley shadow (`uYarnAo`) onto the dye. A
+  // coarser octave of that map is what reads at garment distance; the fine octave
+  // lines up with the weave bump for close-ups.
+  const cloth: ClothUniforms = {
+    uVelvet: { value: 0 },
+    uVelvetFloor: { value: VELVET_FLOOR },
+    uYarnAo: { value: whiteYarnAo() },
+    uYarnAoMix: { value: 0 }
+  }
+  mat.userData.cloth = cloth
+  mat.userData.velvet = cloth // velvet lobe reads the same uniforms
   mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uVelvet = velvet.uVelvet
-    shader.uniforms.uVelvetFloor = velvet.uVelvetFloor
-    shader.fragmentShader = ('uniform float uVelvet;\nuniform float uVelvetFloor;\n' + shader.fragmentShader).replace(
+    shader.uniforms.uVelvet = cloth.uVelvet
+    shader.uniforms.uVelvetFloor = cloth.uVelvetFloor
+    shader.uniforms.uYarnAo = cloth.uYarnAo
+    shader.uniforms.uYarnAoMix = cloth.uYarnAoMix
+    shader.fragmentShader = ('uniform float uVelvet;\nuniform float uVelvetFloor;\nuniform sampler2D uYarnAo;\nuniform float uYarnAoMix;\n' + shader.fragmentShader).replace(
       '#include <lights_physical_fragment>',
-      `float vNdotV = abs(dot(normal, normalize(vViewPosition)));
+      `#ifdef USE_NORMALMAP
+      float yarnFine = texture2D(uYarnAo, vNormalMapUv).r;
+      float yarnCoarse = texture2D(uYarnAo, vNormalMapUv * 0.35).r;
+      float yarn = mix(yarnCoarse, yarnFine, 0.25);
+      diffuseColor.rgb *= mix(1.0, yarn, uYarnAoMix);
+      #endif
+      float vNdotV = abs(dot(normal, normalize(vViewPosition)));
       float velvetFac = 1.0 - (1.0 - uVelvetFloor) * vNdotV * vNdotV; // mirrors velvetFacingFactor
       diffuseColor.rgb *= mix(1.0, velvetFac, uVelvet);
       #include <lights_physical_fragment>`
@@ -65,6 +99,7 @@ export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): vo
   mat.anisotropy = fabric.anisotropy
   mat.anisotropyRotation = anisotropyAngleForFabric(fabric) // streak the highlight along the warp
   mat.envMapIntensity = envIntensityForFabric(fabric) // smooth silks catch the room; matte cotton doesn't
+  mat.specularIntensity = specularIntensityForFabric(fabric) // kill the plastic ping on matte cloth
   mat.transmission = fabric.transmission
   mat.thickness = fabric.transmission > 0 ? 0.5 : 0
 
@@ -78,6 +113,14 @@ export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): vo
   const roughnessMap = makeWeaveRoughnessMap(fabric.weave)
   roughnessMap.repeat.set(repeat, repeat)
   mat.roughnessMap = roughnessMap
+  // Yarn valleys shadow the dye. Sampled with the normal-map UV (already repeated),
+  // so this map stays at repeat 1 and lines up with the weave bump.
+  const aoMap = makeWeaveAoMap(fabric.weave)
+  const cloth = clothUniforms(mat)
+  if (cloth) {
+    cloth.uYarnAo.value = aoMap
+    cloth.uYarnAoMix.value = yarnDetailMix(fabric.roughness, !!(fabric.nap && fabric.family === 'knit'))
+  }
 
   // Napped KNITS (fleece) read as a soft, dense fuzz — not the crisp diagonal net the
   // shared 'knit' weave gives. Swap in the soft fleece pile normal + a very matte,
@@ -94,11 +137,17 @@ export function applyFabric(mat: THREE.MeshPhysicalMaterial, fabric: Fabric): vo
     mat.roughness = fp.roughness
     mat.sheen = fp.sheen
     mat.sheenRoughness = fp.sheenRoughness
+    if (cloth) cloth.uYarnAoMix.value = 0 // fuzz, not a thread grid
   }
 
   // Toggle the velvet lobe on only for true napped velvet/velour (live uniform, no recompile).
-  const velvet = mat.userData.velvet as VelvetUniforms | undefined
-  if (velvet) velvet.uVelvet.value = isVelvet(fabric) ? 1 : 0
+  if (cloth) cloth.uVelvet.value = isVelvet(fabric) ? 1 : 0
 
   mat.needsUpdate = true
+}
+
+/** Scale the yarn-valley shadow (0 = off, when a finish owns the surface). */
+export function setYarnDetail(mat: THREE.MeshPhysicalMaterial, mix: number): void {
+  const cloth = clothUniforms(mat)
+  if (cloth) cloth.uYarnAoMix.value = Math.max(0, Math.min(1, mix))
 }

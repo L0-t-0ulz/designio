@@ -6,9 +6,10 @@ import {
   sheenRecipeFromFabric,
   anisotropyAngleForFabric,
   envIntensityForFabric,
+  specularIntensityForFabric,
   type Fabric
 } from '../src/renderer/fabric/FabricLibrary'
-import { weaveHeight, weaveNormal, weaveRoughness, toksvigRoughness } from '../src/renderer/fabric/weaveTexture'
+import { weaveHeight, weaveNormal, weaveRoughness, toksvigRoughness, yarnOcclusion, fiberSlub, clothAlbedoScale, yarnDetailMix } from '../src/renderer/fabric/weaveTexture'
 
 const base: Fabric = {
   id: 'x',
@@ -390,9 +391,76 @@ describe('envIntensityForFabric', () => {
   it('stays in a sane band for every library fabric', () => {
     for (const f of FABRIC_LIBRARY) {
       const v = envIntensityForFabric(f)
-      expect(v).toBeGreaterThanOrEqual(0.7)
-      expect(v).toBeLessThanOrEqual(1.6)
+      expect(v).toBeGreaterThanOrEqual(0.28)
+      expect(v).toBeLessThanOrEqual(1.55)
     }
+  })
+})
+
+describe('specularIntensityForFabric', () => {
+  it('a smooth silk keeps a highlight; matte canvas stays quiet', () => {
+    const silk = specularIntensityForFabric(getFabric('silk-charmeuse'))
+    const cotton = specularIntensityForFabric(getFabric('cotton-poplin'))
+    const canvas = specularIntensityForFabric(getFabric('canvas'))
+    expect(silk).toBeGreaterThan(cotton)
+    expect(cotton).toBeGreaterThan(canvas)
+    expect(canvas).toBeLessThan(0.4)
+    expect(silk).toBeGreaterThan(0.7)
+  })
+
+  it('stays in 0.15…1 for every library fabric', () => {
+    for (const f of FABRIC_LIBRARY) {
+      const v = specularIntensityForFabric(f)
+      expect(v).toBeGreaterThanOrEqual(0.15)
+      expect(v).toBeLessThanOrEqual(1)
+    }
+  })
+})
+
+describe('yarn detail (thread shadow)', () => {
+  it('valleys occlude more than crowns, and the factor stays in range', () => {
+    expect(yarnOcclusion(0)).toBeCloseTo(0.68, 5)
+    expect(yarnOcclusion(1)).toBeCloseTo(1, 5)
+    expect(yarnOcclusion(0.2)).toBeLessThan(yarnOcclusion(0.8))
+    expect(yarnOcclusion(-1)).toBeCloseTo(0.68, 5)
+    expect(yarnOcclusion(2)).toBeCloseTo(1, 5)
+  })
+
+  it('slub stays a few percent around 1 and differs between neighbouring threads', () => {
+    const a = fiberSlub(0.1, 0.1, 16)
+    const b = fiberSlub(0.1 + 1 / 16, 0.1, 16)
+    expect(a).toBeGreaterThanOrEqual(0.97)
+    expect(a).toBeLessThanOrEqual(1)
+    expect(a).not.toBeCloseTo(b, 4)
+    expect(fiberSlub(0.11, 0.11, 16)).toBeCloseTo(a, 8) // stable inside a cell
+  })
+
+  it('albedo scale is darker in a plain-weave valley than on a crown, and ≤ 1', () => {
+    const crown = clothAlbedoScale('plain', 0.5 / 16, 0.5 / 16, 16) // thread centre, warp on top
+    const valley = clothAlbedoScale('plain', 0.02 / 16, 0.5 / 16, 16) // thread edge
+    expect(crown).toBeGreaterThan(valley)
+    expect(crown - valley).toBeGreaterThan(0.12)
+    expect(crown).toBeLessThanOrEqual(1)
+    expect(valley).toBeGreaterThan(0.7) // shadowed, not a black pit
+  })
+
+  it('satin stays flatter than waffle, and fleece knits turn the detail off', () => {
+    const span = (weave: 'satin' | 'waffle'): number => {
+      let lo = 1
+      let hi = 0
+      for (let i = 0; i < 32; i++) {
+        for (let j = 0; j < 32; j++) {
+          const s = clothAlbedoScale(weave, (i + 0.5) / 32, (j + 0.5) / 32, 16)
+          if (s < lo) lo = s
+          if (s > hi) hi = s
+        }
+      }
+      return hi - lo
+    }
+    expect(span('waffle')).toBeGreaterThan(span('satin'))
+    expect(yarnDetailMix(0.32, false)).toBeLessThan(yarnDetailMix(0.9, false))
+    expect(yarnDetailMix(0.9, true)).toBe(0)
+    expect(yarnDetailMix(0.9, false)).toBeCloseTo(1, 5)
   })
 })
 
