@@ -318,7 +318,7 @@ export function garmentToPanels(
 
   if (params.pocket) {
     const style = params.pocketStyle ?? 'patch'
-    const places = pocketPlacements(def, m)
+    const places = pocketPlacements(def, m, style)
     const cut = places.length || 1
     const w = (places[0]?.w ?? 0.11) * MM
     const h = (places[0]?.h ?? 0.12) * MM
@@ -332,7 +332,8 @@ export function garmentToPanels(
       const gw = style === 'bellows' ? w * 1.18 : w
       const outline: Pt[] = [{ x: 0, y: 0 }, { x: gw, y: 0 }, { x: gw, y: h * 0.72 }, { x: gw / 2, y: h }, { x: 0, y: h * 0.72 }]
       const notches: Pt[] = [{ x: 0, y: h * 0.14 }, { x: gw, y: h * 0.14 }] // top-fold line
-      panels.push(finishPanel(style === 'bellows' ? 'Cargo pocket' : 'Pocket', cut, { outline, notches }))
+      const pocketName = style === 'bellows' ? 'Cargo pocket' : style === 'kangaroo' ? 'Kangaroo pocket' : style === 'coin' ? 'Coin pocket' : style === 'inseam' ? 'Inseam pocket' : 'Pocket'
+      panels.push(finishPanel(pocketName, cut, { outline, notches }))
       if (style === 'flap' || style === 'bellows') {
         const fh = h * 0.42
         const flap: Pt[] = [{ x: 0, y: 0 }, { x: gw, y: 0 }, { x: gw, y: fh * 0.6 }, { x: gw / 2, y: fh }, { x: 0, y: fh * 0.6 }]
@@ -346,7 +347,7 @@ export function garmentToPanels(
     const isLapel = style === 'notch' || style === 'peak' || style === 'shawl'
     const neckR = specs.body[0] ? specs.body[0].radiusTop * 0.6 : 0.11
     const w = Math.max(200, Math.PI * neckR * MM) // half neck circumference band (cut on the fold)
-    const h = { band: 40, mandarin: 60, shirt: 80, peterpan: 95, notch: 105, peak: 108, shawl: 102 }[style]
+    const h = { band: 40, mandarin: 60, shirt: 80, peterpan: 95, notch: 105, peak: 108, shawl: 102, camp: 70, wing: 88 }[style]
     let outline: Pt[]
     if (style === 'peterpan') {
       outline = [{ x: 0, y: h * 0.2 }, { x: w * 0.15, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: w * 0.1, y: h }] // curved flat collar half
@@ -356,10 +357,14 @@ export function garmentToPanels(
       outline = [{ x: 0, y: 0 }, { x: w * 0.55, y: 0 }, { x: w * 0.9, y: h * 0.45 }, { x: w, y: h }, { x: w * 0.24, y: h }] // rounded continuous lapel roll
     } else if (style === 'notch') {
       outline = [{ x: 0, y: 0 }, { x: w * 0.62, y: 0 }, { x: w, y: h * 0.7 }, { x: w, y: h }, { x: w * 0.28, y: h }] // slanted lapel with a notch
+    } else if (style === 'camp') {
+      outline = [{ x: 0, y: h * 0.35 }, { x: w * 0.2, y: 0 }, { x: w, y: h * 0.15 }, { x: w, y: h }, { x: 0, y: h }] // one-piece open collar, points spread
+    } else if (style === 'wing') {
+      outline = [{ x: 0, y: 0 }, { x: w * 0.7, y: 0 }, { x: w, y: h * 0.35 }, { x: w * 0.82, y: h }, { x: w * 0.45, y: h * 0.55 }, { x: 0, y: h * 0.7 }] // stiff band with the wings turned up
     } else {
       outline = [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }] // stand band
     }
-    const name = isLapel ? 'Lapel' : style === 'peterpan' ? 'Collar (flat)' : style === 'shirt' ? 'Collar + stand' : 'Collar'
+    const name = isLapel ? 'Lapel' : style === 'peterpan' ? 'Collar (flat)' : style === 'camp' ? 'Camp collar' : style === 'wing' ? 'Wing collar' : style === 'shirt' ? 'Collar + stand' : 'Collar'
     panels.push(finishPanel(name, style === 'peterpan' || isLapel ? 2 : 1, { outline, notches: [] }))
   }
 

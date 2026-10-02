@@ -239,8 +239,8 @@ export function openSeamColumn(nx: number): number {
 }
 
 /** Hem shapes — how the bottom edge curves (front = angle π/2). */
-export type HemShape = 'straight' | 'high-low' | 'shirttail' | 'handkerchief' | 'ear-flap' | 'point-front' | 'back-flap' | 'fishtail' | 'bubble'
-export const HEM_SHAPES: HemShape[] = ['straight', 'high-low', 'shirttail', 'handkerchief', 'ear-flap', 'point-front', 'back-flap', 'fishtail', 'bubble']
+export type HemShape = 'straight' | 'high-low' | 'shirttail' | 'handkerchief' | 'ear-flap' | 'point-front' | 'back-flap' | 'fishtail' | 'bubble' | 'asymmetric'
+export const HEM_SHAPES: HemShape[] = ['straight', 'high-low', 'shirttail', 'handkerchief', 'ear-flap', 'point-front', 'back-flap', 'fishtail', 'bubble', 'asymmetric']
 
 /** Per-angle hem height: straight, a high-low sweep (front lifts, back trails),
  *  shirttail side vents, or handkerchief points hanging at the diagonals. */
@@ -258,6 +258,7 @@ export function bottomEdge(spec: TubeSpec, angle: number): number {
   else if (shape === 'back-flap') y -= h * 0.7 * back ** 2 // a long flap draping the nape (a durag)
   else if (shape === 'fishtail') y += h * 0.1 * front - h * 0.5 * back ** 2.2 // a short front and one long point at the back
   else if (shape === 'bubble') y -= h * 0.05 // a little extra length so the hem can tuck under the balloon
+  else if (shape === 'asymmetric') y += h * 0.32 * Math.cos(angle) // one side rises, the other drops, on a diagonal
   else y -= h * 0.14 * Math.abs(Math.sin(2 * angle)) ** 1.2 // handkerchief points
   return Math.max(0.05, y)
 }

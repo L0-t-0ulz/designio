@@ -498,7 +498,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   }
 
   // sleeve-shape picker (the sleeve library; shown when the garment has sleeves)
-  const sleeveShapeLabels: Record<SleeveShape, string> = { 'set-in': 'Set-in', raglan: 'Raglan', dolman: 'Dolman', bishop: 'Bishop', puff: 'Puff', bell: 'Bell' }
+  const sleeveShapeLabels: Record<SleeveShape, string> = { 'set-in': 'Set-in', raglan: 'Raglan', dolman: 'Dolman', bishop: 'Bishop', puff: 'Puff', bell: 'Bell', 'leg-of-mutton': 'Leg-of-mutton', flutter: 'Flutter', cap: 'Cap', 'cold-shoulder': 'Cold shoulder' }
   const sleeveShapeRow = el('div', 'dio-actions')
   sleeveShapeRow.style.flexWrap = 'wrap'
   const sleeveShapeBtns = new Map<SleeveShape, HTMLButtonElement>()
@@ -640,7 +640,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   pleatBlock.append(el('div', 'dio-field-label', 'Pleat style'), pleatRow)
 
   // pocket picker (the pocket library; shown when the Pocket detail is on)
-  const pocketLabels: Record<PocketStyle, string> = { patch: 'Patch', welt: 'Welt', jetted: 'Jetted', flap: 'Flap', bellows: 'Bellows' }
+  const pocketLabels: Record<PocketStyle, string> = { patch: 'Patch', welt: 'Welt', jetted: 'Jetted', flap: 'Flap', bellows: 'Bellows', kangaroo: 'Kangaroo', coin: 'Coin', inseam: 'Inseam' }
   const pocketRow = el('div', 'dio-actions')
   pocketRow.style.flexWrap = 'wrap'
   const pocketBtns = new Map<PocketStyle, HTMLButtonElement>()
@@ -653,7 +653,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   pocketBlock.append(el('div', 'dio-field-label', 'Pocket style'), pocketRow)
 
   // collar / lapel picker (shown when the Collar detail is on)
-  const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel', peak: 'Peak lapel', shawl: 'Shawl collar' }
+  const collarLabels: Record<CollarStyle, string> = { band: 'Band', shirt: 'Shirt', mandarin: 'Mandarin', peterpan: 'Peter-Pan', notch: 'Notch lapel', peak: 'Peak lapel', shawl: 'Shawl collar', camp: 'Camp', wing: 'Wing' }
   const collarRow = el('div', 'dio-actions')
   collarRow.style.flexWrap = 'wrap'
   const collarBtns = new Map<CollarStyle, HTMLButtonElement>()
@@ -909,7 +909,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   hemShapeRow.style.flexWrap = 'wrap'
   const hemShapeBtns = new Map<HemShape, HTMLButtonElement>()
   for (const hs of HEM_SHAPES) {
-    const hemLabels: Partial<Record<HemShape, string>> = { 'high-low': 'High-low', 'ear-flap': 'Ear flap', 'point-front': 'Point front', 'back-flap': 'Back flap', fishtail: 'Fishtail', bubble: 'Balloon' }
+    const hemLabels: Partial<Record<HemShape, string>> = { 'high-low': 'High-low', 'ear-flap': 'Ear flap', 'point-front': 'Point front', 'back-flap': 'Back flap', fishtail: 'Fishtail', bubble: 'Balloon', asymmetric: 'Asymmetric' }
     const b = button(hemLabels[hs] ?? hs[0].toUpperCase() + hs.slice(1), () => {
       garment.hemShape = hs === 'straight' ? undefined : hs
       for (const [k, node] of hemShapeBtns) node.classList.toggle('primary', k === hs)

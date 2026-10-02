@@ -32,6 +32,23 @@ describe('sleeveShapeSpec (the sleeve library)', () => {
     expect(s.profile!(0)).toBeGreaterThan(s.profile!(0.6))
   })
 
+  it('a leg-of-mutton is fullest at the shoulder and tight at the cuff', () => {
+    const s = sleeveShapeSpec('leg-of-mutton', shoulderR, hemR, false)
+    expect(s.profile!(0)).toBeGreaterThan(s.profile!(1))
+    expect(s.profile!(0)).toBeGreaterThan(sleeveShapeSpec('puff', shoulderR, hemR, false).profile!(0))
+    expect(s.radiusEnd).toBeLessThan(hemR + 0.02)
+  })
+
+  it('a flutter flares, a cap stays small, and a cold shoulder opens at the cap', () => {
+    const flutter = sleeveShapeSpec('flutter', shoulderR, hemR, false)
+    expect(flutter.profile!(1)).toBeGreaterThan(flutter.profile!(0))
+    const cap = sleeveShapeSpec('cap', shoulderR, hemR, false)
+    expect(cap.radiusStart).toBeLessThan(sleeveShapeSpec('bell', shoulderR, hemR, false).radiusEnd)
+    const cold = sleeveShapeSpec('cold-shoulder', shoulderR, hemR, false)
+    expect(cold.radiusStart).toBeLessThan(sleeveShapeSpec('set-in', shoulderR, hemR, false).radiusStart)
+    expect(cold.profile!(0)).toBeLessThan(cold.profile!(1))
+  })
+
   it('dolman is a very wide batwing at the armhole', () => {
     expect(sleeveShapeSpec('dolman', shoulderR, hemR, false).radiusStart).toBeGreaterThan(shoulderR * 3)
   })

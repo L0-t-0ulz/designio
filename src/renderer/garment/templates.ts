@@ -7,17 +7,17 @@ export const PLEAT_STYLES: PleatStyle[] = ['knife', 'box', 'accordion', 'cartrid
 export type GarmentType = string
 export type SleeveStyle = 'none' | 'short' | 'elbow' | 'three-quarter' | 'bracelet' | 'long'
 /** Sleeve shapes (the sleeve library). Active when the sleeve isn't 'none'. */
-export type SleeveShape = 'set-in' | 'raglan' | 'dolman' | 'bishop' | 'puff' | 'bell'
-export const SLEEVE_SHAPES: SleeveShape[] = ['set-in', 'raglan', 'dolman', 'bishop', 'puff', 'bell']
+export type SleeveShape = 'set-in' | 'raglan' | 'dolman' | 'bishop' | 'puff' | 'bell' | 'leg-of-mutton' | 'flutter' | 'cap' | 'cold-shoulder'
+export const SLEEVE_SHAPES: SleeveShape[] = ['set-in', 'raglan', 'dolman', 'bishop', 'puff', 'bell', 'leg-of-mutton', 'flutter', 'cap', 'cold-shoulder']
 /** Collar / lapel styles (active when the `collar` detail is on). */
-export type CollarStyle = 'band' | 'shirt' | 'mandarin' | 'peterpan' | 'notch' | 'peak' | 'shawl'
-export const COLLAR_STYLES: CollarStyle[] = ['band', 'shirt', 'mandarin', 'peterpan', 'notch', 'peak', 'shawl']
+export type CollarStyle = 'band' | 'shirt' | 'mandarin' | 'peterpan' | 'notch' | 'peak' | 'shawl' | 'camp' | 'wing'
+export const COLLAR_STYLES: CollarStyle[] = ['band', 'shirt', 'mandarin', 'peterpan', 'notch', 'peak', 'shawl', 'camp', 'wing']
 /** Hem frill styles (ruffles/flounces/godets; active when the `ruffles` detail is on). */
 export type FrillStyle = 'ruffle' | 'flounce' | 'godet'
 export const FRILL_STYLES: FrillStyle[] = ['ruffle', 'flounce', 'godet']
 /** Pocket styles (the pocket library; active when the `pocket` detail is on). */
-export type PocketStyle = 'patch' | 'welt' | 'jetted' | 'flap' | 'bellows'
-export const POCKET_STYLES: PocketStyle[] = ['patch', 'welt', 'jetted', 'flap', 'bellows']
+export type PocketStyle = 'patch' | 'welt' | 'jetted' | 'flap' | 'bellows' | 'kangaroo' | 'coin' | 'inseam'
+export const POCKET_STYLES: PocketStyle[] = ['patch', 'welt', 'jetted', 'flap', 'bellows', 'kangaroo', 'coin', 'inseam']
 
 export interface GarmentParams {
   /** Overall length, 0 (short) … 1 (long). */

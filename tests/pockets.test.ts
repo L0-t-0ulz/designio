@@ -19,6 +19,22 @@ describe('patch pockets + hems', () => {
     expect(pocketPlacements(getGarment('skirt'), M)).toHaveLength(2)
   })
 
+  it('kangaroo is one wide pouch, a coin pocket is small, and inseam pockets sit at the sides', () => {
+    const pouch = pocketPlacements(getGarment('top'), M, 'kangaroo')
+    expect(pouch).toHaveLength(1)
+    expect(pouch[0].w).toBeGreaterThan(pocketPlacements(getGarment('top'), M)[0].w)
+    expect(pouch[0].x).toBe(0)
+    const coin = pocketPlacements(getGarment('pants'), M, 'coin')
+    const hip = pocketPlacements(getGarment('pants'), M)[0]
+    expect(coin).toHaveLength(1)
+    expect(coin[0].w).toBeLessThan(hip.w)
+    expect(coin[0].y).toBeGreaterThan(hip.y)
+    const [l, r] = pocketPlacements(getGarment('pants'), M, 'inseam')
+    expect(Math.abs(l.x)).toBeGreaterThan(Math.abs(hip.x))
+    expect(l.z).toBeLessThan(hip.z)
+    expect(Math.sign(l.x)).toBe(-Math.sign(r.x))
+  })
+
   it('chest pocket sits in front of the chest, hip pockets are mirrored', () => {
     const chest = pocketPlacements(getGarment('top'), M)[0]
     expect(chest.z).toBeGreaterThan(M.chestR) // in front of the body

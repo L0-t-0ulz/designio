@@ -423,6 +423,26 @@ export function sleeveShapeSpec(
       const end = hemR + shoulderR * 1.7
       return { radiusStart: start, radiusEnd: end, profile: (t) => start + (end - start) * Math.pow(t, 2.5) }
     }
+    case 'leg-of-mutton': { // huge through the upper arm, then a tight forearm
+      const start = shoulderR * 1.45
+      const end = hemR + FIT_CLEARANCE
+      const bulge = shoulderR * 0.8
+      return { radiusStart: start, radiusEnd: end, profile: (t) => lerp(start, end, t) + bulge * Math.pow(Math.max(0, 1 - t / 0.62), 1.4) }
+    }
+    case 'flutter': { // a short flared flounce
+      const start = shoulderR * 1.15
+      const end = hemR + shoulderR * 1.15
+      return { radiusStart: start, radiusEnd: end, profile: (t) => start + (end - start) * Math.pow(t, 1.6) }
+    }
+    case 'cap': { // a little cap just over the shoulder, slightly flared
+      const start = shoulderR * 1.2
+      const end = hemR + shoulderR * 0.45
+      return { radiusStart: start, radiusEnd: end, profile: (t) => lerp(start, end, t) }
+    }
+    case 'cold-shoulder': { // the cap is cut away so the shoulder shows, then the sleeve continues
+      const start = shoulderR * 0.72
+      return { radiusStart: start, radiusEnd: base, profile: (t) => lerp(start, base, Math.min(1, t / 0.35)) }
+    }
     default: // set-in — hugs the shoulder/arm, tapers to the hem
       return { radiusStart: shoulderR * 1.35, radiusEnd: base }
   }
@@ -437,16 +457,20 @@ function sleeveSpecs(style: SleeveStyle, colliders: Capsule[], cuff = false, sha
   return arms.map(([upper, fore]) => {
     // Sleeve stops along the arm chain: mid-bicep (short) - elbow - 3/4 - bracelet -
     // wrist (long). Dolman/bishop/bell are statement sleeves -> always full length.
-    const fullLen = style === 'long' || shape === 'dolman' || shape === 'bishop' || shape === 'bell'
-    const b = fullLen
-      ? fore.b.clone()
-      : style === 'elbow'
-        ? fore.a.clone()
-        : style === 'three-quarter'
-          ? fore.a.clone().lerp(fore.b, 0.5)
-          : style === 'bracelet'
-            ? fore.a.clone().lerp(fore.b, 0.85)
-            : upper.a.clone().lerp(upper.b, 0.62) // short - a true mid-bicep cap
+    const fullLen = style === 'long' || shape === 'dolman' || shape === 'bishop' || shape === 'bell' || shape === 'leg-of-mutton'
+    const b = shape === 'cap'
+      ? upper.a.clone().lerp(upper.b, 0.22)
+      : shape === 'flutter'
+        ? upper.a.clone().lerp(upper.b, 0.36)
+        : fullLen
+          ? fore.b.clone()
+          : style === 'elbow'
+            ? fore.a.clone()
+            : style === 'three-quarter'
+              ? fore.a.clone().lerp(fore.b, 0.5)
+              : style === 'bracelet'
+                ? fore.a.clone().lerp(fore.b, 0.85)
+                : upper.a.clone().lerp(upper.b, 0.62) // short - a true mid-bicep cap
     // Start the cap lifted up + inboard over the deltoid (toward the shoulder line / neck) so
     // the sleeve overlaps the body's shoulder and closes the bare armhole gap — the body and
     // sleeve are separate meshes with no seam, so without this overlap the deltoid shows through.
