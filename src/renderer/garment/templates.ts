@@ -1,6 +1,7 @@
 import type { NecklineStyle, PleatStyle } from '../cloth/Garment'
+import type { ClosureStyle } from './closureStyles'
 export type { PleatStyle } from '../cloth/Garment'
-export const PLEAT_STYLES: PleatStyle[] = ['knife', 'box', 'accordion', 'cartridge', 'gather', 'shirr', 'smock']
+export const PLEAT_STYLES: PleatStyle[] = ['knife', 'box', 'accordion', 'cartridge', 'gather', 'shirr', 'smock', 'inverted-box', 'sunburst']
 
 /** A garment id from the registry (see garments/registry.ts). */
 export type GarmentType = string
@@ -103,6 +104,8 @@ export interface GarmentParams {
   hem?: boolean
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
+  /** Which closure, when `closure` is on. Absent = the garment's own default. */
+  closureStyle?: ClosureStyle
   /** Wear the closure **open** (unbuttoned/unzipped): the centre-front seam is unsewn
    *  so the garment really gaps and hangs open — a functional opening. */
   closureOpen?: boolean

@@ -112,6 +112,7 @@ export function gradeParams(l: GarmentLayerData): GarmentParams {
     hem: l.hem,
     hemShape: l.hemShape,
     closure: l.closure,
+    closureStyle: l.closureStyle,
     closureOpen: l.closureOpen,
     lined: l.lined,
     interfaced: l.interfaced,
@@ -226,6 +227,8 @@ export interface GarmentLayerData {
   hemShape?: import('../cloth/Garment').HemShape
   /** Front closure — a centre-front placket with buttons (or a zip). */
   closure?: boolean
+  /** Which closure, when `closure` is on. Absent = the garment's own default. */
+  closureStyle?: import('../garment/closureStyles').ClosureStyle
   /** Closure decor design — button count/size/colour, zip tape + pull colours. */
   closureDesign?: import('./closureDesign').ClosureDesign
   /** Wear the closure open (unbuttoned/unzipped) — the garment gaps at centre-front. */
@@ -527,6 +530,10 @@ export interface BodyData {
   leg?: number
   thigh?: number
   calf?: number
+  /** Shoulder width, torso length, arm length. Absent = the authored 1. */
+  shoulder?: number
+  torso?: number
+  arm?: number
   /** Complexion — skin tone + undertone (undefined = the default warm mid skin). */
   skinTone?: SkinTone
   undertone?: Undertone
@@ -605,6 +612,7 @@ export function layerFromConfig(c: DesignConfig): GarmentLayerData {
     hem: c.hem,
     hemShape: c.hemShape,
     closure: c.closure,
+    closureStyle: c.closureStyle,
     closureOpen: c.closureOpen,
     lined: c.lined,
     interfaced: c.interfaced,
@@ -678,6 +686,7 @@ export function defaultLayer(garmentType: GarmentType = 'top'): GarmentLayerData
     gaiterWorn: d.gaiterWorn,
     snoodWorn: d.snoodWorn,
     closure: d.closure,
+    closureStyle: d.closureStyle,
     lined: d.lined,
     interfaced: d.interfaced,
     wet: d.wet,
@@ -804,6 +813,9 @@ export function parseDoc(text: string): ProjectDoc {
     ...(storedProportion(b.leg) !== undefined ? { leg: storedProportion(b.leg) } : {}),
     ...(storedProportion(b.thigh) !== undefined ? { thigh: storedProportion(b.thigh) } : {}),
     ...(storedProportion(b.calf) !== undefined ? { calf: storedProportion(b.calf) } : {}),
+    ...(storedProportion(b.shoulder) !== undefined ? { shoulder: storedProportion(b.shoulder) } : {}),
+    ...(storedProportion(b.torso) !== undefined ? { torso: storedProportion(b.torso) } : {}),
+    ...(storedProportion(b.arm) !== undefined ? { arm: storedProportion(b.arm) } : {}),
     skinTone: b.skinTone && (SKIN_TONES as string[]).includes(b.skinTone) ? b.skinTone : undefined,
     undertone: b.undertone && (UNDERTONES as string[]).includes(b.undertone) ? b.undertone : undefined
   }

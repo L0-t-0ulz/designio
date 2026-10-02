@@ -398,7 +398,8 @@ export function garmentToPanels(
   }
 
   if (params.notches === false) for (const p of panels) p.notches = [] // notches off
-  const closure = params.closure ? (def.closureStyle ?? 'button') : undefined
+  const chosenClosure = params.closure ? (params.closureStyle ?? def.closureStyle ?? 'button') : undefined
+  const closure = chosenClosure === undefined ? undefined : chosenClosure === 'zip' ? 'zip' : 'button'
   const active = [
     params.collar && `${params.collarStyle ?? 'band'} collar`,
     params.cuff && 'cuffs',
@@ -411,7 +412,7 @@ export function garmentToPanels(
     params.pocket && `${params.pocketStyle ?? 'patch'} pocket`,
     params.hem && 'rolled hem',
     params.hemShape && params.hemShape !== 'straight' && `${params.hemShape} hem`,
-    closure && `${closure} closure`,
+    chosenClosure && `${chosenClosure} closure`,
     params.lined && 'lined',
     params.interfaced && 'interfaced',
     params.waistband && 'waistband',

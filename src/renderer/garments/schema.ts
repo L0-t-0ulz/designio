@@ -1,4 +1,5 @@
 import type { GarmentParams } from '../garment/templates'
+import type { ClosureStyle } from '../garment/closureStyles'
 
 /** Top-level grouping for the garment picker. */
 export type GarmentCategory = 'top' | 'bottom' | 'dress' | 'onepiece' | 'outerwear'
@@ -29,8 +30,8 @@ export interface GarmentDefinition {
   visor?: boolean
   /** A crossed-knit twist at the band front (twisted headband). */
   twist?: boolean
-  /** How the front closure reads when enabled: a button placket (default) or a zip. */
-  closureStyle?: 'button' | 'zip'
+  /** How the front closure reads when enabled: a button placket (default), a zip, or a styled closure. */
+  closureStyle?: ClosureStyle
 }
 
 /** The four base silhouette icons the picker can draw. */

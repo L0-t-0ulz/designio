@@ -3,6 +3,7 @@ import type { Loop } from '../core/Loop'
 import type { Viewport } from '../core/Viewport'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from '../garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from '../garment/templates'
+import { CLOSURE_STYLES, type ClosureStyle } from '../garment/closureStyles'
 import { WRAP_PRESETS, applyWrapPreset } from '../avatar/wrapPresets'
 import type { NecklineStyle } from '../cloth/Garment'
 import type { AnimationMode, BodyParams, BodyType } from '../avatar/Mannequin'
@@ -144,6 +145,7 @@ export interface GarmentState {
   hem?: boolean
   hemShape?: HemShape
   closure?: boolean
+  closureStyle?: ClosureStyle
   closureOpen?: boolean
   closureDesign?: ClosureDesign
   lined?: boolean
@@ -625,7 +627,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   frillBlock.append(el('div', 'dio-field-label', 'Frill style'), frillRow)
 
   // pleat picker (the pleats & gathers library; shown when the Pleats detail is on)
-  const pleatLabels: Record<PleatStyle, string> = { knife: 'Knife', box: 'Box', accordion: 'Accordion', cartridge: 'Cartridge', gather: 'Gather', shirr: 'Shirring', smock: 'Smocking' }
+  const pleatLabels: Record<PleatStyle, string> = { knife: 'Knife', box: 'Box', accordion: 'Accordion', cartridge: 'Cartridge', gather: 'Gather', shirr: 'Shirring', smock: 'Smocking', 'inverted-box': 'Inverted box', sunburst: 'Sunburst' }
   const pleatRow = el('div', 'dio-actions')
   pleatRow.style.flexWrap = 'wrap'
   const pleatBtns = new Map<PleatStyle, HTMLButtonElement>()
@@ -764,7 +766,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     openT.refresh()
     const closureOn = !!def.supports.closure && !!garment.closure
     closureDesignBlock.classList.toggle('dio-hidden', !closureOn)
-    const zipStyle = (def.closureStyle ?? 'button') === 'zip'
+    const zipStyle = (garment.closureStyle ?? def.closureStyle ?? 'button') === 'zip'
+    for (const [st, node] of closureStyleBtns) node.classList.toggle('primary', (garment.closureStyle ?? def.closureStyle ?? 'button') === st)
     btnCountS.row.classList.toggle('dio-hidden', zipStyle)
     btnSizeS.row.classList.toggle('dio-hidden', zipStyle)
     btnColorF.row.classList.toggle('dio-hidden', zipStyle)
@@ -827,6 +830,7 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   function selectGarment(id: string): void {
     garment.type = id
     Object.assign(garment, getGarment(id).defaults) // apply the garment's starting fit/style
+    if (getGarment(id).defaults.closureStyle === undefined) garment.closureStyle = undefined
     syncGarment()
     opts.onGarmentEdit()
   }
@@ -879,8 +883,22 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   const btnColorF = colorField({ label: 'Button colour', get: () => garment.closureDesign?.buttonColor ?? 0x26262c, set: (v) => setClosureDesign({ buttonColor: v }) })
   const zipColorF = colorField({ label: 'Zip colour', get: () => garment.closureDesign?.zipColor ?? 0x1d1d21, set: (v) => setClosureDesign({ zipColor: v }) })
   const pullColorF = colorField({ label: 'Pull colour', get: () => garment.closureDesign?.pullColor ?? 0xc2c2ca, set: (v) => setClosureDesign({ pullColor: v }) })
+  const closureStyleRow = el('div', 'dio-actions')
+  closureStyleRow.style.flexWrap = 'wrap'
+  const closureLabels: Record<ClosureStyle, string> = { button: 'Buttons', zip: 'Zip', 'double-breasted': 'Double-breasted', frog: 'Frog', toggle: 'Toggle' }
+  const closureStyleBtns = new Map<ClosureStyle, HTMLButtonElement>()
+  for (const st of CLOSURE_STYLES) {
+    const b = button(closureLabels[st], () => {
+      garment.closureStyle = st
+      syncGarment()
+      opts.onGarmentEdit()
+    }, false)
+    b.style.flex = '1 1 30%'
+    closureStyleBtns.set(st, b)
+    closureStyleRow.append(b)
+  }
   const closureDesignBlock = el('div')
-  closureDesignBlock.append(el('div', 'dio-field-label', 'Closure design'), btnCountS.row, btnSizeS.row, btnColorF.row, zipColorF.row, pullColorF.row)
+  closureDesignBlock.append(el('div', 'dio-field-label', 'Closure design'), closureStyleRow, btnCountS.row, btnSizeS.row, btnColorF.row, zipColorF.row, pullColorF.row)
 
   // Functional opening — wear the closure unbuttoned/unzipped: the centre-front seam
   // is really unsewn, so the garment gaps and hangs open. Shows only while Closure is on.
@@ -891,7 +909,8 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
   hemShapeRow.style.flexWrap = 'wrap'
   const hemShapeBtns = new Map<HemShape, HTMLButtonElement>()
   for (const hs of HEM_SHAPES) {
-    const b = button(hs === 'high-low' ? 'High-low' : hs[0].toUpperCase() + hs.slice(1), () => {
+    const hemLabels: Partial<Record<HemShape, string>> = { 'high-low': 'High-low', 'ear-flap': 'Ear flap', 'point-front': 'Point front', 'back-flap': 'Back flap', fishtail: 'Fishtail', bubble: 'Balloon' }
+    const b = button(hemLabels[hs] ?? hs[0].toUpperCase() + hs.slice(1), () => {
       garment.hemShape = hs === 'straight' ? undefined : hs
       for (const [k, node] of hemShapeBtns) node.classList.toggle('primary', k === hs)
       opts.onGarmentEdit()
@@ -1436,6 +1455,9 @@ export function createControlPanel(opts: PanelOptions): { panel: HTMLElement; ap
     bodySlider('Thigh', 'thigh', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
     bodySlider('Calf', 'calf', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
     bodySlider('Neck length', 'neck', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Shoulder width', 'shoulder', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Torso length', 'torso', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
+    bodySlider('Arm length', 'arm', 0.82, 1.22, (v) => `${Math.round(v * 100)}%`).row,
     mtm.root
   )
   // The fabric *gallery* now lives in the Library; keep selectFabric as the shared

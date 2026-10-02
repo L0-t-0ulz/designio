@@ -79,6 +79,7 @@ import { turntablePose } from './studio/turntable'
 import { batchRenderPlan } from './studio/batchRender'
 import type { GarmentType, SleeveStyle, CollarStyle, SleeveShape, PocketStyle, PleatStyle, FrillStyle } from './garment/templates'
 import { COLLAR_STYLES, SLEEVE_SHAPES, POCKET_STYLES, PLEAT_STYLES, FRILL_STYLES } from './garment/templates'
+import { isClosureStyle } from './garment/closureStyles'
 import { HEM_SHAPES, type HemShape, type NecklineStyle } from './cloth/Garment'
 import { GARMENT_IDS, getGarment } from './garments/registry'
 import { pocketPlacements } from './garments/decor'
@@ -318,6 +319,7 @@ function initStudio(
     hem: l0.hem,
     hemShape: l0.hemShape,
     closure: l0.closure,
+    closureStyle: l0.closureStyle,
     closureOpen: l0.closureOpen,
     closureDesign: l0.closureDesign ? { ...l0.closureDesign } : undefined,
     lined: l0.lined,
@@ -488,6 +490,7 @@ function initStudio(
     garment.hem = l.data.hem
     garment.hemShape = l.data.hemShape
     garment.closure = l.data.closure
+    garment.closureStyle = l.data.closureStyle
     garment.closureOpen = l.data.closureOpen
     garment.closureDesign = l.data.closureDesign ? { ...l.data.closureDesign } : undefined
     garment.lined = l.data.lined
@@ -977,6 +980,7 @@ function initStudio(
     l.data.hem = garment.hem
     l.data.hemShape = garment.hemShape
     l.data.closure = garment.closure
+    l.data.closureStyle = garment.closureStyle
     l.data.closureOpen = garment.closureOpen
     l.data.closureDesign = garment.closureDesign ? { ...garment.closureDesign } : undefined
     l.data.lined = garment.lined
@@ -1121,7 +1125,7 @@ function initStudio(
   if (walkParam && WALK_STYLE_NAMES.includes(walkParam)) mannequin.setWalkStyle(walkParam as WalkStyleName)
   const postureParam = params.get('posture')
   if (postureParam && (POSTURES as string[]).includes(postureParam)) mannequin.setPosture(postureParam as PostureName)
-  const bodyParams: [string, 'height' | 'build' | 'bust' | 'waist' | 'hips' | 'neck' | 'leg' | 'thigh' | 'calf'][] = [
+  const bodyParams: [string, 'height' | 'build' | 'bust' | 'waist' | 'hips' | 'neck' | 'leg' | 'thigh' | 'calf' | 'shoulder' | 'torso' | 'arm'][] = [
     ['bodyH', 'height'],
     ['bodyB', 'build'],
     ['bodyBust', 'bust'],
@@ -1130,7 +1134,10 @@ function initStudio(
     ['bodyNeck', 'neck'],
     ['bodyLeg', 'leg'],
     ['bodyThigh', 'thigh'],
-    ['bodyCalf', 'calf']
+    ['bodyCalf', 'calf'],
+    ['bodyShoulder', 'shoulder'],
+    ['bodyTorso', 'torso'],
+    ['bodyArm', 'arm']
   ]
   let bodyChanged = false
   const btParam = params.get('bodyType')
@@ -1472,7 +1479,7 @@ function initStudio(
     const metrics = activeMetrics(l)
     const d = l.data
     return trimCard({
-      closure: d.closure ? ((getGarment(d.garmentType).closureStyle ?? 'button') as 'button' | 'zip') : undefined,
+      closure: d.closure ? (d.closureStyle ?? getGarment(d.garmentType).closureStyle ?? 'button') : undefined,
       closureDesign: d.closureDesign,
       seamCm: metrics.seamCm,
       threadM: threadMetres(metrics.seamCm),
@@ -2217,7 +2224,7 @@ function initStudio(
             pockets: hasLegs ? pocketPlacements(def, m) : [],
             rivet: heavy && hasLegs,
             eyelet: !!l.data.drawstring,
-            snap: heavy && !!l.data.closure && (def.closureStyle ?? 'button') !== 'zip',
+            snap: heavy && !!l.data.closure && (l.data.closureStyle ?? def.closureStyle ?? 'button') !== 'zip',
             frontZ: m.chestR + 0.02,
             waistY: (m.chestY + m.hipY) / 2,
             neckY: m.chestY + 0.16,
@@ -2244,7 +2251,7 @@ function initStudio(
           symmetry,
           stitch: l.data.stitch ? { summary: stitchSummary(l.data.stitch), spec: l.data.stitch } : undefined,
           // a zip closure resolves to a full zipper spec (gauge from weight, length from category)
-          zipper: l.data.closure && (def.closureStyle ?? 'button') === 'zip' ? zipperSummary(zipperSpecFor(def.category, l.fabric.gsm)) : undefined,
+          zipper: l.data.closure && (l.data.closureStyle ?? def.closureStyle ?? 'button') === 'zip' ? zipperSummary(zipperSpecFor(def.category, l.fabric.gsm)) : undefined,
           // a knit garment that tapers chest→waist is fully-fashioned (shaped by decreases)
           fullyFashioned: (() => {
             if (l.fabric.family !== 'knit') return undefined
@@ -3683,6 +3690,11 @@ if (skipStart) {
   const neckParam = entryParams.get('neckline')
   if (neckParam && ['scoop', 'crew', 'v', 'one-shoulder', 'strapless'].includes(neckParam)) cfg.neckline = neckParam as NecklineStyle
   if (entryParams.get('closure')) cfg.closure = true
+  const closureStyleParam = entryParams.get('closureStyle')
+  if (closureStyleParam && isClosureStyle(closureStyleParam)) {
+    cfg.closure = true
+    cfg.closureStyle = closureStyleParam
+  }
   if (entryParams.get('crease')) cfg.crease = true
   for (const [q, k] of [['easeChest', 'easeChest'], ['easeWaist', 'easeWaist'], ['easeHip', 'easeHip']] as const) {
     const v = entryParams.get(q)
