@@ -136,16 +136,16 @@ export function sheenRecipeFromFabric(fabric: Fabric): {
       // liquid lustre — brighter, sharper sheen, cool bright tint
       return { sheen: clamp01(fabric.sheen * 1.05 + 0.1), sheenRoughness: clamp01(fabric.sheenRoughness - 0.08), tintSat: 0.07, tintLift: 0.18 }
     case 'knit':
-      // soft, diffuse glow
-      return { sheen: clamp01(fabric.sheen * 0.8), sheenRoughness: clamp01(fabric.sheenRoughness + 0.08), tintSat: 0.04, tintLift: 0.08 }
+      // soft, broad glow — a knit scatters, it doesn't ping
+      return { sheen: clamp01(fabric.sheen * 0.72), sheenRoughness: clamp01(fabric.sheenRoughness + 0.12), tintSat: 0.03, tintLift: 0.06 }
     case 'specialty':
       // napped pile (velvet/velour) is the most lustrous; smooth specialty (leather/tulle) muted
       return fabric.nap
         ? { sheen: clamp01(fabric.sheen * 1.15 + 0.18), sheenRoughness: clamp01(fabric.sheenRoughness - 0.03), tintSat: 0.09, tintLift: 0.2 }
         : { sheen: clamp01(fabric.sheen * 0.9), sheenRoughness: clamp01(fabric.sheenRoughness), tintSat: 0.05, tintLift: 0.1 }
     default:
-      // wovens — present but muted, holds the classic desaturated lift
-      return { sheen: clamp01(fabric.sheen * 0.85), sheenRoughness: clamp01(fabric.sheenRoughness + 0.05), tintSat: 0.05, tintLift: 0.1 }
+      // wovens — a soft, wide cloth glow. A tight sheen is what makes cotton read as plastic.
+      return { sheen: clamp01(fabric.sheen * 0.55), sheenRoughness: clamp01(fabric.sheenRoughness + 0.18), tintSat: 0.03, tintLift: 0.05 }
   }
 }
 
@@ -166,8 +166,19 @@ export function anisotropyAngleForFabric(fabric: Fabric): number {
  * barely does (low). Derived from roughness so it tracks the surface, clamped to a sane
  * band. Pure, unit-tested; the material layer sets `MeshPhysicalMaterial.envMapIntensity`. */
 export function envIntensityForFabric(fabric: Fabric): number {
-  const v = 0.8 + (1 - fabric.roughness) * 0.95 // glossier ⇒ reflects the room more
-  return Math.max(0.7, Math.min(1.6, v))
+  // Matte cotton/wool barely mirrors the studio; a smooth silk or leather does.
+  const v = 0.28 + (1 - fabric.roughness) * 1.35
+  return Math.max(0.28, Math.min(1.55, v))
+}
+
+/**
+ * Strength of the sharp dielectric highlight. Real cloth is mostly diffuse plus a
+ * soft sheen — a full-strength specular lobe is the plastic look. Smooth silks and
+ * coated leathers keep a real highlight; matte wovens and knits stay quiet. Pure.
+ */
+export function specularIntensityForFabric(fabric: Fabric): number {
+  const v = 0.22 + (1 - fabric.roughness) * 0.9
+  return Math.max(0.15, Math.min(1, v))
 }
 
 /**
